@@ -97,6 +97,7 @@ class RepositoryIndex:
         self._map_roofs = self._parse_map_roofs()
         self._roof_palettes = self._parse_roof_palettes()
         self._map_table = self._parse_map_table()
+        self._map_attributes = self._parse_map_attributes()
         self._tileset_constants = self._parse_tileset_constants()
         self._tileset_labels = self._parse_tileset_table()
         self._tileset_assets = self._parse_tileset_assets()
@@ -139,6 +140,21 @@ class RepositoryIndex:
             tileset = parts[1]
             constant = parts[4]
             mapping[label] = (tileset, constant)
+        return mapping
+
+    def _parse_map_attributes(self) -> dict[str, str]:
+        path = self.root / "data/maps/attributes.asm"
+        mapping: dict[str, str] = {}
+        for raw_line in path.read_text().splitlines():
+            line = raw_line.split(";", 1)[0].strip()
+            if not line.startswith("map_attributes"):
+                continue
+            parts = [part.strip() for part in line[len("map_attributes") :].split(",")]
+            if len(parts) < 2:
+                continue
+            label = parts[0]
+            constant = parts[1]
+            mapping[label] = constant
         return mapping
 
     def _parse_map_constants(self) -> dict[str, Tuple[int, int, int]]:
@@ -261,7 +277,8 @@ class RepositoryIndex:
     def _build_map_infos(self) -> dict[str, MapInfo]:
         maps: dict[str, MapInfo] = {}
         for label, (tileset, constant) in self._map_table.items():
-            constant_data = self._map_constants.get(constant)
+            constant_name = self._map_attributes.get(label, constant)
+            constant_data = self._map_constants.get(constant_name)
             if constant_data is None:
                 continue
             width, height, group = constant_data
@@ -269,7 +286,7 @@ class RepositoryIndex:
             maps[label] = MapInfo(
                 label=label,
                 tileset=tileset,
-                constant=constant,
+                constant=constant_name,
                 width=width,
                 height=height,
                 group=group,

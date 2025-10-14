@@ -34,6 +34,11 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Number of worker threads (defaults to min(32, cpu_count + 4)).",
     )
+    parser.add_argument(
+        "--animated",
+        action="store_true",
+        help="Render animated GIFs instead of PNGs.",
+    )
     return parser.parse_args()
 
 
@@ -48,12 +53,23 @@ def _render_single(
     repo_index: render_map.RepositoryIndex,
     map_label: str,
     output_dir: Path,
+    animated: bool,
 ) -> Tuple[str, Path]:
     # Keep the heavy work in a helper so the thread pool stays focused on rendering.
     renderer = render_map._build_renderer(png_module, polished_path, repo_index, map_label)
-    width, height, rows = render_map._render_with_tiles(renderer, renderer.bank0_tiles, renderer.bank1_tiles)
-    destination = output_dir / f"{renderer.map_label}.png"
-    render_map._write_png(destination, width, height, rows, png_module)
+    if animated:
+        animations = render_map._load_tileset_animations(polished_path, renderer, png_module)
+        period = render_map._animation_period(animations)
+        frames = []
+        for timer in range(period):
+            animated_tiles = render_map._apply_tile_animations(renderer.bank0_tiles, animations, timer)
+            frames.append(render_map._render_with_tiles(renderer, animated_tiles, renderer.bank1_tiles))
+        destination = output_dir / f"{renderer.map_label}.gif"
+        render_map._write_gif(destination, frames, render_map._GIF_FRAME_DURATION_MS)
+    else:
+        width, height, rows = render_map._render_with_tiles(renderer, renderer.bank0_tiles, renderer.bank1_tiles)
+        destination = output_dir / f"{renderer.map_label}.png"
+        render_map._write_png(destination, width, height, rows, png_module)
     return map_label, destination
 
 
@@ -64,12 +80,13 @@ def _render_all(
     labels: Iterable[str],
     output_dir: Path,
     workers: int,
+    animated: bool,
 ) -> Tuple[int, Tuple[Tuple[str, Exception], ...]]:
     output_dir.mkdir(parents=True, exist_ok=True)
     errors: list[Tuple[str, Exception]] = []
     with ThreadPoolExecutor(max_workers=workers) as executor:
         futures = {
-            executor.submit(_render_single, png_module, polished_path, repo_index, label, output_dir): label
+            executor.submit(_render_single, png_module, polished_path, repo_index, label, output_dir, animated): label
             for label in labels
         }
         for future in as_completed(futures):
@@ -95,9 +112,10 @@ def main() -> None:
     repo_index = render_map.RepositoryIndex(polished_path)
     labels = sorted(repo_index.maps.keys())
     total = len(labels)
-    print(f"Rendering {total} maps into {output_dir} with {workers} worker(s)...")
-    rendered, errors = _render_all(png, polished_path, repo_index, labels, output_dir, workers)
-    print(f"Rendered {rendered}/{total} maps into {output_dir}.")
+    mode = "animated GIFs" if args.animated else "PNGs"
+    print(f"Rendering {total} maps into {output_dir} as {mode} with {workers} worker(s)...")
+    rendered, errors = _render_all(png, polished_path, repo_index, labels, output_dir, workers, args.animated)
+    print(f"Rendered {rendered}/{total} maps into {output_dir} as {mode}.")
     if errors:
         print("The following maps failed:")
         for label, exc in errors:

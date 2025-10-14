@@ -144,7 +144,7 @@ class RepositoryIndex:
     def _parse_map_constants(self) -> dict[str, Tuple[int, int, int]]:
         path = self.root / "constants/map_constants.asm"
         constants: dict[str, Tuple[int, int, int]] = {}
-        group = -1
+        group = 0
         for raw_line in path.read_text().splitlines():
             line = raw_line.split(";", 1)[0].strip()
             if not line:

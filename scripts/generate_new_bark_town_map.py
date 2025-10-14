@@ -95,6 +95,15 @@ _ANIMATION_SPECS: Dict[str, AnimationSpec] = {
         ),
         repeat_each=2,
     ),
+    "AnimateWhirlpoolTile": AnimationSpec(
+        (
+            "gfx/tilesets/whirlpool/1.png",
+            "gfx/tilesets/whirlpool/2.png",
+            "gfx/tilesets/whirlpool/3.png",
+            "gfx/tilesets/whirlpool/4.png",
+        ),
+        repeat_each=1,
+    ),
 }
 
 _ANIMATION_TABLE_CACHE: Dict[str, Dict[str, List[Tuple[int, str]]]] = {}
@@ -479,6 +488,16 @@ def _tileset_animation_entries(polished_path: Path) -> Dict[str, List[Tuple[int,
     if cached is not None:
         return cached
     path = polished_path / "engine/tilesets/tileset_anims.asm"
+    raw_lines = path.read_text().splitlines()
+    pointer_pattern = re.compile(r"([A-Za-z0-9_]+):\s+dw\s+vTiles2\s+tile\s+\$([0-9A-Fa-f]+)")
+    pointer_tiles: Dict[str, int] = {}
+    for raw_line in raw_lines:
+        pointer_line = raw_line.split(";", 1)[0].strip()
+        if not pointer_line:
+            continue
+        pointer_match = pointer_pattern.match(pointer_line)
+        if pointer_match:
+            pointer_tiles[pointer_match.group(1)] = int(pointer_match.group(2), 16)
     entries: Dict[str, List[Tuple[int, str]]] = {}
     current_labels: List[str] = []
     current_data: List[Tuple[int, str]] = []
@@ -495,7 +514,7 @@ def _tileset_animation_entries(polished_path: Path) -> Dict[str, List[Tuple[int,
     label_pattern = re.compile(r"([A-Za-z0-9_]+)::")
     tile_pattern = re.compile(r"vTiles2\s+tile\s+\$([0-9A-Fa-f]+)")
 
-    for raw_line in path.read_text().splitlines():
+    for raw_line in raw_lines:
         line = raw_line.split(";", 1)[0].strip()
         if not line:
             continue
@@ -518,12 +537,16 @@ def _tileset_animation_entries(polished_path: Path) -> Dict[str, List[Tuple[int,
         if len(parts) < 2:
             continue
         location, function = parts[0], parts[1]
+        tile_index: Optional[int]
         tile_match = tile_pattern.search(location)
-        if not tile_match:
-            continue
-        try:
-            tile_index = int(tile_match.group(1), 16)
-        except ValueError:
+        if tile_match:
+            try:
+                tile_index = int(tile_match.group(1), 16)
+            except ValueError:
+                tile_index = None
+        else:
+            tile_index = pointer_tiles.get(location)
+        if tile_index is None:
             continue
         current_data.append((tile_index, function))
 

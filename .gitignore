@@ -1,1 +1,3 @@
-maps/
+# ignore all .png and .gif files under /maps and subdirs
+maps/**/*.png
+maps/**/*.gif

@@ -95,18 +95,16 @@ _ANIMATION_SPECS: Dict[str, AnimationSpec] = {
         ),
         repeat_each=2,
     ),
-    "AnimateWhirlpoolTile": AnimationSpec(
-        (
-            "gfx/tilesets/whirlpool/1.png",
-            "gfx/tilesets/whirlpool/2.png",
-            "gfx/tilesets/whirlpool/3.png",
-            "gfx/tilesets/whirlpool/4.png",
-        ),
-        repeat_each=1,
-    ),
 }
 
-_ANIMATION_TABLE_CACHE: Dict[str, Dict[str, List[Tuple[int, str]]]] = {}
+_ANIMATION_DATA_SPECS: Dict[str, AnimationSpec] = {
+    "WhirlpoolTiles1": AnimationSpec(("gfx/tilesets/whirlpool/1.png",), repeat_each=1),
+    "WhirlpoolTiles2": AnimationSpec(("gfx/tilesets/whirlpool/2.png",), repeat_each=1),
+    "WhirlpoolTiles3": AnimationSpec(("gfx/tilesets/whirlpool/3.png",), repeat_each=1),
+    "WhirlpoolTiles4": AnimationSpec(("gfx/tilesets/whirlpool/4.png",), repeat_each=1),
+}
+
+_ANIMATION_TABLE_CACHE: Dict[str, Dict[str, List[Tuple[int, str, Optional[str]]]]] = {}
 
 
 @dataclass
@@ -482,25 +480,25 @@ class RepositoryIndex:
         return GraphicsSource(path=resolved, is_png=is_png, tile_offset=tile_offset, tile_length=tile_length, needs_slice=needs_slice)
 
 
-def _tileset_animation_entries(polished_path: Path) -> Dict[str, List[Tuple[int, str]]]:
+def _tileset_animation_entries(polished_path: Path) -> Dict[str, List[Tuple[int, str, Optional[str]]]]:
     key = polished_path.resolve().as_posix()
     cached = _ANIMATION_TABLE_CACHE.get(key)
     if cached is not None:
         return cached
     path = polished_path / "engine/tilesets/tileset_anims.asm"
     raw_lines = path.read_text().splitlines()
-    pointer_pattern = re.compile(r"([A-Za-z0-9_]+):\s+dw\s+vTiles2\s+tile\s+\$([0-9A-Fa-f]+)")
-    pointer_tiles: Dict[str, int] = {}
+    pointer_pattern = re.compile(r"([A-Za-z0-9_]+):\s+dw\s+vTiles2\s+tile\s+\$([0-9A-Fa-f]+)\s*,\s*([A-Za-z0-9_]+)")
+    pointer_tiles: Dict[str, Tuple[int, str]] = {}
     for raw_line in raw_lines:
         pointer_line = raw_line.split(";", 1)[0].strip()
         if not pointer_line:
             continue
         pointer_match = pointer_pattern.match(pointer_line)
         if pointer_match:
-            pointer_tiles[pointer_match.group(1)] = int(pointer_match.group(2), 16)
-    entries: Dict[str, List[Tuple[int, str]]] = {}
+            pointer_tiles[pointer_match.group(1)] = (int(pointer_match.group(2), 16), pointer_match.group(3))
+    entries: Dict[str, List[Tuple[int, str, Optional[str]]]] = {}
     current_labels: List[str] = []
-    current_data: List[Tuple[int, str]] = []
+    current_data: List[Tuple[int, str, Optional[str]]] = []
 
     def flush() -> None:
         nonlocal current_labels, current_data
@@ -538,6 +536,7 @@ def _tileset_animation_entries(polished_path: Path) -> Dict[str, List[Tuple[int,
             continue
         location, function = parts[0], parts[1]
         tile_index: Optional[int]
+        data_label: Optional[str] = None
         tile_match = tile_pattern.search(location)
         if tile_match:
             try:
@@ -545,10 +544,14 @@ def _tileset_animation_entries(polished_path: Path) -> Dict[str, List[Tuple[int,
             except ValueError:
                 tile_index = None
         else:
-            tile_index = pointer_tiles.get(location)
+            pointer_entry = pointer_tiles.get(location)
+            if pointer_entry is not None:
+                tile_index, data_label = pointer_entry
+            else:
+                tile_index = None
         if tile_index is None:
             continue
-        current_data.append((tile_index, function))
+        current_data.append((tile_index, function, data_label))
 
     if current_labels and current_data:
         flush()
@@ -911,8 +914,10 @@ def _load_tileset_animations(
         return []
     animations: List[TileAnimation] = []
     frames_cache: Dict[Tuple[str, ...], List[List[int]]] = {}
-    for tile_index, function in entries:
-        spec = _ANIMATION_SPECS.get(function)
+    for tile_index, function, data_label in entries:
+        spec = _ANIMATION_DATA_SPECS.get(data_label) if data_label else None
+        if spec is None:
+            spec = _ANIMATION_SPECS.get(function)
         if spec is None:
             continue
         frames = frames_cache.get(spec.sources)

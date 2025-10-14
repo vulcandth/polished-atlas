@@ -13,7 +13,7 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Optional, Sequence, Tuple
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 RGB = Tuple[int, int, int]
 
@@ -59,6 +59,48 @@ class TileAnimation:
 
 
 @dataclass
+class GraphicsSource:
+    path: str
+    is_png: bool
+    tile_offset: int = 0
+    tile_length: Optional[int] = None
+    needs_slice: bool = False
+
+
+@dataclass(frozen=True)
+class AnimationSpec:
+    sources: Tuple[str, ...]
+    repeat_each: int = 1
+    sequence: Optional[Tuple[int, ...]] = None
+
+
+_ANIMATION_SPECS: Dict[str, AnimationSpec] = {
+    "AnimateWaterTile": AnimationSpec(("gfx/tilesets/water/johto_water.png",), repeat_each=2),
+    "AnimateRainPuddleTile": AnimationSpec(("gfx/tilesets/rain/rain_puddle.png",), repeat_each=1),
+    "AnimateRainWaterTile": AnimationSpec(("gfx/tilesets/rain/rain_water.png",), repeat_each=1),
+    "AnimateFlowerTile": AnimationSpec(
+        (
+            "gfx/tilesets/flower/1.png",
+            "gfx/tilesets/flower/2.png",
+        ),
+        repeat_each=2,
+    ),
+    "AnimateKantoWaterTile": AnimationSpec(("gfx/tilesets/water/kanto_water.png",), repeat_each=2),
+    "AnimateKantoFlowerTile": AnimationSpec(
+        (
+            "gfx/tilesets/kanto-flower/1.png",
+            "gfx/tilesets/kanto-flower/2.png",
+            "gfx/tilesets/kanto-flower/3.png",
+            "gfx/tilesets/kanto-flower/1.png",
+        ),
+        repeat_each=2,
+    ),
+}
+
+_ANIMATION_TABLE_CACHE: Dict[str, Dict[str, List[Tuple[int, str]]]] = {}
+
+
+@dataclass
 class RendererData:
     block_indices: List[int]
     width: int
@@ -68,6 +110,7 @@ class RendererData:
     bank0_tiles: List[List[int]]
     bank1_tiles: List[List[int]]
     tileset_key: str
+    tileset_label: str
     map_label: str
 
 
@@ -88,8 +131,8 @@ class MapInfo:
 class TilesetResources:
     metatiles_path: str
     attributes_path: str
-    bank0_sources: List[str]
-    bank1_sources: List[str]
+    bank0_sources: List[GraphicsSource]
+    bank1_sources: List[GraphicsSource]
 
 
 class RepositoryIndex:
@@ -107,6 +150,10 @@ class RepositoryIndex:
         ) = self._parse_tileset_constants()
         self._tileset_labels = self._parse_tileset_table()
         self._tileset_assets = self._parse_tileset_assets()
+        self._constant_to_tileset_label = {
+            constant: label
+            for constant, label in zip(self._tileset_constants, self._tileset_labels)
+        }
         self.maps = self._build_map_infos()
         self.tilesets = self._build_tileset_resources()
 
@@ -121,6 +168,9 @@ class RepositoryIndex:
             return self.tilesets[tileset_constant]
         except KeyError as exc:
             raise KeyError(f"Missing tileset resources for {tileset_constant}") from exc
+
+    def tileset_label(self, tileset_constant: str) -> Optional[str]:
+        return self._constant_to_tileset_label.get(tileset_constant)
 
     def tileset_index(self, tileset_constant: str) -> Optional[int]:
         return self._tileset_indices.get(tileset_constant)
@@ -336,10 +386,7 @@ class RepositoryIndex:
 
     def _build_tileset_resources(self) -> dict[str, TilesetResources]:
         resources: dict[str, TilesetResources] = {}
-        constant_to_label = {
-            constant: label for constant, label in zip(self._tileset_constants, self._tileset_labels)
-        }
-        for constant, label in constant_to_label.items():
+        for constant, label in self._constant_to_tileset_label.items():
             asset = self._tileset_assets.get(label, {})
             meta_path = asset.get("Meta")
             attr_path = asset.get("Attr")
@@ -347,15 +394,15 @@ class RepositoryIndex:
                 continue
             metatiles_path = self._normalize_binary_path(meta_path)
             attributes_path = self._normalize_binary_path(attr_path)
-            bank0_sources = []
+            bank0_sources: List[GraphicsSource] = []
             gfx0_path = asset.get("GFX0")
             if gfx0_path:
-                bank0_sources.append(self._graphics_source_path(gfx0_path))
-            bank1_sources: List[str] = []
+                bank0_sources.append(self._resolve_graphics_source(gfx0_path))
+            bank1_sources: List[GraphicsSource] = []
             for key in ("GFX1", "GFX2"):
                 gfx_path = asset.get(key)
                 if gfx_path:
-                    bank1_sources.append(self._graphics_source_path(gfx_path))
+                    bank1_sources.append(self._resolve_graphics_source(gfx_path))
             resources[constant] = TilesetResources(
                 metatiles_path=metatiles_path,
                 attributes_path=attributes_path,
@@ -379,14 +426,20 @@ class RepositoryIndex:
         return candidate.as_posix()
 
     def _graphics_source_path(self, raw_path: str) -> str:
-        base = re.sub(r"\.2bpp(?:\.[^.]+)?(?:\.lz)?$", "", raw_path)
-        candidates = [
-            f"{base}.png",
-            f"{base}.2bpp",
-            f"{base}.2bpp.lz",
-            raw_path[:-3] if raw_path.endswith(".lz") else raw_path,
-            raw_path,
-        ]
+        candidates: List[str] = []
+        if raw_path:
+            candidates.append(raw_path)
+        if raw_path.endswith(".lz"):
+            candidates.append(raw_path[:-3])
+        base = raw_path[:-3] if raw_path.endswith(".lz") else raw_path
+        base = re.sub(r"\.2bpp(?:\.[^.]+)?$", "", base)
+        candidates.extend(
+            [
+                f"{base}.2bpp",
+                f"{base}.2bpp.lz",
+                f"{base}.png",
+            ]
+        )
         seen: set[str] = set()
         for candidate in candidates:
             if candidate in seen:
@@ -395,6 +448,90 @@ class RepositoryIndex:
             if (self.root / candidate).exists():
                 return candidate
         raise FileNotFoundError(f"Tileset graphics not found for base {raw_path}")
+
+    @staticmethod
+    def _parse_vram_slice(raw_path: str) -> Tuple[int, Optional[int]]:
+        match = re.search(r"\.vram(\d+)(p?)", raw_path)
+        if not match:
+            return 0, None
+        index = int(match.group(1))
+        has_p = match.group(2) == "p"
+        if has_p:
+            if index == 0:
+                return 0, 127
+            offset = max(index * 128 - 1, 0)
+            return offset, 128
+        return index * 128, 128
+
+    def _resolve_graphics_source(self, raw_path: str) -> GraphicsSource:
+        resolved = self._graphics_source_path(raw_path)
+        offset, length = self._parse_vram_slice(raw_path)
+        is_png = resolved.lower().endswith(".png")
+        needs_slice = is_png or (".vram" in raw_path and ".vram" not in resolved)
+        tile_offset = offset if needs_slice else 0
+        tile_length = length if needs_slice else None
+        return GraphicsSource(path=resolved, is_png=is_png, tile_offset=tile_offset, tile_length=tile_length, needs_slice=needs_slice)
+
+
+def _tileset_animation_entries(polished_path: Path) -> Dict[str, List[Tuple[int, str]]]:
+    key = polished_path.resolve().as_posix()
+    cached = _ANIMATION_TABLE_CACHE.get(key)
+    if cached is not None:
+        return cached
+    path = polished_path / "engine/tilesets/tileset_anims.asm"
+    entries: Dict[str, List[Tuple[int, str]]] = {}
+    current_labels: List[str] = []
+    current_data: List[Tuple[int, str]] = []
+
+    def flush() -> None:
+        nonlocal current_labels, current_data
+        if current_labels and current_data:
+            data_copy = list(current_data)
+            for label in current_labels:
+                entries[label] = list(data_copy)
+        current_labels = []
+        current_data = []
+
+    label_pattern = re.compile(r"([A-Za-z0-9_]+)::")
+    tile_pattern = re.compile(r"vTiles2\s+tile\s+\$([0-9A-Fa-f]+)")
+
+    for raw_line in path.read_text().splitlines():
+        line = raw_line.split(";", 1)[0].strip()
+        if not line:
+            continue
+        label_match = label_pattern.match(line)
+        if label_match:
+            label_name = label_match.group(1)
+            if current_data:
+                flush()
+            if label_name.endswith("Anim"):
+                base_label = label_name[:-4]
+                if base_label not in current_labels:
+                    current_labels.append(base_label)
+            else:
+                if current_labels:
+                    flush()
+            continue
+        if not current_labels or not line.startswith("dw "):
+            continue
+        parts = [part.strip() for part in line[3:].split(",")]
+        if len(parts) < 2:
+            continue
+        location, function = parts[0], parts[1]
+        tile_match = tile_pattern.search(location)
+        if not tile_match:
+            continue
+        try:
+            tile_index = int(tile_match.group(1), 16)
+        except ValueError:
+            continue
+        current_data.append((tile_index, function))
+
+    if current_labels and current_data:
+        flush()
+
+    _ANIMATION_TABLE_CACHE[key] = entries
+    return entries
 
 
 class LzDecompressor:
@@ -630,15 +767,31 @@ def _read_asset_bytes(path: Path) -> bytes:
     return data
 
 
-def _load_tileset_bank(polished_path: Path, sources: Sequence[str], png_module) -> List[List[int]]:
+def _load_tileset_bank(polished_path: Path, sources: Sequence[GraphicsSource], png_module) -> List[List[int]]:
     tiles: List[List[int]] = []
-    for relative in sources:
-        asset_path = polished_path / relative
-        if asset_path.suffix == ".png":
-            tiles.extend(_decode_tiles_from_png(asset_path, png_module))
+    png_cache: Dict[str, List[List[int]]] = {}
+    data_cache: Dict[str, List[List[int]]] = {}
+    for source in sources:
+        asset_path = polished_path / source.path
+        if source.is_png:
+            cached = png_cache.get(source.path)
+            if cached is None:
+                cached = _decode_tiles_from_png(asset_path, png_module)
+                png_cache[source.path] = cached
+            tiles_segment = cached
         else:
-            data = _read_asset_bytes(asset_path)
-            tiles.extend(_decode_2bpp_tiles(data))
+            cached = data_cache.get(source.path)
+            if cached is None:
+                data = _read_asset_bytes(asset_path)
+                cached = _decode_2bpp_tiles(data)
+                data_cache[source.path] = cached
+            tiles_segment = cached
+        if source.needs_slice:
+            start = min(source.tile_offset, len(tiles_segment))
+            end = len(tiles_segment) if source.tile_length is None else min(start + source.tile_length, len(tiles_segment))
+            tiles.extend(tiles_segment[start:end])
+        else:
+            tiles.extend(tiles_segment)
     return tiles
 
 
@@ -722,7 +875,38 @@ def _johto_traditional_animations(polished_path: Path, png_module) -> List[TileA
     return animations
 
 
-def _load_tileset_animations(polished_path: Path, tileset_key: str, png_module) -> List[TileAnimation]:
+def _load_tileset_animations(
+    polished_path: Path,
+    tileset_key: str,
+    tileset_label: str,
+    png_module,
+) -> List[TileAnimation]:
+    entries = _tileset_animation_entries(polished_path).get(tileset_label)
+    if not entries:
+        if tileset_key == "TILESET_JOHTO_TRADITIONAL":
+            return _johto_traditional_animations(polished_path, png_module)
+        return []
+    animations: List[TileAnimation] = []
+    frames_cache: Dict[Tuple[str, ...], List[List[int]]] = {}
+    for tile_index, function in entries:
+        spec = _ANIMATION_SPECS.get(function)
+        if spec is None:
+            continue
+        frames = frames_cache.get(spec.sources)
+        if frames is None:
+            frames = _decode_animation_tiles(polished_path, list(spec.sources), png_module)
+            frames_cache[spec.sources] = frames
+        if not frames:
+            continue
+        if spec.sequence is not None:
+            sequence = list(spec.sequence)
+        else:
+            sequence = _repeat_sequence(len(frames), spec.repeat_each)
+        if not sequence:
+            continue
+        animations.append(TileAnimation(tile_index=tile_index, frames=frames, sequence=sequence))
+    if animations:
+        return animations
     if tileset_key == "TILESET_JOHTO_TRADITIONAL":
         return _johto_traditional_animations(polished_path, png_module)
     return []
@@ -850,6 +1034,7 @@ def _build_renderer(
         _apply_roof_tiles(bank0_tiles, roof_tiles)
     bank1_tiles = _load_tileset_bank(polished_path, tileset_resources.bank1_sources, png_module)
     metatile_data = _read_asset_bytes(polished_path / tileset_resources.metatiles_path)
+    tileset_label = repo_index.tileset_label(map_info.tileset) or map_info.tileset
     return RendererData(
         block_indices=block_indices,
         width=map_info.width,
@@ -859,6 +1044,7 @@ def _build_renderer(
         bank0_tiles=[list(tile) for tile in bank0_tiles],
         bank1_tiles=[list(tile) for tile in bank1_tiles],
         tileset_key=map_info.tileset,
+        tileset_label=tileset_label,
         map_label=map_info.label,
     )
 
@@ -901,7 +1087,7 @@ def main() -> None:
         renderer = _build_renderer(png, polished_path, repo_index, map_label)
     except KeyError as exc:
         raise SystemExit(str(exc))
-    animations = _load_tileset_animations(polished_path, renderer.tileset_key, png)
+    animations = _load_tileset_animations(polished_path, renderer.tileset_key, renderer.tileset_label, png)
     output_path = (args.output or (Path(__file__).resolve().parent.parent / f"{renderer.map_label}.png")).resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if output_path.suffix.lower() == ".gif":

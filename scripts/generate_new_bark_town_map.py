@@ -13,7 +13,7 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 RGB = Tuple[int, int, int]
 
@@ -74,6 +74,14 @@ class AnimationSpec:
     sequence: Optional[Tuple[int, ...]] = None
 
 
+@dataclass(frozen=True)
+class AnimationCommand:
+    location: str
+    tile_index: Optional[int]
+    function: str
+    data_label: Optional[str]
+
+
 _ANIMATION_SPECS: Dict[str, AnimationSpec] = {
     "AnimateWaterTile": AnimationSpec(("gfx/tilesets/water/johto_water.png",), repeat_each=2),
     "AnimateRainPuddleTile": AnimationSpec(("gfx/tilesets/rain/rain_puddle.png",), repeat_each=1),
@@ -104,7 +112,7 @@ _ANIMATION_DATA_SPECS: Dict[str, AnimationSpec] = {
     "WhirlpoolTiles4": AnimationSpec(("gfx/tilesets/whirlpool/4.png",), repeat_each=1),
 }
 
-_ANIMATION_TABLE_CACHE: Dict[str, Dict[str, List[Tuple[int, str, Optional[str]]]]] = {}
+_ANIMATION_TABLE_CACHE: Dict[str, Dict[str, List[AnimationCommand]]] = {}
 
 
 @dataclass
@@ -480,7 +488,7 @@ class RepositoryIndex:
         return GraphicsSource(path=resolved, is_png=is_png, tile_offset=tile_offset, tile_length=tile_length, needs_slice=needs_slice)
 
 
-def _tileset_animation_entries(polished_path: Path) -> Dict[str, List[Tuple[int, str, Optional[str]]]]:
+def _tileset_animation_entries(polished_path: Path) -> Dict[str, List[AnimationCommand]]:
     key = polished_path.resolve().as_posix()
     cached = _ANIMATION_TABLE_CACHE.get(key)
     if cached is not None:
@@ -496,9 +504,9 @@ def _tileset_animation_entries(polished_path: Path) -> Dict[str, List[Tuple[int,
         pointer_match = pointer_pattern.match(pointer_line)
         if pointer_match:
             pointer_tiles[pointer_match.group(1)] = (int(pointer_match.group(2), 16), pointer_match.group(3))
-    entries: Dict[str, List[Tuple[int, str, Optional[str]]]] = {}
+    entries: Dict[str, List[AnimationCommand]] = {}
     current_labels: List[str] = []
-    current_data: List[Tuple[int, str, Optional[str]]] = []
+    current_data: List[AnimationCommand] = []
 
     def flush() -> None:
         nonlocal current_labels, current_data
@@ -535,7 +543,7 @@ def _tileset_animation_entries(polished_path: Path) -> Dict[str, List[Tuple[int,
         if len(parts) < 2:
             continue
         location, function = parts[0], parts[1]
-        tile_index: Optional[int]
+        tile_index: Optional[int] = None
         data_label: Optional[str] = None
         tile_match = tile_pattern.search(location)
         if tile_match:
@@ -547,11 +555,7 @@ def _tileset_animation_entries(polished_path: Path) -> Dict[str, List[Tuple[int,
             pointer_entry = pointer_tiles.get(location)
             if pointer_entry is not None:
                 tile_index, data_label = pointer_entry
-            else:
-                tile_index = None
-        if tile_index is None:
-            continue
-        current_data.append((tile_index, function, data_label))
+        current_data.append(AnimationCommand(location=location, tile_index=tile_index, function=function, data_label=data_label))
 
     if current_labels and current_data:
         flush()
@@ -903,21 +907,24 @@ def _johto_traditional_animations(polished_path: Path, png_module) -> List[TileA
 
 def _load_tileset_animations(
     polished_path: Path,
-    tileset_key: str,
-    tileset_label: str,
+    renderer: RendererData,
     png_module,
 ) -> List[TileAnimation]:
+    tileset_label = renderer.tileset_label
     entries = _tileset_animation_entries(polished_path).get(tileset_label)
     if not entries:
-        if tileset_key == "TILESET_JOHTO_TRADITIONAL":
+        if renderer.tileset_key == "TILESET_JOHTO_TRADITIONAL":
             return _johto_traditional_animations(polished_path, png_module)
         return []
-    animations: List[TileAnimation] = []
+    animations_by_tile: Dict[int, TileAnimation] = {}
     frames_cache: Dict[Tuple[str, ...], List[List[int]]] = {}
-    for tile_index, function, data_label in entries:
+    for command in entries:
+        if command.tile_index is None:
+            continue
+        data_label = command.data_label
         spec = _ANIMATION_DATA_SPECS.get(data_label) if data_label else None
         if spec is None:
-            spec = _ANIMATION_SPECS.get(function)
+            spec = _ANIMATION_SPECS.get(command.function)
         if spec is None:
             continue
         frames = frames_cache.get(spec.sources)
@@ -932,10 +939,20 @@ def _load_tileset_animations(
             sequence = _repeat_sequence(len(frames), spec.repeat_each)
         if not sequence:
             continue
-        animations.append(TileAnimation(tile_index=tile_index, frames=frames, sequence=sequence))
-    if animations:
-        return animations
-    if tileset_key == "TILESET_JOHTO_TRADITIONAL":
+        animations_by_tile[command.tile_index] = TileAnimation(tile_index=command.tile_index, frames=frames, sequence=sequence)
+    simulated = _simulate_scroll_commands(entries, renderer)
+    for tile_index, frames in simulated.items():
+        if len(frames) <= 1:
+            continue
+        if tile_index in animations_by_tile:
+            continue
+        sequence = _repeat_sequence(len(frames), 1)
+        if not sequence:
+            continue
+        animations_by_tile[tile_index] = TileAnimation(tile_index=tile_index, frames=frames, sequence=sequence)
+    if animations_by_tile:
+        return [animations_by_tile[index] for index in sorted(animations_by_tile)]
+    if renderer.tileset_key == "TILESET_JOHTO_TRADITIONAL":
         return _johto_traditional_animations(polished_path, png_module)
     return []
 
@@ -947,6 +964,89 @@ def _animation_period(animations: Sequence[TileAnimation]) -> int:
             continue
         period = math.lcm(period, len(animation.sequence))
     return max(period, 1)
+
+
+def _simulate_scroll_commands(commands: Sequence[AnimationCommand], renderer: RendererData) -> Dict[int, List[List[int]]]:
+    supported = {
+        "WriteTileToBuffer",
+        "ReadTileFromBuffer",
+        "ScrollTileDown",
+        "ScrollTileUp",
+        "ScrollTileLeft",
+        "ScrollTileRight",
+    }
+    tracked: Set[int] = set()
+    for command in commands:
+        if command.function in supported and command.tile_index is not None:
+            tracked.add(command.tile_index)
+    if not tracked:
+        return {}
+    base_tiles = [list(tile) for tile in renderer.bank0_tiles]
+    tile_state: Dict[int, List[int]] = {}
+
+    def ensure_tile(index: int) -> List[int]:
+        tile = tile_state.get(index)
+        if tile is not None:
+            return tile
+        if index < len(base_tiles):
+            tile = list(base_tiles[index])
+        else:
+            tile = [0] * (Tileset.TILE_SIZE * Tileset.TILE_SIZE)
+        tile_state[index] = tile
+        return tile
+
+    for index in tracked:
+        ensure_tile(index)
+
+    buffer_tile: List[int] = [0] * (Tileset.TILE_SIZE * Tileset.TILE_SIZE)
+    frames: Dict[int, List[List[int]]] = {index: [list(tile_state[index])] for index in tracked}
+    initial_snapshot = {index: tuple(tile_state[index]) for index in tracked}
+    max_frames = 16
+    for _ in range(max_frames):
+        for command in commands:
+            if command.function not in supported:
+                continue
+            if command.function == "WriteTileToBuffer":
+                if command.tile_index is None:
+                    continue
+                buffer_tile = list(ensure_tile(command.tile_index))
+            elif command.function == "ReadTileFromBuffer":
+                if command.tile_index is None:
+                    continue
+                target = ensure_tile(command.tile_index)
+                target[:] = list(buffer_tile)
+            else:
+                if command.location == "wTileAnimBuffer":
+                    buffer_tile = _scroll_tile_values(buffer_tile, command.function)
+                elif command.tile_index is not None:
+                    target = ensure_tile(command.tile_index)
+                    target[:] = _scroll_tile_values(target, command.function)
+        snapshot = {index: tuple(tile_state[index]) for index in tracked}
+        for index in tracked:
+            frames[index].append(list(tile_state[index]))
+        if snapshot == initial_snapshot:
+            for index in tracked:
+                frames[index].pop()
+            break
+    return frames
+
+
+def _scroll_tile_values(tile: Sequence[int], function: str) -> List[int]:
+    size = Tileset.TILE_SIZE
+    if len(tile) != size * size:
+        return list(tile)
+    rows = [list(tile[row * size : (row + 1) * size]) for row in range(size)]
+    if function == "ScrollTileDown":
+        shifted = [rows[(row - 1) % size] for row in range(size)]
+    elif function == "ScrollTileUp":
+        shifted = [rows[(row + 1) % size] for row in range(size)]
+    elif function == "ScrollTileLeft":
+        shifted = [row[1:] + [row[0]] for row in rows]
+    elif function == "ScrollTileRight":
+        shifted = [[row[-1]] + row[:-1] for row in rows]
+    else:
+        shifted = rows
+    return [value for row in shifted for value in row]
 
 
 def _apply_tile_animations(base_tiles: Sequence[Sequence[int]], animations: Sequence[TileAnimation], timer: int) -> List[List[int]]:
@@ -1115,7 +1215,7 @@ def main() -> None:
         renderer = _build_renderer(png, polished_path, repo_index, map_label)
     except KeyError as exc:
         raise SystemExit(str(exc))
-    animations = _load_tileset_animations(polished_path, renderer.tileset_key, renderer.tileset_label, png)
+    animations = _load_tileset_animations(polished_path, renderer, png)
     output_path = (args.output or (Path(__file__).resolve().parent.parent / f"{renderer.map_label}.png")).resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if output_path.suffix.lower() == ".gif":

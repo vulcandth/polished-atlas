@@ -76,10 +76,12 @@ class MapInfo:
     label: str
     tileset: str
     constant: str
+    map_type: str
     width: int
     height: int
     group: int
     roof_constant: Optional[str]
+    tileset_index: int
 
 
 @dataclass
@@ -98,7 +100,11 @@ class RepositoryIndex:
         self._roof_palettes = self._parse_roof_palettes()
         self._map_table = self._parse_map_table()
         self._map_attributes = self._parse_map_attributes()
-        self._tileset_constants = self._parse_tileset_constants()
+        (
+            self._tileset_constants,
+            self._tileset_indices,
+            self._no_roof_tilesets,
+        ) = self._parse_tileset_constants()
         self._tileset_labels = self._parse_tileset_table()
         self._tileset_assets = self._parse_tileset_assets()
         self.maps = self._build_map_infos()
@@ -116,6 +122,13 @@ class RepositoryIndex:
         except KeyError as exc:
             raise KeyError(f"Missing tileset resources for {tileset_constant}") from exc
 
+    def tileset_index(self, tileset_constant: str) -> Optional[int]:
+        return self._tileset_indices.get(tileset_constant)
+
+    @property
+    def no_roof_tileset_threshold(self) -> int:
+        return self._no_roof_tilesets
+
     def roof_palette(self, group: int) -> Optional[Tuple[RGB, RGB]]:
         if 0 <= group < len(self._roof_palettes):
             return self._roof_palettes[group]
@@ -126,9 +139,9 @@ class RepositoryIndex:
             return self._map_roofs[group]
         return None
 
-    def _parse_map_table(self) -> dict[str, Tuple[str, str]]:
+    def _parse_map_table(self) -> dict[str, Tuple[str, str, str]]:
         path = self.root / "data/maps/maps.asm"
-        mapping: dict[str, Tuple[str, str]] = {}
+        mapping: dict[str, Tuple[str, str, str]] = {}
         for raw_line in path.read_text().splitlines():
             line = raw_line.split(";", 1)[0].strip()
             if not line.startswith("map "):
@@ -138,8 +151,9 @@ class RepositoryIndex:
                 continue
             label = parts[0].split()[1]
             tileset = parts[1]
+            map_type = parts[2]
             constant = parts[4]
-            mapping[label] = (tileset, constant)
+            mapping[label] = (tileset, map_type, constant)
         return mapping
 
     def _parse_map_attributes(self) -> dict[str, str]:
@@ -211,18 +225,39 @@ class RepositoryIndex:
             palettes.append((color1, color2))
         return palettes
 
-    def _parse_tileset_constants(self) -> List[str]:
+    def _parse_tileset_constants(self) -> Tuple[List[str], dict[str, int], int]:
         path = self.root / "constants/tileset_constants.asm"
         constants: List[str] = []
+        indices: dict[str, int] = {}
+        no_roof_tilesets: Optional[int] = None
+        current = 0
         for raw_line in path.read_text().splitlines():
             line = raw_line.split(";", 1)[0].strip()
+            if not line:
+                continue
+            if line.startswith("const_def"):
+                parts = line.split()
+                value = parts[1] if len(parts) > 1 else "0"
+                current = int(value, 0)
+                continue
             if line.startswith("const TILESET_"):
                 parts = line.split()
                 if len(parts) >= 2:
-                    constants.append(parts[1])
+                    name = parts[1]
+                    constants.append(name)
+                    indices[name] = current
+                    current += 1
+                continue
+            if line.startswith("DEF ") and "EQU const_value" in line:
+                parts = line.split()
+                if len(parts) >= 2 and parts[1] == "NO_ROOF_TILESETS":
+                    no_roof_tilesets = current
+                continue
             if line.startswith("DEF NUM_TILESETS"):
                 break
-        return constants
+        if no_roof_tilesets is None:
+            raise ValueError("NO_ROOF_TILESETS not found in tileset constants")
+        return constants, indices, no_roof_tilesets
 
     def _parse_tileset_table(self) -> List[str]:
         path = self.root / "data/tilesets.asm"
@@ -276,10 +311,13 @@ class RepositoryIndex:
 
     def _build_map_infos(self) -> dict[str, MapInfo]:
         maps: dict[str, MapInfo] = {}
-        for label, (tileset, constant) in self._map_table.items():
+        for label, (tileset, map_type, constant) in self._map_table.items():
             constant_name = self._map_attributes.get(label, constant)
             constant_data = self._map_constants.get(constant_name)
             if constant_data is None:
+                continue
+            tileset_index = self._tileset_indices.get(tileset)
+            if tileset_index is None:
                 continue
             width, height, group = constant_data
             roof_constant = self.roof_constant(group)
@@ -287,10 +325,12 @@ class RepositoryIndex:
                 label=label,
                 tileset=tileset,
                 constant=constant_name,
+                map_type=map_type,
                 width=width,
                 height=height,
                 group=group,
                 roof_constant=roof_constant,
+                tileset_index=tileset_index,
             )
         return maps
 
@@ -793,12 +833,19 @@ def _build_renderer(
     blocks_path = polished_path / "maps" / f"{map_info.label}.ablk"
     block_bytes = _read_block_bytes(blocks_path)
     block_indices = _map_block_indices(block_bytes, map_info.width, map_info.height)
-    roof_palette_override = repo_index.roof_palette(map_info.group) if map_info.roof_constant else None
+    allows_roof_palette = map_info.map_type in {"TOWN", "ROUTE", "ISOLATED"}
+    roof_palette_override = None
+    if map_info.roof_constant and allows_roof_palette:
+        roof_palette_override = repo_index.roof_palette(map_info.group)
     palette = _day_palette(polished_path, roof_palette_override)
     attributes_data = _read_asset_bytes(polished_path / tileset_resources.attributes_path)
     attributes = Attributes(attributes_data, palette)
     bank0_tiles = _load_tileset_bank(polished_path, tileset_resources.bank0_sources, png_module)
-    if map_info.roof_constant:
+    if (
+        map_info.roof_constant
+        and allows_roof_palette
+        and map_info.tileset_index < repo_index.no_roof_tileset_threshold
+    ):
         roof_tiles = _load_roof_tiles(polished_path, map_info.roof_constant, png_module)
         _apply_roof_tiles(bank0_tiles, roof_tiles)
     bank1_tiles = _load_tileset_bank(polished_path, tileset_resources.bank1_sources, png_module)

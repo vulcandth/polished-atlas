@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a PNG render of New Bark Town using polishedcrystal assets.
+"""Generate a PNG render (or animated GIF) of New Bark Town using polishedcrystal assets.
 
 The script understands the repo's VRAM banking scheme, metatile format, and
 LZ-compressed map blocks so it can source the same assets used by the game.
@@ -8,8 +8,10 @@ LZ-compressed map blocks so it can source the same assets used by the game.
 from __future__ import annotations
 
 import argparse
+import math
 import re
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, List, Optional, Sequence, Tuple
 
@@ -58,6 +60,26 @@ _ROOF_GFX = {
 
 _ROOF_TILE_OFFSET = 0x0A
 _ROOF_TILE_COUNT = 9
+_GIF_FRAME_DURATION_MS = 400
+
+
+@dataclass
+class TileAnimation:
+    tile_index: int
+    frames: List[List[int]]
+    sequence: List[int]
+
+
+@dataclass
+class RendererData:
+    block_indices: List[int]
+    width: int
+    height: int
+    attributes: "Attributes"
+    metatile_data: bytes
+    bank0_tiles: List[List[int]]
+    bank1_tiles: List[List[int]]
+    tileset_key: str
 
 
 class LzDecompressor:
@@ -265,8 +287,8 @@ class Tileset:
 class MetatileSet:
     METATILE_DIM = 4
 
-    def __init__(self, path: Path, tileset: Tileset, attributes: Attributes):
-        indices = _chunk_bytes(path.read_bytes(), self.METATILE_DIM ** 2)
+    def __init__(self, data: bytes, tileset: Tileset, attributes: Attributes):
+        indices = _chunk_bytes(data, self.METATILE_DIM ** 2)
         self._tiles: List[List[List[RGB]]] = []
         for idx, index_set in enumerate(indices):
             attr_set = attributes.data[idx]
@@ -413,6 +435,81 @@ def _apply_roof_tiles(bank0_tiles: List[List[int]], roof_tiles: Sequence[Sequenc
             bank0_tiles.append(tile_data)
 
 
+def _decode_animation_tiles(polished_path: Path, sources: Sequence[str], png_module) -> List[List[int]]:
+    frames: List[List[int]] = []
+    for relative in sources:
+        asset_path = polished_path / relative
+        if asset_path.suffix == ".png":
+            frames.extend(_decode_tiles_from_png(asset_path, png_module))
+        else:
+            data = _read_asset_bytes(asset_path)
+            frames.extend(_decode_2bpp_tiles(data))
+    return frames
+
+
+def _repeat_sequence(frame_count: int, repeat_each: int) -> List[int]:
+    if frame_count <= 0:
+        return []
+    cycle = frame_count * max(repeat_each, 1)
+    sequence: List[int] = []
+    for tick in range(cycle):
+        sequence.append((tick // max(repeat_each, 1)) % frame_count)
+    return sequence
+
+
+def _johto_traditional_animations(polished_path: Path, png_module) -> List[TileAnimation]:
+    animations: List[TileAnimation] = []
+    water_frames = _decode_animation_tiles(polished_path, ["gfx/tilesets/water/johto_water.png"], png_module)
+    if water_frames:
+        animations.append(TileAnimation(tile_index=0x14, frames=water_frames, sequence=_repeat_sequence(len(water_frames), 2)))
+    rain_puddle_frames = _decode_animation_tiles(polished_path, ["gfx/tilesets/rain/rain_puddle.png"], png_module)
+    if rain_puddle_frames:
+        animations.append(TileAnimation(tile_index=0x1C, frames=rain_puddle_frames, sequence=_repeat_sequence(len(rain_puddle_frames), 1)))
+    rain_water_frames = _decode_animation_tiles(polished_path, ["gfx/tilesets/rain/rain_water.png"], png_module)
+    if rain_water_frames:
+        animations.append(TileAnimation(tile_index=0x1D, frames=rain_water_frames, sequence=_repeat_sequence(len(rain_water_frames), 1)))
+    flower_frames = _decode_animation_tiles(
+        polished_path,
+        [
+            "gfx/tilesets/flower/1.png",
+            "gfx/tilesets/flower/2.png",
+        ],
+        png_module,
+    )
+    if flower_frames:
+        animations.append(TileAnimation(tile_index=0x03, frames=flower_frames, sequence=_repeat_sequence(len(flower_frames), 2)))
+    return animations
+
+
+def _load_tileset_animations(polished_path: Path, tileset_key: str, png_module) -> List[TileAnimation]:
+    if tileset_key == "TILESET_JOHTO_TRADITIONAL":
+        return _johto_traditional_animations(polished_path, png_module)
+    return []
+
+
+def _animation_period(animations: Sequence[TileAnimation]) -> int:
+    period = 1
+    for animation in animations:
+        if not animation.sequence:
+            continue
+        period = math.lcm(period, len(animation.sequence))
+    return max(period, 1)
+
+
+def _apply_tile_animations(base_tiles: Sequence[Sequence[int]], animations: Sequence[TileAnimation], timer: int) -> List[List[int]]:
+    tiles = [list(tile) for tile in base_tiles]
+    blank_tile = [0] * (Tileset.TILE_SIZE * Tileset.TILE_SIZE)
+    for animation in animations:
+        if not animation.frames or not animation.sequence:
+            continue
+        frame_index = animation.sequence[timer % len(animation.sequence)]
+        frame_index %= len(animation.frames)
+        while len(tiles) <= animation.tile_index:
+            tiles.append(list(blank_tile))
+        tiles[animation.tile_index] = list(animation.frames[frame_index])
+    return tiles
+
+
 def _render_map(block_indices: Sequence[int], width: int, height: int, metatiles: MetatileSet) -> Tuple[int, int, List[List[int]]]:
     tiles_per_metatile = MetatileSet.METATILE_DIM
     tile_size = Tileset.TILE_SIZE
@@ -456,6 +553,27 @@ def _write_png(path: Path, width: int, height: int, rows: List[List[int]], png_m
         writer.write(handle, rows)
 
 
+def _render_with_tiles(renderer: RendererData, bank0_tiles: Sequence[Sequence[int]], bank1_tiles: Sequence[Sequence[int]]) -> Tuple[int, int, List[List[int]]]:
+    tileset = Tileset(bank0_tiles, bank1_tiles, renderer.attributes)
+    metatiles = MetatileSet(renderer.metatile_data, tileset, renderer.attributes)
+    return _render_map(renderer.block_indices, renderer.width, renderer.height, metatiles)
+
+
+def _write_gif(path: Path, frames: Sequence[Tuple[int, int, List[List[int]]]], duration_ms: int) -> None:
+    try:
+        from PIL import Image
+    except ImportError as exc:  # pragma: no cover - optional dependency guard
+        raise RuntimeError("Animated GIF output requires Pillow (pip install pillow)") from exc
+    if not frames:
+        raise ValueError("No frames available to write GIF")
+    images: List["Image.Image"] = []
+    for width, height, rows in frames:
+        flat = bytes(value for row in rows for value in row)
+        images.append(Image.frombytes("RGB", (width, height), flat))
+    first, *rest = images
+    first.save(path, format="GIF", save_all=True, append_images=rest, duration=duration_ms, loop=0, disposal=2)
+
+
 def _map_block_indices(data: bytes, width: int, height: int) -> List[int]:
     expected = width * height
     if len(data) != expected:
@@ -463,7 +581,7 @@ def _map_block_indices(data: bytes, width: int, height: int) -> List[int]:
     return list(data)
 
 
-def _build_renderer(png_module, polished_path: Path) -> Tuple[MetatileSet, List[int], int, int]:
+def _build_renderer(png_module, polished_path: Path) -> RendererData:
     map_label = "NewBarkTown"
     map_constant = "NEW_BARK_TOWN"
     constants_path = polished_path / "constants/map_constants.asm"
@@ -488,9 +606,18 @@ def _build_renderer(png_module, polished_path: Path) -> Tuple[MetatileSet, List[
         roof_tiles = _load_roof_tiles(polished_path, roof_constant, png_module)
         _apply_roof_tiles(bank0_tiles, roof_tiles)
     bank1_tiles = _load_tileset_bank(polished_path, resources.get("bank1_sources", []), png_module)
-    tileset = Tileset(bank0_tiles, bank1_tiles, attributes)
-    metatiles = MetatileSet(polished_path / resources["metatiles_bin"], tileset, attributes)
-    return metatiles, block_indices, width, height
+    metatile_path = polished_path / resources["metatiles_bin"]
+    metatile_data = metatile_path.read_bytes()
+    return RendererData(
+        block_indices=block_indices,
+        width=width,
+        height=height,
+        attributes=attributes,
+        metatile_data=metatile_data,
+        bank0_tiles=[list(tile) for tile in bank0_tiles],
+        bank1_tiles=[list(tile) for tile in bank1_tiles],
+        tileset_key=tileset_key,
+    )
 
 
 def parse_args() -> argparse.Namespace:
@@ -506,7 +633,7 @@ def parse_args() -> argparse.Namespace:
         "--output",
         type=Path,
         default=default_root / "new_bark_town.png",
-        help="Destination path for the generated PNG.",
+        help="Destination path for the generated image (use .gif for animation).",
     )
     return parser.parse_args()
 
@@ -519,11 +646,20 @@ def main() -> None:
     sys.path.insert(0, str(polished_path / "utils"))
     import png  # type: ignore
 
-    metatiles, block_indices, width, height = _build_renderer(png, polished_path)
-    overall_width, overall_height, rows = _render_map(block_indices, width, height, metatiles)
+    renderer = _build_renderer(png, polished_path)
+    animations = _load_tileset_animations(polished_path, renderer.tileset_key, png)
     output_path = args.output.resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    _write_png(output_path, overall_width, overall_height, rows, png)
+    if output_path.suffix.lower() == ".gif":
+        period = _animation_period(animations)
+        frames: List[Tuple[int, int, List[List[int]]]] = []
+        for timer in range(period):
+            animated_tiles = _apply_tile_animations(renderer.bank0_tiles, animations, timer)
+            frames.append(_render_with_tiles(renderer, animated_tiles, renderer.bank1_tiles))
+        _write_gif(output_path, frames, _GIF_FRAME_DURATION_MS)
+    else:
+        width, height, rows = _render_with_tiles(renderer, renderer.bank0_tiles, renderer.bank1_tiles)
+        _write_png(output_path, width, height, rows, png)
     print(f"Wrote {output_path}")
 
 

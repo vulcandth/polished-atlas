@@ -780,5 +780,456 @@ class MetatileSet:
     def __getitem__(self, item: int) -> List[List[RGB]]:
         return self._tiles[item]
 
-    
-# (Remaining content identical to original script continues...)
+
+def _read_block_bytes(map_path: Path) -> bytes:
+    if map_path.exists():
+        return map_path.read_bytes()
+    compressed = map_path.with_suffix(map_path.suffix + ".lz")
+    if not compressed.exists():
+        raise FileNotFoundError(f"Missing {map_path} or {compressed}")
+    return LzDecompressor(compressed.read_bytes()).decompress()
+
+
+def _read_asset_bytes(path: Path) -> bytes:
+    data = path.read_bytes()
+    if path.suffix == ".lz":
+        data = LzDecompressor(data).decompress()
+    return data
+
+
+def _load_tileset_bank(polished_path: Path, sources: Sequence[GraphicsSource], png_module) -> List[List[int]]:
+    tiles: List[List[int]] = []
+    png_cache: Dict[str, List[List[int]]] = {}
+    data_cache: Dict[str, List[List[int]]] = {}
+    for source in sources:
+        asset_path = polished_path / source.path
+        if source.is_png:
+            cached = png_cache.get(source.path)
+            if cached is None:
+                cached = _decode_tiles_from_png(asset_path, png_module)
+                png_cache[source.path] = cached
+            tiles_segment = cached
+        else:
+            cached = data_cache.get(source.path)
+            if cached is None:
+                data = _read_asset_bytes(asset_path)
+                cached = _decode_2bpp_tiles(data)
+                data_cache[source.path] = cached
+            tiles_segment = cached
+        if source.needs_slice:
+            start = min(source.tile_offset, len(tiles_segment))
+            end = len(tiles_segment) if source.tile_length is None else min(start + source.tile_length, len(tiles_segment))
+            tiles.extend(tiles_segment[start:end])
+        else:
+            tiles.extend(tiles_segment)
+    return tiles
+
+
+def _load_roof_tiles(polished_path: Path, roof_constant: str, png_module) -> List[List[int]]:
+    relative = _ROOF_GFX.get(roof_constant)
+    if relative is None:
+        raise KeyError(f"No roof graphics defined for {roof_constant}")
+    base_path = polished_path / relative
+    for suffix in (".2bpp.lz", ".2bpp"):
+        candidate = base_path.with_suffix(suffix)
+        if candidate.exists():
+            data = _read_asset_bytes(candidate)
+            tiles = _decode_2bpp_tiles(data)
+            break
+    else:
+        png_path = base_path.with_suffix(".png")
+        if not png_path.exists():
+            raise FileNotFoundError(f"Roof graphics not found for {roof_constant} ({base_path})")
+        tiles = _decode_tiles_from_png(png_path, png_module)
+    if len(tiles) < _ROOF_TILE_COUNT:
+        raise ValueError(f"Expected at least {_ROOF_TILE_COUNT} tiles for {roof_constant}, found {len(tiles)}")
+    return tiles[:_ROOF_TILE_COUNT]
+
+
+def _apply_roof_tiles(bank0_tiles: List[List[int]], roof_tiles: Sequence[Sequence[int]]) -> None:
+    blank_tile = [0] * (Tileset.TILE_SIZE * Tileset.TILE_SIZE)
+    while len(bank0_tiles) < _ROOF_TILE_OFFSET:
+        bank0_tiles.append(list(blank_tile))
+    for offset, tile in enumerate(roof_tiles):
+        index = _ROOF_TILE_OFFSET + offset
+        tile_data = list(tile)
+        if index < len(bank0_tiles):
+            bank0_tiles[index] = tile_data
+        else:
+            bank0_tiles.append(tile_data)
+
+
+def _decode_animation_tiles(polished_path: Path, sources: Sequence[str], png_module) -> List[List[int]]:
+    frames: List[List[int]] = []
+    for relative in sources:
+        asset_path = polished_path / relative
+        if asset_path.suffix == ".png":
+            frames.extend(_decode_tiles_from_png(asset_path, png_module))
+        else:
+            data = _read_asset_bytes(asset_path)
+            frames.extend(_decode_2bpp_tiles(data))
+    return frames
+
+
+def _repeat_sequence(frame_count: int, repeat_each: int) -> List[int]:
+    if frame_count <= 0:
+        return []
+    cycle = frame_count * max(repeat_each, 1)
+    sequence: List[int] = []
+    for tick in range(cycle):
+        sequence.append((tick // max(repeat_each, 1)) % frame_count)
+    return sequence
+
+
+def _johto_traditional_animations(polished_path: Path, png_module) -> List[TileAnimation]:
+    animations: List[TileAnimation] = []
+    water_frames = _decode_animation_tiles(polished_path, ["gfx/tilesets/water/johto_water.png"], png_module)
+    if water_frames:
+        animations.append(TileAnimation(tile_index=0x14, frames=water_frames, sequence=_repeat_sequence(len(water_frames), 2)))
+    rain_puddle_frames = _decode_animation_tiles(polished_path, ["gfx/tilesets/rain/rain_puddle.png"], png_module)
+    if rain_puddle_frames:
+        animations.append(TileAnimation(tile_index=0x1C, frames=rain_puddle_frames, sequence=_repeat_sequence(len(rain_puddle_frames), 1)))
+    rain_water_frames = _decode_animation_tiles(polished_path, ["gfx/tilesets/rain/rain_water.png"], png_module)
+    if rain_water_frames:
+        animations.append(TileAnimation(tile_index=0x1D, frames=rain_water_frames, sequence=_repeat_sequence(len(rain_water_frames), 1)))
+    flower_frames = _decode_animation_tiles(
+        polished_path,
+        [
+            "gfx/tilesets/flower/1.png",
+            "gfx/tilesets/flower/2.png",
+        ],
+        png_module,
+    )
+    if flower_frames:
+        animations.append(TileAnimation(tile_index=0x03, frames=flower_frames, sequence=_repeat_sequence(len(flower_frames), 2)))
+    return animations
+
+
+def _load_tileset_animations(
+    polished_path: Path,
+    renderer: RendererData,
+    png_module,
+) -> List[TileAnimation]:
+    tileset_label = renderer.tileset_label
+    entries = _tileset_animation_entries(polished_path).get(tileset_label)
+    if not entries:
+        if renderer.tileset_key == "TILESET_JOHTO_TRADITIONAL":
+            return _johto_traditional_animations(polished_path, png_module)
+        return []
+    animations_by_tile: Dict[int, TileAnimation] = {}
+    frames_cache: Dict[Tuple[str, ...], List[List[int]]] = {}
+    for command in entries:
+        if command.tile_index is None:
+            continue
+        data_label = command.data_label
+        spec = _ANIMATION_DATA_SPECS.get(data_label) if data_label else None
+        if spec is None:
+            spec = _ANIMATION_SPECS.get(command.function)
+        if spec is None:
+            continue
+        frames = frames_cache.get(spec.sources)
+        if frames is None:
+            frames = _decode_animation_tiles(polished_path, list(spec.sources), png_module)
+            frames_cache[spec.sources] = frames
+        if not frames:
+            continue
+        if spec.sequence is not None:
+            sequence = list(spec.sequence)
+        else:
+            sequence = _repeat_sequence(len(frames), spec.repeat_each)
+        if not sequence:
+            continue
+        animations_by_tile[command.tile_index] = TileAnimation(tile_index=command.tile_index, frames=frames, sequence=sequence)
+    simulated = _simulate_scroll_commands(entries, renderer)
+    for tile_index, frames in simulated.items():
+        if len(frames) <= 1:
+            continue
+        if tile_index in animations_by_tile:
+            continue
+        sequence = _repeat_sequence(len(frames), 1)
+        if not sequence:
+            continue
+        animations_by_tile[tile_index] = TileAnimation(tile_index=tile_index, frames=frames, sequence=sequence)
+    if animations_by_tile:
+        return [animations_by_tile[index] for index in sorted(animations_by_tile)]
+    if renderer.tileset_key == "TILESET_JOHTO_TRADITIONAL":
+        return _johto_traditional_animations(polished_path, png_module)
+    return []
+
+
+def _animation_period(animations: Sequence[TileAnimation]) -> int:
+    period = 1
+    for animation in animations:
+        if not animation.sequence:
+            continue
+        period = math.lcm(period, len(animation.sequence))
+    return max(period, 1)
+
+
+def _simulate_scroll_commands(commands: Sequence[AnimationCommand], renderer: RendererData) -> Dict[int, List[List[int]]]:
+    supported = {
+        "WriteTileToBuffer",
+        "ReadTileFromBuffer",
+        "ScrollTileDown",
+        "ScrollTileUp",
+        "ScrollTileLeft",
+        "ScrollTileRight",
+    }
+    tracked: Set[int] = set()
+    for command in commands:
+        if command.function in supported and command.tile_index is not None:
+            tracked.add(command.tile_index)
+    if not tracked:
+        return {}
+    base_tiles = [list(tile) for tile in renderer.bank0_tiles]
+    tile_state: Dict[int, List[int]] = {}
+
+    def ensure_tile(index: int) -> List[int]:
+        tile = tile_state.get(index)
+        if tile is not None:
+            return tile
+        if index < len(base_tiles):
+            tile = list(base_tiles[index])
+        else:
+            tile = [0] * (Tileset.TILE_SIZE * Tileset.TILE_SIZE)
+        tile_state[index] = tile
+        return tile
+
+    for index in tracked:
+        ensure_tile(index)
+
+    buffer_tile: List[int] = [0] * (Tileset.TILE_SIZE * Tileset.TILE_SIZE)
+    frames: Dict[int, List[List[int]]] = {index: [list(tile_state[index])] for index in tracked}
+    initial_snapshot = {index: tuple(tile_state[index]) for index in tracked}
+    max_frames = 16
+    for _ in range(max_frames):
+        for command in commands:
+            if command.function not in supported:
+                continue
+            if command.function == "WriteTileToBuffer":
+                if command.tile_index is None:
+                    continue
+                buffer_tile = list(ensure_tile(command.tile_index))
+            elif command.function == "ReadTileFromBuffer":
+                if command.tile_index is None:
+                    continue
+                target = ensure_tile(command.tile_index)
+                target[:] = list(buffer_tile)
+            else:
+                if command.location == "wTileAnimBuffer":
+                    buffer_tile = _scroll_tile_values(buffer_tile, command.function)
+                elif command.tile_index is not None:
+                    target = ensure_tile(command.tile_index)
+                    target[:] = _scroll_tile_values(target, command.function)
+        snapshot = {index: tuple(tile_state[index]) for index in tracked}
+        for index in tracked:
+            frames[index].append(list(tile_state[index]))
+        if snapshot == initial_snapshot:
+            for index in tracked:
+                frames[index].pop()
+            break
+    return frames
+
+
+def _scroll_tile_values(tile: Sequence[int], function: str) -> List[int]:
+    size = Tileset.TILE_SIZE
+    if len(tile) != size * size:
+        return list(tile)
+    rows = [list(tile[row * size : (row + 1) * size]) for row in range(size)]
+    if function == "ScrollTileDown":
+        shifted = [rows[(row - 1) % size] for row in range(size)]
+    elif function == "ScrollTileUp":
+        shifted = [rows[(row + 1) % size] for row in range(size)]
+    elif function == "ScrollTileLeft":
+        shifted = [row[1:] + [row[0]] for row in rows]
+    elif function == "ScrollTileRight":
+        shifted = [[row[-1]] + row[:-1] for row in rows]
+    else:
+        shifted = rows
+    return [value for row in shifted for value in row]
+
+
+def _apply_tile_animations(base_tiles: Sequence[Sequence[int]], animations: Sequence[TileAnimation], timer: int) -> List[List[int]]:
+    tiles = [list(tile) for tile in base_tiles]
+    blank_tile = [0] * (Tileset.TILE_SIZE * Tileset.TILE_SIZE)
+    for animation in animations:
+        if not animation.frames or not animation.sequence:
+            continue
+        frame_index = animation.sequence[timer % len(animation.sequence)]
+        frame_index %= len(animation.frames)
+        while len(tiles) <= animation.tile_index:
+            tiles.append(list(blank_tile))
+        tiles[animation.tile_index] = list(animation.frames[frame_index])
+    return tiles
+
+
+def _render_map(block_indices: Sequence[int], width: int, height: int, metatiles: MetatileSet) -> Tuple[int, int, List[List[int]]]:
+    tiles_per_metatile = MetatileSet.METATILE_DIM
+    tile_size = Tileset.TILE_SIZE
+    block_px = tiles_per_metatile * tile_size
+    overall_width = width * block_px
+    rows: List[List[int]] = []
+    for block_row in range(height):
+        for pixel_row in range(block_px):
+            row: List[int] = []
+            tile_row = pixel_row // tile_size
+            within_tile_row = pixel_row % tile_size
+            for block_col in range(width):
+                block_index = block_indices[block_row * width + block_col]
+                metatile = metatiles[block_index]
+                for tile_col in range(tiles_per_metatile):
+                    tile_index = tile_row * tiles_per_metatile + tile_col
+                    tile_pixels = metatile[tile_index]
+                    start = within_tile_row * tile_size
+                    for rgb in tile_pixels[start : start + tile_size]:
+                        row.extend(rgb)
+            expected_row_len = overall_width * 3
+            if len(row) != expected_row_len:
+                raise ValueError(
+                    "row {row_index} (block_row {block_row}, local_row {pixel_row}) has length {actual} "
+                    "(expected {expected})".format(
+                        row_index=len(rows),
+                        block_row=block_row,
+                        pixel_row=pixel_row,
+                        actual=len(row),
+                        expected=expected_row_len,
+                    )
+                )
+            rows.append(row)
+    overall_height = len(rows)
+    return overall_width, overall_height, rows
+
+
+def _write_png(path: Path, width: int, height: int, rows: List[List[int]], png_module) -> None:
+    with path.open("wb") as handle:
+        writer = png_module.Writer(width, height, greyscale=False)
+        writer.write(handle, rows)
+
+
+def _render_with_tiles(renderer: RendererData, bank0_tiles: Sequence[Sequence[int]], bank1_tiles: Sequence[Sequence[int]]) -> Tuple[int, int, List[List[int]]]:
+    tileset = Tileset(bank0_tiles, bank1_tiles, renderer.attributes)
+    metatiles = MetatileSet(renderer.metatile_data, tileset, renderer.attributes)
+    return _render_map(renderer.block_indices, renderer.width, renderer.height, metatiles)
+
+
+def _write_gif(path: Path, frames: Sequence[Tuple[int, int, List[List[int]]]], duration_ms: int) -> None:
+    try:
+        from PIL import Image
+    except ImportError as exc:  # pragma: no cover - optional dependency guard
+        raise RuntimeError("Animated GIF output requires Pillow (pip install pillow)") from exc
+    if not frames:
+        raise ValueError("No frames available to write GIF")
+    images: List["Image.Image"] = []
+    for width, height, rows in frames:
+        flat = bytes(value for row in rows for value in row)
+        images.append(Image.frombytes("RGB", (width, height), flat))
+    first, *rest = images
+    first.save(path, format="GIF", save_all=True, append_images=rest, duration=duration_ms, loop=0, disposal=2)
+
+
+def _map_block_indices(data: bytes, width: int, height: int) -> List[int]:
+    expected = width * height
+    if len(data) != expected:
+        raise ValueError(f"Expected {expected} blocks, found {len(data)}")
+    return list(data)
+
+
+def _build_renderer(
+    png_module,
+    polished_path: Path,
+    repo_index: RepositoryIndex,
+    map_label: str,
+) -> RendererData:
+    map_info = repo_index.map_info(map_label)
+    tileset_resources = repo_index.tileset_resources(map_info.tileset)
+    blocks_path = polished_path / "maps" / f"{map_info.label}.ablk"
+    block_bytes = _read_block_bytes(blocks_path)
+    block_indices = _map_block_indices(block_bytes, map_info.width, map_info.height)
+    allows_roof_palette = map_info.map_type in {"TOWN", "ROUTE", "ISOLATED"}
+    roof_palette_override = None
+    if map_info.roof_constant and allows_roof_palette:
+        roof_palette_override = repo_index.roof_palette(map_info.group)
+    palette = _day_palette(polished_path, roof_palette_override)
+    attributes_data = _read_asset_bytes(polished_path / tileset_resources.attributes_path)
+    attributes = Attributes(attributes_data, palette)
+    bank0_tiles = _load_tileset_bank(polished_path, tileset_resources.bank0_sources, png_module)
+    if (
+        map_info.roof_constant
+        and allows_roof_palette
+        and map_info.tileset_index < repo_index.no_roof_tileset_threshold
+    ):
+        roof_tiles = _load_roof_tiles(polished_path, map_info.roof_constant, png_module)
+        _apply_roof_tiles(bank0_tiles, roof_tiles)
+    bank1_tiles = _load_tileset_bank(polished_path, tileset_resources.bank1_sources, png_module)
+    metatile_data = _read_asset_bytes(polished_path / tileset_resources.metatiles_path)
+    tileset_label = repo_index.tileset_label(map_info.tileset) or map_info.tileset
+    return RendererData(
+        block_indices=block_indices,
+        width=map_info.width,
+        height=map_info.height,
+        attributes=attributes,
+        metatile_data=metatile_data,
+        bank0_tiles=[list(tile) for tile in bank0_tiles],
+        bank1_tiles=[list(tile) for tile in bank1_tiles],
+        tileset_key=map_info.tileset,
+        tileset_label=tileset_label,
+        map_label=map_info.label,
+    )
+
+
+def parse_args() -> argparse.Namespace:
+    default_root = Path(__file__).resolve().parent.parent
+    parser = argparse.ArgumentParser(description="Render a polishedcrystal overworld map to PNG or GIF.")
+    parser.add_argument(
+        "map",
+        nargs="?",
+        default="NewBarkTown",
+        help="Map label as defined in data/maps/maps.asm (e.g. NewBarkTown).",
+    )
+    parser.add_argument(
+        "--polishedcrystal",
+        type=Path,
+        default=default_root / "external/polishedcrystal",
+        help="Path to the polishedcrystal repository clone.",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="Destination path for the generated image (use .gif for animation). Defaults to <map>.png",
+    )
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    polished_path = args.polishedcrystal.resolve()
+    if not polished_path.exists():
+        raise FileNotFoundError(f"polishedcrystal repo not found at {polished_path}")
+    sys.path.insert(0, str(polished_path / "utils"))
+    import png  # type: ignore
+
+    repo_index = RepositoryIndex(polished_path)
+    map_label = args.map
+    try:
+        renderer = _build_renderer(png, polished_path, repo_index, map_label)
+    except KeyError as exc:
+        raise SystemExit(str(exc))
+    animations = _load_tileset_animations(polished_path, renderer, png)
+    output_path = (args.output or (Path(__file__).resolve().parent.parent / f"{renderer.map_label}.png")).resolve()
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    if output_path.suffix.lower() == ".gif":
+        period = _animation_period(animations)
+        frames: List[Tuple[int, int, List[List[int]]]] = []
+        for timer in range(period):
+            animated_tiles = _apply_tile_animations(renderer.bank0_tiles, animations, timer)
+            frames.append(_render_with_tiles(renderer, animated_tiles, renderer.bank1_tiles))
+        _write_gif(output_path, frames, _GIF_FRAME_DURATION_MS)
+    else:
+        width, height, rows = _render_with_tiles(renderer, renderer.bank0_tiles, renderer.bank1_tiles)
+        _write_png(output_path, width, height, rows, png)
+    print(f"Wrote {output_path}")
+
+
+if __name__ == "__main__":
+    main()

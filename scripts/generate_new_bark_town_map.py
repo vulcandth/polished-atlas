@@ -48,6 +48,17 @@ _TILESET_INFO = {
     },
 }
 
+_ROOF_GFX = {
+    "ROOF_NEW_BARK": "gfx/tilesets/roofs/new_bark",
+    "ROOF_VIOLET": "gfx/tilesets/roofs/violet",
+    "ROOF_AZALEA": "gfx/tilesets/roofs/azalea",
+    "ROOF_OLIVINE": "gfx/tilesets/roofs/olivine",
+    "ROOF_STATUE": "gfx/tilesets/roofs/statue",
+}
+
+_ROOF_TILE_OFFSET = 0x0A
+_ROOF_TILE_COUNT = 9
+
 
 class LzDecompressor:
     """Minimal reader for the project's LZ-compressed assets."""
@@ -279,6 +290,39 @@ def _parse_map_tileset(maps_path: Path, map_label: str) -> str:
     raise ValueError(f"Could not locate tileset for {map_label}")
 
 
+def _parse_map_group(constants_path: Path, map_constant: str) -> int:
+    group = 0
+    pattern = re.compile(rf"map_const\s+{map_constant}\b")
+    for raw_line in constants_path.read_text().splitlines():
+        line = raw_line.split(";", 1)[0].strip()
+        if not line:
+            continue
+        if line.startswith("newgroup"):
+            group += 1
+            continue
+        if pattern.search(line):
+            if group == 0:
+                raise ValueError(f"Map {map_constant} defined before any map group")
+            return group
+    raise ValueError(f"Could not locate group for {map_constant}")
+
+
+def _parse_map_group_roof(roofs_path: Path, group: int) -> str | None:
+    entries: List[str] = []
+    for raw_line in roofs_path.read_text().splitlines():
+        line = raw_line.split(";", 1)[0].strip()
+        if not line or not line.startswith("db"):
+            continue
+        value = line[2:].strip()
+        entries.append(value)
+    if group >= len(entries):
+        return None
+    value = entries[group]
+    if value in {"-1", "0", ""}:
+        return None
+    return value
+
+
 def _read_block_bytes(map_path: Path) -> bytes:
     if map_path.exists():
         return map_path.read_bytes()
@@ -305,6 +349,40 @@ def _load_tileset_bank(polished_path: Path, sources: Sequence[str], png_module) 
             data = _read_asset_bytes(asset_path)
             tiles.extend(_decode_2bpp_tiles(data))
     return tiles
+
+
+def _load_roof_tiles(polished_path: Path, roof_constant: str, png_module) -> List[List[int]]:
+    relative = _ROOF_GFX.get(roof_constant)
+    if relative is None:
+        raise KeyError(f"No roof graphics defined for {roof_constant}")
+    base_path = polished_path / relative
+    for suffix in (".2bpp.lz", ".2bpp"):
+        candidate = base_path.with_suffix(suffix)
+        if candidate.exists():
+            data = _read_asset_bytes(candidate)
+            tiles = _decode_2bpp_tiles(data)
+            break
+    else:
+        png_path = base_path.with_suffix(".png")
+        if not png_path.exists():
+            raise FileNotFoundError(f"Roof graphics not found for {roof_constant} ({base_path})")
+        tiles = _decode_tiles_from_png(png_path, png_module)
+    if len(tiles) < _ROOF_TILE_COUNT:
+        raise ValueError(f"Expected at least {_ROOF_TILE_COUNT} tiles for {roof_constant}, found {len(tiles)}")
+    return tiles[:_ROOF_TILE_COUNT]
+
+
+def _apply_roof_tiles(bank0_tiles: List[List[int]], roof_tiles: Sequence[Sequence[int]]) -> None:
+    blank_tile = [0] * (Tileset.TILE_SIZE * Tileset.TILE_SIZE)
+    while len(bank0_tiles) < _ROOF_TILE_OFFSET:
+        bank0_tiles.append(list(blank_tile))
+    for offset, tile in enumerate(roof_tiles):
+        index = _ROOF_TILE_OFFSET + offset
+        tile_data = list(tile)
+        if index < len(bank0_tiles):
+            bank0_tiles[index] = tile_data
+        else:
+            bank0_tiles.append(tile_data)
 
 
 def _render_map(block_indices: Sequence[int], width: int, height: int, metatiles: MetatileSet) -> Tuple[int, int, List[List[int]]]:
@@ -363,6 +441,8 @@ def _build_renderer(png_module, polished_path: Path) -> Tuple[MetatileSet, List[
     constants_path = polished_path / "constants/map_constants.asm"
     maps_path = polished_path / "data/maps/maps.asm"
     width, height = _parse_map_dimensions(constants_path, map_constant)
+    map_group = _parse_map_group(constants_path, map_constant)
+    roof_constant = _parse_map_group_roof(polished_path / "data/maps/roofs.asm", map_group)
     tileset_key = _parse_map_tileset(maps_path, map_label)
     resources = _TILESET_INFO.get(tileset_key)
     if not resources:
@@ -373,6 +453,9 @@ def _build_renderer(png_module, polished_path: Path) -> Tuple[MetatileSet, List[
     palette = _day_palette(polished_path)
     attributes = Attributes(polished_path / resources["attributes_bin"], palette)
     bank0_tiles = _load_tileset_bank(polished_path, resources.get("bank0_sources", []), png_module)
+    if roof_constant:
+        roof_tiles = _load_roof_tiles(polished_path, roof_constant, png_module)
+        _apply_roof_tiles(bank0_tiles, roof_tiles)
     bank1_tiles = _load_tileset_bank(polished_path, resources.get("bank1_sources", []), png_module)
     tileset = Tileset(bank0_tiles, bank1_tiles, attributes)
     metatiles = MetatileSet(polished_path / resources["metatiles_bin"], tileset, attributes)

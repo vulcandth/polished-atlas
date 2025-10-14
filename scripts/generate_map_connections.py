@@ -15,7 +15,9 @@ import re
 from collections import deque
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Tuple
+
+import render_map
 
 _MAP_ATTRIBUTES_RE = re.compile(
     r"map_attributes\s+([A-Za-z0-9_]+),\s*([A-Z0-9_]+),\s*([^,]+),\s*(.+)"
@@ -40,6 +42,12 @@ class MapAttributes:
     border_block: str
     connection_flags: List[str]
     connections: List[MapConnection] = field(default_factory=list)
+    width: Optional[int] = None
+    height: Optional[int] = None
+    map_type: Optional[str] = None
+    group: Optional[int] = None
+    tileset: Optional[str] = None
+    roof_constant: Optional[str] = None
 
 
 class AttributesParser:
@@ -105,11 +113,36 @@ def _collect_reachable(graph: Dict[str, MapAttributes], root: str) -> Dict[str, 
             border_block=source.border_block,
             connection_flags=list(source.connection_flags),
             connections=list(source.connections),
+            width=source.width,
+            height=source.height,
+            map_type=source.map_type,
+            group=source.group,
+            tileset=source.tileset,
+            roof_constant=source.roof_constant,
         )
         for connection in source.connections:
             if connection.label in graph and connection.label not in visited:
                 queue.append(connection.label)
     return dict(sorted(visited.items()))
+
+
+def _augment_with_repo(
+    attributes: Dict[str, MapAttributes],
+    repo_index: Optional[render_map.RepositoryIndex],
+) -> None:
+    if repo_index is None:
+        return
+    for data in attributes.values():
+        try:
+            info = repo_index.map_info(data.label)
+        except KeyError:
+            continue
+        data.width = info.width
+        data.height = info.height
+        data.map_type = info.map_type
+        data.group = info.group
+        data.tileset = info.tileset
+        data.roof_constant = info.roof_constant
 
 
 def _serialise_connections(attributes: Dict[str, MapAttributes]) -> Dict[str, dict]:
@@ -120,6 +153,15 @@ def _serialise_connections(attributes: Dict[str, MapAttributes]) -> Dict[str, di
             "map_constant": data.constant,
             "border_block": data.border_block,
             "connection_flags": data.connection_flags,
+            "width": data.width,
+            "height": data.height,
+            "width_px": _to_pixels(data.width),
+            "height_px": _to_pixels(data.height),
+            "map_type": data.map_type,
+            "group": data.group,
+            "tileset": data.tileset,
+            "roof_constant": data.roof_constant,
+            "asset": _default_asset_path(data.label),
             "connections": [
                 {
                     "direction": conn.direction,
@@ -132,6 +174,16 @@ def _serialise_connections(attributes: Dict[str, MapAttributes]) -> Dict[str, di
             ],
         }
     return serialised
+
+
+def _to_pixels(blocks: Optional[int]) -> Optional[int]:
+    if blocks is None:
+        return None
+    return blocks * render_map.MetatileSet.METATILE_DIM * render_map.Tileset.TILE_SIZE
+
+
+def _default_asset_path(label: str) -> str:
+    return f"maps/day/animated/{label}.gif"
 
 
 def _default_repo_root() -> Path:
@@ -159,6 +211,12 @@ def parse_args() -> argparse.Namespace:
         help="Path to attributes.asm (defaults to the polishedcrystal checkout).",
     )
     parser.add_argument(
+        "--polishedcrystal",
+        type=Path,
+        default=repo_root / "external/polishedcrystal",
+        help="Path to the polishedcrystal repository root (for additional metadata).",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=None,
@@ -172,14 +230,25 @@ def main() -> None:
     attributes_path = args.attributes.resolve()
     if not attributes_path.exists():
         raise FileNotFoundError(f"attributes.asm not found at {attributes_path}")
+    polished_path = args.polishedcrystal.resolve()
+    repo_index: Optional[render_map.RepositoryIndex]
+    if polished_path.exists():
+        try:
+            repo_index = render_map.RepositoryIndex(polished_path)
+        except Exception as exc:  # pragma: no cover - defensive guard
+            raise RuntimeError(f"Failed to initialise RepositoryIndex at {polished_path}: {exc}") from exc
+    else:
+        repo_index = None
 
     parser = AttributesParser(attributes_path)
     graph = parser.parse()
     reachable = _collect_reachable(graph, args.root)
+    _augment_with_repo(reachable, repo_index)
     payload = {
         "root": args.root,
         "map_count": len(reachable),
         "maps": _serialise_connections(reachable),
+        "block_pixel_size": _to_pixels(1),
     }
 
     output_path = (args.output or _default_output_path(args.root)).resolve()

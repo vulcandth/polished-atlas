@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a PNG render (or animated GIF) of New Bark Town using polishedcrystal assets.
+"""Generate a PNG render (or animated GIF) of any polishedcrystal overworld map.
 
 The script understands the repo's VRAM banking scheme, metatile format, and
 LZ-compressed map blocks so it can source the same assets used by the game.
@@ -37,18 +37,6 @@ _BIT_FLIPPED = [
 ]
 
 _DEFAULT_RGB: RGB = (0xAB, 0xCD, 0xEF)
-_TILESET_INFO = {
-    "TILESET_JOHTO_TRADITIONAL": {
-        "metatiles_bin": "data/tilesets/johto_traditional_metatiles.bin",
-        "attributes_bin": "data/tilesets/johto_traditional_attributes.bin",
-        "bank0_sources": [
-            "gfx/tilesets/johto_common.png",
-        ],
-        "bank1_sources": [
-            "gfx/tilesets/johto_traditional.johto_common.png",
-        ],
-    },
-}
 
 _ROOF_GFX = {
     "ROOF_NEW_BARK": "gfx/tilesets/roofs/new_bark",
@@ -80,6 +68,276 @@ class RendererData:
     bank0_tiles: List[List[int]]
     bank1_tiles: List[List[int]]
     tileset_key: str
+    map_label: str
+
+
+@dataclass
+class MapInfo:
+    label: str
+    tileset: str
+    constant: str
+    width: int
+    height: int
+    group: int
+    roof_constant: Optional[str]
+
+
+@dataclass
+class TilesetResources:
+    metatiles_path: str
+    attributes_path: str
+    bank0_sources: List[str]
+    bank1_sources: List[str]
+
+
+class RepositoryIndex:
+    def __init__(self, root: Path) -> None:
+        self.root = root
+        self._map_constants = self._parse_map_constants()
+        self._map_roofs = self._parse_map_roofs()
+        self._roof_palettes = self._parse_roof_palettes()
+        self._map_table = self._parse_map_table()
+        self._tileset_constants = self._parse_tileset_constants()
+        self._tileset_labels = self._parse_tileset_table()
+        self._tileset_assets = self._parse_tileset_assets()
+        self.maps = self._build_map_infos()
+        self.tilesets = self._build_tileset_resources()
+
+    def map_info(self, label: str) -> MapInfo:
+        try:
+            return self.maps[label]
+        except KeyError as exc:
+            raise KeyError(f"Unknown map label '{label}'") from exc
+
+    def tileset_resources(self, tileset_constant: str) -> TilesetResources:
+        try:
+            return self.tilesets[tileset_constant]
+        except KeyError as exc:
+            raise KeyError(f"Missing tileset resources for {tileset_constant}") from exc
+
+    def roof_palette(self, group: int) -> Optional[Tuple[RGB, RGB]]:
+        if 0 <= group < len(self._roof_palettes):
+            return self._roof_palettes[group]
+        return None
+
+    def roof_constant(self, group: int) -> Optional[str]:
+        if 0 <= group < len(self._map_roofs):
+            return self._map_roofs[group]
+        return None
+
+    def _parse_map_table(self) -> dict[str, Tuple[str, str]]:
+        path = self.root / "data/maps/maps.asm"
+        mapping: dict[str, Tuple[str, str]] = {}
+        for raw_line in path.read_text().splitlines():
+            line = raw_line.split(";", 1)[0].strip()
+            if not line.startswith("map "):
+                continue
+            parts = [part.strip() for part in line.split(",")]
+            if len(parts) < 5:
+                continue
+            label = parts[0].split()[1]
+            tileset = parts[1]
+            constant = parts[4]
+            mapping[label] = (tileset, constant)
+        return mapping
+
+    def _parse_map_constants(self) -> dict[str, Tuple[int, int, int]]:
+        path = self.root / "constants/map_constants.asm"
+        constants: dict[str, Tuple[int, int, int]] = {}
+        group = -1
+        for raw_line in path.read_text().splitlines():
+            line = raw_line.split(";", 1)[0].strip()
+            if not line:
+                continue
+            if line.startswith("newgroup"):
+                group += 1
+                continue
+            if line.startswith("map_const"):
+                try:
+                    _, rest = line.split(None, 1)
+                except ValueError:
+                    continue
+                name_part, dimensions = rest.split(",", 1)
+                name = name_part.strip()
+                width_str, height_str = dimensions.split(",", 1)
+                width = int(width_str.strip())
+                height = int(height_str.strip())
+                constants[name] = (width, height, group)
+        return constants
+
+    def _parse_map_roofs(self) -> List[Optional[str]]:
+        path = self.root / "data/maps/roofs.asm"
+        entries: List[Optional[str]] = []
+        for raw_line in path.read_text().splitlines():
+            line = raw_line.split(";", 1)[0].strip()
+            if not line or not line.startswith("db"):
+                continue
+            value = line[2:].strip()
+            entries.append(None if value in {"-1", "0", ""} else value)
+        return entries
+
+    def _parse_roof_palettes(self) -> List[Optional[Tuple[RGB, RGB]]]:
+        path = self.root / "gfx/tilesets/roofs.pal"
+        palettes: List[Optional[Tuple[RGB, RGB]]] = []
+        for raw_line in path.read_text().splitlines():
+            stripped = raw_line.strip()
+            if stripped.startswith("else"):
+                break
+            line = raw_line.split(";", 1)[0].strip()
+            if not line.startswith("RGB"):
+                continue
+            numbers = [int(value) for value in re.findall(r"\d+", line)]
+            if len(numbers) < 6:
+                palettes.append(None)
+                continue
+            color1 = tuple(component * 8 for component in numbers[:3])
+            color2 = tuple(component * 8 for component in numbers[3:6])
+            palettes.append((color1, color2))
+        return palettes
+
+    def _parse_tileset_constants(self) -> List[str]:
+        path = self.root / "constants/tileset_constants.asm"
+        constants: List[str] = []
+        for raw_line in path.read_text().splitlines():
+            line = raw_line.split(";", 1)[0].strip()
+            if line.startswith("const TILESET_"):
+                parts = line.split()
+                if len(parts) >= 2:
+                    constants.append(parts[1])
+            if line.startswith("DEF NUM_TILESETS"):
+                break
+        return constants
+
+    def _parse_tileset_table(self) -> List[str]:
+        path = self.root / "data/tilesets.asm"
+        labels: List[str] = []
+        in_table = False
+        for raw_line in path.read_text().splitlines():
+            line = raw_line.strip()
+            if not in_table:
+                if line.startswith("Tilesets::"):
+                    in_table = True
+                continue
+            if line.startswith("tileset "):
+                parts = line.split()
+                if len(parts) >= 2:
+                    labels.append(parts[1])
+                continue
+            if line.startswith("assert_table_length"):
+                break
+        return labels
+
+    def _parse_tileset_assets(self) -> dict[str, dict[str, str]]:
+        path = self.root / "data/tilesets.asm"
+        assets: dict[str, dict[str, str]] = {}
+        pending: List[Tuple[str, str]] = []
+        label_pattern = re.compile(r"Tileset(\w+)(GFX\d+|Meta|Attr)::")
+        asset_pattern = re.compile(r'INCBIN\s+"([^"]+)"')
+        for raw_line in path.read_text().splitlines():
+            stripped = raw_line.strip()
+            label_match = label_pattern.match(stripped)
+            if label_match:
+                label = f"Tileset{label_match.group(1)}"
+                section = label_match.group(2)
+                pending.append((label, section))
+                asset_match = asset_pattern.search(stripped)
+                if asset_match:
+                    asset_path = asset_match.group(1)
+                    for lbl, sec in pending:
+                        assets.setdefault(lbl, {})[sec] = asset_path
+                    pending.clear()
+                continue
+            asset_match = asset_pattern.search(stripped)
+            if asset_match and pending:
+                asset_path = asset_match.group(1)
+                for lbl, sec in pending:
+                    assets.setdefault(lbl, {})[sec] = asset_path
+                pending.clear()
+                continue
+            if pending and (stripped.startswith("SECTION") or stripped.startswith("db") or stripped.startswith("INCLUDE")):
+                pending.clear()
+        return assets
+
+    def _build_map_infos(self) -> dict[str, MapInfo]:
+        maps: dict[str, MapInfo] = {}
+        for label, (tileset, constant) in self._map_table.items():
+            constant_data = self._map_constants.get(constant)
+            if constant_data is None:
+                continue
+            width, height, group = constant_data
+            roof_constant = self.roof_constant(group)
+            maps[label] = MapInfo(
+                label=label,
+                tileset=tileset,
+                constant=constant,
+                width=width,
+                height=height,
+                group=group,
+                roof_constant=roof_constant,
+            )
+        return maps
+
+    def _build_tileset_resources(self) -> dict[str, TilesetResources]:
+        resources: dict[str, TilesetResources] = {}
+        constant_to_label = {
+            constant: label for constant, label in zip(self._tileset_constants, self._tileset_labels)
+        }
+        for constant, label in constant_to_label.items():
+            asset = self._tileset_assets.get(label, {})
+            meta_path = asset.get("Meta")
+            attr_path = asset.get("Attr")
+            if not meta_path or not attr_path:
+                continue
+            metatiles_path = self._normalize_binary_path(meta_path)
+            attributes_path = self._normalize_binary_path(attr_path)
+            bank0_sources = []
+            gfx0_path = asset.get("GFX0")
+            if gfx0_path:
+                bank0_sources.append(self._graphics_source_path(gfx0_path))
+            bank1_sources: List[str] = []
+            for key in ("GFX1", "GFX2"):
+                gfx_path = asset.get(key)
+                if gfx_path:
+                    bank1_sources.append(self._graphics_source_path(gfx_path))
+            resources[constant] = TilesetResources(
+                metatiles_path=metatiles_path,
+                attributes_path=attributes_path,
+                bank0_sources=bank0_sources,
+                bank1_sources=bank1_sources,
+            )
+        return resources
+
+    def _normalize_binary_path(self, raw_path: str) -> str:
+        candidate = Path(raw_path)
+        if candidate.suffix == ".lz":
+            without_lz = candidate.with_suffix("")
+            if (self.root / without_lz).exists():
+                candidate = without_lz
+        elif not (self.root / candidate).exists() and raw_path.endswith(".lz"):
+            without_lz = Path(raw_path[:-3])
+            if (self.root / without_lz).exists():
+                candidate = without_lz
+        if not (self.root / candidate).exists():
+            raise FileNotFoundError(f"Asset not found: {candidate}")
+        return candidate.as_posix()
+
+    def _graphics_source_path(self, raw_path: str) -> str:
+        base = re.sub(r"\.2bpp(?:\.[^.]+)?(?:\.lz)?$", "", raw_path)
+        candidates = [
+            f"{base}.png",
+            f"{base}.2bpp",
+            f"{base}.2bpp.lz",
+            raw_path[:-3] if raw_path.endswith(".lz") else raw_path,
+            raw_path,
+        ]
+        seen: set[str] = set()
+        for candidate in candidates:
+            if candidate in seen:
+                continue
+            seen.add(candidate)
+            if (self.root / candidate).exists():
+                return candidate
+        raise FileNotFoundError(f"Tileset graphics not found for base {raw_path}")
 
 
 class LzDecompressor:
@@ -243,9 +501,9 @@ class Attributes:
     XFLIP = 0x20
     YFLIP = 0x40
 
-    def __init__(self, path: Path, palette_source: Iterable[List[RGB]]):
+    def __init__(self, data: bytes, palette_source: Iterable[List[RGB]]):
         self.colors = list(palette_source)
-        self.data = _chunk_bytes(path.read_bytes(), 16)
+        self.data = _chunk_bytes(data, 16)
 
 
 class Tileset:
@@ -297,80 +555,6 @@ class MetatileSet:
 
     def __getitem__(self, item: int) -> List[List[RGB]]:
         return self._tiles[item]
-
-
-def _parse_map_dimensions(constants_path: Path, constant: str) -> Tuple[int, int]:
-    pattern = re.compile(rf"map_const\s+{constant},\s*(\d+),\s*(\d+)")
-    for line in constants_path.read_text().splitlines():
-        match = pattern.search(line)
-        if match:
-            width, height = int(match.group(1)), int(match.group(2))
-            return width, height
-    raise ValueError(f"Could not locate dimensions for {constant}")
-
-
-def _parse_map_tileset(maps_path: Path, map_label: str) -> str:
-    pattern = re.compile(rf"map\s+{map_label},\s*(TILESET_[A-Z0-9_]+)")
-    for line in maps_path.read_text().splitlines():
-        line = line.split(";", 1)[0]
-        match = pattern.search(line)
-        if match:
-            return match.group(1)
-    raise ValueError(f"Could not locate tileset for {map_label}")
-
-
-def _parse_map_group(constants_path: Path, map_constant: str) -> int:
-    group = 0
-    pattern = re.compile(rf"map_const\s+{map_constant}\b")
-    for raw_line in constants_path.read_text().splitlines():
-        line = raw_line.split(";", 1)[0].strip()
-        if not line:
-            continue
-        if line.startswith("newgroup"):
-            group += 1
-            continue
-        if pattern.search(line):
-            if group == 0:
-                raise ValueError(f"Map {map_constant} defined before any map group")
-            return group
-    raise ValueError(f"Could not locate group for {map_constant}")
-
-
-def _parse_map_group_roof(roofs_path: Path, group: int) -> str | None:
-    entries: List[str] = []
-    for raw_line in roofs_path.read_text().splitlines():
-        line = raw_line.split(";", 1)[0].strip()
-        if not line or not line.startswith("db"):
-            continue
-        value = line[2:].strip()
-        entries.append(value)
-    if group >= len(entries):
-        return None
-    value = entries[group]
-    if value in {"-1", "0", ""}:
-        return None
-    return value
-
-
-def _load_roof_day_override(path: Path, group: int) -> Optional[Tuple[RGB, RGB]]:
-    entries: List[Tuple[RGB, RGB]] = []
-    for raw_line in path.read_text().splitlines():
-        stripped = raw_line.strip()
-        if stripped.startswith("else"):
-            break
-        line = raw_line.split(";", 1)[0].strip()
-        if not line.startswith("RGB"):
-            continue
-        numbers = [int(value) for value in re.findall(r"\d+", line)]
-        if len(numbers) < 6:
-            continue
-        day_values = numbers[:6]
-        color1 = tuple(component * 8 for component in day_values[:3])
-        color2 = tuple(component * 8 for component in day_values[3:6])
-        entries.append((color1, color2))
-    if group >= len(entries):
-        return None
-    return entries[group]
 
 
 def _read_block_bytes(map_path: Path) -> bytes:
@@ -581,48 +765,49 @@ def _map_block_indices(data: bytes, width: int, height: int) -> List[int]:
     return list(data)
 
 
-def _build_renderer(png_module, polished_path: Path) -> RendererData:
-    map_label = "NewBarkTown"
-    map_constant = "NEW_BARK_TOWN"
-    constants_path = polished_path / "constants/map_constants.asm"
-    maps_path = polished_path / "data/maps/maps.asm"
-    width, height = _parse_map_dimensions(constants_path, map_constant)
-    map_group = _parse_map_group(constants_path, map_constant)
-    roof_constant = _parse_map_group_roof(polished_path / "data/maps/roofs.asm", map_group)
-    tileset_key = _parse_map_tileset(maps_path, map_label)
-    resources = _TILESET_INFO.get(tileset_key)
-    if not resources:
-        raise KeyError(f"Tileset resources for {tileset_key} are not defined")
-    blocks_path = polished_path / "maps" / f"{map_label}.ablk"
+def _build_renderer(
+    png_module,
+    polished_path: Path,
+    repo_index: RepositoryIndex,
+    map_label: str,
+) -> RendererData:
+    map_info = repo_index.map_info(map_label)
+    tileset_resources = repo_index.tileset_resources(map_info.tileset)
+    blocks_path = polished_path / "maps" / f"{map_info.label}.ablk"
     block_bytes = _read_block_bytes(blocks_path)
-    block_indices = _map_block_indices(block_bytes, width, height)
-    roof_palette_override = None
-    if roof_constant:
-        roof_palette_override = _load_roof_day_override(polished_path / "gfx/tilesets/roofs.pal", map_group)
+    block_indices = _map_block_indices(block_bytes, map_info.width, map_info.height)
+    roof_palette_override = repo_index.roof_palette(map_info.group) if map_info.roof_constant else None
     palette = _day_palette(polished_path, roof_palette_override)
-    attributes = Attributes(polished_path / resources["attributes_bin"], palette)
-    bank0_tiles = _load_tileset_bank(polished_path, resources.get("bank0_sources", []), png_module)
-    if roof_constant:
-        roof_tiles = _load_roof_tiles(polished_path, roof_constant, png_module)
+    attributes_data = _read_asset_bytes(polished_path / tileset_resources.attributes_path)
+    attributes = Attributes(attributes_data, palette)
+    bank0_tiles = _load_tileset_bank(polished_path, tileset_resources.bank0_sources, png_module)
+    if map_info.roof_constant:
+        roof_tiles = _load_roof_tiles(polished_path, map_info.roof_constant, png_module)
         _apply_roof_tiles(bank0_tiles, roof_tiles)
-    bank1_tiles = _load_tileset_bank(polished_path, resources.get("bank1_sources", []), png_module)
-    metatile_path = polished_path / resources["metatiles_bin"]
-    metatile_data = metatile_path.read_bytes()
+    bank1_tiles = _load_tileset_bank(polished_path, tileset_resources.bank1_sources, png_module)
+    metatile_data = _read_asset_bytes(polished_path / tileset_resources.metatiles_path)
     return RendererData(
         block_indices=block_indices,
-        width=width,
-        height=height,
+        width=map_info.width,
+        height=map_info.height,
         attributes=attributes,
         metatile_data=metatile_data,
         bank0_tiles=[list(tile) for tile in bank0_tiles],
         bank1_tiles=[list(tile) for tile in bank1_tiles],
-        tileset_key=tileset_key,
+        tileset_key=map_info.tileset,
+        map_label=map_info.label,
     )
 
 
 def parse_args() -> argparse.Namespace:
     default_root = Path(__file__).resolve().parent.parent
-    parser = argparse.ArgumentParser(description="Render the New Bark Town overworld map to PNG.")
+    parser = argparse.ArgumentParser(description="Render a polishedcrystal overworld map to PNG or GIF.")
+    parser.add_argument(
+        "map",
+        nargs="?",
+        default="NewBarkTown",
+        help="Map label as defined in data/maps/maps.asm (e.g. NewBarkTown).",
+    )
     parser.add_argument(
         "--polishedcrystal",
         type=Path,
@@ -632,8 +817,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output",
         type=Path,
-        default=default_root / "new_bark_town.png",
-        help="Destination path for the generated image (use .gif for animation).",
+        default=None,
+        help="Destination path for the generated image (use .gif for animation). Defaults to <map>.png",
     )
     return parser.parse_args()
 
@@ -646,9 +831,14 @@ def main() -> None:
     sys.path.insert(0, str(polished_path / "utils"))
     import png  # type: ignore
 
-    renderer = _build_renderer(png, polished_path)
+    repo_index = RepositoryIndex(polished_path)
+    map_label = args.map
+    try:
+        renderer = _build_renderer(png, polished_path, repo_index, map_label)
+    except KeyError as exc:
+        raise SystemExit(str(exc))
     animations = _load_tileset_animations(polished_path, renderer.tileset_key, png)
-    output_path = args.output.resolve()
+    output_path = (args.output or (Path(__file__).resolve().parent.parent / f"{renderer.map_label}.png")).resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if output_path.suffix.lower() == ".gif":
         period = _animation_period(animations)

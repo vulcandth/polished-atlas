@@ -11,7 +11,7 @@ import argparse
 import re
 import sys
 from pathlib import Path
-from typing import Iterable, List, Sequence, Tuple
+from typing import Iterable, List, Optional, Sequence, Tuple
 
 RGB = Tuple[int, int, int]
 
@@ -203,9 +203,16 @@ def _load_palette(pal_path: Path) -> List[List[RGB]]:
     return [colors[i : i + 4] for i in range(0, len(colors), 4)]
 
 
-def _day_palette(base_path: Path) -> List[List[RGB]]:
+def _day_palette(base_path: Path, roof_override: Optional[Tuple[RGB, RGB]] = None) -> List[List[RGB]]:
     palettes = _load_palette(base_path / "gfx/tilesets/bg_tiles.pal")
-    return palettes[8:11] + [palettes[0x29]] + palettes[12:16]
+    selected = palettes[8:11] + [palettes[0x29]] + palettes[12:16]
+    result: List[List[RGB]] = [list(palette) for palette in selected]
+    if roof_override is not None and len(result) > 6:
+        roof_palette = list(result[6])
+        roof_palette[1] = roof_override[0]
+        roof_palette[2] = roof_override[1]
+        result[6] = roof_palette
+    return result
 
 
 class Attributes:
@@ -321,6 +328,27 @@ def _parse_map_group_roof(roofs_path: Path, group: int) -> str | None:
     if value in {"-1", "0", ""}:
         return None
     return value
+
+
+def _load_roof_day_override(path: Path, group: int) -> Optional[Tuple[RGB, RGB]]:
+    entries: List[Tuple[RGB, RGB]] = []
+    for raw_line in path.read_text().splitlines():
+        stripped = raw_line.strip()
+        if stripped.startswith("else"):
+            break
+        line = raw_line.split(";", 1)[0].strip()
+        if not line.startswith("RGB"):
+            continue
+        numbers = [int(value) for value in re.findall(r"\d+", line)]
+        if len(numbers) < 6:
+            continue
+        day_values = numbers[:6]
+        color1 = tuple(component * 8 for component in day_values[:3])
+        color2 = tuple(component * 8 for component in day_values[3:6])
+        entries.append((color1, color2))
+    if group >= len(entries):
+        return None
+    return entries[group]
 
 
 def _read_block_bytes(map_path: Path) -> bytes:
@@ -450,7 +478,10 @@ def _build_renderer(png_module, polished_path: Path) -> Tuple[MetatileSet, List[
     blocks_path = polished_path / "maps" / f"{map_label}.ablk"
     block_bytes = _read_block_bytes(blocks_path)
     block_indices = _map_block_indices(block_bytes, width, height)
-    palette = _day_palette(polished_path)
+    roof_palette_override = None
+    if roof_constant:
+        roof_palette_override = _load_roof_day_override(polished_path / "gfx/tilesets/roofs.pal", map_group)
+    palette = _day_palette(polished_path, roof_palette_override)
     attributes = Attributes(polished_path / resources["attributes_bin"], palette)
     bank0_tiles = _load_tileset_bank(polished_path, resources.get("bank0_sources", []), png_module)
     if roof_constant:

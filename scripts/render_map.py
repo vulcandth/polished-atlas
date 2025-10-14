@@ -140,6 +140,7 @@ class MapInfo:
     group: int
     roof_constant: Optional[str]
     tileset_index: int
+    block_label: str
 
 
 @dataclass
@@ -165,6 +166,7 @@ class RepositoryIndex:
         ) = self._parse_tileset_constants()
         self._tileset_labels = self._parse_tileset_table()
         self._tileset_assets = self._parse_tileset_assets()
+        self._block_assets = self._parse_block_assets()
         self._constant_to_tileset_label = {
             constant: label
             for constant, label in zip(self._tileset_constants, self._tileset_labels)
@@ -189,6 +191,9 @@ class RepositoryIndex:
 
     def tileset_index(self, tileset_constant: str) -> Optional[int]:
         return self._tileset_indices.get(tileset_constant)
+
+    def block_asset(self, block_label: str) -> Optional[str]:
+        return self._block_assets.get(block_label)
 
     @property
     def no_roof_tileset_threshold(self) -> int:
@@ -374,6 +379,35 @@ class RepositoryIndex:
                 pending.clear()
         return assets
 
+    def _parse_block_assets(self) -> dict[str, str]:
+        path = self.root / "data/maps/blocks.asm"
+        assets: dict[str, str] = {}
+        pending: List[str] = []
+        incbin_pattern = re.compile(r'INCBIN\s+"([^"]+)"')
+        for raw_line in path.read_text().splitlines():
+            line = raw_line.split(";", 1)[0].strip()
+            if not line:
+                continue
+            if line.startswith("SECTION"):
+                pending.clear()
+                continue
+            if line.endswith(":"):
+                label = line.rstrip(":")
+                while label.endswith(":"):
+                    label = label[:-1]
+                if label:
+                    pending.append(label)
+                continue
+            match = incbin_pattern.search(line)
+            if match:
+                asset_path = match.group(1)
+                for label in pending:
+                    assets[label] = asset_path
+                pending.clear()
+            elif pending:
+                pending.clear()
+        return assets
+
     def _build_map_infos(self) -> dict[str, MapInfo]:
         maps: dict[str, MapInfo] = {}
         for label, (tileset, map_type, constant) in self._map_table.items():
@@ -396,6 +430,7 @@ class RepositoryIndex:
                 group=group,
                 roof_constant=roof_constant,
                 tileset_index=tileset_index,
+                block_label=f"{label}_BlockData",
             )
         return maps
 
@@ -782,12 +817,24 @@ class MetatileSet:
 
 
 def _read_block_bytes(map_path: Path) -> bytes:
-    if map_path.exists():
-        return map_path.read_bytes()
-    compressed = map_path.with_suffix(map_path.suffix + ".lz")
-    if not compressed.exists():
-        raise FileNotFoundError(f"Missing {map_path} or {compressed}")
-    return LzDecompressor(compressed.read_bytes()).decompress()
+    candidates: List[Path] = []
+    seen: Set[Path] = set()
+    candidates.append(map_path)
+    if map_path.suffix == ".lz":
+        candidates.insert(0, map_path.with_suffix(""))
+    else:
+        candidates.append(map_path.with_suffix(map_path.suffix + ".lz"))
+    for candidate in candidates:
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        if not candidate.exists():
+            continue
+        data = candidate.read_bytes()
+        if candidate.suffix == ".lz":
+            data = LzDecompressor(data).decompress()
+        return data
+    raise FileNotFoundError("Missing any of: {}".format(", ".join(str(path) for path in candidates)))
 
 
 def _read_asset_bytes(path: Path) -> bytes:
@@ -1142,7 +1189,11 @@ def _build_renderer(
 ) -> RendererData:
     map_info = repo_index.map_info(map_label)
     tileset_resources = repo_index.tileset_resources(map_info.tileset)
-    blocks_path = polished_path / "maps" / f"{map_info.label}.ablk"
+    block_asset = repo_index.block_asset(map_info.block_label)
+    if block_asset:
+        blocks_path = polished_path / Path(block_asset)
+    else:
+        blocks_path = polished_path / "maps" / f"{map_info.label}.ablk"
     block_bytes = _read_block_bytes(blocks_path)
     block_indices = _map_block_indices(block_bytes, map_info.width, map_info.height)
     allows_roof_palette = map_info.map_type in {"TOWN", "ROUTE", "ISOLATED"}

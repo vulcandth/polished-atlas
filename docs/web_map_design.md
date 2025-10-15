@@ -7,7 +7,7 @@
 - Provide hooks for future overlays such as points of interest, routes, and search.
 
 ## Data Flow
-1. **Neighborhood Manifest**: `scripts/generate_all_map_connections.py` emits one connection JSON per overworld neighborhood plus `map_neighborhoods.json`, which lists each neighborhood, its root map, bounds, default offsets, and `z_offset` stacking order for resolving overlap.
+1. **Neighborhood Manifest**: `scripts/generate_all_map_connections.py` emits one connection JSON per overworld neighborhood plus `map_neighborhoods.json`, which lists each neighborhood, its root map, bounds, default offsets (supporting fractional blocks like `0.5`), and `z_offset` stacking order for resolving overlap.
 2. **Connection Graph**: Individual JSON files (e.g. `NewBarkTown_connections.json`) referenced by the manifest. Each file contains map adjacency, offsets, and metadata for a single neighborhood.
 3. **Map Assets**: Animation metadata JSON files plus sprite sheet PNGs located in `maps/day/animated/`. Filenames align with map labels.
 4. **Derived Tileset**: Build step consumes sprite sheets to produce Web-ready textures (optionally pre-sliced into tiles) and bundles JSON for quick client loading.

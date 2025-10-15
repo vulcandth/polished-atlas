@@ -50,7 +50,7 @@ function parseOffsetBlocks(raw: NeighborhoodManifestEntry["offset_blocks"]): Off
   if (!isFiniteNumber(x) || !isFiniteNumber(y)) {
     return null;
   }
-  return [Math.trunc(x), Math.trunc(y)];
+  return [x, y];
 }
 
 function resolveBoundsBlocks(

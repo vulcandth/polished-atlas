@@ -57,14 +57,14 @@ class NeighborhoodRecord:
     types_present: List[str]
     fingerprint: str
     bounds_blocks: Tuple[int, int]
-    offset_blocks: Tuple[int, int]
+    offset_blocks: Tuple[float, float]
     z_offset: int
     map_count: int
 
 
 @dataclass
 class LayoutSpec:
-    offset: Optional[Tuple[int, int]]
+    offset: Optional[Tuple[float, float]]
     z_offset: Optional[int]
 
 
@@ -273,10 +273,10 @@ def _load_existing_layout(manifest_path: Path) -> Tuple[Dict[str, LayoutSpec], D
         fingerprint = entry.get("fingerprint")
         identifier = entry.get("id")
         offset = entry.get("offset_blocks")
-        parsed_offset: Optional[Tuple[int, int]] = None
+        parsed_offset: Optional[Tuple[float, float]] = None
         if isinstance(offset, list) and len(offset) == 2:
             try:
-                parsed_offset = (int(offset[0]), int(offset[1]))
+                parsed_offset = (float(offset[0]), float(offset[1]))
             except (TypeError, ValueError):
                 parsed_offset = None
         raw_z = entry.get("z_offset")
@@ -379,7 +379,7 @@ def main() -> None:
         global_seen.update(members)
 
     existing_by_fingerprint, existing_by_id, auto_z_start = _load_existing_layout(manifest_path)
-    auto_cursor = 0
+    auto_cursor: float = 0.0
     auto_z = auto_z_start
     neighborhoods: List[NeighborhoodRecord] = []
     encountered_fingerprints: Set[str] = set()
@@ -405,8 +405,8 @@ def main() -> None:
             layout_hint = existing_by_id.get(root_label)
         offset = layout_hint.offset if layout_hint and layout_hint.offset is not None else None
         if offset is None:
-            offset = (0, auto_cursor)
-            auto_cursor += bounds[1] + max(args.margin_blocks, 0)
+            offset = (0.0, auto_cursor)
+            auto_cursor += float(bounds[1]) + max(float(args.margin_blocks), 0.0)
         z_offset = layout_hint.z_offset if layout_hint and layout_hint.z_offset is not None else None
         if z_offset is None:
             z_offset = auto_z

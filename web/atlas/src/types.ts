@@ -47,6 +47,9 @@ export interface MapPlacement {
   metadata: {
     mapType: string | null;
     tileset: string | null;
+    neighborhoodId?: string | null;
+    neighborhoodRoot?: string | null;
+    neighborhoodZ?: number | null;
   };
 }
 
@@ -58,6 +61,48 @@ export interface AtlasLayout {
     width: number;
     height: number;
   };
+  metadata?: {
+    neighborhoods?: NeighborhoodSummary[];
+    source?: "manifest" | "graph";
+    manifestVersion?: number;
+  };
+}
+
+export interface NeighborhoodSummary {
+  id: string;
+  root: string;
+  graph: string;
+  mapCount: number;
+  primaryType: string | null;
+  boundsBlocks: {
+    width: number;
+    height: number;
+  };
+  offsetBlocks: [number, number];
+  zOffset: number;
+}
+
+export interface NeighborhoodManifestEntry {
+  id: string;
+  root: string;
+  graph: string;
+  map_count: number;
+  primary_type: string | null;
+  types_present: string[];
+  map_labels: string[];
+  fingerprint: string;
+  bounds_blocks: {
+    width: number;
+    height: number;
+  };
+  offset_blocks: [number, number] | null;
+  z_offset?: number | null;
+}
+
+export interface NeighborhoodManifest {
+  version: number;
+  generated_at: string;
+  neighborhoods: NeighborhoodManifestEntry[];
 }
 
 export interface MapAnimationMetadata {

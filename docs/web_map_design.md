@@ -7,10 +7,11 @@
 - Provide hooks for future overlays such as points of interest, routes, and search.
 
 ## Data Flow
-1. **Connection Graph**: Produced by `scripts/generate_map_connections.py`. JSON contains map adjacency, offsets, and metadata.
-2. **Map Assets**: Animation metadata JSON files plus sprite sheet PNGs located in `maps/day/animated/`. Filenames align with map labels.
-3. **Derived Tileset**: Build step consumes sprite sheets to produce Web-ready textures (optionally pre-sliced into tiles) and bundles JSON for quick client loading.
-4. **API / Hosting**: Static assets served from CDN or static server. Optional lightweight API (Node/Express) exposes search index and metadata.
+1. **Neighborhood Manifest**: `scripts/generate_all_map_connections.py` emits one connection JSON per overworld neighborhood plus `map_neighborhoods.json`, which lists each neighborhood, its root map, bounds, default offsets, and `z_offset` stacking order for resolving overlap.
+2. **Connection Graph**: Individual JSON files (e.g. `NewBarkTown_connections.json`) referenced by the manifest. Each file contains map adjacency, offsets, and metadata for a single neighborhood.
+3. **Map Assets**: Animation metadata JSON files plus sprite sheet PNGs located in `maps/day/animated/`. Filenames align with map labels.
+4. **Derived Tileset**: Build step consumes sprite sheets to produce Web-ready textures (optionally pre-sliced into tiles) and bundles JSON for quick client loading.
+5. **API / Hosting**: Static assets served from CDN or static server. Optional lightweight API (Node/Express) exposes search index and metadata.
 
 ## Front-End Stack
 - **Framework**: React 18 with TypeScript for UI structure and state.
@@ -21,7 +22,7 @@
 - **Styling**: CSS Modules or Tailwind CSS; ensure dark/light themes.
 
 ## Application Architecture
-- `App`: Initializes providers, loads root connection graph, sets initial view.
+- `App`: Initializes providers, loads the neighborhood manifest (or a legacy single graph), merges layouts, and restores/persists the current view.
 - `MapCanvas`: PixiJS integration, manages stage, viewport, zoom/pan, sprite layers.
 - `MapLayerManager`: Translates connection graph into positioned map sprites. Handles stitching by applying connection offsets.
 - `AnimationController`: Keeps GIF frames or spritesheets in sync; uses Pixi ticker for frame advancement.

@@ -86,6 +86,23 @@ class AnimationCommand:
     function: str
     data_label: Optional[str]
 
+@dataclass(frozen=True)
+class SpecialPaletteEntry:
+    trigger: str
+    identifier: Optional[str]
+    palette_type: str
+    source: str
+
+
+@dataclass
+class _MapHeader:
+    tileset: str
+    map_type: str
+    location: str
+    default_constant: Optional[str]
+    palette_flags: Set[str]
+
+
 
 _ANIMATION_SPECS: Dict[str, AnimationSpec] = {
     "AnimateWaterTile": AnimationSpec(("gfx/tilesets/water/johto_water.png",), repeat_each=2),
@@ -297,6 +314,10 @@ class MapInfo:
     roof_constant: Optional[str]
     tileset_index: int
     block_label: str
+    location: str
+    location_index: Optional[int]
+    palette_flags: Set[str]
+    region: Optional[int]
 
 
 @dataclass
@@ -313,6 +334,11 @@ class RepositoryIndex:
         self._map_constants = self._parse_map_constants()
         self._map_roofs = self._parse_map_roofs()
         self._roof_palettes = self._parse_roof_palettes()
+        (
+            self._landmark_indices,
+            self._kanto_landmark_index,
+            self._shamouti_landmark_index,
+        ) = self._parse_landmark_constants()
         self._map_table = self._parse_map_table()
         self._map_attributes = self._parse_map_attributes()
         (
@@ -323,10 +349,12 @@ class RepositoryIndex:
         self._tileset_labels = self._parse_tileset_table()
         self._tileset_assets = self._parse_tileset_assets()
         self._block_assets = self._parse_block_assets()
+        self._special_bg_palettes = self._parse_special_bg_palettes()
         self._constant_to_tileset_label = {
             constant: label
             for constant, label in zip(self._tileset_constants, self._tileset_labels)
         }
+        self._palette_cache: Dict[str, List[Tuple[RGB, ...]]] = {}
         self.maps = self._build_map_infos()
         self.tilesets = self._build_tileset_resources()
 
@@ -365,9 +393,9 @@ class RepositoryIndex:
             return self._map_roofs[group]
         return None
 
-    def _parse_map_table(self) -> dict[str, Tuple[str, str, str]]:
+    def _parse_map_table(self) -> dict[str, _MapHeader]:
         path = self.root / "data/maps/maps.asm"
-        mapping: dict[str, Tuple[str, str, str]] = {}
+        mapping: dict[str, _MapHeader] = {}
         for raw_line in path.read_text().splitlines():
             line = raw_line.split(";", 1)[0].strip()
             if not line.startswith("map "):
@@ -378,8 +406,18 @@ class RepositoryIndex:
             label = parts[0].split()[1]
             tileset = parts[1]
             map_type = parts[2]
-            constant = parts[4]
-            mapping[label] = (tileset, map_type, constant)
+            location = parts[4]
+            default_constant = parts[4] if len(parts) > 4 else None
+            palette_flags: Set[str] = set()
+            if len(parts) > 7:
+                palette_flags = {flag.strip() for flag in parts[7].split("|") if flag.strip()}
+            mapping[label] = _MapHeader(
+                tileset=tileset,
+                map_type=map_type,
+                location=location,
+                default_constant=default_constant,
+                palette_flags=palette_flags,
+            )
         return mapping
 
     def _parse_map_attributes(self) -> dict[str, str]:
@@ -450,6 +488,43 @@ class RepositoryIndex:
             color2 = tuple(component * 8 for component in numbers[3:6])
             palettes.append((color1, color2))
         return palettes
+
+    def _parse_landmark_constants(self) -> Tuple[Dict[str, int], Optional[int], Optional[int]]:
+        path = self.root / "constants/landmark_constants.asm"
+        mapping: Dict[str, int] = {}
+        current = 0
+        kanto_start: Optional[int] = None
+        shamouti_start: Optional[int] = None
+        for raw_line in path.read_text().splitlines():
+            line = raw_line.split(";", 1)[0].strip()
+            if not line:
+                continue
+            if line == "const_def":
+                current = 0
+                continue
+            if line.startswith("DEF NUM_LANDMARKS"):
+                break
+            if line.startswith("DEF KANTO_LANDMARK"):
+                kanto_start = current
+                continue
+            if line.startswith("DEF SHAMOUTI_LANDMARK"):
+                shamouti_start = current
+                continue
+            if line.startswith("const "):
+                parts = line.split()
+                if len(parts) >= 2:
+                    mapping[parts[1]] = current
+                    current += 1
+        return mapping, kanto_start, shamouti_start
+
+    def _region_for_location(self, location_index: Optional[int]) -> Optional[int]:
+        if location_index is None:
+            return None
+        if self._shamouti_landmark_index is not None and location_index >= self._shamouti_landmark_index:
+            return 2
+        if self._kanto_landmark_index is not None and location_index >= self._kanto_landmark_index:
+            return 1
+        return 0
 
     def _parse_tileset_constants(self) -> Tuple[List[str], dict[str, int], int]:
         path = self.root / "constants/tileset_constants.asm"
@@ -564,10 +639,232 @@ class RepositoryIndex:
                 pending.clear()
         return assets
 
+    def _parse_special_bg_palettes(self) -> List[SpecialPaletteEntry]:
+        path = self.root / "data/maps/palettes.asm"
+        entries: List[SpecialPaletteEntry] = []
+        in_table = False
+        for raw_line in path.read_text().splitlines():
+            line = raw_line.split(";", 1)[0].strip()
+            if not line:
+                continue
+            if not in_table:
+                if line.startswith("SpecialBGPalettes"):
+                    in_table = True
+                continue
+            if line.startswith("db 0"):
+                break
+            if not line.startswith("special_bg_pal"):
+                continue
+            parts = [part.strip() for part in line[len("special_bg_pal") :].split(",")]
+            if len(parts) != 4:
+                continue
+            trigger, identifier, palette_type, source = parts
+            entries.append(
+                SpecialPaletteEntry(
+                    trigger=trigger,
+                    identifier=self._normalize_special_identifier(identifier),
+                    palette_type=palette_type,
+                    source=source,
+                )
+            )
+        return entries
+
+    @staticmethod
+    def _normalize_special_identifier(identifier: str) -> Optional[str]:
+        value = identifier.strip()
+        if not value or value == "(unused)":
+            return None
+        if value.startswith("(") and value.endswith(")"):
+            value = value[1:-1].strip()
+        return value
+
+    @staticmethod
+    def _clone_palette_list(palettes: Sequence[Sequence[RGB]]) -> List[List[RGB]]:
+        return [list(palette) for palette in palettes]
+
+    @staticmethod
+    def _ensure_palette_length(palettes: List[List[RGB]], target: int = 7) -> List[List[RGB]]:
+        if len(palettes) >= target:
+            return palettes[:target]
+        if not palettes:
+            return [[_DEFAULT_RGB] * 4 for _ in range(target)]
+        padded = [list(palette) for palette in palettes]
+        while len(padded) < target:
+            padded.append(list(padded[-1]))
+        return padded
+
+    def _is_overcast_map(self, map_info: MapInfo) -> bool:
+        return "OVERCAST" in map_info.tileset
+
+    def _special_entry_applies(self, entry: SpecialPaletteEntry, map_info: MapInfo) -> bool:
+        trigger = entry.trigger
+        identifier = entry.identifier
+        if trigger == "map":
+            return identifier == map_info.constant
+        if trigger == "landmark":
+            return identifier == map_info.location
+        if trigger == "tileset":
+            return identifier == map_info.tileset
+        if trigger == "darkness":
+            return "IN_DARKNESS" in map_info.palette_flags
+        if trigger == "overcast":
+            return self._is_overcast_map(map_info)
+        return False
+
+    def _palette_from_entry(self, entry: SpecialPaletteEntry, map_info: MapInfo) -> Optional[List[List[RGB]]]:
+        if entry.palette_type == "PAL_SINGLE":
+            base = self._load_palette_by_label(entry.source)
+            if not base:
+                return None
+            palettes = self._clone_palette_list(base)
+            return self._ensure_palette_length(palettes)
+        if entry.palette_type == "PAL_TIMEOFDAY":
+            base = self._load_palette_by_label(entry.source)
+            if not base:
+                return None
+            block_size = 8
+            day_index = 1
+            start = day_index * block_size
+            block = base[start : start + block_size]
+            if len(block) < 7:
+                block = base[:block_size]
+            palettes = self._clone_palette_list(block)
+            return self._ensure_palette_length(palettes)
+        if entry.palette_type == "PAL_SPECIAL":
+            return self._palette_from_special_case(entry.source, map_info)
+        return None
+
+    def _palette_from_special_case(self, label: str, map_info: MapInfo) -> Optional[List[List[RGB]]]:
+        if label == "PokeCenterSpecialCase":
+            base = self._load_palette_by_label("PokeCenterPalette")
+            if len(base) < 7:
+                return None
+            palettes = self._clone_palette_list(base[:7])
+            region = map_info.region
+            if region == 2:
+                return self._ensure_palette_length(palettes)
+            if region == 1:
+                source_index = 3  # PAL_BG_WATER
+            else:
+                if map_info.location == "SNOWTOP_MOUNTAIN":
+                    source_index = 5  # PAL_BG_BROWN
+                else:
+                    source_index = 1  # PAL_BG_RED
+            if len(palettes) > 6 and 0 <= source_index < len(palettes):
+                palettes[6] = list(palettes[source_index])
+            return self._ensure_palette_length(palettes)
+        if label == "MartSpecialCase":
+            base = self._load_palette_by_label("MartPalette")
+            if not base:
+                return None
+            palettes = self._clone_palette_list(base[:7])
+            asset_path = self.block_asset(map_info.block_label)
+            if asset_path:
+                normalized = asset_path.replace("\\", "/")
+                if normalized.endswith("Mart.ablk") or normalized.endswith("Mart.ablk.lz"):
+                    blue_source = self._load_palette_by_label("MartBluePalette")
+                    if blue_source and len(palettes) > 2:
+                        palettes[2] = list(blue_source[0])
+            return self._ensure_palette_length(palettes)
+        base = self._load_palette_by_label(label)
+        if not base:
+            return None
+        palettes = self._clone_palette_list(base)
+        return self._ensure_palette_length(palettes)
+
+    def _load_palette_by_label(self, label: str) -> List[List[RGB]]:
+        cached = self._palette_cache.get(label)
+        if cached is not None:
+            return self._clone_palette_list(cached)
+        path = self.root / "data/maps/palettes.asm"
+        lines = path.read_text().splitlines()
+        label_pattern = re.compile(rf"^{re.escape(label)}::?")
+        start_index: Optional[int] = None
+        for index, raw_line in enumerate(lines):
+            line = raw_line.split(";", 1)[0].strip()
+            if not line:
+                continue
+            if label_pattern.match(line):
+                start_index = index + 1
+                break
+        if start_index is None:
+            raise KeyError(f"Palette label '{label}' not found")
+        include_paths: List[str] = []
+        rgb_values: List[Tuple[int, int, int]] = []
+        depth = 0
+        using_target_branch = True
+        within_monochrome_guard = False
+        for index in range(start_index, len(lines)):
+            raw_line = lines[index]
+            stripped = raw_line.split(";", 1)[0].strip()
+            if not stripped:
+                continue
+            if re.match(r"^[A-Za-z0-9_]+::?", stripped):
+                break
+            if stripped.startswith("if"):
+                depth += 1
+                if stripped.startswith("if !DEF(MONOCHROME)"):
+                    using_target_branch = True
+                    within_monochrome_guard = True
+                elif depth == 1:
+                    using_target_branch = False
+                continue
+            if stripped.startswith("else"):
+                if within_monochrome_guard and depth == 1:
+                    using_target_branch = False
+                continue
+            if stripped.startswith("endc"):
+                if depth > 0:
+                    if within_monochrome_guard and depth == 1:
+                        using_target_branch = False
+                        within_monochrome_guard = False
+                    depth -= 1
+                if depth <= 0:
+                    break
+                continue
+            if not using_target_branch:
+                continue
+            if stripped.startswith("INCLUDE") or stripped.startswith("INCBIN"):
+                match = re.search(r'"([^"]+)"', stripped)
+                if match:
+                    include_paths.append(match.group(1))
+                continue
+            if stripped.startswith("RGB"):
+                numbers = [int(value) for value in re.findall(r"\d+", stripped)]
+                for offset in range(0, len(numbers), 3):
+                    chunk = numbers[offset : offset + 3]
+                    if len(chunk) == 3:
+                        rgb_values.append(tuple(component * 8 for component in chunk))
+                continue
+        palettes: List[List[RGB]] = []
+        for include_path in include_paths:
+            palettes.extend(_load_palette(self.root / include_path))
+        if rgb_values:
+            for index in range(0, len(rgb_values), 4):
+                group = rgb_values[index : index + 4]
+                if len(group) == 4:
+                    palettes.append([tuple(color) for color in group])
+        if not palettes:
+            return []
+        frozen: List[Tuple[RGB, ...]] = [tuple(tuple(color) for color in palette) for palette in palettes]
+        self._palette_cache[label] = frozen
+        return self._clone_palette_list(frozen)
+
+    def special_background_palette(self, map_info: MapInfo) -> Optional[List[List[RGB]]]:
+        for entry in self._special_bg_palettes:
+            if not self._special_entry_applies(entry, map_info):
+                continue
+            palettes = self._palette_from_entry(entry, map_info)
+            if palettes is not None:
+                return palettes
+        return None
+
     def _build_map_infos(self) -> dict[str, MapInfo]:
         maps: dict[str, MapInfo] = {}
-        for label, (tileset, map_type, constant) in self._map_table.items():
-            constant_name = self._map_attributes.get(label, constant)
+        for label, header in self._map_table.items():
+            tileset = header.tileset
+            map_type = header.map_type
+            constant_name = self._map_attributes.get(label, header.default_constant)
             constant_data = self._map_constants.get(constant_name)
             if constant_data is None:
                 continue
@@ -576,6 +873,9 @@ class RepositoryIndex:
                 continue
             width, height, group = constant_data
             roof_constant = self.roof_constant(group)
+            location = header.location
+            location_index = self._landmark_indices.get(location)
+            region = self._region_for_location(location_index)
             maps[label] = MapInfo(
                 label=label,
                 tileset=tileset,
@@ -587,6 +887,10 @@ class RepositoryIndex:
                 roof_constant=roof_constant,
                 tileset_index=tileset_index,
                 block_label=f"{label}_BlockData",
+                location=location,
+                location_index=location_index,
+                palette_flags=set(header.palette_flags),
+                region=region,
             )
         return maps
 
@@ -898,16 +1202,40 @@ def _load_palette(pal_path: Path) -> List[List[RGB]]:
     return [colors[i : i + 4] for i in range(0, len(colors), 4)]
 
 
-def _day_palette(base_path: Path, roof_override: Optional[Tuple[RGB, RGB]] = None) -> List[List[RGB]]:
+def _day_palette(base_path: Path) -> List[List[RGB]]:
     palettes = _load_palette(base_path / "gfx/tilesets/bg_tiles.pal")
     selected = palettes[8:11] + [palettes[0x29]] + palettes[12:16]
-    result: List[List[RGB]] = [list(palette) for palette in selected]
-    if roof_override is not None and len(result) > 6:
-        roof_palette = list(result[6])
-        roof_palette[1] = roof_override[0]
-        roof_palette[2] = roof_override[1]
-        result[6] = roof_palette
-    return result
+    return [list(palette) for palette in selected]
+
+
+def _ensure_palette_rows(palette: List[List[RGB]], target: int = 7) -> None:
+    if not palette:
+        palette.extend([[ _DEFAULT_RGB ] * 4 for _ in range(target)])
+        return
+    while len(palette) < target:
+        palette.append(list(palette[-1]))
+    for index, row in enumerate(palette):
+        if len(row) < 4:
+            filler = row[-1] if row else _DEFAULT_RGB
+            while len(row) < 4:
+                row.append(filler)
+            palette[index] = row
+
+
+def _apply_roof_color_override(palette: List[List[RGB]], override: Optional[Tuple[RGB, RGB]]) -> None:
+    if override is None:
+        return
+    _ensure_palette_rows(palette)
+    if len(palette) <= 6:
+        return
+    roof_palette = list(palette[6])
+    if len(roof_palette) < 4:
+        filler = roof_palette[-1] if roof_palette else _DEFAULT_RGB
+        while len(roof_palette) < 4:
+            roof_palette.append(filler)
+    roof_palette[1] = override[0]
+    roof_palette[2] = override[1]
+    palette[6] = roof_palette
 
 
 class Attributes:
@@ -1479,10 +1807,17 @@ def _build_renderer(
     block_bytes = _read_block_bytes(blocks_path)
     block_indices = _map_block_indices(block_bytes, map_info.width, map_info.height)
     allows_roof_palette = map_info.map_type in {"TOWN", "ROUTE", "ISOLATED"}
-    roof_palette_override = None
-    if allows_roof_palette:
-        roof_palette_override = repo_index.roof_palette(map_info.group)
-    palette = _day_palette(polished_path, roof_palette_override)
+    special_palette = repo_index.special_background_palette(map_info)
+    if special_palette is not None:
+        palette = special_palette
+    else:
+        palette = _day_palette(polished_path)
+    _ensure_palette_rows(palette)
+    if (
+        allows_roof_palette
+        and map_info.tileset != "TILESET_SNOWTOP_MOUNTAIN"
+    ):
+        _apply_roof_color_override(palette, repo_index.roof_palette(map_info.group))
     attributes_data = _read_asset_bytes(polished_path / tileset_resources.attributes_path)
     attributes = Attributes(attributes_data, palette)
     bank0_tiles = _load_tileset_bank(polished_path, tileset_resources.bank0_sources, png_module)

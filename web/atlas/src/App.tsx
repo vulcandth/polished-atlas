@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import MapCanvas from "@/components/MapCanvas";
 import { useAtlasData } from "@/hooks/useAtlasData";
+import { useWarpMetadata } from "@/hooks/useWarpMetadata";
 import type { NeighborhoodSummary } from "@/types";
 
 const DEFAULT_ROOT = import.meta.env.VITE_ROOT_MAP ?? "NewBarkTown";
@@ -138,7 +139,44 @@ export default function App() {
     manifestUrl,
     rootLabel,
   });
+  const { metadata: warpMetadata, loading: warpLoading, error: warpError, reload: warpReload } = useWarpMetadata();
+  const isLoading = loading || warpLoading;
   const neighborhoods: NeighborhoodSummary[] = layout?.metadata?.neighborhoods ?? [];
+  const assetResolver = useMemo(() => {
+    const fallback = (mapLabel: string): string => `/maps/${timeOfDay}/animated/${mapLabel}.animation.json`;
+    if (!layout?.placements?.length) {
+      return fallback;
+    }
+    const sampleAsset = layout.placements.find((placement) => placement.asset)?.asset;
+    if (!sampleAsset) {
+      return fallback;
+    }
+    return (mapLabel: string): string => {
+      const trimmedLabel = typeof mapLabel === "string" && mapLabel.trim().length > 0 ? mapLabel.trim() : mapLabel;
+      if (typeof window !== "undefined") {
+        try {
+          const base = window.location?.href ?? window.location?.origin ?? undefined;
+          const parsed = base ? new URL(sampleAsset, base) : new URL(sampleAsset);
+          const pattern = /^(.*\/maps\/)([^/]+)(\/animated\/)([^/]+\.animation\.json)$/;
+          const match = pattern.exec(parsed.pathname);
+          if (match) {
+            parsed.pathname = `${match[1]}${timeOfDay}${match[3]}${trimmedLabel}.animation.json`;
+            return parsed.toString();
+          }
+        } catch {
+          /* fall back to string replacement */
+        }
+      }
+      const substringPattern = /maps\/[^/]+\/animated\/[^/]+\.animation\.json/;
+      if (substringPattern.test(sampleAsset)) {
+        return sampleAsset.replace(
+          substringPattern,
+          `maps/${timeOfDay}/animated/${trimmedLabel}.animation.json`
+        );
+      }
+      return fallback(trimmedLabel);
+    };
+  }, [layout, timeOfDay]);
 
   const [editing, setEditing] = useState(false);
   const [offsetOverrides, setOffsetOverrides] = useState<Record<string, OffsetTuple>>({});
@@ -196,6 +234,11 @@ export default function App() {
   const handleSelectNeighborhood = useCallback((id: string) => {
     setSelectedNeighborhoodId(id);
   }, []);
+
+  const handleReloadClick = useCallback(() => {
+    reload();
+    warpReload();
+  }, [reload, warpReload]);
 
   const handleOffsetChange = useCallback((id: string, next: OffsetTuple) => {
     setOffsetOverrides((current) => {
@@ -415,7 +458,7 @@ export default function App() {
     : 0;
 
   const timeSelectDisabled =
-    !supportsTimeSelection || Boolean(graphUrl) || editing || loading || saveStatus === "saving";
+    !supportsTimeSelection || Boolean(graphUrl) || editing || isLoading || saveStatus === "saving";
   let timeSelectTitle: string | undefined;
   if (graphUrl) {
     timeSelectTitle = "Time selection is unavailable when a connection graph override is active.";
@@ -423,7 +466,7 @@ export default function App() {
     timeSelectTitle = "Time selection is disabled when a manifest override is configured.";
   } else if (editing) {
     timeSelectTitle = "Finish editing before switching time of day.";
-  } else if (loading) {
+  } else if (isLoading) {
     timeSelectTitle = "Please wait for the current manifest to finish loading.";
   } else if (saveStatus === "saving") {
     timeSelectTitle = "Saving layout changes…";
@@ -473,11 +516,11 @@ export default function App() {
               ))}
             </select>
           </div>
-          <button type="button" onClick={reload} disabled={loading}>
-            {loading ? "Loading…" : "Reload"}
+          <button type="button" onClick={handleReloadClick} disabled={isLoading}>
+            {isLoading ? "Loading…" : "Reload"}
           </button>
           {canEdit && (
-            <button type="button" onClick={handleToggleEditing} disabled={loading || saveStatus === "saving"}>
+            <button type="button" onClick={handleToggleEditing} disabled={isLoading || saveStatus === "saving"}>
               {!editing ? "Edit Layout" : saveStatus === "saving" ? "Saving…" : "Finish Editing"}
             </button>
           )}
@@ -529,7 +572,7 @@ export default function App() {
       <section className="canvas-container">
         <MapCanvas
           atlas={layout}
-          loading={loading}
+          loading={isLoading}
           editing={editing}
           baseOffsets={baseOffsetsRef.current}
           offsetOverrides={editing ? offsetOverrides : null}
@@ -537,8 +580,11 @@ export default function App() {
           selectedNeighborhoodId={editing ? selectedNeighborhoodId : null}
           onSelectNeighborhood={editing ? handleSelectNeighborhood : undefined}
           onOffsetChange={editing ? handleOffsetChange : undefined}
+          warpMetadata={warpMetadata}
+          resolveAssetHref={assetResolver}
         />
         {error && <div className="status-banner error">{error}</div>}
+        {!error && warpError && <div className="status-banner error">{warpError}</div>}
         {saveStatus === "error" && saveError && !editing && <div className="status-banner error">{saveError}</div>}
         {saveStatus === "success" && !editing && <div className="status-banner info">Neighborhood layout saved.</div>}
       </section>

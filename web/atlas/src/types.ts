@@ -115,3 +115,75 @@ export interface MapAnimationMetadata {
   loopDurationMs: number;
   sheetColumns?: number;
 }
+
+export interface WarpEndpointDTO {
+  map_constant?: string | null;
+  map_label?: string | null;
+  warp_index?: number | null;
+  map_type?: string | null;
+  is_overworld?: boolean | null;
+  x_cells?: number | null;
+  y_cells?: number | null;
+}
+
+export interface WarpEntryDTO {
+  index: number;
+  x_cells?: number | null;
+  y_cells?: number | null;
+  target: WarpEndpointDTO;
+}
+
+export interface MapMetadataDTO {
+  label: string;
+  map_constant?: string | null;
+  map_type?: string | null;
+  width_blocks?: number | null;
+  height_blocks?: number | null;
+  is_overworld?: boolean | null;
+  warps?: WarpEntryDTO[];
+}
+
+export interface WarpMetadataPayload {
+  version: number;
+  generated_at: string;
+  cells_per_block?: number | null;
+  cell_pixel_size?: number | null;
+  maps: Record<string, MapMetadataDTO>;
+  constant_lookup: Record<string, string>;
+}
+
+export interface WarpEndpoint {
+  mapConstant: string | null;
+  mapLabel: string | null;
+  warpIndex: number | null;
+  mapType: string | null;
+  isOverworld: boolean;
+  xCells: number | null;
+  yCells: number | null;
+}
+
+export interface MapWarp {
+  index: number;
+  xCells: number | null;
+  yCells: number | null;
+  target: WarpEndpoint;
+}
+
+export interface MapMetadataEntry {
+  label: string;
+  mapConstant: string | null;
+  mapType: string | null;
+  widthBlocks: number | null;
+  heightBlocks: number | null;
+  isOverworld: boolean;
+  warps: MapWarp[];
+}
+
+export interface WarpMetadata {
+  version: number;
+  generatedAt: string;
+  cellsPerBlock: number;
+  cellPixelSize: number;
+  maps: Record<string, MapMetadataEntry>;
+  constantLookup: Record<string, string>;
+}

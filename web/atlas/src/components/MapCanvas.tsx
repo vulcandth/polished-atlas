@@ -1,15 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Application, Container, AnimatedSprite, FederatedPointerEvent, Assets } from "pixi.js";
-import { AtlasLayout, MapPlacement } from "@/types";
+import { Application, Container, AnimatedSprite, FederatedPointerEvent, Assets, Graphics } from "pixi.js";
+import { AtlasLayout, MapPlacement, MapWarp, WarpMetadata } from "@/types";
 import { registerPixiExtensions } from "@/pixi/registerExtensions";
 import { loadMapAnimation, type MapAnimationResource } from "@/lib/loadMapAnimation";
 
 type OffsetTuple = [number, number];
 
+type WarpMarkerEntry = {
+  warp: MapWarp;
+  graphic: Graphics;
+};
+
 interface MapCanvasProps {
   atlas: AtlasLayout | null;
   loading: boolean;
   editing?: boolean;
+  warpMetadata?: WarpMetadata | null;
+  resolveAssetHref?: (mapLabel: string) => string;
   baseOffsets?: Record<string, OffsetTuple> | null;
   offsetOverrides?: Record<string, OffsetTuple> | null;
   zOverrides?: Record<string, number> | null;
@@ -88,12 +95,39 @@ function clampScale(value: number): number {
 
 registerPixiExtensions();
 
+function disposeAnimationResource(resource: MapAnimationResource | null | undefined): void {
+  if (!resource) {
+    return;
+  }
+  for (const texture of resource.textures) {
+    if (texture && !texture.destroyed) {
+      texture.destroy();
+    }
+  }
+  if (!resource.baseTexture.destroyed) {
+    resource.baseTexture.destroy();
+  }
+  void Assets.unload(resource.imageUrl);
+}
+
 type SyncedAnimation = {
   sprite: AnimatedSprite;
   resource: MapAnimationResource;
   placement: MapPlacement;
   order: number;
   neighborhoodId: string | null;
+  warpMarkers: WarpMarkerEntry[];
+};
+
+type OverlayState = {
+  mapLabel: string;
+  sprite: AnimatedSprite;
+  resource: MapAnimationResource;
+  background: Graphics;
+  highlight?: Graphics;
+  baseWidth: number;
+  baseHeight: number;
+  keyHandler: (event: KeyboardEvent) => void;
 };
 
 function frameIndexForTime(elapsedMs: number, durations: number[], loopDuration: number): number {
@@ -122,6 +156,8 @@ export default function MapCanvas({
   atlas,
   loading,
   editing = false,
+  warpMetadata = null,
+  resolveAssetHref,
   baseOffsets = null,
   offsetOverrides = null,
   zOverrides = null,
@@ -146,6 +182,11 @@ export default function MapCanvas({
     startOffset: OffsetTuple;
     startPoint: { x: number; y: number };
   } | null>(null);
+  const warpMetadataRef = useRef<WarpMetadata | null>(null);
+  const overlayRef = useRef<Container | null>(null);
+  const overlayStateRef = useRef<OverlayState | null>(null);
+  const overlayTokenRef = useRef(0);
+  const highlightTimersRef = useRef<Map<string, number>>(new Map());
   const [ready, setReady] = useState(false);
 
   const baseOffsetsRef = useRef<Record<string, OffsetTuple>>({});
@@ -163,6 +204,10 @@ export default function MapCanvas({
   useEffect(() => {
     zOverridesRef.current = zOverrides ?? {};
   }, [zOverrides]);
+
+  useEffect(() => {
+    warpMetadataRef.current = warpMetadata ?? null;
+  }, [warpMetadata]);
 
   const applySpriteTransforms = useCallback((): void => {
     const world = worldRef.current;
@@ -202,6 +247,234 @@ export default function MapCanvas({
     world.sortChildren();
   }, [atlas, editing, onOffsetChange, selectedNeighborhoodId]);
 
+  const clearHighlightTimers = useCallback((): void => {
+    if (typeof window === "undefined") {
+      highlightTimersRef.current.clear();
+      return;
+    }
+    for (const timerId of highlightTimersRef.current.values()) {
+      window.clearTimeout(timerId);
+    }
+    highlightTimersRef.current.clear();
+  }, []);
+
+  const computeCellSize = useCallback((): number => {
+    const blockPixelSize = atlas && Number.isFinite(atlas.blockPixelSize) && atlas.blockPixelSize > 0
+      ? Math.abs(atlas.blockPixelSize)
+      : 32;
+    const metadata = warpMetadataRef.current;
+    if (metadata) {
+      const explicit = Number(metadata.cellPixelSize);
+      if (Number.isFinite(explicit) && explicit > 0) {
+        return explicit;
+      }
+      const cellsPerBlock = Number(metadata.cellsPerBlock);
+      if (Number.isFinite(cellsPerBlock) && cellsPerBlock > 0) {
+        return blockPixelSize / cellsPerBlock;
+      }
+    }
+    return blockPixelSize / 2;
+  }, [atlas]);
+
+  const highlightWarpMarker = useCallback(
+    (entry: SyncedAnimation, warpIndex: number | null | undefined): void => {
+      if (!entry || !Array.isArray(entry.warpMarkers)) {
+        return;
+      }
+      if (typeof warpIndex !== "number" || !Number.isFinite(warpIndex)) {
+        return;
+      }
+      const marker = entry.warpMarkers.find((item) => item.warp.index === warpIndex);
+      if (!marker) {
+        return;
+      }
+      const key = `${entry.placement.label}:${warpIndex}`;
+      const baseAlpha = editing ? 0.5 : 0.9;
+      if (typeof window !== "undefined") {
+        const timers = highlightTimersRef.current;
+        const existing = timers.get(key);
+        if (existing !== undefined) {
+          window.clearTimeout(existing);
+        }
+        marker.graphic.alpha = 1;
+        marker.graphic.scale.set(1.15);
+        const timeout = window.setTimeout(() => {
+          marker.graphic.alpha = baseAlpha;
+          marker.graphic.scale.set(1);
+          timers.delete(key);
+        }, 900);
+        timers.set(key, timeout);
+        return;
+      }
+      marker.graphic.alpha = baseAlpha;
+      marker.graphic.scale.set(1);
+    },
+    [editing]
+  );
+
+  const positionOverlayContents = useCallback((): void => {
+    const state = overlayStateRef.current;
+    const app = appRef.current;
+    if (!state || !app) {
+      return;
+    }
+    const renderer = app.renderer;
+    const background = state.background;
+    background.clear();
+    background.beginFill(0x000000, 0.6);
+    background.drawRect(0, 0, renderer.width, renderer.height);
+    background.endFill();
+    const sprite = state.sprite;
+    const baseWidth = state.baseWidth || sprite.texture.width || sprite.width || 1;
+    const baseHeight = state.baseHeight || sprite.texture.height || sprite.height || 1;
+    let scale = 1;
+    if (baseWidth > 0 && baseHeight > 0) {
+      const availableWidth = renderer.width * 0.9;
+      const availableHeight = renderer.height * 0.9;
+      scale = Math.min(1, availableWidth / baseWidth, availableHeight / baseHeight);
+    }
+    sprite.scale.set(scale);
+    sprite.x = Math.max(0, (renderer.width - sprite.width) / 2);
+    sprite.y = Math.max(0, (renderer.height - sprite.height) / 2);
+  }, []);
+
+  const closeOverlay = useCallback((): void => {
+    overlayTokenRef.current += 1;
+    const overlay = overlayRef.current;
+    const state = overlayStateRef.current;
+    const app = appRef.current;
+    if (!overlay || !state) {
+      return;
+    }
+    if (typeof window !== "undefined" && state.keyHandler) {
+      window.removeEventListener("keydown", state.keyHandler);
+    }
+    if (app) {
+      app.renderer.off("resize", positionOverlayContents);
+    }
+    const children = overlay.removeChildren();
+    for (const child of children) {
+      if (typeof (child as { destroy?: () => void }).destroy === "function") {
+        (child as { destroy: () => void }).destroy();
+      }
+    }
+    disposeAnimationResource(state.resource);
+    overlay.visible = false;
+    overlayStateRef.current = null;
+    const world = worldRef.current;
+    if (world) {
+      world.visible = true;
+    }
+  }, [positionOverlayContents]);
+
+  const openOverlay = useCallback(
+    async (mapLabel: string, target: MapWarp["target"]): Promise<void> => {
+      if (!resolveAssetHref) {
+        return;
+      }
+      const overlay = overlayRef.current;
+      const app = appRef.current;
+      if (!overlay || !app) {
+        return;
+      }
+      const assetUrl = resolveAssetHref(mapLabel);
+      if (!assetUrl) {
+        return;
+      }
+      const token = overlayTokenRef.current + 1;
+      overlayTokenRef.current = token;
+      try {
+        const resource = await loadMapAnimation(assetUrl);
+        if (overlayTokenRef.current !== token) {
+          disposeAnimationResource(resource);
+          return;
+        }
+        closeOverlay();
+        if (!overlayRef.current) {
+          disposeAnimationResource(resource);
+          return;
+        }
+        const background = new Graphics();
+        background.eventMode = "static";
+        background.cursor = "pointer";
+        background.on("pointertap", () => {
+          closeOverlay();
+        });
+
+        const sprite = new AnimatedSprite(resource.textures);
+        sprite.loop = true;
+        sprite.autoUpdate = false;
+        sprite.animationSpeed = 0;
+        sprite.gotoAndStop(0);
+        sprite.eventMode = "static";
+        sprite.on("pointertap", (event) => {
+          event.stopPropagation();
+        });
+
+        overlay.addChild(background);
+        overlay.addChild(sprite);
+
+        let highlight: Graphics | undefined;
+        const cellSize = computeCellSize();
+        if (
+          typeof target?.xCells === "number" && Number.isFinite(target.xCells) &&
+          typeof target?.yCells === "number" && Number.isFinite(target.yCells)
+        ) {
+          highlight = new Graphics();
+          const margin = Math.max(0, cellSize * 0.1);
+          const radius = Math.max(4, cellSize * 0.25);
+          highlight.lineStyle(Math.max(1, cellSize * 0.1), 0xf1c40f, 0.95);
+          highlight.beginFill(0xf39c12, 0.3);
+          highlight.drawRoundedRect(margin, margin, cellSize - margin * 2, cellSize - margin * 2, radius);
+          highlight.endFill();
+          highlight.x = target.xCells * cellSize;
+          highlight.y = target.yCells * cellSize;
+          sprite.addChild(highlight);
+        }
+
+        const frame = resource.textures[0];
+        const baseWidth = frame?.width ?? sprite.width;
+        const baseHeight = frame?.height ?? sprite.height;
+
+        const keyHandler = (event: KeyboardEvent): void => {
+          if (event.key === "Escape") {
+            if (typeof event.preventDefault === "function") {
+              event.preventDefault();
+            }
+            closeOverlay();
+          }
+        };
+
+        overlay.visible = true;
+        overlayStateRef.current = {
+          mapLabel,
+          sprite,
+          resource,
+          background,
+          highlight,
+          baseWidth,
+          baseHeight,
+          keyHandler,
+        };
+        const world = worldRef.current;
+        if (world) {
+          world.visible = false;
+        }
+        if (typeof window !== "undefined") {
+          window.addEventListener("keydown", keyHandler);
+        }
+        app.renderer.off("resize", positionOverlayContents);
+        app.renderer.on("resize", positionOverlayContents);
+        positionOverlayContents();
+      } catch (err) {
+        if (overlayTokenRef.current === token) {
+          console.error(`Failed to open overlay for ${mapLabel}`, err);
+        }
+      }
+    },
+    [computeCellSize, closeOverlay, positionOverlayContents, resolveAssetHref]
+  );
+
   useEffect(() => {
     return () => {
       if (typeof window !== "undefined" && persistTimerRef.current !== null) {
@@ -210,6 +483,18 @@ export default function MapCanvas({
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (editing && overlayStateRef.current) {
+      closeOverlay();
+    }
+  }, [editing, closeOverlay]);
+
+  useEffect(() => {
+    if (overlayStateRef.current) {
+      closeOverlay();
+    }
+  }, [closeOverlay, resolveAssetHref]);
 
   const clampWorldToBounds = useCallback((): void => {
     const app = appRef.current;
@@ -279,6 +564,135 @@ export default function MapCanvas({
     }, 120);
   }, [persistViewState]);
 
+  const focusWorldOn = useCallback(
+    (worldX: number, worldY: number): void => {
+      const app = appRef.current;
+      const world = worldRef.current;
+      const scale = scaleRef.current;
+      if (!app || !world || !isFiniteNumber(scale) || scale <= 0) {
+        return;
+      }
+      const renderer = app.renderer;
+      world.x = renderer.width / 2 - worldX * scale;
+      world.y = renderer.height / 2 - worldY * scale;
+      clampWorldToBounds();
+      schedulePersistViewState();
+    },
+    [clampWorldToBounds, schedulePersistViewState]
+  );
+
+  const handleWarpMarkerTap = useCallback(
+    (entry: SyncedAnimation, warp: MapWarp): void => {
+      if (editing) {
+        return;
+      }
+      highlightWarpMarker(entry, warp.index);
+      const cellSize = computeCellSize();
+      const target = warp.target;
+      const lookup = warpMetadataRef.current?.constantLookup ?? {};
+      let targetLabel = target.mapLabel && target.mapLabel.trim().length > 0 ? target.mapLabel.trim() : null;
+      if (!targetLabel && target.mapConstant) {
+        const mapped = lookup[target.mapConstant];
+        if (mapped && mapped.trim().length > 0) {
+          targetLabel = mapped.trim();
+        }
+      }
+      if (targetLabel) {
+        const targetEntry = animationsRef.current.find((item) => item.placement.label === targetLabel) ?? null;
+        if (targetEntry) {
+          if (
+            typeof target.xCells === "number" && Number.isFinite(target.xCells) &&
+            typeof target.yCells === "number" && Number.isFinite(target.yCells)
+          ) {
+            const worldX = targetEntry.sprite.x + target.xCells * cellSize + cellSize / 2;
+            const worldY = targetEntry.sprite.y + target.yCells * cellSize + cellSize / 2;
+            focusWorldOn(worldX, worldY);
+          } else {
+            const worldX = targetEntry.sprite.x + targetEntry.placement.widthPx / 2;
+            const worldY = targetEntry.sprite.y + targetEntry.placement.heightPx / 2;
+            focusWorldOn(worldX, worldY);
+          }
+          if (typeof target.warpIndex === "number") {
+            highlightWarpMarker(targetEntry, target.warpIndex);
+          }
+          return;
+        }
+        void openOverlay(targetLabel, target);
+        return;
+      }
+      if (
+        typeof warp.xCells === "number" && Number.isFinite(warp.xCells) &&
+        typeof warp.yCells === "number" && Number.isFinite(warp.yCells)
+      ) {
+        const worldX = entry.sprite.x + warp.xCells * cellSize + cellSize / 2;
+        const worldY = entry.sprite.y + warp.yCells * cellSize + cellSize / 2;
+        focusWorldOn(worldX, worldY);
+      }
+    },
+    [computeCellSize, editing, focusWorldOn, highlightWarpMarker, openOverlay]
+  );
+
+  const refreshWarpMarkers = useCallback((): void => {
+    const metadata = warpMetadataRef.current;
+    const cellSize = computeCellSize();
+    const baseAlpha = editing ? 0.5 : 0.9;
+    clearHighlightTimers();
+    for (const entry of animationsRef.current) {
+      for (const marker of entry.warpMarkers) {
+        marker.graphic.removeAllListeners();
+        marker.graphic.destroy();
+      }
+      entry.warpMarkers = [];
+      const mapLabel = entry.placement.label;
+      const mapMeta = metadata?.maps?.[mapLabel];
+      if (!mapMeta || !Array.isArray(mapMeta.warps) || mapMeta.warps.length === 0) {
+        continue;
+      }
+      for (const warp of mapMeta.warps) {
+        const { xCells, yCells } = warp;
+        if (typeof xCells !== "number" || !Number.isFinite(xCells) || typeof yCells !== "number" || !Number.isFinite(yCells)) {
+          continue;
+        }
+        const graphic = new Graphics();
+        const margin = Math.max(0, cellSize * 0.1);
+        const radius = Math.max(4, cellSize * 0.25);
+        graphic.beginFill(0x1abc9c, 0.35);
+        graphic.lineStyle(Math.max(1, cellSize * 0.08), 0xffffff, 0.9);
+        graphic.drawRoundedRect(margin, margin, cellSize - margin * 2, cellSize - margin * 2, radius);
+        graphic.endFill();
+        graphic.alpha = baseAlpha;
+        graphic.x = xCells * cellSize;
+        graphic.y = yCells * cellSize;
+        graphic.eventMode = editing ? "none" : "static";
+        graphic.cursor = editing ? "not-allowed" : "pointer";
+        graphic.on("pointertap", (event) => {
+          if (editing) {
+            return;
+          }
+          event.stopPropagation();
+          if (typeof event.preventDefault === "function") {
+            event.preventDefault();
+          }
+          handleWarpMarkerTap(entry, warp);
+        });
+        graphic.on("pointerover", () => {
+          if (editing) {
+            return;
+          }
+          graphic.alpha = 1;
+        });
+        graphic.on("pointerout", () => {
+          if (editing) {
+            return;
+          }
+          graphic.alpha = baseAlpha;
+        });
+        entry.sprite.addChild(graphic);
+        entry.warpMarkers.push({ warp, graphic });
+      }
+    }
+  }, [computeCellSize, editing, handleWarpMarkerTap]);
+
   const restoreViewState = useCallback((): boolean => {
     const stored = readStoredViewState();
     if (!stored) {
@@ -333,6 +747,13 @@ export default function MapCanvas({
       world.interactiveChildren = true;
       app.stage.addChild(world);
       worldRef.current = world;
+      const overlay = new Container();
+      overlay.visible = false;
+      overlay.sortableChildren = true;
+      overlay.eventMode = "static";
+      overlay.interactiveChildren = true;
+      app.stage.addChild(overlay);
+      overlayRef.current = overlay;
       setReady(true);
     };
 
@@ -343,6 +764,8 @@ export default function MapCanvas({
     return () => {
       destroyed = true;
       setReady(false);
+      closeOverlay();
+      clearHighlightTimers();
       const app = appRef.current;
       if (app) {
         app.destroy(true, { children: true });
@@ -353,6 +776,8 @@ export default function MapCanvas({
         world.destroy({ children: true });
         worldRef.current = null;
       }
+      overlayRef.current = null;
+      overlayStateRef.current = null;
       scaleRef.current = 1;
       boundsRef.current = null;
       resetViewRef.current = () => undefined;
@@ -372,25 +797,23 @@ export default function MapCanvas({
       return;
     }
 
-    const disposeResource = (resource: MapAnimationResource): void => {
-      for (const texture of resource.textures) {
-        if (texture && !texture.destroyed) {
-          texture.destroy();
-        }
-      }
-      void Assets.unload(resource.imageUrl);
-    };
-
     const disposeAnimations = (): void => {
+      clearHighlightTimers();
       const entries = animationsRef.current.splice(0, animationsRef.current.length);
       for (const entry of entries) {
         spriteEntryMapRef.current.delete(entry.sprite);
         entry.sprite.destroy();
-        disposeResource(entry.resource);
+        for (const marker of entry.warpMarkers ?? []) {
+          marker.graphic.removeAllListeners();
+          marker.graphic.destroy();
+        }
+        entry.warpMarkers = [];
+        disposeAnimationResource(entry.resource);
       }
     };
 
     const disposeChildren = (): void => {
+      closeOverlay();
       disposeAnimations();
       const removed = world.removeChildren();
       for (const child of removed) {
@@ -449,7 +872,7 @@ export default function MapCanvas({
       try {
         const resource = await loadMapAnimation(placement.asset);
         if (cancelled) {
-          disposeResource(resource);
+          disposeAnimationResource(resource);
           return null;
         }
         const sprite = new AnimatedSprite(resource.textures);
@@ -472,6 +895,7 @@ export default function MapCanvas({
           placement,
           order: index,
           neighborhoodId,
+          warpMarkers: [],
         };
         animationsRef.current.push(entry);
         spriteEntryMapRef.current.set(sprite, entry);
@@ -493,6 +917,7 @@ export default function MapCanvas({
           resetView();
         }
         applySpriteTransforms();
+        refreshWarpMarkers();
       })
       .catch((err) => {
         console.error("Failed to load map sprites", err);
@@ -507,7 +932,23 @@ export default function MapCanvas({
       cancelled = true;
       disposeChildren();
     };
-  }, [atlas, ready, clampWorldToBounds, persistViewState, restoreViewState, applySpriteTransforms]);
+  }, [atlas, ready, clampWorldToBounds, persistViewState, restoreViewState, applySpriteTransforms, refreshWarpMarkers]);
+
+  useEffect(() => {
+    if (!ready) {
+      return;
+    }
+    refreshWarpMarkers();
+    return () => {
+      for (const entry of animationsRef.current) {
+        for (const marker of entry.warpMarkers) {
+          marker.graphic.removeAllListeners();
+          marker.graphic.destroy();
+        }
+        entry.warpMarkers = [];
+      }
+    };
+  }, [ready, refreshWarpMarkers, warpMetadata, atlas, editing]);
 
   useEffect(() => {
     if (!ready) {

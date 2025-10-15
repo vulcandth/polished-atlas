@@ -8,7 +8,6 @@ LZ-compressed map blocks so it can source the same assets used by the game.
 from __future__ import annotations
 
 import argparse
-import datetime
 import json
 import math
 import os
@@ -41,14 +40,32 @@ _BIT_FLIPPED = [
 
 _DEFAULT_RGB: RGB = (0xAB, 0xCD, 0xEF)
 
-_PY_WEEKDAY_TO_GAME = {
-    0: 1,  # Monday
-    1: 2,  # Tuesday
-    2: 3,  # Wednesday
-    3: 4,  # Thursday
-    4: 5,  # Friday
-    5: 6,  # Saturday
-    6: 0,  # Sunday
+_WEEKDAY_NAME_TO_VALUE = {
+    "sunday": 0,
+    "sun": 0,
+    "monday": 1,
+    "mon": 1,
+    "tuesday": 2,
+    "tue": 2,
+    "wednesday": 3,
+    "wed": 3,
+    "thursday": 4,
+    "thu": 4,
+    "thurs": 4,
+    "friday": 5,
+    "fri": 5,
+    "saturday": 6,
+    "sat": 6,
+}
+
+_TIME_OF_DAY_NAME_TO_VALUE = {
+    "morn": 0,
+    "morning": 0,
+    "day": 1,
+    "nite": 2,
+    "night": 2,
+    "eve": 3,
+    "evening": 3,
 }
 
 _AZALEA_OVERCAST_DAYS = {0, 2, 4, 6}
@@ -366,6 +383,9 @@ class RepositoryIndex:
     def __init__(self, root: Path) -> None:
         self.root = root
         self._default_weekday = self._determine_default_weekday()
+        self._initial_event_flags = self._parse_initial_event_flags()
+        self._bg_tile_palettes = _load_palette(self.root / "gfx/tilesets/bg_tiles.pal")
+        self._environment_palette_indices = self._parse_environment_colors()
         self._map_constants = self._parse_map_constants()
         self._map_roofs = self._parse_map_roofs()
         self._roof_palettes = self._parse_roof_palettes()
@@ -419,9 +439,18 @@ class RepositoryIndex:
     def no_roof_tileset_threshold(self) -> int:
         return self._no_roof_tilesets
 
-    def roof_palette(self, group: int) -> Optional[Tuple[RGB, RGB]]:
+    @property
+    def initial_event_flags(self) -> Set[str]:
+        return set(self._initial_event_flags)
+
+    def roof_palette(self, group: int, time_of_day: int = 1) -> Optional[Tuple[RGB, RGB]]:
         if 0 <= group < len(self._roof_palettes):
-            return self._roof_palettes[group]
+            palettes = self._roof_palettes[group]
+            if not palettes:
+                return None
+            palette_index = self._time_of_day_palette_index(time_of_day)
+            palette_index = min(palette_index, len(palettes) - 1)
+            return palettes[palette_index]
         return None
 
     def roof_constant(self, group: int) -> Optional[str]:
@@ -435,20 +464,37 @@ class RepositoryIndex:
         palettes = self._overcast_roof_palettes[index - 1]
         if not palettes:
             return None
-        if time_of_day >= 3:
-            palette_index = 2
-        elif time_of_day == 2:
-            palette_index = 1
-        else:
-            palette_index = 0
+        palette_index = self._time_of_day_palette_index(time_of_day)
         palette_index = min(palette_index, len(palettes) - 1)
         return palettes[palette_index]
 
     @staticmethod
+    def _time_of_day_palette_index(time_of_day: int) -> int:
+        if time_of_day >= 3:
+            return 2
+        if time_of_day == 2:
+            return 1
+        return 0
+
+    @staticmethod
     def _determine_default_weekday() -> int:
-        today = datetime.date.today()
-        python_weekday = today.weekday()
-        return _PY_WEEKDAY_TO_GAME.get(python_weekday, 0)
+        return 1
+
+    def _parse_initial_event_flags(self) -> Set[str]:
+        path = self.root / "data/events/initialize_events.asm"
+        flags: Set[str] = set()
+        if not path.exists():
+            return flags
+        for raw_line in path.read_text().splitlines():
+            line = raw_line.split(";", 1)[0].strip()
+            if not line or not line.startswith("dw"):
+                continue
+            entries = [entry.strip() for entry in line[2:].split(",") if entry.strip()]
+            for entry in entries:
+                if entry == "-1":
+                    return flags
+                flags.add(entry)
+        return flags
 
     def _parse_map_table(self) -> dict[str, _MapHeader]:
         path = self.root / "data/maps/maps.asm"
@@ -530,9 +576,9 @@ class RepositoryIndex:
             entries.append(None if value in {"-1", "0", ""} else value)
         return entries
 
-    def _parse_roof_palettes(self) -> List[Optional[Tuple[RGB, RGB]]]:
+    def _parse_roof_palettes(self) -> List[List[Tuple[RGB, RGB]]]:
         path = self.root / "gfx/tilesets/roofs.pal"
-        palettes: List[Optional[Tuple[RGB, RGB]]] = []
+        palettes: List[List[Tuple[RGB, RGB]]] = []
         for raw_line in path.read_text().splitlines():
             stripped = raw_line.strip()
             if stripped.startswith("else"):
@@ -541,12 +587,19 @@ class RepositoryIndex:
             if not line.startswith("RGB"):
                 continue
             numbers = [int(value) for value in re.findall(r"\d+", line)]
-            if len(numbers) < 6:
-                palettes.append(None)
+            if not numbers:
+                palettes.append([])
                 continue
-            color1 = tuple(component * 8 for component in numbers[:3])
-            color2 = tuple(component * 8 for component in numbers[3:6])
-            palettes.append((color1, color2))
+            colors = [
+                tuple(component * 8 for component in numbers[index : index + 3])
+                for index in range(0, len(numbers), 3)
+            ]
+            pairs: List[Tuple[RGB, RGB]] = []
+            for index in range(0, len(colors), 2):
+                if index + 1 >= len(colors):
+                    break
+                pairs.append((colors[index], colors[index + 1]))
+            palettes.append(pairs)
         return palettes
 
     def _parse_overcast_roof_palettes(self) -> List[List[Tuple[RGB, RGB]]]:
@@ -573,6 +626,79 @@ class RepositoryIndex:
                 pairs.append((colors[index], colors[index + 1]))
             palettes.append(pairs)
         return palettes
+
+    def _parse_environment_colors(self) -> Dict[str, List[List[int]]]:
+        path = self.root / "data/maps/environment_colors.asm"
+        if not path.exists():
+            return {}
+        lines = path.read_text().splitlines()
+        env_to_label: Dict[str, str] = {}
+        pointer_section = False
+        for raw_line in lines:
+            code, _, comment = raw_line.partition(";")
+            stripped = code.strip()
+            if not pointer_section:
+                if stripped.startswith("EnvironmentColorsPointers"):
+                    pointer_section = True
+                continue
+            if stripped.startswith("assert_table_length"):
+                break
+            if not stripped:
+                continue
+            if stripped.startswith("dr"):
+                label = stripped[3:].strip()
+                if label.startswith('.'):
+                    label = label[1:]
+                env_name = comment.strip().split()[0].upper() if comment.strip() else ""
+                if env_name and env_name != "UNUSED":
+                    env_to_label[env_name] = label
+                continue
+
+        label_data: Dict[str, List[List[int]]] = {}
+        current_labels: List[str] = []
+        started_data = False
+        for raw_line in lines:
+            code, _, _ = raw_line.partition(";")
+            stripped = code.strip()
+            if not stripped:
+                if started_data:
+                    current_labels = []
+                    started_data = False
+                continue
+            if stripped.endswith(":"):
+                label = stripped.rstrip(":")
+                if label.startswith('.'):
+                    label = label[1:]
+                if started_data:
+                    current_labels = []
+                    started_data = False
+                current_labels.append(label)
+                continue
+            if stripped.startswith("db"):
+                values: List[int] = []
+                for token in stripped[2:].split(","):
+                    element = token.strip()
+                    if not element:
+                        continue
+                    if element.startswith("$"):
+                        values.append(int(element[1:], 16))
+                    else:
+                        values.append(int(element, 0))
+                if not values:
+                    continue
+                started_data = True
+                for label in current_labels:
+                    label_data.setdefault(label, []).append(values)
+                continue
+            if started_data:
+                current_labels = []
+                started_data = False
+
+        environment_palettes: Dict[str, List[List[int]]] = {}
+        for env_name, label in env_to_label.items():
+            rows = label_data.get(label, [])
+            environment_palettes[env_name] = [list(row) for row in rows]
+        return environment_palettes
 
     def _parse_landmark_constants(self) -> Tuple[Dict[str, int], Optional[int], Optional[int]]:
         path = self.root / "constants/landmark_constants.asm"
@@ -778,8 +904,13 @@ class RepositoryIndex:
             padded.append(list(padded[-1]))
         return padded
 
-    def _is_overcast_map(self, map_info: MapInfo) -> bool:
-        return self.get_overcast_index(map_info) is not None
+    def _is_overcast_map(
+        self,
+        map_info: MapInfo,
+        weekday: Optional[int] = None,
+        events: Optional[Set[str]] = None,
+    ) -> bool:
+        return self.get_overcast_index(map_info, weekday=weekday, events=events) is not None
 
     def get_overcast_index(
         self,
@@ -787,8 +918,12 @@ class RepositoryIndex:
         weekday: Optional[int] = None,
         events: Optional[Set[str]] = None,
     ) -> Optional[int]:
-        events_set: Set[str] = set() if events is None else set(events)
-        day = self._default_weekday if weekday is None else weekday % 7
+        events_set: Set[str]
+        if events is None:
+            events_set = set(self._initial_event_flags)
+        else:
+            events_set = set(events)
+        day = (self._default_weekday if weekday is None else weekday) % 7
         constant = map_info.constant
         if constant in _AZALEA_OVERCAST_MAPS:
             if _EVENT_AZALEA_SLOWPOKES in events_set:
@@ -803,12 +938,21 @@ class RepositoryIndex:
                 return _LAKE_OF_RAGE_OVERCAST_INDEX
             return None
         if constant in _STORMY_OVERCAST_MAPS:
+            if constant == "STORMY_BEACH":
+                return _STORMY_BEACH_OVERCAST_INDEX
             if _EVENT_GOLDENROD_TAKEOVER in events_set:
                 return None
             return _STORMY_BEACH_OVERCAST_INDEX
         return None
 
-    def _special_entry_applies(self, entry: SpecialPaletteEntry, map_info: MapInfo) -> bool:
+    def _special_entry_applies(
+        self,
+        entry: SpecialPaletteEntry,
+        map_info: MapInfo,
+        weekday: Optional[int] = None,
+        events: Optional[Set[str]] = None,
+        overcast_index: Optional[int] = None,
+    ) -> bool:
         trigger = entry.trigger
         identifier = entry.identifier
         if trigger == "map":
@@ -820,10 +964,17 @@ class RepositoryIndex:
         if trigger == "darkness":
             return "IN_DARKNESS" in map_info.palette_flags
         if trigger == "overcast":
-            return self._is_overcast_map(map_info)
+            if overcast_index is None:
+                overcast_index = self.get_overcast_index(map_info, weekday=weekday, events=events)
+            return overcast_index is not None
         return False
 
-    def _palette_from_entry(self, entry: SpecialPaletteEntry, map_info: MapInfo) -> Optional[List[List[RGB]]]:
+    def _palette_from_entry(
+        self,
+        entry: SpecialPaletteEntry,
+        map_info: MapInfo,
+        time_of_day: int,
+    ) -> Optional[List[List[RGB]]]:
         if entry.palette_type == "PAL_SINGLE":
             base = self._load_palette_by_label(entry.source)
             if not base:
@@ -835,12 +986,12 @@ class RepositoryIndex:
             if not base:
                 return None
             block_size = 8
-            day_index = 1
-            start = day_index * block_size
+            time_index = time_of_day & 0x03
+            start = time_index * block_size
             block = base[start : start + block_size]
             if len(block) < 7:
                 block = base[:block_size]
-            palettes = self._clone_palette_list(block)
+            palettes = self._clone_palette_list(block[:7])
             return self._ensure_palette_length(palettes)
         if entry.palette_type == "PAL_SPECIAL":
             return self._palette_from_special_case(entry.source, map_info)
@@ -962,11 +1113,42 @@ class RepositoryIndex:
         self._palette_cache[label] = frozen
         return self._clone_palette_list(frozen)
 
-    def special_background_palette(self, map_info: MapInfo) -> Optional[List[List[RGB]]]:
+    def environment_palette(self, map_info: MapInfo, time_of_day: int) -> List[List[RGB]]:
+        map_type_key = map_info.map_type.upper()
+        indices_by_time = self._environment_palette_indices.get(map_type_key)
+        if indices_by_time is None:
+            indices_by_time = self._environment_palette_indices.get("INDOOR")
+        selected: List[List[RGB]] = []
+        if indices_by_time:
+            time_index = time_of_day & 0x03
+            if time_index >= len(indices_by_time):
+                time_index = 0
+            raw_indices = indices_by_time[time_index][:7]
+            for palette_index in raw_indices:
+                if 0 <= palette_index < len(self._bg_tile_palettes):
+                    selected.append(list(self._bg_tile_palettes[palette_index]))
+        if not selected:
+            selected = [list(palette) for palette in self._bg_tile_palettes[:7]]
+        return self._ensure_palette_length(selected)
+
+    def special_background_palette(
+        self,
+        map_info: MapInfo,
+        time_of_day: int,
+        weekday: Optional[int] = None,
+        events: Optional[Set[str]] = None,
+    ) -> Optional[List[List[RGB]]]:
+        overcast_index = self.get_overcast_index(map_info, weekday=weekday, events=events)
         for entry in self._special_bg_palettes:
-            if not self._special_entry_applies(entry, map_info):
+            if not self._special_entry_applies(
+                entry,
+                map_info,
+                weekday=weekday,
+                events=events,
+                overcast_index=overcast_index,
+            ):
                 continue
-            palettes = self._palette_from_entry(entry, map_info)
+            palettes = self._palette_from_entry(entry, map_info, time_of_day)
             if palettes is not None:
                 return palettes
         return None
@@ -1315,24 +1497,16 @@ def _load_palette(pal_path: Path) -> List[List[RGB]]:
     return [colors[i : i + 4] for i in range(0, len(colors), 4)]
 
 
-def _day_palette(base_path: Path) -> List[List[RGB]]:
-    palettes = _load_palette(base_path / "gfx/tilesets/bg_tiles.pal")
-    selected = palettes[8:11] + [palettes[0x29]] + palettes[12:16]
-    return [list(palette) for palette in selected]
-
-
 def _ensure_palette_rows(palette: List[List[RGB]], target: int = 7) -> None:
     if not palette:
-        palette.extend([[ _DEFAULT_RGB ] * 4 for _ in range(target)])
+        palette.extend([[_DEFAULT_RGB] * 4 for _ in range(target)])
         return
     while len(palette) < target:
         palette.append(list(palette[-1]))
     for index, row in enumerate(palette):
         if len(row) < 4:
             filler = row[-1] if row else _DEFAULT_RGB
-            while len(row) < 4:
-                row.append(filler)
-            palette[index] = row
+            palette[index] = list(row) + [filler] * (4 - len(row))
 
 
 def _apply_roof_color_override(palette: List[List[RGB]], override: Optional[Tuple[RGB, RGB]]) -> None:
@@ -1909,6 +2083,10 @@ def _build_renderer(
     polished_path: Path,
     repo_index: RepositoryIndex,
     map_label: str,
+    *,
+    weekday: Optional[int] = None,
+    time_of_day: int = 1,
+    events: Optional[Set[str]] = None,
 ) -> RendererData:
     map_info = repo_index.map_info(map_label)
     tileset_resources = repo_index.tileset_resources(map_info.tileset)
@@ -1920,21 +2098,26 @@ def _build_renderer(
     block_bytes = _read_block_bytes(blocks_path)
     block_indices = _map_block_indices(block_bytes, map_info.width, map_info.height)
     allows_roof_palette = map_info.map_type in {"TOWN", "ROUTE", "ISOLATED"}
-    overcast_index = repo_index.get_overcast_index(map_info)
-    special_palette = repo_index.special_background_palette(map_info)
+    overcast_index = repo_index.get_overcast_index(map_info, weekday=weekday, events=events)
+    special_palette = repo_index.special_background_palette(
+        map_info,
+        time_of_day,
+        weekday=weekday,
+        events=events,
+    )
     if special_palette is not None:
         palette = special_palette
     else:
-        palette = _day_palette(polished_path)
+        palette = repo_index.environment_palette(map_info, time_of_day)
     _ensure_palette_rows(palette)
     if (
         allows_roof_palette
         and map_info.tileset != "TILESET_SNOWTOP_MOUNTAIN"
     ):
         if overcast_index is not None:
-            roof_override = repo_index.overcast_roof_palette(overcast_index)
+            roof_override = repo_index.overcast_roof_palette(overcast_index, time_of_day=time_of_day)
         else:
-            roof_override = repo_index.roof_palette(map_info.group)
+            roof_override = repo_index.roof_palette(map_info.group, time_of_day=time_of_day)
         _apply_roof_color_override(palette, roof_override)
     attributes_data = _read_asset_bytes(polished_path / tileset_resources.attributes_path)
     attributes = Attributes(attributes_data, palette)
@@ -1963,6 +2146,70 @@ def _build_renderer(
     )
 
 
+def _parse_weekday_argument(value: str) -> int:
+    text = str(value).strip()
+    if not text:
+        raise argparse.ArgumentTypeError("Weekday value cannot be empty.")
+    lowered = text.lower()
+    if lowered in _WEEKDAY_NAME_TO_VALUE:
+        return _WEEKDAY_NAME_TO_VALUE[lowered]
+    try:
+        numeric = int(text, 0)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            "Weekday must be a number 0-6 or a weekday name (e.g., Monday)."
+        ) from exc
+    return numeric % 7
+
+
+def _parse_time_of_day_argument(value: str) -> int:
+    text = str(value).strip()
+    if not text:
+        raise argparse.ArgumentTypeError("Time of day value cannot be empty.")
+    lowered = text.lower()
+    if lowered in _TIME_OF_DAY_NAME_TO_VALUE:
+        return _TIME_OF_DAY_NAME_TO_VALUE[lowered]
+    try:
+        numeric = int(text, 0)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            "Time of day must be 0 (morn), 1 (day), 2 (nite), or 3 (eve)."
+        ) from exc
+    if numeric < 0 or numeric > 3:
+        raise argparse.ArgumentTypeError(
+            "Time of day must be within 0-3 or a named value (morn/day/nite/eve)."
+        )
+    return numeric
+
+
+def _parse_bool_flag(value: str) -> bool:
+    normalized = str(value).strip().lower()
+    truthy = {"1", "true", "t", "yes", "y", "on"}
+    falsy = {"0", "false", "f", "no", "n", "off"}
+    if normalized in truthy:
+        return True
+    if normalized in falsy:
+        return False
+    raise argparse.ArgumentTypeError(
+        "Expected a boolean value (on/off, true/false, yes/no, 1/0)."
+    )
+
+
+def _parse_event_override(value: str) -> Tuple[str, bool]:
+    raw = str(value).strip()
+    if not raw:
+        raise argparse.ArgumentTypeError("Event override cannot be empty.")
+    if "=" in raw:
+        name, state_text = raw.split("=", 1)
+    else:
+        name, state_text = raw, "on"
+    name = name.strip()
+    if not name:
+        raise argparse.ArgumentTypeError("Event flag name cannot be empty.")
+    state = _parse_bool_flag(state_text)
+    return name.upper(), state
+
+
 def parse_args() -> argparse.Namespace:
     default_root = Path(__file__).resolve().parent.parent
     parser = argparse.ArgumentParser(description="Render a polishedcrystal overworld map to PNG or GIF.")
@@ -1977,6 +2224,29 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=default_root / "external/polishedcrystal",
         help="Path to the polishedcrystal repository clone.",
+    )
+    parser.add_argument(
+        "--weekday",
+        type=_parse_weekday_argument,
+        default=1,
+        help="Game weekday (0=Sunday ... 6=Saturday). Accepts names like Monday. Defaults to Monday.",
+    )
+    parser.add_argument(
+        "--time-of-day",
+        type=_parse_time_of_day_argument,
+        default=1,
+        help="Time of day palette: 0/morn, 1/day, 2/nite, 3/eve. Defaults to day.",
+    )
+    parser.add_argument(
+        "--event",
+        dest="event_overrides",
+        action="append",
+        type=_parse_event_override,
+        metavar="FLAG[=STATE]",
+        help=(
+            "Override an event flag state (e.g., EVENT_GOLDENROD_CITY_ROCKET_TAKEOVER=off). "
+            "Repeat to adjust multiple flags. Defaults mirror a new game."
+        ),
     )
     parser.add_argument(
         "--output",
@@ -2006,8 +2276,25 @@ def main() -> None:
 
     repo_index = RepositoryIndex(polished_path)
     map_label = args.map
+    weekday = args.weekday
+    time_of_day = args.time_of_day
+    events: Set[str] = repo_index.initial_event_flags
+    if args.event_overrides:
+        for flag_name, state in args.event_overrides:
+            if state:
+                events.add(flag_name)
+            else:
+                events.discard(flag_name)
     try:
-        renderer = _build_renderer(png, polished_path, repo_index, map_label)
+        renderer = _build_renderer(
+            png,
+            polished_path,
+            repo_index,
+            map_label,
+            weekday=weekday,
+            time_of_day=time_of_day,
+            events=events,
+        )
     except KeyError as exc:
         raise SystemExit(str(exc))
     animations = _load_tileset_animations(polished_path, renderer, png)

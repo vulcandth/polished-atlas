@@ -8,3 +8,5 @@ declare interface ImportMetaEnv {
 declare interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+declare const __REPO_ROOT__: string;

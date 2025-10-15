@@ -38,7 +38,7 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
     let destroyed = false;
 
     const boot = async (): Promise<void> => {
-      const app = await Application.init({
+      const app = new Application({
         backgroundAlpha: 0,
         resizeTo: container,
         antialias: true,
@@ -48,7 +48,7 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
         app.destroy(true, { children: true });
         return;
       }
-      container.appendChild(app.canvas);
+      container.appendChild(app.view as unknown as HTMLCanvasElement);
       appRef.current = app;
       const world = new Container();
       app.stage.addChild(world);
@@ -199,11 +199,7 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
       return;
     }
 
-    const appWithCanvas = app as Application & { canvas?: HTMLCanvasElement };
-    const canvas: HTMLCanvasElement | null =
-      appWithCanvas.canvas ??
-      ((app.renderer as unknown as { view?: { element?: HTMLCanvasElement } }).view?.element ??
-        ((app.renderer as unknown as { view?: HTMLCanvasElement }).view ?? null));
+    const canvas = app.view as unknown as HTMLCanvasElement | null;
     if (!canvas) {
       return () => undefined;
     }

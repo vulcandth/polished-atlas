@@ -8,8 +8,12 @@ function defaultGraphUrl(): string {
     return import.meta.env.VITE_CONNECTION_GRAPH_URL;
   }
   if (import.meta.env.DEV) {
-    const absolute = new URL("../../maps/day/animated/NewBarkTown_connections.json", import.meta.url);
-    return `/@fs${decodeURIComponent(absolute.pathname)}`;
+    const repoRoot = typeof __REPO_ROOT__ === "string" ? __REPO_ROOT__ : "";
+    if (repoRoot && typeof window !== "undefined" && window.location?.origin) {
+      const rawPath = `${repoRoot}/maps/day/animated/NewBarkTown_connections.json`.replace(/\\/g, "/");
+      const withLeadingSlash = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
+      return `${window.location.origin}/@fs${encodeURI(withLeadingSlash)}`;
+    }
   }
   return "/maps/day/animated/NewBarkTown_connections.json";
 }

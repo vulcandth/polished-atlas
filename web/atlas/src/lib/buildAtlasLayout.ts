@@ -198,10 +198,18 @@ function resolveAssetHref(asset: string, baseHref?: string): string {
   try {
     const base = new URL(baseHref);
     const normalizedBase = base.href.endsWith("/") ? base.href : `${base.href}/`;
-    const prefix = "maps/day/animated/";
-    if (trimmed.startsWith(prefix) && normalizedBase.includes(prefix)) {
-      const assetName = trimmed.slice(prefix.length);
-      return new URL(assetName, normalizedBase).toString();
+    const timeSpecificMatch = /^maps\/([^/]+)\/animated\//.exec(trimmed);
+    if (timeSpecificMatch) {
+      const slug = timeSpecificMatch[1];
+      const prefixLength = timeSpecificMatch[0].length;
+      if (normalizedBase.includes(`/maps/${slug}/animated/`)) {
+        const relativePath = trimmed.slice(prefixLength);
+        return new URL(relativePath, normalizedBase).toString();
+      }
+      if (typeof window !== "undefined" && window.location?.origin) {
+        return new URL(trimmed, window.location.origin).toString();
+      }
+      return trimmed;
     }
     return new URL(trimmed, normalizedBase).toString();
   } catch {

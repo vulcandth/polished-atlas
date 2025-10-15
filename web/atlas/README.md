@@ -8,7 +8,7 @@ This package hosts the React + PixiJS client used to render stitched map atlases
    ```bash
    python scripts/generate_map_connections.py NewBarkTown
    ```
-   The file will be written to `maps/day/animated/NewBarkTown_connections.json` by default.
+   The file will be written to `maps/<time>/animated/NewBarkTown_connections.json` by default (e.g., `maps/day/animated/…`).
 
 2. Install dependencies:
    ```bash
@@ -20,10 +20,10 @@ This package hosts the React + PixiJS client used to render stitched map atlases
    ```bash
    npm run dev
    ```
-   Vite serves from `http://localhost:5173`. The dev server is allowed to read the repository root so animation metadata and sprite sheets under `maps/day/animated/` are accessible.
-   When running in development the app automatically references the real `maps/day/animated/NewBarkTown_connections.json`
+   Vite serves from `http://localhost:5173`. The dev server is allowed to read the repository root so animation metadata and sprite sheets under `maps/<time>/animated/` are accessible.
+   When running in development the app automatically references the real `maps/<time>/animated/NewBarkTown_connections.json`
    via Vite's `@fs` path, so no manual copying of assets is required. In production builds the assets are
-   expected to be hosted relative to `/maps/day/animated/`.
+   expected to be hosted relative to `/maps/<time>/animated/` (the UI lets you switch between `morn`, `day`, `nite`, and `eve`).
 
 ## Configuration
 
@@ -31,6 +31,7 @@ Environment variables (prefixed with `VITE_`) can be provided via `.env` files o
 
 - `VITE_CONNECTION_GRAPH_URL`: Path or URL to the JSON produced by `generate_map_connections.py`. Defaults to `/maps/day/animated/NewBarkTown_connections.json`.
 - `VITE_ROOT_MAP`: Override the root label used when building the atlas layout. Defaults to `NewBarkTown`.
+- `VITE_NEIGHBORHOOD_MANIFEST_URL`: Override the manifest URL. When provided, time-of-day selection in the UI is disabled and the supplied manifest is used as-is.
 
 ## Notes
 

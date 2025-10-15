@@ -4,6 +4,27 @@ import { useAtlasData } from "@/hooks/useAtlasData";
 import type { NeighborhoodSummary } from "@/types";
 
 const DEFAULT_ROOT = import.meta.env.VITE_ROOT_MAP ?? "NewBarkTown";
+const MANIFEST_OVERRIDE = import.meta.env.VITE_NEIGHBORHOOD_MANIFEST_URL?.trim() || "";
+const TIME_STORAGE_KEY = "polished-atlas/time-of-day";
+
+const TIME_OF_DAY_OPTIONS = [
+  { value: "morn", label: "Morning" },
+  { value: "day", label: "Day" },
+  { value: "nite", label: "Night" },
+  { value: "eve", label: "Evening" },
+] as const;
+
+type TimeOfDayOption = (typeof TIME_OF_DAY_OPTIONS)[number];
+type TimeOfDaySlug = TimeOfDayOption["value"];
+
+function sanitizeTimeOfDay(value: unknown): TimeOfDaySlug {
+  const text = typeof value === "string" ? value : value != null ? String(value) : "";
+  const normalized = text.trim().toLowerCase();
+  const match = TIME_OF_DAY_OPTIONS.find((option) => option.value === normalized);
+  return match ? match.value : "day";
+}
+
+const DEFAULT_TIME_OF_DAY: TimeOfDaySlug = sanitizeTimeOfDay(import.meta.env.VITE_ATLAS_TIME ?? "day");
 
 type OffsetTuple = [number, number];
 
@@ -63,33 +84,55 @@ function isInteractiveTarget(target: EventTarget | null): boolean {
   return false;
 }
 
-function defaultManifestUrl(): string {
-  const override = import.meta.env.VITE_NEIGHBORHOOD_MANIFEST_URL;
-  if (override && override.trim()) {
-    return override.trim();
+function manifestUrlForSlug(timeSlug: TimeOfDaySlug): string {
+  if (MANIFEST_OVERRIDE) {
+    return MANIFEST_OVERRIDE;
   }
   if (import.meta.env.DEV) {
     const repoRoot = typeof __REPO_ROOT__ === "string" ? __REPO_ROOT__ : "";
     if (repoRoot && typeof window !== "undefined" && window.location?.origin) {
-      const rawPath = `${repoRoot}/maps/day/animated/map_neighborhoods.json`.replace(/\\/g, "/");
+      const rawPath = `${repoRoot}/maps/${timeSlug}/animated/map_neighborhoods.json`.replace(/\\/g, "/");
       const withLeadingSlash = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
       return `${window.location.origin}/@fs${encodeURI(withLeadingSlash)}`;
     }
   }
-  return "/maps/day/animated/map_neighborhoods.json";
+  return `/maps/${timeSlug}/animated/map_neighborhoods.json`;
 }
 
-function deriveDataSources(): { graphUrl?: string; manifestUrl?: string; rootLabel?: string } {
+function deriveDataSources(timeSlug: TimeOfDaySlug): {
+  graphUrl?: string;
+  manifestUrl?: string;
+  rootLabel?: string;
+  supportsTimeSelection: boolean;
+} {
   const graphEnv = import.meta.env.VITE_CONNECTION_GRAPH_URL?.trim();
   if (graphEnv) {
-    return { graphUrl: graphEnv, manifestUrl: undefined, rootLabel: DEFAULT_ROOT };
+    return { graphUrl: graphEnv, manifestUrl: undefined, rootLabel: DEFAULT_ROOT, supportsTimeSelection: false };
   }
-  const manifestUrl = defaultManifestUrl();
-  return { graphUrl: undefined, manifestUrl, rootLabel: undefined };
+  const manifestUrl = manifestUrlForSlug(timeSlug);
+  return {
+    graphUrl: undefined,
+    manifestUrl,
+    rootLabel: undefined,
+    supportsTimeSelection: MANIFEST_OVERRIDE.length === 0,
+  };
 }
 
 export default function App() {
-  const { graphUrl, manifestUrl, rootLabel } = deriveDataSources();
+  const [timeOfDay, setTimeOfDay] = useState<TimeOfDaySlug>(() => {
+    if (typeof window === "undefined") {
+      return DEFAULT_TIME_OF_DAY;
+    }
+    const stored = window.localStorage.getItem(TIME_STORAGE_KEY);
+    return sanitizeTimeOfDay(stored ?? DEFAULT_TIME_OF_DAY);
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(TIME_STORAGE_KEY, timeOfDay);
+    }
+  }, [timeOfDay]);
+
+  const { graphUrl, manifestUrl, rootLabel, supportsTimeSelection } = deriveDataSources(timeOfDay);
   const { layout, loading, error, reload } = useAtlasData({
     graphUrl,
     manifestUrl,
@@ -189,6 +232,19 @@ export default function App() {
     });
   }, []);
 
+  const handleTimeOfDayChange = useCallback(
+    (nextValue: string) => {
+      const next = sanitizeTimeOfDay(nextValue);
+      if (next === timeOfDay) {
+        return;
+      }
+      setTimeOfDay(next);
+      setSaveStatus("idle");
+      setSaveError(null);
+    },
+    [timeOfDay]
+  );
+
   const hasPendingChanges = useMemo(() => {
     if (!editing) {
       return false;
@@ -251,7 +307,23 @@ export default function App() {
     setZOverrides({ ...normalizedZ });
   }, [layout, offsetOverrides, zOverrides]);
 
-  const canEdit = import.meta.env.DEV && Boolean(manifestUrl) && neighborhoods.length > 0;
+  const canEdit =
+    import.meta.env.DEV && Boolean(manifestUrl) && neighborhoods.length > 0 && !graphUrl && timeOfDay === "day";
+
+  useEffect(() => {
+    if (editing && !canEdit) {
+      setEditing(false);
+      setSaveStatus("idle");
+      setSaveError(null);
+    }
+  }, [canEdit, editing]);
+
+  useEffect(() => {
+    if (!supportsTimeSelection) {
+      return;
+    }
+    setSelectedNeighborhoodId(null);
+  }, [supportsTimeSelection, timeOfDay]);
 
   const handleToggleEditing = useCallback(async () => {
     if (!canEdit) {
@@ -342,9 +414,33 @@ export default function App() {
     ? zOverrides[selectedNeighborhoodId] ?? baseZRef.current[selectedNeighborhoodId] ?? 0
     : 0;
 
+  const timeSelectDisabled =
+    !supportsTimeSelection || Boolean(graphUrl) || editing || loading || saveStatus === "saving";
+  let timeSelectTitle: string | undefined;
+  if (graphUrl) {
+    timeSelectTitle = "Time selection is unavailable when a connection graph override is active.";
+  } else if (!supportsTimeSelection) {
+    timeSelectTitle = "Time selection is disabled when a manifest override is configured.";
+  } else if (editing) {
+    timeSelectTitle = "Finish editing before switching time of day.";
+  } else if (loading) {
+    timeSelectTitle = "Please wait for the current manifest to finish loading.";
+  } else if (saveStatus === "saving") {
+    timeSelectTitle = "Saving layout changes…";
+  }
+  if (!timeSelectTitle) {
+    timeSelectTitle = "Select atlas time of day.";
+  }
+
+  const timeLabel = useMemo(() => {
+    const option = TIME_OF_DAY_OPTIONS.find((item) => item.value === timeOfDay);
+    return option?.label ?? "Day";
+  }, [timeOfDay]);
+
   const neighborhoodCount = layout?.metadata?.neighborhoods?.length ?? 0;
   const mapCount = layout?.placements.length ?? 0;
   const subtitleParts: string[] = [];
+  subtitleParts.push(`Time: ${timeLabel}`);
   if (neighborhoodCount > 0) {
     subtitleParts.push(`${neighborhoodCount} neighborhood${neighborhoodCount === 1 ? "" : "s"}`);
   }
@@ -361,6 +457,22 @@ export default function App() {
           <span className="subtitle">{subtitle}</span>
         </div>
         <div className="actions">
+          <div className="time-picker">
+            <label htmlFor="time-of-day-select">Time</label>
+            <select
+              id="time-of-day-select"
+              value={timeOfDay}
+              onChange={(event) => handleTimeOfDayChange(event.target.value)}
+              disabled={timeSelectDisabled}
+              title={timeSelectTitle}
+            >
+              {TIME_OF_DAY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
           <button type="button" onClick={reload} disabled={loading}>
             {loading ? "Loading…" : "Reload"}
           </button>

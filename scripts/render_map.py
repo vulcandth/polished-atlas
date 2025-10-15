@@ -1264,7 +1264,7 @@ def _build_renderer(
     block_indices = _map_block_indices(block_bytes, map_info.width, map_info.height)
     allows_roof_palette = map_info.map_type in {"TOWN", "ROUTE", "ISOLATED"}
     roof_palette_override = None
-    if map_info.roof_constant and allows_roof_palette:
+    if allows_roof_palette:
         roof_palette_override = repo_index.roof_palette(map_info.group)
     palette = _day_palette(polished_path, roof_palette_override)
     attributes_data = _read_asset_bytes(polished_path / tileset_resources.attributes_path)

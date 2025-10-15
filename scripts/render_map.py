@@ -90,6 +90,13 @@ _AZALEA_OVERCAST_INDEX = 1
 _LAKE_OF_RAGE_OVERCAST_INDEX = 2
 _STORMY_BEACH_OVERCAST_INDEX = 3
 
+_OVERCAST_BLOCK_OVERRIDES = {
+    "AZALEA_TOWN": "maps/AzaleaTownRaining.ablk.lz",
+    "ROUTE_33": "maps/Route33Raining.ablk.lz",
+    "LAKE_OF_RAGE": "maps/LakeOfRageFlooded.ablk.lz",
+    "ROUTE_43": "maps/Route43Raining.ablk.lz",
+}
+
 _ROOF_GFX = {
     "ROOF_NEW_BARK": "gfx/tilesets/roofs/new_bark",
     "ROOF_VIOLET": "gfx/tilesets/roofs/violet",
@@ -1497,7 +1504,7 @@ def _load_palette(pal_path: Path) -> List[List[RGB]]:
     return [colors[i : i + 4] for i in range(0, len(colors), 4)]
 
 
-def _ensure_palette_rows(palette: List[List[RGB]], target: int = 7) -> None:
+def _ensure_palette_rows(palette: List[List[RGB]], target: int = 8) -> None:
     if not palette:
         palette.extend([[_DEFAULT_RGB] * 4 for _ in range(target)])
         return
@@ -2090,15 +2097,22 @@ def _build_renderer(
 ) -> RendererData:
     map_info = repo_index.map_info(map_label)
     tileset_resources = repo_index.tileset_resources(map_info.tileset)
+    overcast_index = repo_index.get_overcast_index(map_info, weekday=weekday, events=events)
     block_asset = repo_index.block_asset(map_info.block_label)
-    if block_asset:
+    override_block = None
+    if overcast_index is not None:
+        override_relative = _OVERCAST_BLOCK_OVERRIDES.get(map_info.constant)
+        if override_relative is not None:
+            override_block = polished_path / override_relative
+    if override_block is not None:
+        blocks_path = override_block
+    elif block_asset:
         blocks_path = polished_path / Path(block_asset)
     else:
         blocks_path = polished_path / "maps" / f"{map_info.label}.ablk"
     block_bytes = _read_block_bytes(blocks_path)
     block_indices = _map_block_indices(block_bytes, map_info.width, map_info.height)
     allows_roof_palette = map_info.map_type in {"TOWN", "ROUTE", "ISOLATED"}
-    overcast_index = repo_index.get_overcast_index(map_info, weekday=weekday, events=events)
     special_palette = repo_index.special_background_palette(
         map_info,
         time_of_day,

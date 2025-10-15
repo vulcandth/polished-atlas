@@ -113,4 +113,5 @@ export interface MapAnimationMetadata {
   frameCount: number;
   frameDurationsMs: number[];
   loopDurationMs: number;
+  sheetColumns?: number;
 }

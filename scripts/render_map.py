@@ -52,6 +52,7 @@ _ROOF_TILE_OFFSET = 0x0A
 _ROOF_TILE_COUNT = 9
 _GIF_FRAME_DURATION_MS = 400
 _ANIMATION_FRAME_DURATION_MS = _GIF_FRAME_DURATION_MS
+_MAX_SPRITE_SHEET_DIMENSION = 4096
 
 
 @dataclass
@@ -109,6 +110,140 @@ _ANIMATION_SPECS: Dict[str, AnimationSpec] = {
         repeat_each=2,
         tile_index=0x03,
     ),
+    "AnimateFarawayWaterTile": AnimationSpec(tuple(), repeat_each=2),
+    "AnimateFountain": AnimationSpec(
+        (
+            "gfx/tilesets/fountain/1.png",
+            "gfx/tilesets/fountain/2.png",
+            "gfx/tilesets/fountain/3.png",
+            "gfx/tilesets/fountain/4.png",
+            "gfx/tilesets/fountain/5.png",
+        ),
+        sequence=(0, 1, 2, 3, 2, 3, 4, 0),
+    ),
+    "AnimateLCDTile": AnimationSpec(
+        (
+            "gfx/tilesets/lcd/1.png",
+            "gfx/tilesets/lcd/2.png",
+            "gfx/tilesets/lcd/3.png",
+            "gfx/tilesets/lcd/4.png",
+            "gfx/tilesets/lcd/5.png",
+            "gfx/tilesets/lcd/6.png",
+            "gfx/tilesets/lcd/7.png",
+            "gfx/tilesets/lcd/8.png",
+        ),
+        tile_index=0x5E,
+    ),
+    "AnimateTinyWaterTile": AnimationSpec(tuple(), repeat_each=2),
+    "AnimateTowerPillarTile": AnimationSpec(tuple(), sequence=(0, 1, 2, 3, 4, 3, 2, 1)),
+    "ForestTreeLeftAnimation": AnimationSpec(
+        (
+            "gfx/tilesets/forest-tree/1.png",
+            "gfx/tilesets/forest-tree/2.png",
+        ),
+        tile_index=0x50,
+    ),
+    "ForestTreeLeftAnimation2": AnimationSpec(
+        (
+            "gfx/tilesets/forest-tree/1.png",
+            "gfx/tilesets/forest-tree/2.png",
+        ),
+        sequence=(1, 0),
+        tile_index=0x50,
+    ),
+    "ForestTreeRightAnimation": AnimationSpec(
+        (
+            "gfx/tilesets/forest-tree/3.png",
+            "gfx/tilesets/forest-tree/4.png",
+        ),
+        tile_index=0x53,
+    ),
+    "ForestTreeRightAnimation2": AnimationSpec(
+        (
+            "gfx/tilesets/forest-tree/3.png",
+            "gfx/tilesets/forest-tree/4.png",
+        ),
+        sequence=(1, 0),
+        tile_index=0x53,
+    ),
+    "ForestTree2LeftAnimation": AnimationSpec(
+        (
+            "gfx/tilesets/forest-tree-2/1.png",
+            "gfx/tilesets/forest-tree-2/2.png",
+        ),
+        tile_index=0x5C,
+    ),
+    "ForestTree2LeftAnimation2": AnimationSpec(
+        (
+            "gfx/tilesets/forest-tree-2/1.png",
+            "gfx/tilesets/forest-tree-2/2.png",
+        ),
+        sequence=(1, 0),
+        tile_index=0x5C,
+    ),
+    "ForestTree2RightAnimation": AnimationSpec(
+        (
+            "gfx/tilesets/forest-tree-2/3.png",
+            "gfx/tilesets/forest-tree-2/4.png",
+        ),
+        tile_index=0x5F,
+    ),
+    "ForestTree2RightAnimation2": AnimationSpec(
+        (
+            "gfx/tilesets/forest-tree-2/3.png",
+            "gfx/tilesets/forest-tree-2/4.png",
+        ),
+        sequence=(1, 0),
+        tile_index=0x5F,
+    ),
+    "LavaBubbleAnim1": AnimationSpec(
+        (
+            "gfx/tilesets/lava/1.png",
+            "gfx/tilesets/lava/2.png",
+            "gfx/tilesets/lava/3.png",
+            "gfx/tilesets/lava/4.png",
+        ),
+        sequence=(2, 2, 3, 3, 0, 0, 1, 1),
+        tile_index=0x5B,
+    ),
+    "LavaBubbleAnim2": AnimationSpec(
+        (
+            "gfx/tilesets/lava/1.png",
+            "gfx/tilesets/lava/2.png",
+            "gfx/tilesets/lava/3.png",
+            "gfx/tilesets/lava/4.png",
+        ),
+        sequence=(0, 0, 1, 1, 2, 2, 3, 3),
+        tile_index=0x38,
+    ),
+    "LavaBubbleAnim3": AnimationSpec(
+        (
+            "gfx/tilesets/lava/1.png",
+            "gfx/tilesets/lava/2.png",
+            "gfx/tilesets/lava/3.png",
+            "gfx/tilesets/lava/4.png",
+        ),
+        sequence=(2, 2, 3, 3, 0, 0, 1, 1),
+        tile_index=0x3D,
+    ),
+    "LavaBubbleAnim4": AnimationSpec(
+        (
+            "gfx/tilesets/lava/1.png",
+            "gfx/tilesets/lava/2.png",
+            "gfx/tilesets/lava/3.png",
+            "gfx/tilesets/lava/4.png",
+        ),
+        sequence=(0, 0, 1, 1, 2, 2, 3, 3),
+        tile_index=0x3C,
+    ),
+    "SpinnerAnimation": AnimationSpec(
+        (
+            "gfx/tilesets/spinner/1.png",
+            "gfx/tilesets/spinner/2.png",
+        ),
+        repeat_each=2,
+        tile_index=0x50,
+    ),
 }
 
 _ANIMATION_DATA_SPECS: Dict[str, AnimationSpec] = {
@@ -116,6 +251,21 @@ _ANIMATION_DATA_SPECS: Dict[str, AnimationSpec] = {
     "WhirlpoolTiles2": AnimationSpec(("gfx/tilesets/whirlpool/2.png",), repeat_each=1),
     "WhirlpoolTiles3": AnimationSpec(("gfx/tilesets/whirlpool/3.png",), repeat_each=1),
     "WhirlpoolTiles4": AnimationSpec(("gfx/tilesets/whirlpool/4.png",), repeat_each=1),
+    "FarawayWaterTiles1": AnimationSpec(("gfx/tilesets/water/faraway_water_1.png",), repeat_each=1),
+    "FarawayWaterTiles2": AnimationSpec(("gfx/tilesets/water/faraway_water_2.png",), repeat_each=1),
+    "TinyWaterTile": AnimationSpec(("gfx/tilesets/tiny/water.png",), repeat_each=1),
+    "TinyPierTile": AnimationSpec(("gfx/tilesets/tiny/pier.png",), repeat_each=1),
+    "TinyShoreTile": AnimationSpec(("gfx/tilesets/tiny/shore.png",), repeat_each=1),
+    "TowerPillarTile1": AnimationSpec(("gfx/tilesets/tower-pillar/1.png",), repeat_each=1),
+    "TowerPillarTile2": AnimationSpec(("gfx/tilesets/tower-pillar/2.png",), repeat_each=1),
+    "TowerPillarTile3": AnimationSpec(("gfx/tilesets/tower-pillar/3.png",), repeat_each=1),
+    "TowerPillarTile4": AnimationSpec(("gfx/tilesets/tower-pillar/4.png",), repeat_each=1),
+    "TowerPillarTile5": AnimationSpec(("gfx/tilesets/tower-pillar/5.png",), repeat_each=1),
+    "TowerPillarTile6": AnimationSpec(("gfx/tilesets/tower-pillar/6.png",), repeat_each=1),
+    "TowerPillarTile7": AnimationSpec(("gfx/tilesets/tower-pillar/7.png",), repeat_each=1),
+    "TowerPillarTile8": AnimationSpec(("gfx/tilesets/tower-pillar/8.png",), repeat_each=1),
+    "TowerPillarTile9": AnimationSpec(("gfx/tilesets/tower-pillar/9.png",), repeat_each=1),
+    "TowerPillarTile10": AnimationSpec(("gfx/tilesets/tower-pillar/10.png",), repeat_each=1),
 }
 
 _ANIMATION_TABLE_CACHE: Dict[str, Dict[str, List[AnimationCommand]]] = {}
@@ -924,6 +1074,34 @@ def _decode_animation_tiles(polished_path: Path, sources: Sequence[str], png_mod
     return frames
 
 
+def _merge_animation_specs(data_spec: Optional[AnimationSpec], func_spec: Optional[AnimationSpec]) -> Optional[AnimationSpec]:
+    if data_spec is None and func_spec is None:
+        return None
+    sources: Tuple[str, ...] = ()
+    for candidate in (data_spec, func_spec):
+        if candidate and candidate.sources:
+            sources = candidate.sources
+            break
+    if not sources:
+        return None
+    repeat_each = 1
+    if data_spec is not None:
+        repeat_each = data_spec.repeat_each
+    if func_spec is not None and (data_spec is None or data_spec.repeat_each == 1):
+        repeat_each = func_spec.repeat_each
+    sequence: Optional[Tuple[int, ...]] = None
+    if data_spec is not None and data_spec.sequence is not None:
+        sequence = data_spec.sequence
+    elif func_spec is not None:
+        sequence = func_spec.sequence
+    tile_index: Optional[int] = None
+    if data_spec is not None and data_spec.tile_index is not None:
+        tile_index = data_spec.tile_index
+    elif func_spec is not None:
+        tile_index = func_spec.tile_index
+    return AnimationSpec(sources, repeat_each, sequence, tile_index)
+
+
 def _repeat_sequence(frame_count: int, repeat_each: int) -> List[int]:
     if frame_count <= 0:
         return []
@@ -974,9 +1152,9 @@ def _load_tileset_animations(
     for command in entries:
         tile_index = command.tile_index
         data_label = command.data_label
-        spec = _ANIMATION_DATA_SPECS.get(data_label) if data_label else None
-        if spec is None:
-            spec = _ANIMATION_SPECS.get(command.function)
+        data_spec = _ANIMATION_DATA_SPECS.get(data_label) if data_label else None
+        func_spec = _ANIMATION_SPECS.get(command.function)
+        spec = _merge_animation_specs(data_spec, func_spec)
         if spec is None:
             continue
         if tile_index is None and spec.tile_index is not None:
@@ -1030,6 +1208,7 @@ def _simulate_scroll_commands(commands: Sequence[AnimationCommand], renderer: Re
         "ScrollTileUp",
         "ScrollTileLeft",
         "ScrollTileRight",
+        "ScrollTileRightLeft",
     }
     tracked: Set[int] = set()
     for command in commands:
@@ -1058,25 +1237,33 @@ def _simulate_scroll_commands(commands: Sequence[AnimationCommand], renderer: Re
     frames: Dict[int, List[List[int]]] = {index: [list(tile_state[index])] for index in tracked}
     initial_snapshot = {index: tuple(tile_state[index]) for index in tracked}
     max_frames = 16
-    for _ in range(max_frames):
+    for frame_index in range(max_frames):
         for command in commands:
-            if command.function not in supported:
+            function = command.function
+            if function not in supported:
                 continue
-            if command.function == "WriteTileToBuffer":
+            if function == "WriteTileToBuffer":
                 if command.tile_index is None:
                     continue
                 buffer_tile = list(ensure_tile(command.tile_index))
-            elif command.function == "ReadTileFromBuffer":
+            elif function == "ReadTileFromBuffer":
                 if command.tile_index is None:
                     continue
                 target = ensure_tile(command.tile_index)
                 target[:] = list(buffer_tile)
-            else:
+            elif function == "ScrollTileRightLeft":
+                direction = "ScrollTileRight" if (frame_index % 8) < 4 else "ScrollTileLeft"
                 if command.location == "wTileAnimBuffer":
-                    buffer_tile = _scroll_tile_values(buffer_tile, command.function)
+                    buffer_tile = _scroll_tile_values(buffer_tile, direction)
                 elif command.tile_index is not None:
                     target = ensure_tile(command.tile_index)
-                    target[:] = _scroll_tile_values(target, command.function)
+                    target[:] = _scroll_tile_values(target, direction)
+            else:
+                if command.location == "wTileAnimBuffer":
+                    buffer_tile = _scroll_tile_values(buffer_tile, function)
+                elif command.tile_index is not None:
+                    target = ensure_tile(command.tile_index)
+                    target[:] = _scroll_tile_values(target, function)
         snapshot = {index: tuple(tile_state[index]) for index in tracked}
         for index in tracked:
             frames[index].append(list(tile_state[index]))
@@ -1183,7 +1370,10 @@ def _write_gif(path: Path, frames: Sequence[Tuple[int, int, List[List[int]]]], d
     first.save(path, format="GIF", save_all=True, append_images=rest, duration=duration_ms, loop=0, disposal=2)
 
 
-def _compose_sprite_sheet(frames: Sequence[Tuple[int, int, List[List[int]]]]) -> Tuple[int, int, List[List[int]]]:
+def _compose_sprite_sheet(
+    frames: Sequence[Tuple[int, int, List[List[int]]]],
+    max_sheet_dimension: Optional[int] = None,
+) -> Tuple[int, int, List[List[int]], int]:
     if not frames:
         raise ValueError("No frames available to compose sprite sheet")
     base_width, base_height, first_rows = frames[0]
@@ -1196,14 +1386,37 @@ def _compose_sprite_sheet(frames: Sequence[Tuple[int, int, List[List[int]]]]) ->
             raise ValueError("All frames must share the same dimensions")
         if len(rows) != base_height:
             raise ValueError("Frame row count does not match declared height")
-    sheet_width = base_width * len(frames)
+    columns = len(frames)
+    if max_sheet_dimension is not None and max_sheet_dimension > 0:
+        max_columns = max(1, max_sheet_dimension // base_width)
+        candidate_columns = min(len(frames), max_columns)
+        chosen_columns = candidate_columns
+        if base_height * math.ceil(len(frames) / chosen_columns) > max_sheet_dimension:
+            for possible in range(candidate_columns, 0, -1):
+                if base_width * possible > max_sheet_dimension:
+                    continue
+                rows_needed = math.ceil(len(frames) / possible)
+                if base_height * rows_needed <= max_sheet_dimension:
+                    chosen_columns = possible
+                    break
+        columns = max(1, min(len(frames), chosen_columns))
+
+    rows_needed = math.ceil(len(frames) / columns)
+    sheet_width = base_width * columns
+    sheet_height = base_height * rows_needed
     sheet_rows: List[List[int]] = []
-    for row_index in range(base_height):
-        combined_row: List[int] = []
-        for _, _, rows in frames:
-            combined_row.extend(rows[row_index])
-        sheet_rows.append(combined_row)
-    return sheet_width, base_height, sheet_rows
+    blank_segment = [0] * len(first_rows[0])
+    for row_index in range(rows_needed):
+        for tile_row in range(base_height):
+            combined_row: List[int] = []
+            for column_index in range(columns):
+                frame_index = row_index * columns + column_index
+                if frame_index < len(frames):
+                    combined_row.extend(frames[frame_index][2][tile_row])
+                else:
+                    combined_row.extend(blank_segment)
+            sheet_rows.append(combined_row)
+    return sheet_width, sheet_height, sheet_rows, columns
 
 
 def _write_animation_sheet(
@@ -1217,7 +1430,9 @@ def _write_animation_sheet(
         raise ValueError("No frames provided for animation sheet")
     if len(frame_durations_ms) != len(frames):
         raise ValueError("Frame duration list must match frame count")
-    sheet_width, sheet_height, sheet_rows = _compose_sprite_sheet(frames)
+    sheet_width, sheet_height, sheet_rows, sheet_columns = _compose_sprite_sheet(
+        frames, _MAX_SPRITE_SHEET_DIMENSION
+    )
     image_path.parent.mkdir(parents=True, exist_ok=True)
     _write_png(image_path, sheet_width, sheet_height, sheet_rows, png_module)
     metadata_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1234,6 +1449,7 @@ def _write_animation_sheet(
         "frameCount": len(frames),
         "frameDurationsMs": list(frame_durations_ms),
         "loopDurationMs": sum(frame_durations_ms),
+        "sheetColumns": sheet_columns,
     }
     with metadata_path.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2, sort_keys=True)

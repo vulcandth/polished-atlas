@@ -21,10 +21,41 @@ export async function loadMapAnimation(assetUrl: string): Promise<MapAnimationRe
   await Assets.load(resolvedImageUrl);
   const baseTexture = BaseTexture.from(resolvedImageUrl);
   const textures: Texture[] = [];
+  const desiredColumnsRaw = metadata.sheetColumns ?? metadata.frameCount;
+  const desiredColumns = Number.isFinite(desiredColumnsRaw) ? Math.floor(desiredColumnsRaw) : metadata.frameCount;
+  const textureColumns = Math.max(1, Math.floor(baseTexture.width / metadata.frameWidth));
+  const textureRows = Math.max(1, Math.floor(baseTexture.height / metadata.frameHeight));
+  let sheetColumns = Math.max(1, Math.min(metadata.frameCount, textureColumns, desiredColumns));
+  let sheetRows = Math.max(1, Math.ceil(metadata.frameCount / sheetColumns));
+
+  if (sheetRows > textureRows) {
+    let adjustedColumns = sheetColumns;
+    while (adjustedColumns > 1) {
+      adjustedColumns -= 1;
+      if (adjustedColumns > textureColumns) {
+        continue;
+      }
+      const candidateRows = Math.ceil(metadata.frameCount / adjustedColumns);
+      if (candidateRows <= textureRows) {
+        sheetColumns = adjustedColumns;
+        sheetRows = candidateRows;
+        break;
+      }
+    }
+    if (sheetRows > textureRows) {
+      sheetColumns = Math.max(1, Math.min(textureColumns, metadata.frameCount));
+      sheetRows = Math.max(1, Math.ceil(metadata.frameCount / sheetColumns));
+    }
+    if (sheetRows > textureRows) {
+      throw new Error(`Animation sheet at ${assetUrl} does not fit inside the base texture bounds.`);
+    }
+  }
   for (let index = 0; index < metadata.frameCount; index += 1) {
+    const columnIndex = index % sheetColumns;
+    const rowIndex = Math.floor(index / sheetColumns);
     const frameRect = new Rectangle(
-      index * metadata.frameWidth,
-      0,
+      columnIndex * metadata.frameWidth,
+      rowIndex * metadata.frameHeight,
       metadata.frameWidth,
       metadata.frameHeight
     );
@@ -50,5 +81,10 @@ function validateMetadata(metadata: MapAnimationMetadata, assetUrl: string): voi
   }
   if (metadata.frameWidth <= 0 || metadata.frameHeight <= 0) {
     throw new Error(`Animation metadata at ${assetUrl} reports invalid frame dimensions.`);
+  }
+  if (metadata.sheetColumns !== undefined) {
+    if (!Number.isFinite(metadata.sheetColumns) || metadata.sheetColumns <= 0) {
+      throw new Error(`Animation metadata at ${assetUrl} reports an invalid sheet column count.`);
+    }
   }
 }

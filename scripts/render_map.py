@@ -8,7 +8,9 @@ LZ-compressed map blocks so it can source the same assets used by the game.
 from __future__ import annotations
 
 import argparse
+import json
 import math
+import os
 import re
 import sys
 from dataclasses import dataclass
@@ -49,6 +51,7 @@ _ROOF_GFX = {
 _ROOF_TILE_OFFSET = 0x0A
 _ROOF_TILE_COUNT = 9
 _GIF_FRAME_DURATION_MS = 400
+_ANIMATION_FRAME_DURATION_MS = 100
 
 
 @dataclass
@@ -1161,7 +1164,7 @@ def _render_with_tiles(renderer: RendererData, bank0_tiles: Sequence[Sequence[in
 
 def _write_gif(path: Path, frames: Sequence[Tuple[int, int, List[List[int]]]], duration_ms: int) -> None:
     try:
-        from PIL import Image
+        from PIL import Image  # type: ignore[import]
     except ImportError as exc:  # pragma: no cover - optional dependency guard
         raise RuntimeError("Animated GIF output requires Pillow (pip install pillow)") from exc
     if not frames:
@@ -1172,6 +1175,63 @@ def _write_gif(path: Path, frames: Sequence[Tuple[int, int, List[List[int]]]], d
         images.append(Image.frombytes("RGB", (width, height), flat))
     first, *rest = images
     first.save(path, format="GIF", save_all=True, append_images=rest, duration=duration_ms, loop=0, disposal=2)
+
+
+def _compose_sprite_sheet(frames: Sequence[Tuple[int, int, List[List[int]]]]) -> Tuple[int, int, List[List[int]]]:
+    if not frames:
+        raise ValueError("No frames available to compose sprite sheet")
+    base_width, base_height, first_rows = frames[0]
+    if base_width <= 0 or base_height <= 0:
+        raise ValueError("Frame dimensions must be positive")
+    if len(first_rows) != base_height:
+        raise ValueError("Frame row count does not match declared height")
+    for width, height, rows in frames[1:]:
+        if width != base_width or height != base_height:
+            raise ValueError("All frames must share the same dimensions")
+        if len(rows) != base_height:
+            raise ValueError("Frame row count does not match declared height")
+    sheet_width = base_width * len(frames)
+    sheet_rows: List[List[int]] = []
+    for row_index in range(base_height):
+        combined_row: List[int] = []
+        for _, _, rows in frames:
+            combined_row.extend(rows[row_index])
+        sheet_rows.append(combined_row)
+    return sheet_width, base_height, sheet_rows
+
+
+def _write_animation_sheet(
+    metadata_path: Path,
+    image_path: Path,
+    frames: Sequence[Tuple[int, int, List[List[int]]]],
+    frame_durations_ms: Sequence[int],
+    png_module,
+) -> None:
+    if not frames:
+        raise ValueError("No frames provided for animation sheet")
+    if len(frame_durations_ms) != len(frames):
+        raise ValueError("Frame duration list must match frame count")
+    sheet_width, sheet_height, sheet_rows = _compose_sprite_sheet(frames)
+    image_path.parent.mkdir(parents=True, exist_ok=True)
+    _write_png(image_path, sheet_width, sheet_height, sheet_rows, png_module)
+    metadata_path.parent.mkdir(parents=True, exist_ok=True)
+    image_reference: str
+    try:
+        image_reference = os.path.relpath(image_path, metadata_path.parent)
+    except ValueError:
+        image_reference = image_path.as_posix()
+    payload = {
+        "version": 1,
+        "image": image_reference.replace("\\", "/"),
+        "frameWidth": frames[0][0],
+        "frameHeight": frames[0][1],
+        "frameCount": len(frames),
+        "frameDurationsMs": list(frame_durations_ms),
+        "loopDurationMs": sum(frame_durations_ms),
+    }
+    with metadata_path.open("w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2, sort_keys=True)
+        handle.write("\n")
 
 
 def _map_block_indices(data: bytes, width: int, height: int) -> List[int]:
@@ -1247,7 +1307,16 @@ def parse_args() -> argparse.Namespace:
         "--output",
         type=Path,
         default=None,
-        help="Destination path for the generated image (use .gif for animation). Defaults to <map>.png",
+        help=(
+            "Destination path for the generated asset. Defaults to <map>.animation.json when using the default "
+            "sheet format, <map>.gif for GIFs, or <map>.png for static images."
+        ),
+    )
+    parser.add_argument(
+        "--format",
+        choices=("sheet", "gif", "png"),
+        default="sheet",
+        help="Select output format: sprite sheet metadata (sheet), animated GIF (gif), or static PNG (png).",
     )
     return parser.parse_args()
 
@@ -1267,19 +1336,58 @@ def main() -> None:
     except KeyError as exc:
         raise SystemExit(str(exc))
     animations = _load_tileset_animations(polished_path, renderer, png)
-    output_path = (args.output or (Path(__file__).resolve().parent.parent / f"{renderer.map_label}.png")).resolve()
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    if output_path.suffix.lower() == ".gif":
+    format_choice = args.format
+    repo_root = Path(__file__).resolve().parent.parent
+    base_output_dir = repo_root / "maps" / "day" / "animated"
+    if format_choice == "gif":
+        default_output = base_output_dir / f"{renderer.map_label}.gif"
+    elif format_choice == "png":
+        default_output = base_output_dir / f"{renderer.map_label}.png"
+    else:
+        default_output = base_output_dir / f"{renderer.map_label}.animation.json"
+    output_target = (args.output or default_output).resolve()
+
+    if format_choice == "gif":
+        output_target.parent.mkdir(parents=True, exist_ok=True)
         period = _animation_period(animations)
         frames: List[Tuple[int, int, List[List[int]]]] = []
         for timer in range(period):
             animated_tiles = _apply_tile_animations(renderer.bank0_tiles, animations, timer)
             frames.append(_render_with_tiles(renderer, animated_tiles, renderer.bank1_tiles))
-        _write_gif(output_path, frames, _GIF_FRAME_DURATION_MS)
-    else:
+        _write_gif(output_target, frames, _GIF_FRAME_DURATION_MS)
+        print(f"Wrote {output_target}")
+        return
+
+    if format_choice == "png":
+        output_path = output_target
+        if output_path.suffix.lower() not in {".png", ""}:
+            output_path = output_path.with_suffix(".png")
+        if output_path.is_dir():
+            output_path = output_path / f"{renderer.map_label}.png"
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         width, height, rows = _render_with_tiles(renderer, renderer.bank0_tiles, renderer.bank1_tiles)
         _write_png(output_path, width, height, rows, png)
-    print(f"Wrote {output_path}")
+        print(f"Wrote {output_path}")
+        return
+
+    # Default: sprite sheet metadata output
+    metadata_path = output_target
+    if metadata_path.exists() and metadata_path.is_dir():
+        metadata_path = metadata_path / f"{renderer.map_label}.animation.json"
+    elif metadata_path.suffix.lower() != ".json":
+        metadata_path = metadata_path.with_suffix(".json")
+    image_path = metadata_path.with_suffix(".png")
+    period = _animation_period(animations)
+    frames: List[Tuple[int, int, List[List[int]]]] = []
+    for timer in range(period):
+        animated_tiles = _apply_tile_animations(renderer.bank0_tiles, animations, timer)
+        frames.append(_render_with_tiles(renderer, animated_tiles, renderer.bank1_tiles))
+    if not frames:
+        width, height, rows = _render_with_tiles(renderer, renderer.bank0_tiles, renderer.bank1_tiles)
+        frames.append((width, height, rows))
+    frame_durations = [_ANIMATION_FRAME_DURATION_MS for _ in frames]
+    _write_animation_sheet(metadata_path, image_path, frames, frame_durations, png)
+    print(f"Wrote {metadata_path} and {image_path}")
 
 
 if __name__ == "__main__":

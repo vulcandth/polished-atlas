@@ -1,6 +1,7 @@
 # ignore all .png and .gif files under /maps and subdirs
 maps/**/*.png
 maps/**/*.gif
+maps/**/*.animation.json
 
 # web client build artifacts
 web/atlas/node_modules/
@@ -8,3 +9,5 @@ web/atlas/dist/
 web/atlas/.env
 web/atlas/.env.local
 web/atlas/.env.*.local
+
+__pycache__/

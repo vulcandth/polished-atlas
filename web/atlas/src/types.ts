@@ -59,3 +59,13 @@ export interface AtlasLayout {
     height: number;
   };
 }
+
+export interface MapAnimationMetadata {
+  version: number;
+  image: string;
+  frameWidth: number;
+  frameHeight: number;
+  frameCount: number;
+  frameDurationsMs: number[];
+  loopDurationMs: number;
+}

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Application, Container, type AnimatedSprite } from "pixi.js";
-import { AnimatedGIF } from "@pixi/gif";
+import { Application, Container, AnimatedSprite } from "pixi.js";
 import { AtlasLayout, MapPlacement } from "@/types";
 import { registerPixiExtensions } from "@/pixi/registerExtensions";
+import { loadMapAnimation, type MapAnimationResource } from "@/lib/loadMapAnimation";
 
 interface MapCanvasProps {
   atlas: AtlasLayout | null;
@@ -21,6 +21,26 @@ function clampScale(value: number): number {
 
 registerPixiExtensions();
 
+type SyncedAnimation = {
+  sprite: AnimatedSprite;
+  resource: MapAnimationResource;
+};
+
+function frameIndexForTime(elapsedMs: number, durations: number[], loopDuration: number): number {
+  if (!durations.length || loopDuration <= 0) {
+    return 0;
+  }
+  const cycle = elapsedMs % loopDuration;
+  let acc = 0;
+  for (let index = 0; index < durations.length; index += 1) {
+    acc += durations[index];
+    if (cycle < acc) {
+      return index;
+    }
+  }
+  return durations.length - 1;
+}
+
 export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const appRef = useRef<Application | null>(null);
@@ -28,6 +48,8 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
   const scaleRef = useRef(1);
   const boundsRef = useRef<{ width: number; height: number } | null>(null);
   const resetViewRef = useRef<() => void>(() => undefined);
+  const animationsRef = useRef<SyncedAnimation[]>([]);
+  const syncStartRef = useRef(0);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -92,7 +114,27 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
       return;
     }
 
+    const disposeResource = (resource: MapAnimationResource): void => {
+      for (const texture of resource.textures) {
+        if (texture && !texture.destroyed) {
+          texture.destroy();
+        }
+      }
+      if (!resource.baseTexture.destroyed) {
+        resource.baseTexture.destroy();
+      }
+    };
+
+    const disposeAnimations = (): void => {
+      const entries = animationsRef.current.splice(0, animationsRef.current.length);
+      for (const entry of entries) {
+        entry.sprite.destroy();
+        disposeResource(entry.resource);
+      }
+    };
+
     const disposeChildren = (): void => {
+      disposeAnimations();
       const removed = world.removeChildren();
       for (const child of removed) {
         if (typeof (child as { destroy?: () => void }).destroy === "function") {
@@ -141,26 +183,29 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
     resetViewRef.current = resetView;
 
     const tasks = atlas.placements.map(async (placement: MapPlacement): Promise<AnimatedSprite | null> => {
+      if (!placement.asset) {
+        return null;
+      }
       try {
-        if (!placement.asset) {
-          return null;
-        }
-        const sprite = (await AnimatedGIF.from(placement.asset)) as AnimatedSprite;
+        const resource = await loadMapAnimation(placement.asset);
         if (cancelled) {
-          sprite.destroy();
+          disposeResource(resource);
           return null;
         }
+        const sprite = new AnimatedSprite(resource.textures);
+        sprite.loop = true;
+        sprite.autoUpdate = false;
+        sprite.animationSpeed = 0;
+        sprite.gotoAndStop(0);
         sprite.x = placement.x;
         sprite.y = placement.y;
         sprite.eventMode = "static";
         sprite.cursor = "pointer";
-        if (typeof sprite.play === "function") {
-          sprite.play();
-        }
         world.addChild(sprite);
+        animationsRef.current.push({ sprite, resource });
         return sprite;
       } catch (err) {
-        console.error(`Failed to load GIF for ${placement.label}`, err);
+        console.error(`Failed to load animation for ${placement.label}`, err);
         return null;
       }
     });
@@ -168,9 +213,10 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
     Promise.all(tasks)
       .then((sprites: Array<AnimatedSprite | null>) => {
         if (cancelled) {
-          sprites.forEach((sprite: AnimatedSprite | null) => sprite?.destroy());
+          sprites.forEach((sprite) => sprite?.destroy());
           return;
         }
+        syncStartRef.current = app.ticker.lastTime;
         resetView();
       })
       .catch((err) => {
@@ -187,6 +233,30 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
       disposeChildren();
     };
   }, [atlas, ready]);
+
+  useEffect(() => {
+    if (!ready) {
+      return;
+    }
+    const app = appRef.current;
+    if (!app) {
+      return;
+    }
+    const ticker = app.ticker;
+    const updateAnimations = (): void => {
+      const elapsed = Math.max(0, ticker.lastTime - syncStartRef.current);
+      for (const entry of animationsRef.current) {
+        const nextFrame = frameIndexForTime(elapsed, entry.resource.frameDurations, entry.resource.loopDuration);
+        if (entry.sprite.currentFrame !== nextFrame) {
+          entry.sprite.gotoAndStop(nextFrame);
+        }
+      }
+    };
+    ticker.add(updateAnimations);
+    return () => {
+      ticker.remove(updateAnimations);
+    };
+  }, [ready]);
 
   useEffect(() => {
     if (!ready) {

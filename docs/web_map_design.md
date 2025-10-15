@@ -3,13 +3,13 @@
 ## Goals
 - Present polishedcrystal overworld maps as a stitched, pannable, zoomable atlas similar to Google Maps.
 - Support desktop and mobile devices with responsive touch/gesture controls.
-- Consume generated connection graphs and animated map renders (PNG and GIF).
+- Consume generated connection graphs and sprite sheet animation metadata (JSON + PNG).
 - Provide hooks for future overlays such as points of interest, routes, and search.
 
 ## Data Flow
 1. **Connection Graph**: Produced by `scripts/generate_map_connections.py`. JSON contains map adjacency, offsets, and metadata.
-2. **Map Assets**: Animated GIFs (or still PNGs) located in `maps/day/animated/`. Filenames align with map labels.
-3. **Derived Tileset**: Build step converts GIFs into Web-ready textures (optionally pre-sliced into tiles) and bundles JSON for quick client loading.
+2. **Map Assets**: Animation metadata JSON files plus sprite sheet PNGs located in `maps/day/animated/`. Filenames align with map labels.
+3. **Derived Tileset**: Build step consumes sprite sheets to produce Web-ready textures (optionally pre-sliced into tiles) and bundles JSON for quick client loading.
 4. **API / Hosting**: Static assets served from CDN or static server. Optional lightweight API (Node/Express) exposes search index and metadata.
 
 ## Front-End Stack
@@ -39,13 +39,13 @@
 2. Perform BFS/DFS to layout maps in world coordinates applying `direction` and `offset` from each connection.
 3. Track visited maps to avoid infinite loops, align coordinates ensuring shared borders match.
 4. Compute bounding box for all maps, set Pixi viewport to encompass.
-5. For animated assets: use Pixi AnimatedSprite with textures extracted per frame (preprocessed via build script using `gifuct-js` or server-side slicing).
+5. For animated assets: use Pixi AnimatedSprite with textures extracted per frame from sprite sheets, advancing frames via shared ticker.
 
 ## Build Tooling
 - Node script (`scripts/build_atlas_assets.ts`) to:
   - Read connection JSON(s).
   - Produce layout data (map positions, dimensions).
-  - Convert GIFs to spritesheets (using `sharp` or `gif-frames`).
+  - Produce sprite sheet PNGs and metadata using the Python export scripts.
   - Emit manifest (`dist/assets/atlas-manifest.json`).
 - Vite config ensures dynamic imports and code splitting for map regions.
 

@@ -20,7 +20,7 @@ This package hosts the React + PixiJS client used to render stitched map atlases
    ```bash
    npm run dev
    ```
-   Vite serves from `http://localhost:5173`. The dev server is allowed to read the repository root so GIF assets under `maps/day/animated/` are accessible.
+   Vite serves from `http://localhost:5173`. The dev server is allowed to read the repository root so animation metadata and sprite sheets under `maps/day/animated/` are accessible.
    When running in development the app automatically references the real `maps/day/animated/NewBarkTown_connections.json`
    via Vite's `@fs` path, so no manual copying of assets is required. In production builds the assets are
    expected to be hosted relative to `/maps/day/animated/`.
@@ -35,5 +35,5 @@ Environment variables (prefixed with `VITE_`) can be provided via `.env` files o
 ## Notes
 
 - The current layout focuses on the New Bark Town graph. Additional root graphs can be produced and loaded without code changes.
-- PixiJS renders GIF sprites via the `@pixi/gif` extension. Pan with drag, zoom with mouse wheel, and pinch on touch devices. Double-click resets the view. For large atlases consider preprocessing GIFs into spritesheets to reduce runtime decoding cost.
+- PixiJS renders sprite-sheet animations using the shared ticker for consistent timing. Pan with drag, zoom with mouse wheel, and pinch on touch devices. Double-click resets the view.
 - The layout engine works in metatile (block) units derived from connection offsets. If new metadata fields are required (e.g., warp links) extend `generate_map_connections.py` accordingly.

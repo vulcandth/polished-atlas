@@ -1,5 +1,3 @@
-import "@pixi/gif";
-
 let registered = false;
 
 export function registerPixiExtensions(): void {

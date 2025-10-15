@@ -183,7 +183,7 @@ def _to_pixels(blocks: Optional[int]) -> Optional[int]:
 
 
 def _default_asset_path(label: str) -> str:
-    return f"maps/day/animated/{label}.gif"
+    return f"maps/day/animated/{label}.animation.json"
 
 
 def _default_repo_root() -> Path:

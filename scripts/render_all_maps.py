@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render every polishedcrystal map into PNGs using the threaded renderer."""
+"""Render polishedcrystal maps into image assets using the threaded renderer."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ import render_map
 
 def parse_args() -> argparse.Namespace:
     default_root = Path(__file__).resolve().parent.parent
-    parser = argparse.ArgumentParser(description="Render every polishedcrystal map into PNG images.")
+    parser = argparse.ArgumentParser(description="Render every polishedcrystal map into visual assets.")
     parser.add_argument(
         "--polishedcrystal",
         type=Path,
@@ -25,8 +25,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=default_root / "maps",
-        help="Directory to place rendered PNG files (defaults to ./maps).",
+        default=default_root / "maps" / "day" / "animated",
+        help="Directory to place rendered assets (defaults to ./maps/day/animated).",
     )
     parser.add_argument(
         "--workers",
@@ -37,7 +37,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--animated",
         action="store_true",
-        help="Render animated GIFs instead of PNGs.",
+        help="Deprecated alias for --format gif.",
+    )
+    parser.add_argument(
+        "--format",
+        choices=("sheet", "gif", "png"),
+        default="sheet",
+        help="Select output format: sprite sheet metadata (sheet), animated GIF (gif), or static PNG (png).",
     )
     return parser.parse_args()
 
@@ -53,11 +59,11 @@ def _render_single(
     repo_index: render_map.RepositoryIndex,
     map_label: str,
     output_dir: Path,
-    animated: bool,
+    format_choice: str,
 ) -> Tuple[str, Path]:
     # Keep the heavy work in a helper so the thread pool stays focused on rendering.
     renderer = render_map._build_renderer(png_module, polished_path, repo_index, map_label)
-    if animated:
+    if format_choice == "gif":
         animations = render_map._load_tileset_animations(polished_path, renderer, png_module)
         period = render_map._animation_period(animations)
         frames = []
@@ -66,11 +72,27 @@ def _render_single(
             frames.append(render_map._render_with_tiles(renderer, animated_tiles, renderer.bank1_tiles))
         destination = output_dir / f"{renderer.map_label}.gif"
         render_map._write_gif(destination, frames, render_map._GIF_FRAME_DURATION_MS)
-    else:
+        return map_label, destination
+
+    if format_choice == "png":
         width, height, rows = render_map._render_with_tiles(renderer, renderer.bank0_tiles, renderer.bank1_tiles)
         destination = output_dir / f"{renderer.map_label}.png"
         render_map._write_png(destination, width, height, rows, png_module)
-    return map_label, destination
+        return map_label, destination
+
+    animations = render_map._load_tileset_animations(polished_path, renderer, png_module)
+    period = render_map._animation_period(animations)
+    frames = []
+    for timer in range(period):
+        animated_tiles = render_map._apply_tile_animations(renderer.bank0_tiles, animations, timer)
+        frames.append(render_map._render_with_tiles(renderer, animated_tiles, renderer.bank1_tiles))
+    if not frames:
+        frames.append(render_map._render_with_tiles(renderer, renderer.bank0_tiles, renderer.bank1_tiles))
+    frame_durations = [render_map._ANIMATION_FRAME_DURATION_MS for _ in frames]
+    metadata_path = output_dir / f"{renderer.map_label}.animation.json"
+    image_path = metadata_path.with_suffix(".png")
+    render_map._write_animation_sheet(metadata_path, image_path, frames, frame_durations, png_module)
+    return map_label, metadata_path
 
 
 def _render_all(
@@ -80,13 +102,13 @@ def _render_all(
     labels: Iterable[str],
     output_dir: Path,
     workers: int,
-    animated: bool,
+    format_choice: str,
 ) -> Tuple[int, Tuple[Tuple[str, Exception], ...]]:
     output_dir.mkdir(parents=True, exist_ok=True)
     errors: list[Tuple[str, Exception]] = []
     with ThreadPoolExecutor(max_workers=workers) as executor:
         futures = {
-            executor.submit(_render_single, png_module, polished_path, repo_index, label, output_dir, animated): label
+            executor.submit(_render_single, png_module, polished_path, repo_index, label, output_dir, format_choice): label
             for label in labels
         }
         for future in as_completed(futures):
@@ -105,6 +127,9 @@ def main() -> None:
         raise FileNotFoundError(f"polishedcrystal repo not found at {polished_path}")
     output_dir = args.output_dir.resolve()
     workers = args.workers or _default_worker_count()
+    format_choice = args.format
+    if args.animated:
+        format_choice = "gif"
 
     sys.path.insert(0, str(polished_path / "utils"))
     import png  # type: ignore
@@ -112,9 +137,13 @@ def main() -> None:
     repo_index = render_map.RepositoryIndex(polished_path)
     labels = sorted(repo_index.maps.keys())
     total = len(labels)
-    mode = "animated GIFs" if args.animated else "PNGs"
+    mode = {
+        "gif": "animated GIFs",
+        "png": "PNGs",
+        "sheet": "sprite sheets",
+    }[format_choice]
     print(f"Rendering {total} maps into {output_dir} as {mode} with {workers} worker(s)...")
-    rendered, errors = _render_all(png, polished_path, repo_index, labels, output_dir, workers, args.animated)
+    rendered, errors = _render_all(png, polished_path, repo_index, labels, output_dir, workers, format_choice)
     print(f"Rendered {rendered}/{total} maps into {output_dir} as {mode}.")
     if errors:
         print("The following maps failed:")

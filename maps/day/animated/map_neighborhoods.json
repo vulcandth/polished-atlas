@@ -1,0 +1,911 @@
+{
+  "generated_at": "2025-10-15T15:37:05.352Z",
+  "neighborhoods": [
+    {
+      "bounds_blocks": {
+        "height": 155,
+        "width": 235
+      },
+      "fingerprint": "6230bc84c99af98a375e94e9",
+      "graph": "AzaleaTown_connections.json",
+      "id": "AzaleaTown",
+      "map_count": 43,
+      "map_labels": [
+        "AzaleaTown",
+        "BlackthornCity",
+        "CherrygroveBay",
+        "CherrygroveCity",
+        "CianwoodCity",
+        "EcruteakCity",
+        "GoldenrodCity",
+        "GoldenrodHarbor",
+        "LakeOfRage",
+        "MagnetTunnelEast",
+        "MagnetTunnelWest",
+        "MahoganyTown",
+        "NewBarkTown",
+        "OlivineCity",
+        "OlivineCityRoute35CoastDual",
+        "Route26",
+        "Route27",
+        "Route29",
+        "Route30",
+        "Route31",
+        "Route32",
+        "Route32Coast",
+        "Route33",
+        "Route34",
+        "Route34Coast",
+        "Route35",
+        "Route35CoastNorth",
+        "Route35CoastSouth",
+        "Route36",
+        "Route37",
+        "Route38",
+        "Route39",
+        "Route40",
+        "Route41",
+        "Route42",
+        "Route43",
+        "Route44",
+        "Route45",
+        "Route46",
+        "RuinsOfAlphOutside",
+        "StormyBeach",
+        "VioletCity",
+        "VioletOutskirts"
+      ],
+      "offset_blocks": [
+        56.5,
+        28
+      ],
+      "primary_type": "TOWN",
+      "root": "AzaleaTown",
+      "types_present": [
+        "ROUTE",
+        "TOWN"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 13,
+        "width": 10
+      },
+      "fingerprint": "f890920dd11125de8658331a",
+      "graph": "BattleTowerOutside_connections.json",
+      "id": "BattleTowerOutside",
+      "map_count": 1,
+      "map_labels": [
+        "BattleTowerOutside"
+      ],
+      "offset_blocks": [
+        87,
+        85.5
+      ],
+      "primary_type": "ROUTE",
+      "root": "BattleTowerOutside",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 0
+    },
+    {
+      "bounds_blocks": {
+        "height": 30,
+        "width": 39
+      },
+      "fingerprint": "8f139753bc3ec68ede372188",
+      "graph": "ShamoutiIsland_connections.json",
+      "id": "ShamoutiIsland",
+      "map_count": 3,
+      "map_labels": [
+        "BeautifulBeach",
+        "RockyBeach",
+        "ShamoutiIsland"
+      ],
+      "offset_blocks": [
+        219.5,
+        156
+      ],
+      "primary_type": "TOWN",
+      "root": "ShamoutiIsland",
+      "types_present": [
+        "ROUTE",
+        "TOWN"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 7,
+        "width": 12
+      },
+      "fingerprint": "88e8545a4b611860a3c161c9",
+      "graph": "BellchimeTrail_connections.json",
+      "id": "BellchimeTrail",
+      "map_count": 1,
+      "map_labels": [
+        "BellchimeTrail"
+      ],
+      "offset_blocks": [
+        142.5,
+        62
+      ],
+      "primary_type": "ROUTE",
+      "root": "BellchimeTrail",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 3
+    },
+    {
+      "bounds_blocks": {
+        "height": 178,
+        "width": 163
+      },
+      "fingerprint": "9addce57479bc9099e660624",
+      "graph": "CeladonCity_connections.json",
+      "id": "CeladonCity",
+      "map_count": 46,
+      "map_labels": [
+        "CeladonCity",
+        "CeruleanCape",
+        "CeruleanCity",
+        "CinnabarIsland",
+        "FuchsiaCity",
+        "LavenderTown",
+        "LuckyIsland",
+        "PalletTown",
+        "PewterCity",
+        "Route1",
+        "Route10North",
+        "Route10South",
+        "Route11",
+        "Route12North",
+        "Route12South",
+        "Route13East",
+        "Route13West",
+        "Route14",
+        "Route15",
+        "Route16Northeast",
+        "Route16Northwest",
+        "Route16South",
+        "Route16West",
+        "Route17",
+        "Route18East",
+        "Route18West",
+        "Route19",
+        "Route20",
+        "Route21",
+        "Route22",
+        "Route24",
+        "Route25",
+        "Route2North",
+        "Route2South",
+        "Route3",
+        "Route4",
+        "Route5",
+        "Route6",
+        "Route7",
+        "Route8",
+        "Route9",
+        "SaffronCity",
+        "UragaChannelEast",
+        "UragaChannelWest",
+        "VermilionCity",
+        "ViridianCity"
+      ],
+      "offset_blocks": [
+        292.5,
+        14
+      ],
+      "primary_type": "TOWN",
+      "root": "CeladonCity",
+      "types_present": [
+        "ROUTE",
+        "TOWN"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 9,
+        "width": 16
+      },
+      "fingerprint": "4551cc31a44dc92c68759d9f",
+      "graph": "CinnabarLab_connections.json",
+      "id": "CinnabarLab",
+      "map_count": 1,
+      "map_labels": [
+        "CinnabarLab"
+      ],
+      "offset_blocks": [
+        56,
+        180
+      ],
+      "primary_type": "ISOLATED",
+      "root": "CinnabarLab",
+      "types_present": [
+        "ISOLATED"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 11,
+        "width": 8
+      },
+      "fingerprint": "d7bd8cde5e27c0bcdeba3476",
+      "graph": "EcruteakShrineOutside_connections.json",
+      "id": "EcruteakShrineOutside",
+      "map_count": 1,
+      "map_labels": [
+        "EcruteakShrineOutside"
+      ],
+      "offset_blocks": [
+        137.5,
+        52
+      ],
+      "primary_type": "ROUTE",
+      "root": "EcruteakShrineOutside",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 2
+    },
+    {
+      "bounds_blocks": {
+        "height": 23,
+        "width": 17
+      },
+      "fingerprint": "a23cb9454d3a8644a4855820",
+      "graph": "FarawayIsland_connections.json",
+      "id": "FarawayIsland",
+      "map_count": 1,
+      "map_labels": [
+        "FarawayIsland"
+      ],
+      "offset_blocks": [
+        287,
+        180.5
+      ],
+      "primary_type": "ISOLATED",
+      "root": "FarawayIsland",
+      "types_present": [
+        "ISOLATED"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 12,
+        "width": 14
+      },
+      "fingerprint": "cb4dca43b683e89db25a6555",
+      "graph": "FarawayJungle_connections.json",
+      "id": "FarawayJungle",
+      "map_count": 1,
+      "map_labels": [
+        "FarawayJungle"
+      ],
+      "offset_blocks": [
+        288,
+        167
+      ],
+      "primary_type": "ISOLATED",
+      "root": "FarawayJungle",
+      "types_present": [
+        "ISOLATED"
+      ],
+      "z_offset": 8
+    },
+    {
+      "bounds_blocks": {
+        "height": 6,
+        "width": 6
+      },
+      "fingerprint": "adf382686404689f0f035029",
+      "graph": "FireIslandRoof_connections.json",
+      "id": "FireIslandRoof",
+      "map_count": 1,
+      "map_labels": [
+        "FireIslandRoof"
+      ],
+      "offset_blocks": [
+        215,
+        200
+      ],
+      "primary_type": "ROUTE",
+      "root": "FireIslandRoof",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 9
+    },
+    {
+      "bounds_blocks": {
+        "height": 6,
+        "width": 6
+      },
+      "fingerprint": "e1bc9cd5676f0210f5c24593",
+      "graph": "IceIslandRoof_connections.json",
+      "id": "IceIslandRoof",
+      "map_count": 1,
+      "map_labels": [
+        "IceIslandRoof"
+      ],
+      "offset_blocks": [
+        247,
+        200
+      ],
+      "primary_type": "ROUTE",
+      "root": "IceIslandRoof",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 10
+    },
+    {
+      "bounds_blocks": {
+        "height": 83,
+        "width": 12
+      },
+      "fingerprint": "dab62b2fda6003b22bc94316",
+      "graph": "IndigoPlateau_connections.json",
+      "id": "IndigoPlateau",
+      "map_count": 2,
+      "map_labels": [
+        "IndigoPlateau",
+        "Route23"
+      ],
+      "offset_blocks": [
+        280.5,
+        8
+      ],
+      "primary_type": "ROUTE",
+      "root": "IndigoPlateau",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 6,
+        "width": 6
+      },
+      "fingerprint": "b7c97915a1a83beb072fef43",
+      "graph": "LightningIslandRoof_connections.json",
+      "id": "LightningIslandRoof",
+      "map_count": 1,
+      "map_labels": [
+        "LightningIslandRoof"
+      ],
+      "offset_blocks": [
+        231,
+        201
+      ],
+      "primary_type": "ROUTE",
+      "root": "LightningIslandRoof",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 12
+    },
+    {
+      "bounds_blocks": {
+        "height": 9,
+        "width": 15
+      },
+      "fingerprint": "476198a1eeab92d572eed181",
+      "graph": "MountMoonSquare_connections.json",
+      "id": "MountMoonSquare",
+      "map_count": 1,
+      "map_labels": [
+        "MountMoonSquare"
+      ],
+      "offset_blocks": [
+        357.5,
+        26
+      ],
+      "primary_type": "ROUTE",
+      "root": "MountMoonSquare",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 27,
+        "width": 21
+      },
+      "fingerprint": "fc201dd1c5c5e19a91287235",
+      "graph": "NationalPark_connections.json",
+      "id": "NationalPark",
+      "map_count": 1,
+      "map_labels": [
+        "NationalPark"
+      ],
+      "offset_blocks": [
+        50.5,
+        61.5
+      ],
+      "primary_type": "ROUTE",
+      "root": "NationalPark",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 2
+    },
+    {
+      "bounds_blocks": {
+        "height": 27,
+        "width": 21
+      },
+      "fingerprint": "520552124ba05d56d30b4465",
+      "graph": "NationalParkBugContest_connections.json",
+      "id": "NationalParkBugContest",
+      "map_count": 1,
+      "map_labels": [
+        "NationalParkBugContest"
+      ],
+      "offset_blocks": [
+        33,
+        178.5
+      ],
+      "primary_type": "ROUTE",
+      "root": "NationalParkBugContest",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 16,
+        "width": 13
+      },
+      "fingerprint": "2d3395608a7d71ffae553852",
+      "graph": "NavelRockOutside_connections.json",
+      "id": "NavelRockOutside",
+      "map_count": 1,
+      "map_labels": [
+        "NavelRockOutside"
+      ],
+      "offset_blocks": [
+        266,
+        185.5
+      ],
+      "primary_type": "TOWN",
+      "root": "NavelRockOutside",
+      "types_present": [
+        "TOWN"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 10,
+        "width": 10
+      },
+      "fingerprint": "b942635159ccccc0468fbfbb",
+      "graph": "OlivinePort_connections.json",
+      "id": "OlivinePort",
+      "map_count": 1,
+      "map_labels": [
+        "OlivinePort"
+      ],
+      "offset_blocks": [
+        98.5,
+        105.5
+      ],
+      "primary_type": "ISOLATED",
+      "root": "OlivinePort",
+      "types_present": [
+        "ISOLATED"
+      ],
+      "z_offset": 2
+    },
+    {
+      "bounds_blocks": {
+        "height": 6,
+        "width": 6
+      },
+      "fingerprint": "4d83ae35df38ade691703fb1",
+      "graph": "Route22Past_connections.json",
+      "id": "Route22Past",
+      "map_count": 1,
+      "map_labels": [
+        "Route22Past"
+      ],
+      "offset_blocks": [
+        48,
+        171
+      ],
+      "primary_type": "ISOLATED",
+      "root": "Route22Past",
+      "types_present": [
+        "ISOLATED"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 15,
+        "width": 39
+      },
+      "fingerprint": "97d1c226645735c529899e5a",
+      "graph": "SilverCaveOutside_connections.json",
+      "id": "SilverCaveOutside",
+      "map_count": 2,
+      "map_labels": [
+        "Route28",
+        "SilverCaveOutside"
+      ],
+      "offset_blocks": [
+        241.5,
+        86
+      ],
+      "primary_type": "TOWN",
+      "root": "SilverCaveOutside",
+      "types_present": [
+        "ROUTE",
+        "TOWN"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 30,
+        "width": 39
+      },
+      "fingerprint": "a1de30758c2eef7e417354f8",
+      "graph": "Route47_connections.json",
+      "id": "Route47",
+      "map_count": 2,
+      "map_labels": [
+        "Route47",
+        "Route48"
+      ],
+      "offset_blocks": [
+        17.5,
+        105
+      ],
+      "primary_type": "ROUTE",
+      "root": "Route47",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 0
+    },
+    {
+      "bounds_blocks": {
+        "height": 14,
+        "width": 34
+      },
+      "fingerprint": "6fa3398d72d01764760227eb",
+      "graph": "ValenciaIsland_connections.json",
+      "id": "ValenciaIsland",
+      "map_count": 2,
+      "map_labels": [
+        "Route49",
+        "ValenciaIsland"
+      ],
+      "offset_blocks": [
+        260,
+        150
+      ],
+      "primary_type": "TOWN",
+      "root": "ValenciaIsland",
+      "types_present": [
+        "ROUTE",
+        "TOWN"
+      ],
+      "z_offset": 21
+    },
+    {
+      "bounds_blocks": {
+        "height": 28,
+        "width": 17
+      },
+      "fingerprint": "d9af60edfcba25e46c7c496f",
+      "graph": "RuggedRoadNorth_connections.json",
+      "id": "RuggedRoadNorth",
+      "map_count": 2,
+      "map_labels": [
+        "RuggedRoadNorth",
+        "RuggedRoadSouth"
+      ],
+      "offset_blocks": [
+        98.5,
+        37
+      ],
+      "primary_type": "ROUTE",
+      "root": "RuggedRoadNorth",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 0
+    },
+    {
+      "bounds_blocks": {
+        "height": 15,
+        "width": 17
+      },
+      "fingerprint": "cfec4e5196a54148537e7fa0",
+      "graph": "SafariZoneEast_connections.json",
+      "id": "SafariZoneEast",
+      "map_count": 1,
+      "map_labels": [
+        "SafariZoneEast"
+      ],
+      "offset_blocks": [
+        436.5,
+        186
+      ],
+      "primary_type": "ROUTE",
+      "root": "SafariZoneEast",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 16,
+        "width": 17
+      },
+      "fingerprint": "2e755d13eda3fbf2ecf2bc48",
+      "graph": "SafariZoneHub_connections.json",
+      "id": "SafariZoneHub",
+      "map_count": 1,
+      "map_labels": [
+        "SafariZoneHub"
+      ],
+      "offset_blocks": [
+        419,
+        185
+      ],
+      "primary_type": "ROUTE",
+      "root": "SafariZoneHub",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 20,
+        "width": 22
+      },
+      "fingerprint": "2481d6acb9531b1722ad471b",
+      "graph": "SafariZoneNorth_connections.json",
+      "id": "SafariZoneNorth",
+      "map_count": 1,
+      "map_labels": [
+        "SafariZoneNorth"
+      ],
+      "offset_blocks": [
+        416,
+        164.5
+      ],
+      "primary_type": "ROUTE",
+      "root": "SafariZoneNorth",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 15,
+        "width": 17
+      },
+      "fingerprint": "d85fa10c90388a72d3b4f333",
+      "graph": "SafariZoneWest_connections.json",
+      "id": "SafariZoneWest",
+      "map_count": 1,
+      "map_labels": [
+        "SafariZoneWest"
+      ],
+      "offset_blocks": [
+        401.5,
+        186
+      ],
+      "primary_type": "ROUTE",
+      "root": "SafariZoneWest",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 23,
+        "width": 48
+      },
+      "fingerprint": "81ef657d3b141ca2c5e82d99",
+      "graph": "ShamoutiCoast_connections.json",
+      "id": "ShamoutiCoast",
+      "map_count": 2,
+      "map_labels": [
+        "ShamoutiCoast",
+        "WarmBeach"
+      ],
+      "offset_blocks": [
+        207.5,
+        175
+      ],
+      "primary_type": "ROUTE",
+      "root": "ShamoutiCoast",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 17,
+        "width": 12
+      },
+      "fingerprint": "21a4c7626f61304a1024e3a2",
+      "graph": "ShamoutiShrineRuins_connections.json",
+      "id": "ShamoutiShrineRuins",
+      "map_count": 1,
+      "map_labels": [
+        "ShamoutiShrineRuins"
+      ],
+      "offset_blocks": [
+        243.5,
+        157
+      ],
+      "primary_type": "ROUTE",
+      "root": "ShamoutiShrineRuins",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 2
+    },
+    {
+      "bounds_blocks": {
+        "height": 13,
+        "width": 9
+      },
+      "fingerprint": "2c75080a577b7845b9829669",
+      "graph": "SinjohRuins_connections.json",
+      "id": "SinjohRuins",
+      "map_count": 1,
+      "map_labels": [
+        "SinjohRuins"
+      ],
+      "offset_blocks": [
+        58,
+        165
+      ],
+      "primary_type": "ISOLATED",
+      "root": "SinjohRuins",
+      "types_present": [
+        "ISOLATED"
+      ],
+      "z_offset": 29
+    },
+    {
+      "bounds_blocks": {
+        "height": 17,
+        "width": 18
+      },
+      "fingerprint": "949ca658b407ac968532ec7f",
+      "graph": "SnowtopMountainInside_connections.json",
+      "id": "SnowtopMountainInside",
+      "map_count": 1,
+      "map_labels": [
+        "SnowtopMountainInside"
+      ],
+      "offset_blocks": [
+        98,
+        19
+      ],
+      "primary_type": "ROUTE",
+      "root": "SnowtopMountainInside",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 20,
+        "width": 16
+      },
+      "fingerprint": "20bb032e67a94fae3db64430",
+      "graph": "SnowtopMountainOutside_connections.json",
+      "id": "SnowtopMountainOutside",
+      "map_count": 1,
+      "map_labels": [
+        "SnowtopMountainOutside"
+      ],
+      "offset_blocks": [
+        80.5,
+        16
+      ],
+      "primary_type": "ROUTE",
+      "root": "SnowtopMountainOutside",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 13,
+        "width": 15
+      },
+      "fingerprint": "4406f3d3d701f8f20a25e88b",
+      "graph": "VermilionPort_connections.json",
+      "id": "VermilionPort",
+      "map_count": 1,
+      "map_labels": [
+        "VermilionPort"
+      ],
+      "offset_blocks": [
+        404.5,
+        122
+      ],
+      "primary_type": "ISOLATED",
+      "root": "VermilionPort",
+      "types_present": [
+        "ISOLATED"
+      ],
+      "z_offset": 1
+    },
+    {
+      "bounds_blocks": {
+        "height": 26,
+        "width": 19
+      },
+      "fingerprint": "594cc5268b3c03640a33e531",
+      "graph": "ViridianForest_connections.json",
+      "id": "ViridianForest",
+      "map_count": 1,
+      "map_labels": [
+        "ViridianForest"
+      ],
+      "offset_blocks": [
+        296,
+        5.5
+      ],
+      "primary_type": "ROUTE",
+      "root": "ViridianForest",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 2
+    },
+    {
+      "bounds_blocks": {
+        "height": 26,
+        "width": 29
+      },
+      "fingerprint": "7258d70076471741070fcece",
+      "graph": "YellowForest_connections.json",
+      "id": "YellowForest",
+      "map_count": 1,
+      "map_labels": [
+        "YellowForest"
+      ],
+      "offset_blocks": [
+        9,
+        77
+      ],
+      "primary_type": "ROUTE",
+      "root": "YellowForest",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 1
+    }
+  ],
+  "version": 1
+}

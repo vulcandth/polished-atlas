@@ -1,12 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Application, Container, AnimatedSprite } from "pixi.js";
+import { Application, Container, AnimatedSprite, FederatedPointerEvent, Assets } from "pixi.js";
 import { AtlasLayout, MapPlacement } from "@/types";
 import { registerPixiExtensions } from "@/pixi/registerExtensions";
 import { loadMapAnimation, type MapAnimationResource } from "@/lib/loadMapAnimation";
 
+type OffsetTuple = [number, number];
+
 interface MapCanvasProps {
   atlas: AtlasLayout | null;
   loading: boolean;
+  editing?: boolean;
+  baseOffsets?: Record<string, OffsetTuple> | null;
+  offsetOverrides?: Record<string, OffsetTuple> | null;
+  zOverrides?: Record<string, number> | null;
+  selectedNeighborhoodId?: string | null;
+  onSelectNeighborhood?: (id: string) => void;
+  onOffsetChange?: (id: string, next: OffsetTuple) => void;
 }
 
 const MIN_SCALE = 0.25;
@@ -82,6 +91,9 @@ registerPixiExtensions();
 type SyncedAnimation = {
   sprite: AnimatedSprite;
   resource: MapAnimationResource;
+  placement: MapPlacement;
+  order: number;
+  neighborhoodId: string | null;
 };
 
 function frameIndexForTime(elapsedMs: number, durations: number[], loopDuration: number): number {
@@ -99,7 +111,24 @@ function frameIndexForTime(elapsedMs: number, durations: number[], loopDuration:
   return durations.length - 1;
 }
 
-export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
+function snapToHalf(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+  return Math.round(value * 2) / 2;
+}
+
+export default function MapCanvas({
+  atlas,
+  loading,
+  editing = false,
+  baseOffsets = null,
+  offsetOverrides = null,
+  zOverrides = null,
+  selectedNeighborhoodId = null,
+  onSelectNeighborhood,
+  onOffsetChange,
+}: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const appRef = useRef<Application | null>(null);
   const worldRef = useRef<Container | null>(null);
@@ -107,9 +136,71 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
   const boundsRef = useRef<{ width: number; height: number } | null>(null);
   const resetViewRef = useRef<() => void>(() => undefined);
   const animationsRef = useRef<SyncedAnimation[]>([]);
+  const spriteEntryMapRef = useRef<WeakMap<AnimatedSprite, SyncedAnimation>>(new WeakMap());
   const syncStartRef = useRef(0);
   const persistTimerRef = useRef<number | null>(null);
+  const editDragStateRef = useRef<{
+    pointerId: number;
+    neighborhoodId: string;
+    sprite: AnimatedSprite;
+    startOffset: OffsetTuple;
+    startPoint: { x: number; y: number };
+  } | null>(null);
   const [ready, setReady] = useState(false);
+
+  const baseOffsetsRef = useRef<Record<string, OffsetTuple>>({});
+  const offsetOverridesRef = useRef<Record<string, OffsetTuple>>({});
+  const zOverridesRef = useRef<Record<string, number>>({});
+
+  useEffect(() => {
+    baseOffsetsRef.current = baseOffsets ?? {};
+  }, [baseOffsets]);
+
+  useEffect(() => {
+    offsetOverridesRef.current = offsetOverrides ?? {};
+  }, [offsetOverrides]);
+
+  useEffect(() => {
+    zOverridesRef.current = zOverrides ?? {};
+  }, [zOverrides]);
+
+  const applySpriteTransforms = useCallback((): void => {
+    const world = worldRef.current;
+    if (!world || !atlas) {
+      return;
+    }
+    const blockPixelSize = atlas && Number.isFinite(atlas.blockPixelSize) && atlas.blockPixelSize !== 0
+      ? Math.max(1, Math.abs(atlas.blockPixelSize))
+      : 16;
+    const editingEnabled = Boolean(editing && onOffsetChange);
+    const baseMap = baseOffsetsRef.current;
+    const overrideMap = offsetOverridesRef.current;
+    const zMap = zOverridesRef.current;
+    const selectedId = selectedNeighborhoodId ?? null;
+
+    for (const entry of animationsRef.current) {
+      const { sprite, placement, order, neighborhoodId } = entry;
+      const baseOffset = neighborhoodId && baseMap[neighborhoodId] ? baseMap[neighborhoodId] : [0, 0];
+      const targetOffset = editingEnabled && neighborhoodId ? overrideMap[neighborhoodId] ?? baseOffset : baseOffset;
+      const deltaXBlocks = targetOffset[0] - baseOffset[0];
+      const deltaYBlocks = targetOffset[1] - baseOffset[1];
+      sprite.x = placement.x + deltaXBlocks * blockPixelSize;
+      sprite.y = placement.y + deltaYBlocks * blockPixelSize;
+
+      const baseZ = placement.metadata?.neighborhoodZ ?? 0;
+      const targetZ = editingEnabled && neighborhoodId ? zMap[neighborhoodId] ?? baseZ : baseZ;
+      sprite.zIndex = targetZ * 1_000_000 + order;
+
+      if (editingEnabled) {
+        const isSelected = selectedId ? neighborhoodId === selectedId : false;
+        sprite.alpha = isSelected ? 1 : 0.85;
+      } else {
+        sprite.alpha = 1;
+      }
+    }
+
+    world.sortChildren();
+  }, [atlas, editing, onOffsetChange, selectedNeighborhoodId]);
 
   useEffect(() => {
     return () => {
@@ -236,6 +327,10 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
       appRef.current = app;
       const world = new Container();
       world.sortableChildren = true;
+      app.stage.eventMode = "static";
+      app.stage.hitArea = app.screen;
+      world.eventMode = "static";
+      world.interactiveChildren = true;
       app.stage.addChild(world);
       worldRef.current = world;
       setReady(true);
@@ -283,14 +378,13 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
           texture.destroy();
         }
       }
-      if (!resource.baseTexture.destroyed) {
-        resource.baseTexture.destroy();
-      }
+      void Assets.unload(resource.imageUrl);
     };
 
     const disposeAnimations = (): void => {
       const entries = animationsRef.current.splice(0, animationsRef.current.length);
       for (const entry of entries) {
+        spriteEntryMapRef.current.delete(entry.sprite);
         entry.sprite.destroy();
         disposeResource(entry.resource);
       }
@@ -367,11 +461,20 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
         sprite.y = placement.y;
         sprite.eventMode = "static";
         sprite.cursor = "pointer";
+        const neighborhoodId = typeof placement.metadata?.neighborhoodId === "string" ? placement.metadata.neighborhoodId : null;
         const neighborhoodZ = placement.metadata?.neighborhoodZ ?? 0;
         sprite.zIndex = neighborhoodZ * 1_000_000 + index;
         world.addChild(sprite);
         world.sortChildren();
-        animationsRef.current.push({ sprite, resource });
+        const entry: SyncedAnimation = {
+          sprite,
+          resource,
+          placement,
+          order: index,
+          neighborhoodId,
+        };
+        animationsRef.current.push(entry);
+        spriteEntryMapRef.current.set(sprite, entry);
         return sprite;
       } catch (err) {
         console.error(`Failed to load animation for ${placement.label}`, err);
@@ -389,6 +492,7 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
         if (!restoreViewState()) {
           resetView();
         }
+        applySpriteTransforms();
       })
       .catch((err) => {
         console.error("Failed to load map sprites", err);
@@ -403,7 +507,7 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
       cancelled = true;
       disposeChildren();
     };
-  }, [atlas, ready, clampWorldToBounds, persistViewState, restoreViewState]);
+  }, [atlas, ready, clampWorldToBounds, persistViewState, restoreViewState, applySpriteTransforms]);
 
   useEffect(() => {
     if (!ready) {
@@ -428,6 +532,183 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
       ticker.remove(updateAnimations);
     };
   }, [ready, clampWorldToBounds, schedulePersistViewState]);
+
+  useEffect(() => {
+    if (!ready) {
+      return;
+    }
+    applySpriteTransforms();
+  }, [ready, applySpriteTransforms, baseOffsets, offsetOverrides, zOverrides, editing, selectedNeighborhoodId]);
+
+  useEffect(() => {
+    if (!ready) {
+      return;
+    }
+    const world = worldRef.current;
+    const app = appRef.current;
+    if (!world || !app) {
+      return;
+    }
+    const entries = animationsRef.current;
+    if (!entries.length) {
+      return;
+    }
+    const editingEnabled = Boolean(editing && onOffsetChange);
+    const blockPixelSize = atlas && Number.isFinite(atlas.blockPixelSize) && atlas.blockPixelSize !== 0
+      ? Math.max(1, Math.abs(atlas.blockPixelSize))
+      : 16;
+    const canvas = app.view as unknown as HTMLCanvasElement | null;
+    if (!canvas) {
+      return;
+    }
+
+    const handlePointerDown = (event: FederatedPointerEvent): void => {
+      if (!editingEnabled || !onOffsetChange) {
+        return;
+      }
+      const target = event.currentTarget as AnimatedSprite | null;
+      if (!target) {
+        return;
+      }
+      const entry = spriteEntryMapRef.current.get(target);
+      if (!entry || !entry.neighborhoodId) {
+        return;
+      }
+      const pointerId = typeof event.pointerId === "number" ? event.pointerId : event.data?.pointerId ?? 0;
+      const worldPoint = world.toLocal(event.global);
+      const baseOffset = baseOffsetsRef.current[entry.neighborhoodId] ?? [0, 0];
+      const currentOffset = offsetOverridesRef.current[entry.neighborhoodId] ?? baseOffset;
+      const startOffset: OffsetTuple = [currentOffset[0], currentOffset[1]];
+      editDragStateRef.current = {
+        pointerId,
+        neighborhoodId: entry.neighborhoodId,
+        sprite: target,
+        startOffset,
+        startPoint: { x: worldPoint.x, y: worldPoint.y },
+      };
+      target.cursor = "grabbing";
+      if (entry.neighborhoodId) {
+        onSelectNeighborhood?.(entry.neighborhoodId);
+      }
+      event.stopPropagation();
+      if (typeof event.preventDefault === "function") {
+        event.preventDefault();
+      }
+      if (canvas && typeof canvas.setPointerCapture === "function" && Number.isFinite(pointerId)) {
+        try {
+          canvas.setPointerCapture(pointerId);
+        } catch {
+          /* ignore pointer capture failures */
+        }
+      }
+    };
+
+    const handleStagePointerMove = (event: FederatedPointerEvent): void => {
+      if (!editingEnabled || !onOffsetChange) {
+        return;
+      }
+      const state = editDragStateRef.current;
+      if (!state) {
+        return;
+      }
+      const pointerId = typeof event.pointerId === "number" ? event.pointerId : event.data?.pointerId ?? 0;
+      if (pointerId !== state.pointerId) {
+        return;
+      }
+      const worldPoint = world.toLocal(event.global);
+      const dx = worldPoint.x - state.startPoint.x;
+      const dy = worldPoint.y - state.startPoint.y;
+      const nextOffset: OffsetTuple = [
+        snapToHalf(state.startOffset[0] + dx / blockPixelSize),
+        snapToHalf(state.startOffset[1] + dy / blockPixelSize),
+      ];
+      onOffsetChange(state.neighborhoodId, nextOffset);
+      event.stopPropagation();
+      if (typeof event.preventDefault === "function") {
+        event.preventDefault();
+      }
+    };
+
+    const handleStagePointerUp = (event: FederatedPointerEvent): void => {
+      const state = editDragStateRef.current;
+      if (!state) {
+        return;
+      }
+      const pointerId = typeof event.pointerId === "number" ? event.pointerId : event.data?.pointerId ?? 0;
+      if (pointerId !== state.pointerId) {
+        return;
+      }
+      state.sprite.cursor = "grab";
+      editDragStateRef.current = null;
+      if (canvas && typeof canvas.releasePointerCapture === "function" && canvas.hasPointerCapture(pointerId)) {
+        try {
+          canvas.releasePointerCapture(pointerId);
+        } catch {
+          /* ignore pointer capture release issues */
+        }
+      }
+      event.stopPropagation();
+      if (typeof event.preventDefault === "function") {
+        event.preventDefault();
+      }
+    };
+
+    const detach: Array<() => void> = [];
+
+    for (const entry of entries) {
+      const sprite = entry.sprite;
+      sprite.off("pointerdown", handlePointerDown);
+      if (!editingEnabled || !entry.neighborhoodId) {
+        sprite.eventMode = "static";
+        sprite.cursor = "pointer";
+        continue;
+      }
+      sprite.eventMode = "static";
+      sprite.cursor = "grab";
+      sprite.on("pointerdown", handlePointerDown);
+      detach.push(() => {
+        sprite.off("pointerdown", handlePointerDown);
+      });
+    }
+
+    const stage = app.stage;
+    stage.off("pointermove", handleStagePointerMove);
+    stage.off("pointerup", handleStagePointerUp);
+    stage.off("pointerupoutside", handleStagePointerUp);
+    stage.off("pointercancel", handleStagePointerUp);
+
+    if (editingEnabled) {
+      stage.on("pointermove", handleStagePointerMove);
+      stage.on("pointerup", handleStagePointerUp);
+      stage.on("pointerupoutside", handleStagePointerUp);
+      stage.on("pointercancel", handleStagePointerUp);
+      detach.push(() => {
+        stage.off("pointermove", handleStagePointerMove);
+        stage.off("pointerup", handleStagePointerUp);
+        stage.off("pointerupoutside", handleStagePointerUp);
+        stage.off("pointercancel", handleStagePointerUp);
+      });
+    }
+
+    return () => {
+      for (const entry of entries) {
+        entry.sprite.cursor = "pointer";
+      }
+      detach.forEach((fn) => fn());
+      const state = editDragStateRef.current;
+      if (state) {
+        state.sprite.cursor = "pointer";
+        editDragStateRef.current = null;
+        if (canvas && typeof canvas.releasePointerCapture === "function" && Number.isFinite(state.pointerId) && canvas.hasPointerCapture(state.pointerId)) {
+          try {
+            canvas.releasePointerCapture(state.pointerId);
+          } catch {
+            /* ignore release failures */
+          }
+        }
+      }
+    };
+  }, [ready, editing, onOffsetChange, onSelectNeighborhood, atlas]);
 
   useEffect(() => {
     if (!ready) {
@@ -493,6 +774,9 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
     };
 
     const handlePointerDown = (event: PointerEvent): void => {
+      if (editing) {
+        return;
+      }
       pointers.set(event.pointerId, { clientX: event.clientX, clientY: event.clientY });
       if (pointers.size === 1) {
         dragPointer = event.pointerId;
@@ -505,6 +789,9 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
     };
 
     const handlePointerMove = (event: PointerEvent): void => {
+      if (editing) {
+        return;
+      }
       if (!pointers.has(event.pointerId)) {
         return;
       }
@@ -542,6 +829,9 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
     };
 
     const handlePointerUp = (event: PointerEvent): void => {
+      if (editing) {
+        return;
+      }
       if (!pointers.has(event.pointerId)) {
         return;
       }
@@ -604,7 +894,7 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
       dragPointer = null;
       pinchStartDistance = null;
     };
-  }, [ready]);
+  }, [ready, editing]);
 
   return (
     <div className="canvas-stage" ref={containerRef}>

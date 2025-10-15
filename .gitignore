@@ -2,6 +2,8 @@
 maps/**/*.png
 maps/**/*.gif
 maps/**/*.animation.json
+maps/**/*_connections.json
+!maps/**/map_neighborhoods.json
 
 # web client build artifacts
 web/atlas/node_modules/

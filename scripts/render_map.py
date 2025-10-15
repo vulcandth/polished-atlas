@@ -8,6 +8,7 @@ LZ-compressed map blocks so it can source the same assets used by the game.
 from __future__ import annotations
 
 import argparse
+import datetime
 import json
 import math
 import os
@@ -39,6 +40,38 @@ _BIT_FLIPPED = [
 ]
 
 _DEFAULT_RGB: RGB = (0xAB, 0xCD, 0xEF)
+
+_PY_WEEKDAY_TO_GAME = {
+    0: 1,  # Monday
+    1: 2,  # Tuesday
+    2: 3,  # Wednesday
+    3: 4,  # Thursday
+    4: 5,  # Friday
+    5: 6,  # Saturday
+    6: 0,  # Sunday
+}
+
+_AZALEA_OVERCAST_DAYS = {0, 2, 4, 6}
+_LAKE_OF_RAGE_OVERCAST_DAYS = {1, 3, 5}
+
+_AZALEA_OVERCAST_MAPS = {"AZALEA_TOWN", "ROUTE_33"}
+_LAKE_OF_RAGE_OVERCAST_MAPS = {"LAKE_OF_RAGE", "ROUTE_43"}
+_STORMY_OVERCAST_MAPS = {
+    "STORMY_BEACH",
+    "GOLDENROD_CITY",
+    "MAGNET_TUNNEL_WEST",
+    "ROUTE_34",
+    "ROUTE_34_COAST",
+}
+
+_EVENT_AZALEA_SLOWPOKES = "EVENT_AZALEA_TOWN_SLOWPOKES"
+_EVENT_LAKE_CIVILIANS = "EVENT_LAKE_OF_RAGE_CIVILIANS"
+_EVENT_GOLDENROD_TAKEOVER = "EVENT_GOLDENROD_CITY_ROCKET_TAKEOVER"
+
+_NOT_OVERCAST = 0
+_AZALEA_OVERCAST_INDEX = 1
+_LAKE_OF_RAGE_OVERCAST_INDEX = 2
+_STORMY_BEACH_OVERCAST_INDEX = 3
 
 _ROOF_GFX = {
     "ROOF_NEW_BARK": "gfx/tilesets/roofs/new_bark",
@@ -311,6 +344,7 @@ class MapInfo:
     width: int
     height: int
     group: int
+    map_number: int
     roof_constant: Optional[str]
     tileset_index: int
     block_label: str
@@ -331,9 +365,11 @@ class TilesetResources:
 class RepositoryIndex:
     def __init__(self, root: Path) -> None:
         self.root = root
+        self._default_weekday = self._determine_default_weekday()
         self._map_constants = self._parse_map_constants()
         self._map_roofs = self._parse_map_roofs()
         self._roof_palettes = self._parse_roof_palettes()
+        self._overcast_roof_palettes = self._parse_overcast_roof_palettes()
         (
             self._landmark_indices,
             self._kanto_landmark_index,
@@ -393,6 +429,27 @@ class RepositoryIndex:
             return self._map_roofs[group]
         return None
 
+    def overcast_roof_palette(self, index: int, time_of_day: int = 1) -> Optional[Tuple[RGB, RGB]]:
+        if index <= 0 or index > len(self._overcast_roof_palettes):
+            return None
+        palettes = self._overcast_roof_palettes[index - 1]
+        if not palettes:
+            return None
+        if time_of_day >= 3:
+            palette_index = 2
+        elif time_of_day == 2:
+            palette_index = 1
+        else:
+            palette_index = 0
+        palette_index = min(palette_index, len(palettes) - 1)
+        return palettes[palette_index]
+
+    @staticmethod
+    def _determine_default_weekday() -> int:
+        today = datetime.date.today()
+        python_weekday = today.weekday()
+        return _PY_WEEKDAY_TO_GAME.get(python_weekday, 0)
+
     def _parse_map_table(self) -> dict[str, _MapHeader]:
         path = self.root / "data/maps/maps.asm"
         mapping: dict[str, _MapHeader] = {}
@@ -435,18 +492,21 @@ class RepositoryIndex:
             mapping[label] = constant
         return mapping
 
-    def _parse_map_constants(self) -> dict[str, Tuple[int, int, int]]:
+    def _parse_map_constants(self) -> dict[str, Tuple[int, int, int, int]]:
         path = self.root / "constants/map_constants.asm"
-        constants: dict[str, Tuple[int, int, int]] = {}
+        constants: dict[str, Tuple[int, int, int, int]] = {}
         group = 0
+        number = 0
         for raw_line in path.read_text().splitlines():
             line = raw_line.split(";", 1)[0].strip()
             if not line:
                 continue
             if line.startswith("newgroup"):
                 group += 1
+                number = 0
                 continue
             if line.startswith("map_const"):
+                number += 1
                 try:
                     _, rest = line.split(None, 1)
                 except ValueError:
@@ -456,7 +516,7 @@ class RepositoryIndex:
                 width_str, height_str = dimensions.split(",", 1)
                 width = int(width_str.strip())
                 height = int(height_str.strip())
-                constants[name] = (width, height, group)
+                constants[name] = (width, height, group, number)
         return constants
 
     def _parse_map_roofs(self) -> List[Optional[str]]:
@@ -487,6 +547,31 @@ class RepositoryIndex:
             color1 = tuple(component * 8 for component in numbers[:3])
             color2 = tuple(component * 8 for component in numbers[3:6])
             palettes.append((color1, color2))
+        return palettes
+
+    def _parse_overcast_roof_palettes(self) -> List[List[Tuple[RGB, RGB]]]:
+        path = self.root / "gfx/tilesets/roofs_overcast.pal"
+        palettes: List[List[Tuple[RGB, RGB]]] = []
+        for raw_line in path.read_text().splitlines():
+            stripped = raw_line.strip()
+            if stripped.startswith("else"):
+                break
+            line = raw_line.split(";", 1)[0].strip()
+            if not line.startswith("RGB"):
+                continue
+            numbers = [int(value) for value in re.findall(r"\d+", line)]
+            if not numbers:
+                continue
+            colors = [
+                tuple(component * 8 for component in numbers[index : index + 3])
+                for index in range(0, len(numbers), 3)
+            ]
+            pairs: List[Tuple[RGB, RGB]] = []
+            for index in range(0, len(colors), 2):
+                if index + 1 >= len(colors):
+                    break
+                pairs.append((colors[index], colors[index + 1]))
+            palettes.append(pairs)
         return palettes
 
     def _parse_landmark_constants(self) -> Tuple[Dict[str, int], Optional[int], Optional[int]]:
@@ -685,7 +770,7 @@ class RepositoryIndex:
     @staticmethod
     def _ensure_palette_length(palettes: List[List[RGB]], target: int = 7) -> List[List[RGB]]:
         if len(palettes) >= target:
-            return palettes[:target]
+            return [list(palette) for palette in palettes[:target]]
         if not palettes:
             return [[_DEFAULT_RGB] * 4 for _ in range(target)]
         padded = [list(palette) for palette in palettes]
@@ -694,7 +779,34 @@ class RepositoryIndex:
         return padded
 
     def _is_overcast_map(self, map_info: MapInfo) -> bool:
-        return "OVERCAST" in map_info.tileset
+        return self.get_overcast_index(map_info) is not None
+
+    def get_overcast_index(
+        self,
+        map_info: MapInfo,
+        weekday: Optional[int] = None,
+        events: Optional[Set[str]] = None,
+    ) -> Optional[int]:
+        events_set: Set[str] = set() if events is None else set(events)
+        day = self._default_weekday if weekday is None else weekday % 7
+        constant = map_info.constant
+        if constant in _AZALEA_OVERCAST_MAPS:
+            if _EVENT_AZALEA_SLOWPOKES in events_set:
+                return None
+            if day in _AZALEA_OVERCAST_DAYS:
+                return _AZALEA_OVERCAST_INDEX
+            return None
+        if constant in _LAKE_OF_RAGE_OVERCAST_MAPS:
+            if _EVENT_LAKE_CIVILIANS in events_set:
+                return _LAKE_OF_RAGE_OVERCAST_INDEX
+            if day in _LAKE_OF_RAGE_OVERCAST_DAYS:
+                return _LAKE_OF_RAGE_OVERCAST_INDEX
+            return None
+        if constant in _STORMY_OVERCAST_MAPS:
+            if _EVENT_GOLDENROD_TAKEOVER in events_set:
+                return None
+            return _STORMY_BEACH_OVERCAST_INDEX
+        return None
 
     def _special_entry_applies(self, entry: SpecialPaletteEntry, map_info: MapInfo) -> bool:
         trigger = entry.trigger
@@ -871,7 +983,7 @@ class RepositoryIndex:
             tileset_index = self._tileset_indices.get(tileset)
             if tileset_index is None:
                 continue
-            width, height, group = constant_data
+            width, height, group, map_number = constant_data
             roof_constant = self.roof_constant(group)
             location = header.location
             location_index = self._landmark_indices.get(location)
@@ -884,6 +996,7 @@ class RepositoryIndex:
                 width=width,
                 height=height,
                 group=group,
+                map_number=map_number,
                 roof_constant=roof_constant,
                 tileset_index=tileset_index,
                 block_label=f"{label}_BlockData",
@@ -1807,6 +1920,7 @@ def _build_renderer(
     block_bytes = _read_block_bytes(blocks_path)
     block_indices = _map_block_indices(block_bytes, map_info.width, map_info.height)
     allows_roof_palette = map_info.map_type in {"TOWN", "ROUTE", "ISOLATED"}
+    overcast_index = repo_index.get_overcast_index(map_info)
     special_palette = repo_index.special_background_palette(map_info)
     if special_palette is not None:
         palette = special_palette
@@ -1817,7 +1931,11 @@ def _build_renderer(
         allows_roof_palette
         and map_info.tileset != "TILESET_SNOWTOP_MOUNTAIN"
     ):
-        _apply_roof_color_override(palette, repo_index.roof_palette(map_info.group))
+        if overcast_index is not None:
+            roof_override = repo_index.overcast_roof_palette(overcast_index)
+        else:
+            roof_override = repo_index.roof_palette(map_info.group)
+        _apply_roof_color_override(palette, roof_override)
     attributes_data = _read_asset_bytes(polished_path / tileset_resources.attributes_path)
     attributes = Attributes(attributes_data, palette)
     bank0_tiles = _load_tileset_bank(polished_path, tileset_resources.bank0_sources, png_module)

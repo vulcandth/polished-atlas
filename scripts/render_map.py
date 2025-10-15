@@ -75,6 +75,7 @@ class AnimationSpec:
     sources: Tuple[str, ...]
     repeat_each: int = 1
     sequence: Optional[Tuple[int, ...]] = None
+    tile_index: Optional[int] = None
 
 
 @dataclass(frozen=True)
@@ -95,6 +96,7 @@ _ANIMATION_SPECS: Dict[str, AnimationSpec] = {
             "gfx/tilesets/flower/2.png",
         ),
         repeat_each=2,
+        tile_index=0x03,
     ),
     "AnimateKantoWaterTile": AnimationSpec(("gfx/tilesets/water/kanto_water.png",), repeat_each=2),
     "AnimateKantoFlowerTile": AnimationSpec(
@@ -105,6 +107,7 @@ _ANIMATION_SPECS: Dict[str, AnimationSpec] = {
             "gfx/tilesets/kanto-flower/1.png",
         ),
         repeat_each=2,
+        tile_index=0x03,
     ),
 }
 
@@ -969,13 +972,16 @@ def _load_tileset_animations(
     animations_by_tile: Dict[int, TileAnimation] = {}
     frames_cache: Dict[Tuple[str, ...], List[List[int]]] = {}
     for command in entries:
-        if command.tile_index is None:
-            continue
+        tile_index = command.tile_index
         data_label = command.data_label
         spec = _ANIMATION_DATA_SPECS.get(data_label) if data_label else None
         if spec is None:
             spec = _ANIMATION_SPECS.get(command.function)
         if spec is None:
+            continue
+        if tile_index is None and spec.tile_index is not None:
+            tile_index = spec.tile_index
+        if tile_index is None:
             continue
         frames = frames_cache.get(spec.sources)
         if frames is None:
@@ -989,7 +995,7 @@ def _load_tileset_animations(
             sequence = _repeat_sequence(len(frames), spec.repeat_each)
         if not sequence:
             continue
-        animations_by_tile[command.tile_index] = TileAnimation(tile_index=command.tile_index, frames=frames, sequence=sequence)
+        animations_by_tile[tile_index] = TileAnimation(tile_index=tile_index, frames=frames, sequence=sequence)
     simulated = _simulate_scroll_commands(entries, renderer)
     for tile_index, frames in simulated.items():
         if len(frames) <= 1:

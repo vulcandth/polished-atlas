@@ -1,5 +1,4 @@
-import { extensions } from "pixi.js";
-import { AnimatedGIF } from "@pixi/gif";
+import "@pixi/gif";
 
 let registered = false;
 
@@ -7,6 +6,5 @@ export function registerPixiExtensions(): void {
   if (registered) {
     return;
   }
-  extensions.add(AnimatedGIF);
   registered = true;
 }

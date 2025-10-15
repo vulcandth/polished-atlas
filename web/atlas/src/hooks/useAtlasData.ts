@@ -25,7 +25,8 @@ export function useAtlasData(options: UseAtlasDataOptions): UseAtlasDataResult {
 
   useEffect(() => {
     const controller = new AbortController();
-  const fetchGraph = async (): Promise<void> => {
+
+    const fetchGraph = async (): Promise<void> => {
       try {
         setLoading(true);
         setError(null);
@@ -34,7 +35,11 @@ export function useAtlasData(options: UseAtlasDataOptions): UseAtlasDataResult {
           throw new Error(`Failed to fetch connection graph (${response.status}).`);
         }
         const payload = (await response.json()) as ConnectionGraphDTO;
-        const nextLayout = buildAtlasLayout(payload, resolvedRoot);
+        const baseHref = new URL("./", response.url).toString();
+        const nextLayout = buildAtlasLayout(payload, {
+          rootOverride: resolvedRoot,
+          assetBaseUrl: baseHref,
+        });
         setLayout(nextLayout);
       } catch (err) {
         if ((err as Error).name === "AbortError") {
@@ -58,7 +63,7 @@ export function useAtlasData(options: UseAtlasDataOptions): UseAtlasDataResult {
   }, [graphUrl, resolvedRoot, nonce]);
 
   const reload = useCallback(() => {
-  setNonce((value: number) => value + 1);
+    setNonce((value: number) => value + 1);
   }, []);
 
   return useMemo(

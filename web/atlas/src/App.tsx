@@ -2,8 +2,19 @@ import MapCanvas from "@/components/MapCanvas";
 import { useAtlasData } from "@/hooks/useAtlasData";
 
 const DEFAULT_ROOT = import.meta.env.VITE_ROOT_MAP ?? "NewBarkTown";
-const DEFAULT_GRAPH_URL =
-  import.meta.env.VITE_CONNECTION_GRAPH_URL ?? "/maps/day/animated/NewBarkTown_connections.json";
+
+function defaultGraphUrl(): string {
+  if (import.meta.env.VITE_CONNECTION_GRAPH_URL) {
+    return import.meta.env.VITE_CONNECTION_GRAPH_URL;
+  }
+  if (import.meta.env.DEV) {
+    const absolute = new URL("../../maps/day/animated/NewBarkTown_connections.json", import.meta.url);
+    return `/@fs${decodeURIComponent(absolute.pathname)}`;
+  }
+  return "/maps/day/animated/NewBarkTown_connections.json";
+}
+
+const DEFAULT_GRAPH_URL = defaultGraphUrl();
 
 export default function App() {
   const { layout, loading, error, reload } = useAtlasData({

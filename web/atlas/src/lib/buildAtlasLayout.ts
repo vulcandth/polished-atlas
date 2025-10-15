@@ -12,9 +12,14 @@ type PlacementSeed = {
 
 type PlacementLookup = Map<string, PlacementSeed>;
 
-export function buildAtlasLayout(graph: ConnectionGraphDTO, rootOverride?: string): AtlasLayout {
+interface BuildAtlasLayoutOptions {
+  rootOverride?: string;
+  assetBaseUrl?: string;
+}
+
+export function buildAtlasLayout(graph: ConnectionGraphDTO, options: BuildAtlasLayoutOptions = {}): AtlasLayout {
   const blockPixelSize = graph.block_pixel_size ?? DEFAULT_BLOCK_PIXEL_SIZE;
-  const rootLabel = rootOverride ?? graph.root;
+  const rootLabel = options.rootOverride ?? graph.root;
   const rootMap = graph.maps[rootLabel];
   if (!rootMap) {
     throw new Error(`Root map "${rootLabel}" not present in connection graph.`);
@@ -100,6 +105,7 @@ export function buildAtlasLayout(graph: ConnectionGraphDTO, rootOverride?: strin
     const y = (seed.yBlocks - minY) * blockPixelSize;
     const widthPx = seed.widthBlocks * blockPixelSize;
     const heightPx = seed.heightBlocks * blockPixelSize;
+    const assetUrl = dto?.asset ? resolveAssetHref(dto.asset, options.assetBaseUrl) : "";
     return {
       label: seed.label,
       xBlocks: seed.xBlocks - minX,
@@ -110,7 +116,7 @@ export function buildAtlasLayout(graph: ConnectionGraphDTO, rootOverride?: strin
       y,
       widthPx,
       heightPx,
-      asset: dto?.asset ?? "",
+      asset: assetUrl,
       connections: dto?.connections ?? [],
       metadata: {
         mapType: dto?.map_type ?? null,
@@ -175,5 +181,30 @@ function projectNeighbour(
         xBlocks: sourcePlacement.xBlocks,
         yBlocks: sourcePlacement.yBlocks,
       };
+  }
+}
+
+function resolveAssetHref(asset: string, baseHref?: string): string {
+  const trimmed = asset.trim();
+  if (!trimmed) {
+    return "";
+  }
+  if (/^(?:[a-z]+:)?\/\//i.test(trimmed) || trimmed.startsWith("/")) {
+    return trimmed;
+  }
+  if (!baseHref) {
+    return trimmed;
+  }
+  try {
+    const base = new URL(baseHref);
+    const normalizedBase = base.href.endsWith("/") ? base.href : `${base.href}/`;
+    const prefix = "maps/day/animated/";
+    if (trimmed.startsWith(prefix) && normalizedBase.includes(prefix)) {
+      const assetName = trimmed.slice(prefix.length);
+      return new URL(assetName, normalizedBase).toString();
+    }
+    return new URL(trimmed, normalizedBase).toString();
+  } catch {
+    return trimmed;
   }
 }

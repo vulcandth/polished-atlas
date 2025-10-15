@@ -9,9 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@pixi/gif": "^2.1.0",
-    "pixi-viewport": "^5.0.0",
-    "pixi.js": "^7.4.0",
+  "@pixi/gif": "^2.1.0",
+  "pixi.js": "^7.4.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zustand": "^4.5.2"

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Application, Container } from "pixi.js";
+import { Application, Container, type AnimatedSprite } from "pixi.js";
 import { AnimatedGIF } from "@pixi/gif";
-import { Viewport } from "pixi-viewport";
 import { AtlasLayout, MapPlacement } from "@/types";
 import { registerPixiExtensions } from "@/pixi/registerExtensions";
 
@@ -10,12 +9,25 @@ interface MapCanvasProps {
   loading: boolean;
 }
 
+const MIN_SCALE = 0.25;
+const MAX_SCALE = 4;
+
+function clampScale(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 1;
+  }
+  return Math.min(MAX_SCALE, Math.max(MIN_SCALE, value));
+}
+
 registerPixiExtensions();
 
 export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const appRef = useRef<Application | null>(null);
-  const viewportRef = useRef<Viewport | null>(null);
+  const worldRef = useRef<Container | null>(null);
+  const scaleRef = useRef(1);
+  const boundsRef = useRef<{ width: number; height: number } | null>(null);
+  const resetViewRef = useRef<() => void>(() => undefined);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -38,17 +50,9 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
       }
       container.appendChild(app.canvas);
       appRef.current = app;
-      const viewport = new Viewport({
-        events: app.renderer.events,
-        ticker: app.ticker,
-        screenWidth: container.clientWidth,
-        screenHeight: container.clientHeight,
-        worldWidth: container.clientWidth,
-        worldHeight: container.clientHeight,
-      });
-      viewport.drag().pinch().wheel().decelerate();
-      app.stage.addChild(viewport);
-      viewportRef.current = viewport;
+      const world = new Container();
+      app.stage.addChild(world);
+      worldRef.current = world;
       setReady(true);
     };
 
@@ -59,16 +63,19 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
     return () => {
       destroyed = true;
       setReady(false);
-      const viewport = viewportRef.current;
-      if (viewport) {
-        viewport.destroy();
-        viewportRef.current = null;
-      }
       const app = appRef.current;
       if (app) {
         app.destroy(true, { children: true });
         appRef.current = null;
       }
+      const world = worldRef.current;
+      if (world) {
+        world.destroy({ children: true });
+        worldRef.current = null;
+      }
+      scaleRef.current = 1;
+      boundsRef.current = null;
+      resetViewRef.current = () => undefined;
       if (container.firstChild instanceof HTMLCanvasElement) {
         container.removeChild(container.firstChild);
       }
@@ -79,14 +86,14 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
     if (!ready) {
       return;
     }
-    const viewport = viewportRef.current;
+    const world = worldRef.current;
     const app = appRef.current;
-    if (!viewport || !app) {
+    if (!world || !app) {
       return;
     }
 
     const disposeChildren = (): void => {
-      const removed = viewport.removeChildren();
+      const removed = world.removeChildren();
       for (const child of removed) {
         if (typeof (child as { destroy?: () => void }).destroy === "function") {
           child.destroy();
@@ -98,19 +105,47 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
     disposeChildren();
 
     if (!atlas) {
+      boundsRef.current = null;
+      resetViewRef.current = () => undefined;
       return;
     }
 
-    viewport.resize(
-      viewport.screenWidth,
-      viewport.screenHeight,
-      Math.max(atlas.bounds.width, viewport.screenWidth),
-      Math.max(atlas.bounds.height, viewport.screenHeight)
-    );
+    boundsRef.current = {
+      width: atlas.bounds.width,
+      height: atlas.bounds.height,
+    };
 
-    const tasks = atlas.placements.map(async (placement: MapPlacement): Promise<AnimatedGIF | null> => {
+    const resetView = (): void => {
+      const bounds = boundsRef.current;
+      if (!bounds) {
+        scaleRef.current = 1;
+        world.scale.set(1);
+        world.position.set(0, 0);
+        return;
+      }
+      const renderer = app.renderer;
+      const viewWidth = renderer.width;
+      const viewHeight = renderer.height;
+      const width = bounds.width || viewWidth || 1;
+      const height = bounds.height || viewHeight || 1;
+      const candidate = Math.min(viewWidth / width, viewHeight / height) || 1;
+      const clamped = clampScale(candidate * 0.95);
+      scaleRef.current = clamped;
+      world.scale.set(clamped);
+      const scaledWidth = width * clamped;
+      const scaledHeight = height * clamped;
+      world.x = (viewWidth - scaledWidth) / 2;
+      world.y = (viewHeight - scaledHeight) / 2;
+    };
+
+    resetViewRef.current = resetView;
+
+    const tasks = atlas.placements.map(async (placement: MapPlacement): Promise<AnimatedSprite | null> => {
       try {
-        const sprite = await AnimatedGIF.from(placement.asset);
+        if (!placement.asset) {
+          return null;
+        }
+        const sprite = (await AnimatedGIF.from(placement.asset)) as AnimatedSprite;
         if (cancelled) {
           sprite.destroy();
           return null;
@@ -119,8 +154,10 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
         sprite.y = placement.y;
         sprite.eventMode = "static";
         sprite.cursor = "pointer";
-        sprite.play();
-        viewport.addChild(sprite);
+        if (typeof sprite.play === "function") {
+          sprite.play();
+        }
+        world.addChild(sprite);
         return sprite;
       } catch (err) {
         console.error(`Failed to load GIF for ${placement.label}`, err);
@@ -129,13 +166,12 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
     });
 
     Promise.all(tasks)
-      .then((sprites: Array<AnimatedGIF | null>) => {
+      .then((sprites: Array<AnimatedSprite | null>) => {
         if (cancelled) {
-          sprites.forEach((sprite: AnimatedGIF | null) => sprite?.destroy());
+          sprites.forEach((sprite: AnimatedSprite | null) => sprite?.destroy());
           return;
         }
-        viewport.fit();
-        viewport.moveCenter(atlas.bounds.width / 2, atlas.bounds.height / 2);
+        resetView();
       })
       .catch((err) => {
         console.error("Failed to load map sprites", err);
@@ -151,6 +187,218 @@ export default function MapCanvas({ atlas, loading }: MapCanvasProps) {
       disposeChildren();
     };
   }, [atlas, ready]);
+
+  useEffect(() => {
+    if (!ready) {
+      return;
+    }
+    const app = appRef.current;
+    const world = worldRef.current;
+    const container = containerRef.current;
+    if (!app || !world || !container) {
+      return;
+    }
+
+    const appWithCanvas = app as Application & { canvas?: HTMLCanvasElement };
+    const canvas: HTMLCanvasElement | null =
+      appWithCanvas.canvas ??
+      ((app.renderer as unknown as { view?: { element?: HTMLCanvasElement } }).view?.element ??
+        ((app.renderer as unknown as { view?: HTMLCanvasElement }).view ?? null));
+    if (!canvas) {
+      return () => undefined;
+    }
+    const pointers = new Map<number, { clientX: number; clientY: number }>();
+    let dragPointer: number | null = null;
+    let lastDrag = { x: 0, y: 0 };
+    let pinchStartDistance: number | null = null;
+    let pinchStartScale = scaleRef.current;
+
+    const getRect = (): DOMRect => canvas.getBoundingClientRect();
+
+    const clampPan = (): void => {
+      const bounds = boundsRef.current;
+      if (!bounds) {
+        world.position.set(0, 0);
+        return;
+      }
+      const viewWidth = app.renderer.width;
+      const viewHeight = app.renderer.height;
+      const scaledWidth = bounds.width * scaleRef.current;
+      const scaledHeight = bounds.height * scaleRef.current;
+
+      if (!(scaledWidth > 0)) {
+        world.x = 0;
+      } else if (scaledWidth <= viewWidth) {
+        world.x = (viewWidth - scaledWidth) / 2;
+      } else {
+        const minX = viewWidth - scaledWidth;
+        const maxX = 0;
+        world.x = Math.min(maxX, Math.max(minX, world.x));
+      }
+
+      if (!(scaledHeight > 0)) {
+        world.y = 0;
+      } else if (scaledHeight <= viewHeight) {
+        world.y = (viewHeight - scaledHeight) / 2;
+      } else {
+        const minY = viewHeight - scaledHeight;
+        const maxY = 0;
+        world.y = Math.min(maxY, Math.max(minY, world.y));
+      }
+    };
+
+    const applyScale = (nextScale: number, focus?: { x: number; y: number }): void => {
+      const bounds = boundsRef.current;
+      if (!bounds) {
+        return;
+      }
+      const clamped = clampScale(nextScale);
+      const rect = getRect();
+      const focusX = focus ? focus.x : rect.left + rect.width / 2;
+      const focusY = focus ? focus.y : rect.top + rect.height / 2;
+      const localX = focusX - rect.left;
+      const localY = focusY - rect.top;
+      const worldX = (localX - world.x) / world.scale.x;
+      const worldY = (localY - world.y) / world.scale.y;
+
+      world.scale.set(clamped);
+      scaleRef.current = clamped;
+
+      world.x = localX - worldX * clamped;
+      world.y = localY - worldY * clamped;
+
+      clampPan();
+    };
+
+    const updatePinchStart = (): void => {
+      if (pointers.size < 2) {
+        pinchStartDistance = null;
+        pinchStartScale = scaleRef.current;
+        return;
+      }
+      const iterator = pointers.values();
+      const first = iterator.next().value;
+      const second = iterator.next().value;
+      if (!first || !second) {
+        return;
+      }
+      pinchStartDistance = Math.hypot(second.clientX - first.clientX, second.clientY - first.clientY);
+      pinchStartScale = scaleRef.current;
+    };
+
+    const handlePointerDown = (event: PointerEvent): void => {
+      pointers.set(event.pointerId, { clientX: event.clientX, clientY: event.clientY });
+      if (pointers.size === 1) {
+        dragPointer = event.pointerId;
+        lastDrag = { x: event.clientX, y: event.clientY };
+      } else if (pointers.size === 2) {
+        dragPointer = null;
+        updatePinchStart();
+      }
+      canvas.setPointerCapture(event.pointerId);
+    };
+
+    const handlePointerMove = (event: PointerEvent): void => {
+      if (!pointers.has(event.pointerId)) {
+        return;
+      }
+      pointers.set(event.pointerId, { clientX: event.clientX, clientY: event.clientY });
+
+      if (pointers.size === 1 && dragPointer === event.pointerId) {
+        const dx = event.clientX - lastDrag.x;
+        const dy = event.clientY - lastDrag.y;
+        lastDrag = { x: event.clientX, y: event.clientY };
+        world.x += dx;
+        world.y += dy;
+        clampPan();
+        return;
+      }
+
+      if (pointers.size >= 2 && pinchStartDistance && pinchStartDistance > 0) {
+        const iterator = pointers.values();
+        const first = iterator.next().value;
+        const second = iterator.next().value;
+        if (!first || !second) {
+          return;
+        }
+        const distance = Math.hypot(second.clientX - first.clientX, second.clientY - first.clientY);
+        if (!distance) {
+          return;
+        }
+        const center = {
+          x: (first.clientX + second.clientX) / 2,
+          y: (first.clientY + second.clientY) / 2,
+        };
+        const scaleFactor = distance / pinchStartDistance;
+        applyScale(pinchStartScale * scaleFactor, center);
+      }
+    };
+
+    const handlePointerUp = (event: PointerEvent): void => {
+      if (!pointers.has(event.pointerId)) {
+        return;
+      }
+      pointers.delete(event.pointerId);
+      if (dragPointer === event.pointerId) {
+        dragPointer = null;
+      }
+      if (pointers.size === 1) {
+        const [remainingId] = pointers.keys();
+        if (remainingId !== undefined) {
+          dragPointer = remainingId;
+          const remaining = pointers.get(remainingId);
+          if (remaining) {
+            lastDrag = { x: remaining.clientX, y: remaining.clientY };
+          }
+        }
+      }
+      updatePinchStart();
+      if (canvas.hasPointerCapture(event.pointerId)) {
+        canvas.releasePointerCapture(event.pointerId);
+      }
+    };
+
+    const handleWheel = (event: WheelEvent): void => {
+      if (!boundsRef.current) {
+        return;
+      }
+      event.preventDefault();
+      const delta = event.deltaY;
+      const factor = Math.exp(-delta / 500);
+      applyScale(scaleRef.current * factor, { x: event.clientX, y: event.clientY });
+    };
+
+    const handleDoubleClick = (): void => {
+      resetViewRef.current?.();
+    };
+
+    const handleRendererResize = (): void => {
+      clampPan();
+    };
+
+    canvas.addEventListener("pointerdown", handlePointerDown);
+    canvas.addEventListener("pointermove", handlePointerMove);
+    canvas.addEventListener("pointerup", handlePointerUp);
+    canvas.addEventListener("pointercancel", handlePointerUp);
+    canvas.addEventListener("pointerleave", handlePointerUp);
+    canvas.addEventListener("wheel", handleWheel, { passive: false });
+    canvas.addEventListener("dblclick", handleDoubleClick);
+    app.renderer.on("resize", handleRendererResize);
+
+    return () => {
+      canvas.removeEventListener("pointerdown", handlePointerDown);
+      canvas.removeEventListener("pointermove", handlePointerMove);
+      canvas.removeEventListener("pointerup", handlePointerUp);
+      canvas.removeEventListener("pointercancel", handlePointerUp);
+      canvas.removeEventListener("pointerleave", handlePointerUp);
+      canvas.removeEventListener("wheel", handleWheel);
+      canvas.removeEventListener("dblclick", handleDoubleClick);
+      app.renderer.off("resize", handleRendererResize);
+      pointers.clear();
+      dragPointer = null;
+      pinchStartDistance = null;
+    };
+  }, [ready]);
 
   return (
     <div className="canvas-stage" ref={containerRef}>

@@ -145,7 +145,12 @@ def _augment_with_repo(
         data.roof_constant = info.roof_constant
 
 
-def _serialise_connections(attributes: Dict[str, MapAttributes]) -> Dict[str, dict]:
+def _serialise_connections(
+    attributes: Dict[str, MapAttributes],
+    *,
+    asset_prefix: Optional[str] = None,
+) -> Dict[str, dict]:
+    prefix = _normalise_asset_prefix(asset_prefix)
     serialised: Dict[str, dict] = {}
     for label, data in attributes.items():
         serialised[label] = {
@@ -161,7 +166,7 @@ def _serialise_connections(attributes: Dict[str, MapAttributes]) -> Dict[str, di
             "group": data.group,
             "tileset": data.tileset,
             "roof_constant": data.roof_constant,
-            "asset": _default_asset_path(data.label),
+            "asset": _default_asset_path(data.label, prefix),
             "connections": [
                 {
                     "direction": conn.direction,
@@ -182,17 +187,26 @@ def _to_pixels(blocks: Optional[int]) -> Optional[int]:
     return blocks * render_map.MetatileSet.METATILE_DIM * render_map.Tileset.TILE_SIZE
 
 
-def _default_asset_path(label: str) -> str:
-    return f"maps/day/animated/{label}.animation.json"
+def _normalise_asset_prefix(prefix: Optional[str]) -> str:
+    if prefix is None or not str(prefix).strip():
+        return "maps/day/animated"
+    sanitized = str(prefix).strip().replace("\\", "/")
+    return sanitized[:-1] if sanitized.endswith("/") else sanitized
+
+
+def _default_asset_path(label: str, asset_prefix: str) -> str:
+    if not asset_prefix:
+        return f"{label}.animation.json"
+    return f"{asset_prefix}/{label}.animation.json"
 
 
 def _default_repo_root() -> Path:
     return Path(__file__).resolve().parent.parent
 
 
-def _default_output_path(root_label: str) -> Path:
+def _default_output_path(root_label: str, time_slug: str) -> Path:
     base = re.sub(r"[^A-Za-z0-9_-]+", "_", root_label) or "root"
-    return _default_repo_root() / "maps" / "day" / "animated" / f"{base}_connections.json"
+    return _default_repo_root() / "maps" / time_slug / "animated" / f"{base}_connections.json"
 
 
 def parse_args() -> argparse.Namespace:
@@ -217,10 +231,26 @@ def parse_args() -> argparse.Namespace:
         help="Path to the polishedcrystal repository root (for additional metadata).",
     )
     parser.add_argument(
+        "--time-of-day",
+        type=render_map.parse_time_of_day,
+        default=1,
+        help=(
+            "Time of day palette (0-3 or morn/day/nite/eve). Determines default output locations and asset paths."
+        ),
+    )
+    parser.add_argument(
+        "--asset-prefix",
+        type=str,
+        default=None,
+        help="Override the asset path prefix stored in the connection graph (defaults to maps/<time>/animated).",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=None,
-        help="Destination JSON file (defaults to maps/day/animated/<root>_connections.json).",
+        help=(
+            "Destination JSON file (defaults to maps/<time>/animated/<root>_connections.json when not provided)."
+        ),
     )
     return parser.parse_args()
 
@@ -244,14 +274,17 @@ def main() -> None:
     graph = parser.parse()
     reachable = _collect_reachable(graph, args.root)
     _augment_with_repo(reachable, repo_index)
+    time_of_day = args.time_of_day
+    time_slug = render_map.time_of_day_slug(time_of_day)
+    asset_prefix = _normalise_asset_prefix(args.asset_prefix or f"maps/{time_slug}/animated")
     payload = {
         "root": args.root,
         "map_count": len(reachable),
-        "maps": _serialise_connections(reachable),
+        "maps": _serialise_connections(reachable, asset_prefix=asset_prefix),
         "block_pixel_size": _to_pixels(1),
     }
 
-    output_path = (args.output or _default_output_path(args.root)).resolve()
+    output_path = (args.output or _default_output_path(args.root, time_slug)).resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2, sort_keys=True)

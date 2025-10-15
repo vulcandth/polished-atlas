@@ -4,13 +4,32 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 import os
 import sys
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Tuple
+from typing import Iterable, List, Tuple
 
 import render_map
+
+
+@dataclass(frozen=True)
+class _RenderTask:
+    map_label: str
+    output_dir: str
+    format_choice: str
+    time_of_day: int
+    weekday: int
+    polished_path: str
+
+
+_WORKER_STATE: dict[str, object] = {
+    "polished_path": None,
+    "repo_index": None,
+    "png_module": None,
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -25,14 +44,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=default_root / "maps" / "day" / "animated",
-        help="Directory to place rendered assets (defaults to ./maps/day/animated).",
+        default=None,
+        help="Directory to place rendered assets (defaults to ./maps/<time>/animated).",
     )
     parser.add_argument(
         "--workers",
         type=int,
         default=None,
-        help="Number of worker threads (defaults to min(32, cpu_count + 4)).",
+        help="Number of worker processes/threads (defaults to min(32, cpu_count + 4)).",
     )
     parser.add_argument(
         "--animated",
@@ -45,12 +64,53 @@ def parse_args() -> argparse.Namespace:
         default="sheet",
         help="Select output format: sprite sheet metadata (sheet), animated GIF (gif), or static PNG (png).",
     )
+    parser.add_argument(
+        "--time-of-day",
+        type=render_map.parse_time_of_day,
+        default=1,
+        help="Time of day palette (0-3 or morn/day/nite/eve).",
+    )
+    parser.add_argument(
+        "--weekday",
+        type=render_map.parse_weekday,
+        default=1,
+        help="Game weekday (0=Sunday ... 6=Saturday). Accepts names like Monday.",
+    )
+    parser.add_argument(
+        "--executor",
+        choices=("process", "thread"),
+        default="process",
+        help="Parallelism model to use (process for CPU-bound workloads, thread for legacy behaviour).",
+    )
     return parser.parse_args()
 
 
 def _default_worker_count() -> int:
     cpu_count = os.cpu_count() or 1
     return min(32, cpu_count + 4)
+
+
+def _ensure_worker_state(polished_path: Path) -> Tuple[object, render_map.RepositoryIndex]:
+    cached_path = _WORKER_STATE.get("polished_path")
+    repo_index = _WORKER_STATE.get("repo_index")
+    png_module = _WORKER_STATE.get("png_module")
+    if (
+        isinstance(repo_index, render_map.RepositoryIndex)
+        and cached_path == polished_path
+        and png_module is not None
+    ):
+        return png_module, repo_index
+
+    utils_path = polished_path / "utils"
+    utils_path_str = str(utils_path)
+    if utils_path_str not in sys.path:
+        sys.path.insert(0, utils_path_str)
+    png = importlib.import_module("png")
+    repo = render_map.RepositoryIndex(polished_path)
+    _WORKER_STATE["polished_path"] = polished_path
+    _WORKER_STATE["png_module"] = png
+    _WORKER_STATE["repo_index"] = repo
+    return png, repo
 
 
 def _render_single(
@@ -60,9 +120,20 @@ def _render_single(
     map_label: str,
     output_dir: Path,
     format_choice: str,
+    time_of_day: int,
+    weekday: int,
 ) -> Tuple[str, Path]:
     # Keep the heavy work in a helper so the thread pool stays focused on rendering.
-    renderer = render_map._build_renderer(png_module, polished_path, repo_index, map_label)
+    events = repo_index.initial_event_flags
+    renderer = render_map._build_renderer(
+        png_module,
+        polished_path,
+        repo_index,
+        map_label,
+        weekday=weekday,
+        time_of_day=time_of_day,
+        events=events,
+    )
     if format_choice == "gif":
         animations = render_map._load_tileset_animations(polished_path, renderer, png_module)
         period = render_map._animation_period(animations)
@@ -95,6 +166,21 @@ def _render_single(
     return map_label, metadata_path
 
 
+def _render_single_task(task: _RenderTask) -> Tuple[str, Path]:
+    polished_path = Path(task.polished_path)
+    png_module, repo_index = _ensure_worker_state(polished_path)
+    return _render_single(
+        png_module,
+        polished_path,
+        repo_index,
+        task.map_label,
+        Path(task.output_dir),
+        task.format_choice,
+        task.time_of_day,
+        task.weekday,
+    )
+
+
 def _render_all(
     png_module,
     polished_path: Path,
@@ -103,21 +189,58 @@ def _render_all(
     output_dir: Path,
     workers: int,
     format_choice: str,
+    time_of_day: int,
+    weekday: int,
+    executor_mode: str,
 ) -> Tuple[int, Tuple[Tuple[str, Exception], ...]]:
     output_dir.mkdir(parents=True, exist_ok=True)
-    errors: list[Tuple[str, Exception]] = []
-    with ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = {
-            executor.submit(_render_single, png_module, polished_path, repo_index, label, output_dir, format_choice): label
-            for label in labels
-        }
+    label_list = list(labels)
+    errors: List[Tuple[str, Exception]] = []
+
+    if executor_mode == "thread":
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = {
+                executor.submit(
+                    _render_single,
+                    png_module,
+                    polished_path,
+                    repo_index,
+                    label,
+                    output_dir,
+                    format_choice,
+                    time_of_day,
+                    weekday,
+                ): label
+                for label in label_list
+            }
+            for future in as_completed(futures):
+                label = futures[future]
+                try:
+                    future.result()
+                except Exception as exc:
+                    errors.append((label, exc))
+        return (len(label_list) - len(errors), tuple(errors))
+
+    tasks = [
+        _RenderTask(
+            map_label=label,
+            output_dir=str(output_dir),
+            format_choice=format_choice,
+            time_of_day=time_of_day,
+            weekday=weekday,
+            polished_path=str(polished_path),
+        )
+        for label in label_list
+    ]
+    with ProcessPoolExecutor(max_workers=workers) as executor:
+        futures = {executor.submit(_render_single_task, task): task.map_label for task in tasks}
         for future in as_completed(futures):
             label = futures[future]
             try:
                 future.result()
             except Exception as exc:
                 errors.append((label, exc))
-    return (len(futures) - len(errors), tuple(errors))
+    return (len(label_list) - len(errors), tuple(errors))
 
 
 def main() -> None:
@@ -125,11 +248,16 @@ def main() -> None:
     polished_path = args.polishedcrystal.resolve()
     if not polished_path.exists():
         raise FileNotFoundError(f"polishedcrystal repo not found at {polished_path}")
-    output_dir = args.output_dir.resolve()
+    repo_root = Path(__file__).resolve().parent.parent
+    time_of_day = args.time_of_day
+    time_slug = render_map.time_of_day_slug(time_of_day)
+    output_dir = (args.output_dir or (repo_root / "maps" / time_slug / "animated")).resolve()
     workers = args.workers or _default_worker_count()
     format_choice = args.format
     if args.animated:
         format_choice = "gif"
+    weekday = args.weekday
+    executor_mode = args.executor
 
     sys.path.insert(0, str(polished_path / "utils"))
     import png  # type: ignore
@@ -142,8 +270,21 @@ def main() -> None:
         "png": "PNGs",
         "sheet": "sprite sheets",
     }[format_choice]
-    print(f"Rendering {total} maps into {output_dir} as {mode} with {workers} worker(s)...")
-    rendered, errors = _render_all(png, polished_path, repo_index, labels, output_dir, workers, format_choice)
+    print(
+        f"Rendering {total} maps into {output_dir} as {mode} with {workers} {executor_mode} worker(s)..."
+    )
+    rendered, errors = _render_all(
+        png,
+        polished_path,
+        repo_index,
+        labels,
+        output_dir,
+        workers,
+        format_choice,
+        time_of_day,
+        weekday,
+        executor_mode,
+    )
     print(f"Rendered {rendered}/{total} maps into {output_dir} as {mode}.")
     if errors:
         print("The following maps failed:")

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-10-15T21:10:51.550Z",
+  "generated_at": "2025-10-15T21:39:07.758945Z",
   "neighborhoods": [
     {
       "bounds_blocks": {
@@ -14,7 +14,7 @@
         "BattleTowerOutside"
       ],
       "offset_blocks": [
-        87,
+        87.0,
         85.5
       ],
       "primary_type": "ROUTE",
@@ -39,7 +39,7 @@
       ],
       "offset_blocks": [
         17.5,
-        105
+        105.0
       ],
       "primary_type": "ROUTE",
       "root": "Route47",
@@ -63,7 +63,7 @@
       ],
       "offset_blocks": [
         98.5,
-        37
+        37.0
       ],
       "primary_type": "ROUTE",
       "root": "RuggedRoadNorth",
@@ -128,7 +128,7 @@
       ],
       "offset_blocks": [
         56.5,
-        28
+        28.0
       ],
       "primary_type": "TOWN",
       "root": "AzaleaTown",
@@ -197,7 +197,7 @@
       ],
       "offset_blocks": [
         292.5,
-        14
+        14.0
       ],
       "primary_type": "TOWN",
       "root": "CeladonCity",
@@ -220,8 +220,8 @@
         "CinnabarLab"
       ],
       "offset_blocks": [
-        56,
-        180
+        56.0,
+        180.0
       ],
       "primary_type": "ISOLATED",
       "root": "CinnabarLab",
@@ -243,7 +243,7 @@
         "FarawayIsland"
       ],
       "offset_blocks": [
-        287,
+        287.0,
         180.5
       ],
       "primary_type": "ISOLATED",
@@ -268,7 +268,7 @@
       ],
       "offset_blocks": [
         280.5,
-        8
+        8.0
       ],
       "primary_type": "ROUTE",
       "root": "IndigoPlateau",
@@ -291,7 +291,7 @@
       ],
       "offset_blocks": [
         357.5,
-        26
+        26.0
       ],
       "primary_type": "ROUTE",
       "root": "MountMoonSquare",
@@ -313,7 +313,7 @@
         "NationalParkBugContest"
       ],
       "offset_blocks": [
-        33,
+        33.0,
         178.5
       ],
       "primary_type": "ROUTE",
@@ -336,7 +336,7 @@
         "NavelRockOutside"
       ],
       "offset_blocks": [
-        266,
+        266.0,
         185.5
       ],
       "primary_type": "TOWN",
@@ -359,8 +359,8 @@
         "Route22Past"
       ],
       "offset_blocks": [
-        48,
-        171
+        48.0,
+        171.0
       ],
       "primary_type": "ISOLATED",
       "root": "Route22Past",
@@ -383,7 +383,7 @@
       ],
       "offset_blocks": [
         436.5,
-        186
+        186.0
       ],
       "primary_type": "ROUTE",
       "root": "SafariZoneEast",
@@ -405,8 +405,8 @@
         "SafariZoneHub"
       ],
       "offset_blocks": [
-        419,
-        185
+        419.0,
+        185.0
       ],
       "primary_type": "ROUTE",
       "root": "SafariZoneHub",
@@ -428,7 +428,7 @@
         "SafariZoneNorth"
       ],
       "offset_blocks": [
-        416,
+        416.0,
         164.5
       ],
       "primary_type": "ROUTE",
@@ -452,7 +452,7 @@
       ],
       "offset_blocks": [
         401.5,
-        186
+        186.0
       ],
       "primary_type": "ROUTE",
       "root": "SafariZoneWest",
@@ -476,7 +476,7 @@
       ],
       "offset_blocks": [
         207.5,
-        175
+        175.0
       ],
       "primary_type": "ROUTE",
       "root": "ShamoutiCoast",
@@ -501,7 +501,7 @@
       ],
       "offset_blocks": [
         219.5,
-        156
+        156.0
       ],
       "primary_type": "TOWN",
       "root": "ShamoutiIsland",
@@ -526,7 +526,7 @@
       ],
       "offset_blocks": [
         241.5,
-        86
+        86.0
       ],
       "primary_type": "TOWN",
       "root": "SilverCaveOutside",
@@ -549,8 +549,8 @@
         "SnowtopMountainInside"
       ],
       "offset_blocks": [
-        98,
-        19
+        98.0,
+        19.0
       ],
       "primary_type": "ROUTE",
       "root": "SnowtopMountainInside",
@@ -573,7 +573,7 @@
       ],
       "offset_blocks": [
         80.5,
-        16
+        16.0
       ],
       "primary_type": "ROUTE",
       "root": "SnowtopMountainOutside",
@@ -596,7 +596,7 @@
       ],
       "offset_blocks": [
         404.5,
-        122
+        122.0
       ],
       "primary_type": "ISOLATED",
       "root": "VermilionPort",
@@ -618,8 +618,8 @@
         "YellowForest"
       ],
       "offset_blocks": [
-        9,
-        77
+        9.0,
+        77.0
       ],
       "primary_type": "ROUTE",
       "root": "YellowForest",
@@ -642,10 +642,79 @@
       ],
       "offset_blocks": [
         137.5,
-        52
+        52.0
       ],
       "primary_type": "ROUTE",
       "root": "EcruteakShrineOutside",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 2
+    },
+    {
+      "bounds_blocks": {
+        "height": 6,
+        "width": 6
+      },
+      "fingerprint": "adf382686404689f0f035029",
+      "graph": "FireIslandRoof_connections.json",
+      "id": "FireIslandRoof",
+      "map_count": 1,
+      "map_labels": [
+        "FireIslandRoof"
+      ],
+      "offset_blocks": [
+        215.5,
+        191.0
+      ],
+      "primary_type": "ROUTE",
+      "root": "FireIslandRoof",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 2
+    },
+    {
+      "bounds_blocks": {
+        "height": 6,
+        "width": 6
+      },
+      "fingerprint": "e1bc9cd5676f0210f5c24593",
+      "graph": "IceIslandRoof_connections.json",
+      "id": "IceIslandRoof",
+      "map_count": 1,
+      "map_labels": [
+        "IceIslandRoof"
+      ],
+      "offset_blocks": [
+        231.5,
+        189.0
+      ],
+      "primary_type": "ROUTE",
+      "root": "IceIslandRoof",
+      "types_present": [
+        "ROUTE"
+      ],
+      "z_offset": 2
+    },
+    {
+      "bounds_blocks": {
+        "height": 6,
+        "width": 6
+      },
+      "fingerprint": "b7c97915a1a83beb072fef43",
+      "graph": "LightningIslandRoof_connections.json",
+      "id": "LightningIslandRoof",
+      "map_count": 1,
+      "map_labels": [
+        "LightningIslandRoof"
+      ],
+      "offset_blocks": [
+        246.5,
+        190.0
+      ],
+      "primary_type": "ROUTE",
+      "root": "LightningIslandRoof",
       "types_present": [
         "ROUTE"
       ],
@@ -711,7 +780,7 @@
       ],
       "offset_blocks": [
         243.5,
-        157
+        157.0
       ],
       "primary_type": "ROUTE",
       "root": "ShamoutiShrineRuins",
@@ -733,7 +802,7 @@
         "ViridianForest"
       ],
       "offset_blocks": [
-        296,
+        296.0,
         5.5
       ],
       "primary_type": "ROUTE",
@@ -757,7 +826,7 @@
       ],
       "offset_blocks": [
         142.5,
-        62
+        62.0
       ],
       "primary_type": "ROUTE",
       "root": "BellchimeTrail",
@@ -779,8 +848,8 @@
         "FarawayJungle"
       ],
       "offset_blocks": [
-        288,
-        167
+        288.0,
+        167.0
       ],
       "primary_type": "ISOLATED",
       "root": "FarawayJungle",
@@ -788,75 +857,6 @@
         "ISOLATED"
       ],
       "z_offset": 8
-    },
-    {
-      "bounds_blocks": {
-        "height": 6,
-        "width": 6
-      },
-      "fingerprint": "adf382686404689f0f035029",
-      "graph": "FireIslandRoof_connections.json",
-      "id": "FireIslandRoof",
-      "map_count": 1,
-      "map_labels": [
-        "FireIslandRoof"
-      ],
-      "offset_blocks": [
-        215.5,
-        191
-      ],
-      "primary_type": "ROUTE",
-      "root": "FireIslandRoof",
-      "types_present": [
-        "ROUTE"
-      ],
-      "z_offset": 2
-    },
-    {
-      "bounds_blocks": {
-        "height": 6,
-        "width": 6
-      },
-      "fingerprint": "e1bc9cd5676f0210f5c24593",
-      "graph": "IceIslandRoof_connections.json",
-      "id": "IceIslandRoof",
-      "map_count": 1,
-      "map_labels": [
-        "IceIslandRoof"
-      ],
-      "offset_blocks": [
-        231.5,
-        189
-      ],
-      "primary_type": "ROUTE",
-      "root": "IceIslandRoof",
-      "types_present": [
-        "ROUTE"
-      ],
-      "z_offset": 2
-    },
-    {
-      "bounds_blocks": {
-        "height": 6,
-        "width": 6
-      },
-      "fingerprint": "b7c97915a1a83beb072fef43",
-      "graph": "LightningIslandRoof_connections.json",
-      "id": "LightningIslandRoof",
-      "map_count": 1,
-      "map_labels": [
-        "LightningIslandRoof"
-      ],
-      "offset_blocks": [
-        246.5,
-        190
-      ],
-      "primary_type": "ROUTE",
-      "root": "LightningIslandRoof",
-      "types_present": [
-        "ROUTE"
-      ],
-      "z_offset": 2
     },
     {
       "bounds_blocks": {
@@ -872,8 +872,8 @@
         "ValenciaIsland"
       ],
       "offset_blocks": [
-        260,
-        150
+        260.0,
+        150.0
       ],
       "primary_type": "TOWN",
       "root": "ValenciaIsland",
@@ -896,8 +896,8 @@
         "SinjohRuins"
       ],
       "offset_blocks": [
-        58,
-        165
+        58.0,
+        165.0
       ],
       "primary_type": "ISOLATED",
       "root": "SinjohRuins",

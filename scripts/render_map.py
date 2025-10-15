@@ -58,7 +58,7 @@ _WEEKDAY_NAME_TO_VALUE = {
     "sat": 6,
 }
 
-_TIME_OF_DAY_NAME_TO_VALUE = {
+TIME_OF_DAY_NAME_TO_VALUE = {
     "morn": 0,
     "morning": 0,
     "day": 1,
@@ -66,6 +66,13 @@ _TIME_OF_DAY_NAME_TO_VALUE = {
     "night": 2,
     "eve": 3,
     "evening": 3,
+}
+
+TIME_OF_DAY_SLUGS = {
+    0: "morn",
+    1: "day",
+    2: "nite",
+    3: "eve",
 }
 
 _AZALEA_OVERCAST_DAYS = {0, 2, 4, 6}
@@ -2160,40 +2167,52 @@ def _build_renderer(
     )
 
 
-def _parse_weekday_argument(value: str) -> int:
+def parse_weekday(value: str) -> int:
     text = str(value).strip()
     if not text:
-        raise argparse.ArgumentTypeError("Weekday value cannot be empty.")
+        raise ValueError("Weekday value cannot be empty.")
     lowered = text.lower()
     if lowered in _WEEKDAY_NAME_TO_VALUE:
         return _WEEKDAY_NAME_TO_VALUE[lowered]
     try:
         numeric = int(text, 0)
     except ValueError as exc:
-        raise argparse.ArgumentTypeError(
-            "Weekday must be a number 0-6 or a weekday name (e.g., Monday)."
-        ) from exc
+        raise ValueError("Weekday must be a number 0-6 or a weekday name (e.g., Monday).") from exc
     return numeric % 7
 
 
-def _parse_time_of_day_argument(value: str) -> int:
+def parse_time_of_day(value: str) -> int:
     text = str(value).strip()
     if not text:
-        raise argparse.ArgumentTypeError("Time of day value cannot be empty.")
+        raise ValueError("Time of day value cannot be empty.")
     lowered = text.lower()
-    if lowered in _TIME_OF_DAY_NAME_TO_VALUE:
-        return _TIME_OF_DAY_NAME_TO_VALUE[lowered]
+    if lowered in TIME_OF_DAY_NAME_TO_VALUE:
+        return TIME_OF_DAY_NAME_TO_VALUE[lowered]
     try:
         numeric = int(text, 0)
     except ValueError as exc:
-        raise argparse.ArgumentTypeError(
-            "Time of day must be 0 (morn), 1 (day), 2 (nite), or 3 (eve)."
-        ) from exc
+        raise ValueError("Time of day must be 0 (morn), 1 (day), 2 (nite), or 3 (eve).") from exc
     if numeric < 0 or numeric > 3:
-        raise argparse.ArgumentTypeError(
-            "Time of day must be within 0-3 or a named value (morn/day/nite/eve)."
-        )
+        raise ValueError("Time of day must be within 0-3 or a named value (morn/day/nite/eve).")
     return numeric
+
+
+def time_of_day_slug(time_of_day: int) -> str:
+    return TIME_OF_DAY_SLUGS.get(time_of_day & 0x03, TIME_OF_DAY_SLUGS[1])
+
+
+def _parse_weekday_argument(value: str) -> int:
+    try:
+        return parse_weekday(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from exc
+
+
+def _parse_time_of_day_argument(value: str) -> int:
+    try:
+        return parse_time_of_day(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from exc
 
 
 def _parse_bool_flag(value: str) -> bool:
@@ -2314,7 +2333,8 @@ def main() -> None:
     animations = _load_tileset_animations(polished_path, renderer, png)
     format_choice = args.format
     repo_root = Path(__file__).resolve().parent.parent
-    base_output_dir = repo_root / "maps" / "day" / "animated"
+    time_slug = time_of_day_slug(time_of_day)
+    base_output_dir = repo_root / "maps" / time_slug / "animated"
     if format_choice == "gif":
         default_output = base_output_dir / f"{renderer.map_label}.gif"
     elif format_choice == "png":

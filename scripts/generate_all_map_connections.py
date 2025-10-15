@@ -29,6 +29,7 @@ from generate_map_connections import (
     _augment_with_repo,
     _collect_reachable,
     _default_repo_root,
+    _normalise_asset_prefix,
     _serialise_connections,
     _to_pixels,
 )
@@ -88,14 +89,36 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=repo_root / "maps" / "day" / "animated",
-        help="Directory for generated connection JSON files.",
+        default=None,
+        help="Directory for generated connection JSON files (defaults to maps/<time>/animated).",
     )
     parser.add_argument(
         "--manifest",
         type=Path,
         default=None,
         help="Destination for the manifest file (defaults to <output-dir>/map_neighborhoods.json).",
+    )
+    parser.add_argument(
+        "--time-of-day",
+        type=render_map.parse_time_of_day,
+        default=1,
+        help=(
+            "Time of day palette (0-3 or morn/day/nite/eve). Controls default output locations and asset paths."
+        ),
+    )
+    parser.add_argument(
+        "--asset-prefix",
+        type=str,
+        default=None,
+        help="Override the asset path prefix stored in connection graphs (defaults to maps/<time>/animated).",
+    )
+    parser.add_argument(
+        "--layout-template",
+        type=Path,
+        default=None,
+        help=(
+            "Optional manifest to seed layout offsets and z ordering (defaults to the day manifest when available)."
+        ),
     )
     parser.add_argument(
         "--types",
@@ -254,46 +277,49 @@ def _build_layout(component: Dict[str, MapAttributes], root: str) -> Tuple[Dict[
     return placements, bounds
 
 
-def _load_existing_layout(manifest_path: Path) -> Tuple[Dict[str, LayoutSpec], Dict[str, LayoutSpec], int]:
-    if not manifest_path.exists():
-        return {}, {}, 0
-    try:
-        data = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return {}, {}, 0
-    neighborhoods = data.get("neighborhoods")
-    if not isinstance(neighborhoods, list):
-        return {}, {}, 0
+def _load_existing_layout(manifest_paths: Iterable[Path]) -> Tuple[Dict[str, LayoutSpec], Dict[str, LayoutSpec], int]:
     by_fingerprint: Dict[str, LayoutSpec] = {}
     by_id: Dict[str, LayoutSpec] = {}
     max_z: Optional[int] = None
-    for entry in neighborhoods:
-        if not isinstance(entry, dict):
+    for manifest_path in manifest_paths:
+        if manifest_path is None or not manifest_path.exists():
             continue
-        fingerprint = entry.get("fingerprint")
-        identifier = entry.get("id")
-        offset = entry.get("offset_blocks")
-        parsed_offset: Optional[Tuple[float, float]] = None
-        if isinstance(offset, list) and len(offset) == 2:
-            try:
-                parsed_offset = (float(offset[0]), float(offset[1]))
-            except (TypeError, ValueError):
-                parsed_offset = None
-        raw_z = entry.get("z_offset")
-        parsed_z: Optional[int] = None
-        if isinstance(raw_z, (int, float)) and not isinstance(raw_z, bool):
-            try:
-                parsed_z = int(raw_z)
-            except (TypeError, ValueError):
-                parsed_z = None
-        if parsed_z is not None:
-            max_z = parsed_z if max_z is None else max(max_z, parsed_z)
-        if not fingerprint:
+        try:
+            data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
             continue
-        spec = LayoutSpec(offset=parsed_offset, z_offset=parsed_z)
-        by_fingerprint[str(fingerprint)] = spec
-        if isinstance(identifier, str) and identifier:
-            by_id[identifier] = spec
+        neighborhoods = data.get("neighborhoods")
+        if not isinstance(neighborhoods, list):
+            continue
+        for entry in neighborhoods:
+            if not isinstance(entry, dict):
+                continue
+            fingerprint = entry.get("fingerprint")
+            identifier = entry.get("id")
+            offset = entry.get("offset_blocks")
+            parsed_offset: Optional[Tuple[float, float]] = None
+            if isinstance(offset, list) and len(offset) == 2:
+                try:
+                    parsed_offset = (float(offset[0]), float(offset[1]))
+                except (TypeError, ValueError):
+                    parsed_offset = None
+            raw_z = entry.get("z_offset")
+            parsed_z: Optional[int] = None
+            if isinstance(raw_z, (int, float)) and not isinstance(raw_z, bool):
+                try:
+                    parsed_z = int(raw_z)
+                except (TypeError, ValueError):
+                    parsed_z = None
+            if parsed_z is not None:
+                max_z = parsed_z if max_z is None else max(max_z, parsed_z)
+            if not fingerprint:
+                continue
+            spec = LayoutSpec(offset=parsed_offset, z_offset=parsed_z)
+            fingerprint_key = str(fingerprint)
+            if fingerprint_key not in by_fingerprint:
+                by_fingerprint[fingerprint_key] = spec
+            if isinstance(identifier, str) and identifier and identifier not in by_id:
+                by_id[identifier] = spec
     next_z = (max_z + 1) if max_z is not None else 0
     return by_fingerprint, by_id, next_z
 
@@ -302,11 +328,12 @@ def _write_connection_file(
     output_path: Path,
     graph: Dict[str, MapAttributes],
     root_label: str,
+    asset_prefix: str,
 ) -> None:
     payload = {
         "root": root_label,
         "map_count": len(graph),
-        "maps": _serialise_connections(graph),
+        "maps": _serialise_connections(graph, asset_prefix=asset_prefix),
         "block_pixel_size": _to_pixels(1),
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -352,8 +379,23 @@ def main() -> None:
     args = parse_args()
     attributes_path = args.attributes.resolve()
     polished_path = args.polishedcrystal.resolve()
-    output_dir = args.output_dir.resolve()
+    repo_root = _default_repo_root()
+    time_of_day = args.time_of_day
+    time_slug = render_map.time_of_day_slug(time_of_day)
+    output_dir = (args.output_dir or (repo_root / "maps" / time_slug / "animated")).resolve()
+    asset_prefix = _normalise_asset_prefix(args.asset_prefix or f"maps/{time_slug}/animated")
     manifest_path = (args.manifest or (output_dir / MANIFEST_FILENAME)).resolve()
+    layout_sources: List[Path] = [manifest_path]
+    if args.layout_template:
+        template_path = args.layout_template.resolve()
+        if template_path != manifest_path:
+            layout_sources.append(template_path)
+    elif time_slug != "day":
+        day_manifest = (repo_root / "maps" / "day" / "animated" / MANIFEST_FILENAME).resolve()
+        if day_manifest != manifest_path:
+            layout_sources.append(day_manifest)
+    # Deduplicate while preserving order to avoid reading the same manifest twice.
+    deduped_layout_sources = list(dict.fromkeys(layout_sources))
     target_types: List[str] = [t.upper() for t in args.types]
 
     if not attributes_path.exists():
@@ -378,7 +420,7 @@ def main() -> None:
         components.append(members)
         global_seen.update(members)
 
-    existing_by_fingerprint, existing_by_id, auto_z_start = _load_existing_layout(manifest_path)
+    existing_by_fingerprint, existing_by_id, auto_z_start = _load_existing_layout(deduped_layout_sources)
     auto_cursor: float = 0.0
     auto_z = auto_z_start
     neighborhoods: List[NeighborhoodRecord] = []
@@ -391,7 +433,7 @@ def main() -> None:
         reachable = _collect_reachable(raw_graph, root_label)
         filename = _connection_filename(root_label)
         output_path = output_dir / filename
-        _write_connection_file(output_path, reachable, root_label)
+        _write_connection_file(output_path, reachable, root_label, asset_prefix)
         _, bounds = _build_layout(reachable, root_label)
         map_labels = list(reachable.keys())
         fingerprint = _fingerprint(map_labels)

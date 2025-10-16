@@ -10,11 +10,12 @@ annotations (NPC positions, items, etc.) can be added in the future.
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import render_map
 
@@ -94,6 +95,177 @@ def _parse_numeric_token(token: str) -> Optional[int]:
     return -value if negative else value
 
 
+def _parse_collision_permissions(polished_path: Path) -> List[int]:
+    path = polished_path / "data/collision/collision_permissions.asm"
+    permissions: List[int] = []
+    if not path.exists():
+        return permissions
+    token_map = {
+        "LAND_TILE": 0,
+        "WATER_TILE": 1,
+        "WALL_TILE": 2,
+    }
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        code = raw_line.split(";", 1)[0].strip()
+        if not code:
+            continue
+        if code.startswith(("CollisionPermissionTable::", "table_width", "assert_table_length")):
+            continue
+        if not code.startswith("db"):
+            continue
+        payload = code[len("db") :].strip()
+        if not payload:
+            continue
+        parts = [part.strip() for part in payload.split(",") if part.strip()]
+        for part in parts:
+            key = part.upper()
+            if key in token_map:
+                permissions.append(token_map[key])
+                continue
+            value = _parse_numeric_token(part)
+            if value is None:
+                continue
+            permissions.append(value & 0xF)
+    if len(permissions) >= 0x100:
+        return permissions[:0x100]
+    return permissions
+
+
+def _parse_collision_constants(polished_path: Path) -> Dict[str, int]:
+    path = polished_path / "constants/collision_constants.asm"
+    constants: Dict[str, int] = {}
+    if not path.exists():
+        return constants
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        code = raw_line.split(";", 1)[0].strip()
+        if not code or not code.startswith("DEF "):
+            continue
+        parts = code.split(None, 3)
+        if len(parts) < 4:
+            continue
+        _, name, equ, value_expr = parts
+        if equ != "EQU":
+            continue
+        value = _parse_numeric_token(value_expr)
+        if value is None:
+            continue
+        constants[name] = value
+    return constants
+
+
+def _load_tileset_collision_table(
+    polished_path: Path,
+    relative_path: str,
+    constants: Dict[str, int],
+) -> List[Tuple[int, int, int, int]]:
+    source = polished_path / relative_path
+    if source.suffix == ".asm":
+        return _parse_collision_asm(source, constants)
+    try:
+        data = render_map._read_asset_bytes(source)
+    except FileNotFoundError:
+        asm_path = polished_path / Path(relative_path)
+        if not asm_path.suffix:
+            asm_path = asm_path.with_suffix(".asm")
+        return _parse_collision_asm(asm_path, constants)
+    if len(data) % 4 != 0:
+        raise ValueError(f"Collision data has unexpected length ({len(data)}) for {relative_path}")
+    table: List[Tuple[int, int, int, int]] = []
+    for index in range(0, len(data), 4):
+        table.append(tuple(data[index + offset] for offset in range(4)))
+    return table
+
+
+def _parse_collision_asm(path: Path, constants: Dict[str, int]) -> List[Tuple[int, int, int, int]]:
+    if not path.exists():
+        return []
+    entries: List[Tuple[int, int, int, int]] = []
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        code = raw_line.split(";", 1)[0].strip()
+        if not code or not code.startswith("tilecoll"):
+            continue
+        payload = code[len("tilecoll") :].strip()
+        if not payload:
+            continue
+        parts = [part.strip() for part in payload.split(",") if part.strip()]
+        if len(parts) != 4:
+            continue
+        values: List[int] = []
+        for part in parts:
+            value = _parse_numeric_token(part)
+            if value is None:
+                lookup_keys = [part, f"COLL_{part}"]
+                for key in lookup_keys:
+                    if key in constants:
+                        value = constants[key]
+                        break
+            if value is None:
+                values = []
+                break
+            values.append(value & 0xFF)
+        if values:
+            entries.append(tuple(values))
+    return entries
+
+
+def _load_block_indices(
+    polished_path: Path,
+    repo_index: render_map.RepositoryIndex,
+    info: render_map.MapInfo,
+) -> Optional[List[int]]:
+    block_asset = repo_index.block_asset(info.block_label)
+    if block_asset:
+        candidate = polished_path / Path(block_asset)
+    else:
+        candidate = polished_path / "maps" / f"{info.label}.ablk"
+    try:
+        block_bytes = render_map._read_block_bytes(candidate)
+    except FileNotFoundError:
+        return None
+    if info.width is None or info.height is None:
+        return None
+    try:
+        return render_map._map_block_indices(block_bytes, info.width, info.height)
+    except ValueError:
+        return None
+
+
+def _build_collision_cells(
+    block_indices: Sequence[int],
+    width_blocks: int,
+    height_blocks: int,
+    cells_per_block: int,
+    collision_table: Sequence[Sequence[int]],
+) -> Optional[bytes]:
+    if width_blocks <= 0 or height_blocks <= 0 or cells_per_block <= 0:
+        return None
+    expected_blocks = width_blocks * height_blocks
+    if len(block_indices) != expected_blocks:
+        return None
+    if cells_per_block != 2:
+        # Currently only support 2x2 collision cells per block.
+        return None
+    width_cells = width_blocks * cells_per_block
+    height_cells = height_blocks * cells_per_block
+    grid = bytearray(width_cells * height_cells)
+    for block_row in range(height_blocks):
+        for block_col in range(width_blocks):
+            block_index = block_indices[block_row * width_blocks + block_col]
+            if 0 <= block_index < len(collision_table):
+                collisions = collision_table[block_index]
+            else:
+                collisions = (0, 0, 0, 0)
+            base_row = block_row * cells_per_block
+            base_col = block_col * cells_per_block
+            top_offset = base_row * width_cells + base_col
+            bottom_offset = (base_row + 1) * width_cells + base_col
+            grid[top_offset] = collisions[0]
+            grid[top_offset + 1] = collisions[1]
+            grid[bottom_offset] = collisions[2]
+            grid[bottom_offset + 1] = collisions[3]
+    return bytes(grid)
+
+
 def parse_map_warps(map_path: Path) -> List[WarpEvent]:
     warps: List[WarpEvent] = []
     inside_section = False
@@ -146,7 +318,7 @@ def _block_pixel_size() -> int:
 def build_metadata(
     polished_path: Path,
     attributes_path: Optional[Path],
-) -> Tuple[Dict[str, dict], Dict[str, str]]:
+) -> Tuple[Dict[str, dict], Dict[str, str], Dict[str, object]]:
     repo_index = render_map.RepositoryIndex(polished_path)
     attributes_source = attributes_path or polished_path / "data/maps/attributes.asm"
     parser = AttributesParser(attributes_source)
@@ -163,8 +335,10 @@ def build_metadata(
         script_warps[label] = parse_map_warps(script_path)
 
     all_labels = set(script_warps.keys()) | set(map_info.keys()) | set(attribute_graph.keys())
-    block_pixels = _block_pixel_size()
     metadata: Dict[str, dict] = {}
+    collision_tables: Dict[str, List[Tuple[int, int, int, int]]] = {}
+    collision_permissions = _parse_collision_permissions(polished_path)
+    collision_constants = _parse_collision_constants(polished_path)
 
     for label in sorted(all_labels):
         info = map_info.get(label)
@@ -209,6 +383,45 @@ def build_metadata(
                     },
                 }
             )
+        collision_payload: Optional[Dict[str, object]] = None
+        if info is not None and width_blocks is not None and height_blocks is not None:
+            try:
+                tileset_resources = repo_index.tileset_resources(info.tileset)
+            except KeyError:
+                tileset_resources = None
+            block_indices = _load_block_indices(polished_path, repo_index, info)
+            if tileset_resources and block_indices is not None:
+                table = collision_tables.get(info.tileset)
+                if table is None:
+                    try:
+                        table = _load_tileset_collision_table(
+                            polished_path,
+                            tileset_resources.collision_path,
+                            collision_constants,
+                        )
+                    except (FileNotFoundError, ValueError):
+                        table = []
+                    collision_tables[info.tileset] = table
+                if table:
+                    cells = _build_collision_cells(
+                        block_indices,
+                        width_blocks,
+                        height_blocks,
+                        COLLISION_CELLS_PER_BLOCK,
+                        table,
+                    )
+                    if cells:
+                        width_cells = width_blocks * COLLISION_CELLS_PER_BLOCK
+                        height_cells = height_blocks * COLLISION_CELLS_PER_BLOCK
+                        collision_payload = {
+                            "encoding": "base64",
+                            "width_cells": width_cells,
+                            "height_cells": height_cells,
+                            "tileset_constant": info.tileset,
+                            "tileset_label": repo_index.tileset_label(info.tileset),
+                            "tileset_index": info.tileset_index,
+                            "cells": base64.b64encode(cells).decode("ascii"),
+                        }
         metadata[label] = {
             "label": label,
             "map_constant": map_constant,
@@ -218,7 +431,13 @@ def build_metadata(
             "is_overworld": is_overworld,
             "warps": warp_entries,
         }
-    return metadata, constant_to_label
+        if collision_payload is not None:
+            metadata[label]["collision"] = collision_payload
+    aux_data = {
+        "collision_permissions": collision_permissions,
+        "collision_constants": collision_constants,
+    }
+    return metadata, constant_to_label, aux_data
 
 
 def main() -> None:
@@ -230,7 +449,7 @@ def main() -> None:
     if attributes_path and not attributes_path.exists():
         raise FileNotFoundError(f"attributes.asm not found at {attributes_path}")
 
-    metadata, constant_lookup = build_metadata(polished_path, attributes_path)
+    metadata, constant_lookup, aux_data = build_metadata(polished_path, attributes_path)
     output_path = args.output.resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
@@ -241,6 +460,10 @@ def main() -> None:
         "maps": metadata,
         "constant_lookup": constant_lookup,
     }
+    if aux_data.get("collision_permissions") is not None:
+        payload["collision_permissions"] = aux_data.get("collision_permissions")
+    if aux_data.get("collision_constants") is not None:
+        payload["collision_constants"] = aux_data.get("collision_constants")
     with output_path.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2, sort_keys=True)
         handle.write("\n")

@@ -389,6 +389,7 @@ class MapInfo:
 class TilesetResources:
     metatiles_path: str
     attributes_path: str
+    collision_path: str
     bank0_sources: List[GraphicsSource]
     bank1_sources: List[GraphicsSource]
 
@@ -808,7 +809,7 @@ class RepositoryIndex:
         path = self.root / "data/tilesets.asm"
         assets: dict[str, dict[str, str]] = {}
         pending: List[Tuple[str, str]] = []
-        label_pattern = re.compile(r"Tileset(\w+)(GFX\d+|Meta|Attr)::")
+        label_pattern = re.compile(r"Tileset(\w+)(GFX\d+|Meta|Attr|Coll)::")
         asset_pattern = re.compile(r'INCBIN\s+"([^"]+)"')
         for raw_line in path.read_text().splitlines():
             stripped = raw_line.strip()
@@ -1209,10 +1210,15 @@ class RepositoryIndex:
             asset = self._tileset_assets.get(label, {})
             meta_path = asset.get("Meta")
             attr_path = asset.get("Attr")
-            if not meta_path or not attr_path:
+            coll_path = asset.get("Coll")
+            if not meta_path or not attr_path or not coll_path:
                 continue
             metatiles_path = self._normalize_binary_path(meta_path)
             attributes_path = self._normalize_binary_path(attr_path)
+            try:
+                collision_path = self._normalize_binary_path(coll_path, allow_asm_fallback=True)
+            except FileNotFoundError:
+                continue
             bank0_sources: List[GraphicsSource] = []
             gfx0_path = asset.get("GFX0")
             if gfx0_path:
@@ -1225,12 +1231,13 @@ class RepositoryIndex:
             resources[constant] = TilesetResources(
                 metatiles_path=metatiles_path,
                 attributes_path=attributes_path,
+                collision_path=collision_path,
                 bank0_sources=bank0_sources,
                 bank1_sources=bank1_sources,
             )
         return resources
 
-    def _normalize_binary_path(self, raw_path: str) -> str:
+    def _normalize_binary_path(self, raw_path: str, *, allow_asm_fallback: bool = False) -> str:
         candidate = Path(raw_path)
         if candidate.suffix == ".lz":
             without_lz = candidate.with_suffix("")
@@ -1240,9 +1247,23 @@ class RepositoryIndex:
             without_lz = Path(raw_path[:-3])
             if (self.root / without_lz).exists():
                 candidate = without_lz
-        if not (self.root / candidate).exists():
-            raise FileNotFoundError(f"Asset not found: {candidate}")
-        return candidate.as_posix()
+        target = self.root / candidate
+        if target.exists():
+            return candidate.as_posix()
+        if allow_asm_fallback:
+            base_candidates: List[Path] = []
+            temp = candidate
+            while True:
+                base_candidates.append(temp)
+                if not temp.suffix:
+                    break
+                temp = temp.with_suffix("")
+            for base in base_candidates:
+                asm_candidate = base.with_suffix(".asm")
+                asm_target = self.root / asm_candidate
+                if asm_target.exists():
+                    return asm_candidate.as_posix()
+        raise FileNotFoundError(f"Asset not found: {candidate}")
 
     def _graphics_source_path(self, raw_path: str) -> str:
         candidates: List[str] = []

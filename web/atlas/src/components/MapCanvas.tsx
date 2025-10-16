@@ -695,6 +695,20 @@ export default function MapCanvas({
     [getMapMetadata]
   );
 
+  const getCollisionMetadata = useCallback(
+    (mapLabel: string | null | undefined) => {
+      if (typeof mapLabel !== "string" || mapLabel.trim().length === 0) {
+        return null;
+      }
+      const collision = warpMetadataRef.current?.maps?.[mapLabel]?.collision ?? null;
+      if (!collision || collision.cellBytes.length === 0) {
+        return null;
+      }
+      return collision;
+    },
+    []
+  );
+
   const findWorldEntry = useCallback((mapLabel: string | null | undefined): SyncedAnimation | null => {
     if (typeof mapLabel !== "string" || mapLabel.trim().length === 0) {
       return null;

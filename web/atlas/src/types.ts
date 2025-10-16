@@ -133,6 +133,16 @@ export interface WarpEntryDTO {
   target: WarpEndpointDTO;
 }
 
+export interface MapCollisionDTO {
+  encoding?: string | null;
+  width_cells?: number | null;
+  height_cells?: number | null;
+  tileset_constant?: string | null;
+  tileset_label?: string | null;
+  tileset_index?: number | null;
+  cells?: string | null;
+}
+
 export interface MapMetadataDTO {
   label: string;
   map_constant?: string | null;
@@ -141,6 +151,7 @@ export interface MapMetadataDTO {
   height_blocks?: number | null;
   is_overworld?: boolean | null;
   warps?: WarpEntryDTO[];
+  collision?: MapCollisionDTO | null;
 }
 
 export interface WarpMetadataPayload {
@@ -148,6 +159,8 @@ export interface WarpMetadataPayload {
   generated_at: string;
   cells_per_block?: number | null;
   cell_pixel_size?: number | null;
+  collision_permissions?: Array<number | null | undefined>;
+  collision_constants?: Record<string, number>;
   maps: Record<string, MapMetadataDTO>;
   constant_lookup: Record<string, string>;
 }
@@ -169,6 +182,17 @@ export interface MapWarp {
   target: WarpEndpoint;
 }
 
+export interface MapCollisionMetadata {
+  encoding: string;
+  widthCells: number;
+  heightCells: number;
+  tilesetConstant: string | null;
+  tilesetLabel: string | null;
+  tilesetIndex: number | null;
+  cells: string;
+  cellBytes: Uint8Array<ArrayBufferLike>;
+}
+
 export interface MapMetadataEntry {
   label: string;
   mapConstant: string | null;
@@ -177,6 +201,7 @@ export interface MapMetadataEntry {
   heightBlocks: number | null;
   isOverworld: boolean;
   warps: MapWarp[];
+  collision: MapCollisionMetadata | null;
 }
 
 export interface WarpMetadata {
@@ -186,6 +211,8 @@ export interface WarpMetadata {
   cellPixelSize: number;
   maps: Record<string, MapMetadataEntry>;
   constantLookup: Record<string, string>;
+  collisionPermissions: number[];
+  collisionConstants: Record<string, number>;
 }
 
 export type RgbTuple = [number, number, number];
@@ -215,6 +242,35 @@ export interface ObjectMovementDefinition {
   flags1: number;
   flags2: number;
   paletteFlags: number;
+}
+
+export type MovementCategory =
+  | "static"
+  | "axis-walk"
+  | "random-walk"
+  | "spin"
+  | "scripted"
+  | "follow"
+  | "player"
+  | "object"
+  | "effect"
+  | "special";
+
+export type MovementAxes = "x" | "y" | "xy";
+
+export type MovementMedium = "land" | "water";
+
+export type MovementSpinDirection = "clockwise" | "counterclockwise" | "random";
+
+export interface MovementModel {
+  category: MovementCategory;
+  axes?: MovementAxes;
+  medium?: MovementMedium;
+  spinDirection?: MovementSpinDirection;
+  speed?: "slow" | "normal" | "fast";
+  followExact?: boolean;
+  facing?: "down" | "up" | "left" | "right";
+  note?: string;
 }
 
 export interface ObjectFacingEntry {

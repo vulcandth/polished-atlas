@@ -5,6 +5,7 @@ import type {
   ObjectSpriteDefinition,
   RgbTuple,
 } from "@/types";
+import { decodeBase64 } from "@/lib/base64";
 
 type FacingTextureRecord = {
   texture: Texture;
@@ -20,26 +21,6 @@ const DEFAULT_PALETTE: RgbTuple[] = [
   [85, 85, 85],
   [0, 0, 0],
 ];
-
-function decodeBase64(data: string): Uint8Array {
-  if (!data) {
-    return new Uint8Array();
-  }
-  if (typeof atob === "function") {
-    const binary = atob(data);
-    const buffer = new Uint8Array(binary.length);
-    for (let index = 0; index < binary.length; index += 1) {
-      buffer[index] = binary.charCodeAt(index);
-    }
-    return buffer;
-  }
-  const globalBuffer = (globalThis as unknown as { Buffer?: { from(data: string, encoding: string): Uint8Array } }).Buffer;
-  if (globalBuffer) {
-    const decoded = globalBuffer.from(data, "base64");
-    return decoded instanceof Uint8Array ? decoded : Uint8Array.from(decoded as unknown as number[]);
-  }
-  throw new Error("No base64 decoder available in this environment.");
-}
 
 function decodeTilePixels(tileBytes: Uint8Array): Uint8Array[] {
   if (tileBytes.length % 16 !== 0) {

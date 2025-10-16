@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { joinBasePath, withBasePath } from "@/lib/basePath";
+import { decodeBase64 } from "@/lib/base64";
 import type {
+  MapCollisionDTO,
+  MapCollisionMetadata,
   MapMetadataDTO,
   MapMetadataEntry,
   MapWarp,
@@ -76,6 +79,45 @@ function normaliseWarp(dto: WarpEntryDTO, endpoint: WarpEndpoint): MapWarp {
   };
 }
 
+function normaliseCollision(dto: MapCollisionDTO | null | undefined): MapCollisionMetadata | null {
+  if (!dto) {
+    return null;
+  }
+  const widthCells = toNumberOrNull(dto.width_cells);
+  const heightCells = toNumberOrNull(dto.height_cells);
+  if (widthCells === null || heightCells === null || widthCells <= 0 || heightCells <= 0) {
+    return null;
+  }
+  const encoding = toStringOrNull(dto.encoding) ?? "base64";
+  const rawCells = typeof dto.cells === "string" ? dto.cells.replace(/\s+/g, "") : "";
+  let cellBytes: Uint8Array<ArrayBufferLike> = new Uint8Array();
+  if (encoding === "base64" && rawCells) {
+    try {
+  const decoded = decodeBase64(rawCells);
+  cellBytes = decoded.length > 0 ? Uint8Array.from(decoded) : new Uint8Array();
+    } catch (error) {
+      console.warn("Failed to decode collision payload", error);
+      cellBytes = new Uint8Array();
+    }
+  }
+  const expectedLength = widthCells * heightCells;
+  if (cellBytes.length !== 0 && cellBytes.length !== expectedLength) {
+    console.warn(
+      `Collision payload length mismatch (expected ${expectedLength}, got ${cellBytes.length}).`
+    );
+  }
+  return {
+    encoding,
+    widthCells,
+    heightCells,
+    tilesetConstant: toStringOrNull(dto.tileset_constant),
+    tilesetLabel: toStringOrNull(dto.tileset_label),
+    tilesetIndex: toNumberOrNull(dto.tileset_index),
+    cells: rawCells,
+    cellBytes,
+  };
+}
+
 function normaliseMapEntry(label: string, dto: MapMetadataDTO | undefined): MapMetadataEntry {
   const warpSource: WarpEntryDTO[] = Array.isArray(dto?.warps) ? (dto?.warps as WarpEntryDTO[]) : [];
   const warps: MapWarp[] = warpSource.map((entry) => normaliseWarp(entry, normaliseEndpoint(entry.target)));
@@ -87,6 +129,7 @@ function normaliseMapEntry(label: string, dto: MapMetadataDTO | undefined): MapM
     heightBlocks: toNumberOrNull(dto?.height_blocks),
     isOverworld: toBoolean(dto?.is_overworld, false),
     warps,
+    collision: normaliseCollision(dto?.collision ?? null),
   };
 }
 
@@ -97,6 +140,15 @@ function convertPayload(payload: WarpMetadataPayload): WarpMetadata {
   }
   const cellsPerBlock = toNumberOrNull(payload.cells_per_block) ?? DEFAULT_CELLS_PER_BLOCK;
   const cellPixelSize = toNumberOrNull(payload.cell_pixel_size) ?? DEFAULT_CELL_PIXEL_SIZE;
+  const collisionPermissions: number[] = Array.isArray(payload.collision_permissions)
+    ? payload.collision_permissions
+        .map((value) => toNumberOrNull(value))
+        .filter((value): value is number => value !== null)
+    : [];
+  const collisionConstantsEntries: Array<[string, number]> = Object.entries(payload.collision_constants ?? {})
+    .map(([key, value]) => [key, toNumberOrNull(value)] as const)
+    .filter((entry): entry is [string, number] => entry[1] !== null);
+  const collisionConstants: Record<string, number> = Object.fromEntries(collisionConstantsEntries);
   return {
     version: toNumberOrNull(payload.version) ?? 1,
     generatedAt: toStringOrNull(payload.generated_at) ?? new Date().toISOString(),
@@ -104,6 +156,8 @@ function convertPayload(payload: WarpMetadataPayload): WarpMetadata {
     cellPixelSize,
     maps,
     constantLookup: payload.constant_lookup ?? {},
+    collisionPermissions,
+    collisionConstants,
   };
 }
 

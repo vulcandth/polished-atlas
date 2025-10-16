@@ -150,6 +150,8 @@ type OverlayState = {
   cellSize: number;
   baseAlpha: number;
   keyHandler: (event: KeyboardEvent) => void;
+  objectContainer: Container | null;
+  objectMarkers: ObjectMarkerEntry[];
 };
 
 function frameIndexForTime(elapsedMs: number, durations: number[], loopDuration: number): number {
@@ -443,6 +445,19 @@ export default function MapCanvas({
     if (app) {
       app.renderer.off("resize", positionOverlayContents);
     }
+    if (state.objectContainer) {
+      const removedSprites = state.objectContainer.removeChildren();
+      for (const child of removedSprites) {
+        if (typeof (child as { destroy?: () => void }).destroy === "function") {
+          (child as { destroy: () => void }).destroy();
+        }
+      }
+      if (state.objectContainer.parent === state.sprite) {
+        state.sprite.removeChild(state.objectContainer);
+      }
+      state.objectContainer.destroy({ children: true });
+    }
+    state.objectMarkers = [];
     for (const marker of state.markers) {
       marker.graphic.removeAllListeners();
       marker.graphic.destroy();
@@ -652,6 +667,146 @@ export default function MapCanvas({
     [computeCellSize, focusWorldOn]
   );
 
+  const refreshOverlayObjects = useCallback((): void => {
+    const state = overlayStateRef.current;
+    if (!state) {
+      return;
+    }
+    const metadata = objectMetadataRef.current;
+    const cache = objectSpriteCacheRef.current;
+    const sprite = state.sprite;
+
+    const disposeContainer = (): void => {
+      if (!state.objectContainer) {
+        return;
+      }
+      const removedSprites = state.objectContainer.removeChildren();
+      for (const child of removedSprites) {
+        if (typeof (child as { destroy?: () => void }).destroy === "function") {
+          (child as { destroy: () => void }).destroy();
+        }
+      }
+      if (state.objectContainer.parent === sprite) {
+        sprite.removeChild(state.objectContainer);
+      }
+      state.objectContainer.destroy({ children: true });
+      state.objectContainer = null;
+      state.objectMarkers = [];
+    };
+
+    if (!metadata || !cache) {
+      disposeContainer();
+      return;
+    }
+
+    const mapData = metadata.maps?.[state.mapLabel];
+    if (!mapData || !Array.isArray(mapData.objects) || mapData.objects.length === 0) {
+      disposeContainer();
+      return;
+    }
+
+    const metadataBlockSize = Number.isFinite(metadata.blockPixelSize) && metadata.blockPixelSize > 0
+      ? Math.abs(metadata.blockPixelSize)
+      : 32;
+    const cellsPerBlock = Number.isFinite(metadata.cellsPerBlock) && metadata.cellsPerBlock > 0
+      ? Math.trunc(metadata.cellsPerBlock)
+      : 2;
+    const baseCellPixelSize = Number.isFinite(metadata.eventCellPixelSize) && metadata.eventCellPixelSize > 0
+      ? Math.abs(metadata.eventCellPixelSize)
+      : Math.max(1, Math.trunc(metadataBlockSize / Math.max(1, cellsPerBlock)));
+
+    const widthBlocks = Number.isFinite(mapData.widthBlocks) && mapData.widthBlocks && mapData.widthBlocks > 0
+      ? Math.abs(mapData.widthBlocks)
+      : null;
+    const baseWidth = state.baseWidth || sprite.texture.width || sprite.width || 1;
+    let atlasBlockPixelSize: number;
+    if (widthBlocks && baseWidth > 0) {
+      atlasBlockPixelSize = baseWidth / widthBlocks;
+    } else if (Number.isFinite(metadata.blockPixelSize) && metadata.blockPixelSize > 0) {
+      atlasBlockPixelSize = Math.abs(metadata.blockPixelSize);
+    } else if (atlas && Number.isFinite(atlas.blockPixelSize) && atlas.blockPixelSize > 0) {
+      atlasBlockPixelSize = Math.abs(atlas.blockPixelSize);
+    } else {
+      atlasBlockPixelSize = 32;
+    }
+    if (!(atlasBlockPixelSize > 0)) {
+      atlasBlockPixelSize = 32;
+    }
+
+    const placementContext: PlacementContext = {
+      atlasBlockPixelSize,
+      metadataBlockPixelSize: metadataBlockSize,
+      cellsPerBlock,
+      eventCellPixelSize: baseCellPixelSize,
+    };
+    const pixelScale = metadataBlockSize !== 0 ? atlasBlockPixelSize / metadataBlockSize : 1;
+
+    let container = state.objectContainer;
+    if (!container) {
+      container = new Container();
+      container.eventMode = "none";
+      container.interactiveChildren = false;
+      container.zIndex = 5;
+      sprite.addChild(container);
+      state.objectContainer = container;
+    }
+
+    const removedSprites = container.removeChildren();
+    for (const child of removedSprites) {
+      if (typeof (child as { destroy?: () => void }).destroy === "function") {
+        (child as { destroy: () => void }).destroy();
+      }
+    }
+
+    state.objectMarkers = [];
+
+    for (const objectEntry of mapData.objects) {
+      if (!isObjectVisibleAtTime(objectEntry, timeOfDay)) {
+        continue;
+      }
+      const spriteKey = objectEntry.sprite.constant;
+      if (!spriteKey) {
+        continue;
+      }
+      const spriteDef = metadata.sprites[spriteKey];
+      if (!spriteDef) {
+        continue;
+      }
+      const facingKey = resolveFacingConstant(objectEntry, metadata);
+      if (!facingKey) {
+        continue;
+      }
+      const paletteName = objectEntry.paletteOverride.constant ?? spriteDef.defaultPalette;
+      const record = cache.getFacingTexture(spriteKey, facingKey, paletteName);
+      if (!record) {
+        continue;
+      }
+      const spriteInstance = new Sprite(record.texture);
+      spriteInstance.eventMode = "none";
+      spriteInstance.cursor = "auto";
+      const { x: baseX, y: baseY } = computeObjectPosition(objectEntry, placementContext);
+      const offsetX = record.offsetX * pixelScale;
+      const offsetY = record.offsetY * pixelScale;
+      spriteInstance.x = baseX + offsetX;
+      spriteInstance.y = baseY + offsetY;
+      spriteInstance.scale.set(pixelScale);
+      container.addChild(spriteInstance);
+      state.objectMarkers.push({ object: objectEntry, sprite: spriteInstance });
+    }
+
+    if (container.children.length === 0) {
+      if (container.parent === sprite) {
+        sprite.removeChild(container);
+      }
+      container.destroy({ children: true });
+      state.objectContainer = null;
+      state.objectMarkers = [];
+      return;
+    }
+
+    sprite.sortChildren();
+  }, [atlas, timeOfDay]);
+
   const openOverlay = useCallback(
     async (
       mapLabel: string,
@@ -702,8 +857,16 @@ export default function MapCanvas({
           event.stopPropagation();
         });
 
+        sprite.sortableChildren = true;
+
         overlay.addChild(background);
         overlay.addChild(sprite);
+
+        const objectContainer = new Container();
+        objectContainer.eventMode = "none";
+        objectContainer.interactiveChildren = false;
+        objectContainer.zIndex = 5;
+        sprite.addChild(objectContainer);
 
         const cellSize = computeCellSize();
         const baseAlpha = 0.9;
@@ -793,7 +956,10 @@ export default function MapCanvas({
           cellSize,
           baseAlpha,
           keyHandler,
+          objectContainer,
+          objectMarkers: [],
         };
+        refreshOverlayObjects();
         const world = worldRef.current;
         if (world) {
           world.visible = false;
@@ -810,7 +976,7 @@ export default function MapCanvas({
         }
       }
     },
-    [closeOverlay, computeCellSize, getMapMetadata, positionOverlayContents, resolveAssetHref]
+    [closeOverlay, computeCellSize, getMapMetadata, positionOverlayContents, refreshOverlayObjects, resolveAssetHref]
   );
 
   const handleWarpMarkerTap = useCallback(
@@ -1150,6 +1316,7 @@ export default function MapCanvas({
         objectSpriteCacheRef.current = null;
       }
       refreshObjectSprites();
+      refreshOverlayObjects();
       return;
     }
     if (!cache || currentSource !== metadata) {
@@ -1163,7 +1330,8 @@ export default function MapCanvas({
       cache.setTimeOfDay(timeOfDay);
     }
     refreshObjectSprites();
-  }, [objectMetadata, timeOfDay, refreshObjectSprites]);
+    refreshOverlayObjects();
+  }, [objectMetadata, timeOfDay, refreshObjectSprites, refreshOverlayObjects]);
 
   const restoreViewState = useCallback((): boolean => {
     const stored = readStoredViewState();
@@ -1405,6 +1573,7 @@ export default function MapCanvas({
         applySpriteTransforms();
         refreshWarpMarkers();
         refreshObjectSprites();
+        refreshOverlayObjects();
       })
       .catch((err) => {
         console.error("Failed to load map sprites", err);
@@ -1419,7 +1588,7 @@ export default function MapCanvas({
       cancelled = true;
       disposeChildren();
     };
-  }, [atlas, ready, clampWorldToBounds, persistViewState, restoreViewState, applySpriteTransforms, refreshWarpMarkers, refreshObjectSprites]);
+  }, [atlas, ready, clampWorldToBounds, persistViewState, restoreViewState, applySpriteTransforms, refreshOverlayObjects, refreshWarpMarkers, refreshObjectSprites]);
 
   useEffect(() => {
     if (!ready) {
@@ -1427,6 +1596,7 @@ export default function MapCanvas({
     }
     refreshWarpMarkers();
     refreshObjectSprites();
+    refreshOverlayObjects();
     return () => {
       for (const entry of animationsRef.current) {
         for (const marker of entry.warpMarkers) {
@@ -1448,7 +1618,7 @@ export default function MapCanvas({
         entry.objectMarkers = [];
       }
     };
-  }, [ready, refreshWarpMarkers, refreshObjectSprites, warpMetadata, atlas, editing]);
+  }, [ready, refreshOverlayObjects, refreshWarpMarkers, refreshObjectSprites, warpMetadata, atlas, editing]);
 
   useEffect(() => {
     if (!ready) {

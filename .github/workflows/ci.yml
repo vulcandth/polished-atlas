@@ -29,6 +29,8 @@ jobs:
           cache: npm
           cache-dependency-path: web/atlas/package-lock.json
       - name: Build atlas bundle
+        env:
+          VITE_PUBLIC_BASE: "/${{ github.event.repository.name }}/"
         run: POLISHED_UPDATE=true scripts/build_atlas.sh
       - name: Upload build artifact
         uses: actions/upload-artifact@v4

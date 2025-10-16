@@ -6,6 +6,8 @@ declare interface ImportMetaEnv {
   readonly VITE_NEIGHBORHOOD_MANIFEST_URL?: string;
   readonly VITE_ATLAS_TIME?: string;
   readonly VITE_WARP_METADATA_URL?: string;
+  readonly VITE_PUBLIC_BASE?: string;
+  readonly VITE_POLISHED_VERSION?: string;
 }
 
 declare interface ImportMeta {
@@ -13,3 +15,4 @@ declare interface ImportMeta {
 }
 
 declare const __REPO_ROOT__: string;
+declare const __PUBLIC_BASE__: string;

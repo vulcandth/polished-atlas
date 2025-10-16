@@ -116,6 +116,18 @@ build_web_bundle() {
   "${NODE_BIN}" --prefix "${ROOT_DIR}/web/atlas" ci
   log "Building web bundle (polishedcrystal ${VITE_POLISHED_VERSION})"
   "${NODE_BIN}" --prefix "${ROOT_DIR}/web/atlas" run build
+
+  local dist_dir="${ROOT_DIR}/web/atlas/dist"
+  local maps_source="${ROOT_DIR}/maps"
+  local maps_destination="${dist_dir}/maps"
+  if [[ -d "${maps_source}" ]]; then
+    log "Copying generated map assets into web bundle"
+    rm -rf "${maps_destination}"
+    mkdir -p "${maps_destination}"
+    cp -a "${maps_source}/." "${maps_destination}/"
+  else
+    log "No generated maps found at ${maps_source}"
+  fi
 }
 
 ensure_polished_repo

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import MapCanvas from "@/components/MapCanvas";
 import { useAtlasData } from "@/hooks/useAtlasData";
 import { useWarpMetadata } from "@/hooks/useWarpMetadata";
+import { joinBasePath, withBasePath } from "@/lib/basePath";
 import type { NeighborhoodSummary } from "@/types";
 
 const DEFAULT_ROOT = import.meta.env.VITE_ROOT_MAP ?? "NewBarkTown";
@@ -98,7 +99,7 @@ function isInteractiveTarget(target: EventTarget | null): boolean {
 
 function manifestUrlForSlug(timeSlug: TimeOfDaySlug): string {
   if (MANIFEST_OVERRIDE) {
-    return MANIFEST_OVERRIDE;
+    return withBasePath(MANIFEST_OVERRIDE);
   }
   if (import.meta.env.DEV) {
     const repoRoot = typeof __REPO_ROOT__ === "string" ? __REPO_ROOT__ : "";
@@ -108,7 +109,7 @@ function manifestUrlForSlug(timeSlug: TimeOfDaySlug): string {
       return `${window.location.origin}/@fs${encodeURI(withLeadingSlash)}`;
     }
   }
-  return `/maps/${timeSlug}/animated/map_neighborhoods.json`;
+  return joinBasePath("maps", timeSlug, "animated", "map_neighborhoods.json");
 }
 
 function deriveDataSources(timeSlug: TimeOfDaySlug): {
@@ -119,7 +120,12 @@ function deriveDataSources(timeSlug: TimeOfDaySlug): {
 } {
   const graphEnv = import.meta.env.VITE_CONNECTION_GRAPH_URL?.trim();
   if (graphEnv) {
-    return { graphUrl: graphEnv, manifestUrl: undefined, rootLabel: DEFAULT_ROOT, supportsTimeSelection: false };
+    return {
+      graphUrl: withBasePath(graphEnv),
+      manifestUrl: undefined,
+      rootLabel: DEFAULT_ROOT,
+      supportsTimeSelection: false,
+    };
   }
   const manifestUrl = manifestUrlForSlug(timeSlug);
   return {
@@ -154,7 +160,8 @@ export default function App() {
   const isLoading = loading || warpLoading;
   const neighborhoods: NeighborhoodSummary[] = layout?.metadata?.neighborhoods ?? [];
   const assetResolver = useMemo(() => {
-    const fallback = (mapLabel: string): string => `/maps/${timeOfDay}/animated/${mapLabel}.animation.json`;
+    const fallback = (mapLabel: string): string =>
+      joinBasePath("maps", timeOfDay, "animated", `${mapLabel}.animation.json`);
     if (!layout?.placements?.length) {
       return fallback;
     }
@@ -180,9 +187,11 @@ export default function App() {
       }
       const substringPattern = /maps\/[^/]+\/animated\/[^/]+\.animation\.json/;
       if (substringPattern.test(sampleAsset)) {
-        return sampleAsset.replace(
+        return withBasePath(
+          sampleAsset.replace(
           substringPattern,
           `maps/${timeOfDay}/animated/${trimmedLabel}.animation.json`
+        )
         );
       }
       return fallback(trimmedLabel);

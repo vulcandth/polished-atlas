@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { joinBasePath, withBasePath } from "@/lib/basePath";
 import type {
   MapMetadataDTO,
   MapMetadataEntry,
@@ -109,7 +110,7 @@ function convertPayload(payload: WarpMetadataPayload): WarpMetadata {
 export function resolveWarpMetadataUrl(): string {
   const override = toStringOrNull(import.meta.env.VITE_WARP_METADATA_URL);
   if (override) {
-    return override;
+    return withBasePath(override);
   }
   if (import.meta.env.DEV) {
     const repoRoot = typeof __REPO_ROOT__ === "string" ? __REPO_ROOT__ : "";
@@ -119,7 +120,7 @@ export function resolveWarpMetadataUrl(): string {
       return `${window.location.origin}/@fs${encodeURI(withSlash)}`;
     }
   }
-  return "/maps/warp_metadata.json";
+  return joinBasePath("maps", "warp_metadata.json");
 }
 
 export function useWarpMetadata(options: UseWarpMetadataOptions = {}): UseWarpMetadataResult {

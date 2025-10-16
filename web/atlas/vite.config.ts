@@ -125,9 +125,28 @@ function atlasDevToolsPlugin(repoRoot: string): Plugin {
   };
 }
 
+function normaliseBasePath(value: string | undefined): string {
+  if (!value) {
+    return "/";
+  }
+  let candidate = value.trim();
+  if (candidate.length === 0) {
+    return "/";
+  }
+  if (!candidate.startsWith("/")) {
+    candidate = `/${candidate}`;
+  }
+  if (!candidate.endsWith("/")) {
+    candidate = `${candidate}/`;
+  }
+  return candidate;
+}
+
 const repoRoot = path.resolve(__dirname, "../..");
+const publicBase = normaliseBasePath(process.env.VITE_PUBLIC_BASE);
 
 export default defineConfig({
+  base: publicBase,
   plugins: [react(), atlasDevToolsPlugin(repoRoot)],
   resolve: {
     alias: {
@@ -136,6 +155,7 @@ export default defineConfig({
   },
   define: {
     __REPO_ROOT__: JSON.stringify(repoRoot),
+    __PUBLIC_BASE__: JSON.stringify(publicBase),
   },
   server: {
     port: 5173,

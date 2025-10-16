@@ -108,6 +108,10 @@ run_generators() {
   log "Extracting warp metadata"
   "${PYTHON_BIN}" "${ROOT_DIR}/scripts/generate_map_metadata.py" \
     --polishedcrystal "${POLISHED_DIR}"
+
+  log "Generating overworld object metadata"
+  "${PYTHON_BIN}" "${ROOT_DIR}/scripts/generate_map_objects.py" \
+    --polishedcrystal "${POLISHED_DIR}"
 }
 
 build_web_bundle() {

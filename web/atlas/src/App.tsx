@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import MapCanvas from "@/components/MapCanvas";
 import { useAtlasData } from "@/hooks/useAtlasData";
+import { useObjectMetadata } from "@/hooks/useObjectMetadata";
 import { useWarpMetadata } from "@/hooks/useWarpMetadata";
 import { joinBasePath, withBasePath } from "@/lib/basePath";
 import type { NeighborhoodSummary } from "@/types";
@@ -157,7 +158,13 @@ export default function App() {
     rootLabel,
   });
   const { metadata: warpMetadata, loading: warpLoading, error: warpError, reload: warpReload } = useWarpMetadata();
-  const isLoading = loading || warpLoading;
+  const {
+    metadata: objectMetadata,
+    loading: objectLoading,
+    error: objectError,
+    reload: objectReload,
+  } = useObjectMetadata();
+  const isLoading = loading || warpLoading || objectLoading;
   const neighborhoods: NeighborhoodSummary[] = layout?.metadata?.neighborhoods ?? [];
   const assetResolver = useMemo(() => {
     const fallback = (mapLabel: string): string =>
@@ -258,7 +265,8 @@ export default function App() {
   const handleReloadClick = useCallback(() => {
     reload();
     warpReload();
-  }, [reload, warpReload]);
+    objectReload();
+  }, [reload, warpReload, objectReload]);
 
   const handleOffsetChange = useCallback((id: string, next: OffsetTuple) => {
     setOffsetOverrides((current) => {
@@ -603,9 +611,12 @@ export default function App() {
           onOffsetChange={editing ? handleOffsetChange : undefined}
           warpMetadata={warpMetadata}
           resolveAssetHref={assetResolver}
+          objectMetadata={objectMetadata}
+          timeOfDay={timeOfDay}
         />
         {error && <div className="status-banner error">{error}</div>}
-        {!error && warpError && <div className="status-banner error">{warpError}</div>}
+  {!error && warpError && <div className="status-banner error">{warpError}</div>}
+  {!error && objectError && <div className="status-banner error">{objectError}</div>}
         {saveStatus === "error" && saveError && !editing && <div className="status-banner error">{saveError}</div>}
         {saveStatus === "success" && !editing && <div className="status-banner info">Neighborhood layout saved.</div>}
       </section>

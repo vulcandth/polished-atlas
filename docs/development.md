@@ -17,7 +17,7 @@
 3. Execute `./scripts/build_atlas.sh`.
    - Renders sprite sheets for every map across the requested time-of-day
      palettes.
-   - Generates connection graphs, layout manifests, and warp metadata.
+   - Generates connection graphs, layout manifests, warp metadata, and overworld object manifests.
    - Installs web dependencies and runs `vite build` inside `web/atlas/`.
 4. Serve the built site locally with `npm --prefix web/atlas run preview` or any
    static file server pointed at `web/atlas/dist`.
@@ -29,6 +29,7 @@ While prototyping, the individual Python scripts can be invoked directly:
 - `python3 scripts/render_all_maps.py --help`
 - `python3 scripts/generate_all_map_connections.py --help`
 - `python3 scripts/generate_map_metadata.py --help`
+- `python3 scripts/generate_map_objects.py --help`
 
 Each script offers flags to control the polishedcrystal path, time of day, and
 other parameters. Generated assets land under `maps/` by default.

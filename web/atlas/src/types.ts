@@ -187,3 +187,110 @@ export interface WarpMetadata {
   maps: Record<string, MapMetadataEntry>;
   constantLookup: Record<string, string>;
 }
+
+export type RgbTuple = [number, number, number];
+
+export interface ObjectPaletteEntry {
+  timeVariants?: Record<string, RgbTuple[]>;
+  overcast?: Record<string, RgbTuple[]>;
+  darkness?: RgbTuple[] | null;
+  static?: RgbTuple[] | null;
+}
+
+export interface ObjectSpriteDefinition {
+  id: number;
+  gfxPointer: string;
+  spriteType: string;
+  defaultPalette: string | null;
+  tilePath: string;
+  tileCount: number;
+  tiles2bppBase64: string;
+}
+
+export interface ObjectMovementDefinition {
+  id: number;
+  function: string;
+  facing: string;
+  action: string;
+  flags1: number;
+  flags2: number;
+  paletteFlags: number;
+}
+
+export interface ObjectFacingEntry {
+  label: string;
+  tiles: Array<{
+    dx: number;
+    dy: number;
+    tile: number;
+    attributes: number;
+  }>;
+}
+
+export interface ObjectEventEntry {
+  index: number;
+  macro: string;
+  xTiles: number;
+  yTiles: number;
+  xPixels: number;
+  yPixels: number;
+  sprite: {
+    constant: string | null;
+    id: number | null;
+  };
+  movement: {
+    constant: string | null;
+    id: number | null;
+  };
+  range: {
+    x: number | null;
+    y: number | null;
+  };
+  timeOfDay: {
+    mask: number | null;
+    slots: string[];
+  };
+  paletteOverride: {
+    value: number | null;
+    constant: string | null;
+  };
+  objectType: {
+    constant: string | null;
+    id: number | null;
+  };
+  script: {
+    command: string | null;
+    argument: string | null;
+  };
+  eventFlag: string | null;
+  species?: {
+    constant: string | null;
+    id: number | null;
+  };
+  extra?: Record<string, unknown>;
+}
+
+export interface MapObjectMetadataEntry {
+  label: string;
+  mapConstant: string | null;
+  mapType: string | null;
+  widthBlocks: number | null;
+  heightBlocks: number | null;
+  objects: ObjectEventEntry[];
+}
+
+export interface ObjectMetadata {
+  version: number;
+  generatedAt: string;
+  blockPixelSize: number;
+  cellsPerBlock: number;
+  eventCellPixelSize: number;
+  paletteNames: string[];
+  timeOfDaySlots: string[];
+  defaultFacingForDirection: Record<string, string>;
+  palettes: Record<string, ObjectPaletteEntry>;
+  sprites: Record<string, ObjectSpriteDefinition>;
+  movements: Record<string, ObjectMovementDefinition>;
+  facings: Record<string, ObjectFacingEntry>;
+  maps: Record<string, MapObjectMetadataEntry>;
+}

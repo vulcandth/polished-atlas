@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Application, Container, AnimatedSprite, FederatedPointerEvent, Assets, Graphics } from "pixi.js";
-import { AtlasLayout, MapPlacement, MapWarp, WarpMetadata } from "@/types";
+import { Application, Container, AnimatedSprite, FederatedPointerEvent, Assets, Graphics, Sprite } from "pixi.js";
+import { AtlasLayout, MapPlacement, MapWarp, ObjectMetadata, ObjectEventEntry, WarpMetadata } from "@/types";
 import { registerPixiExtensions } from "@/pixi/registerExtensions";
 import { loadMapAnimation, type MapAnimationResource } from "@/lib/loadMapAnimation";
+import { ObjectSpriteCache } from "@/lib/objectSprites";
+import { computeObjectPosition, type PlacementContext } from "@/lib/objectPlacement";
 
 type OffsetTuple = [number, number];
 
@@ -19,6 +21,11 @@ type WarpBacklink = {
   previous: WarpBacklink | null;
 };
 
+type ObjectMarkerEntry = {
+  object: ObjectEventEntry;
+  sprite: Sprite;
+};
+
 interface MapCanvasProps {
   atlas: AtlasLayout | null;
   loading: boolean;
@@ -31,6 +38,8 @@ interface MapCanvasProps {
   selectedNeighborhoodId?: string | null;
   onSelectNeighborhood?: (id: string) => void;
   onOffsetChange?: (id: string, next: OffsetTuple) => void;
+  objectMetadata?: ObjectMetadata | null;
+  timeOfDay?: string;
 }
 
 const MIN_SCALE = 0.25;
@@ -125,6 +134,8 @@ type SyncedAnimation = {
   order: number;
   neighborhoodId: string | null;
   warpMarkers: WarpMarkerEntry[];
+  objectContainer: Container | null;
+  objectMarkers: ObjectMarkerEntry[];
 };
 
 type OverlayState = {
@@ -156,6 +167,43 @@ function frameIndexForTime(elapsedMs: number, durations: number[], loopDuration:
   return durations.length - 1;
 }
 
+function isObjectVisibleAtTime(entry: ObjectEventEntry, timeOfDay: string): boolean {
+  const slots = entry.timeOfDay?.slots;
+  if (!Array.isArray(slots) || slots.length === 0) {
+    return true;
+  }
+  return slots.includes(timeOfDay);
+}
+
+function resolveFacingConstant(entry: ObjectEventEntry, metadata: ObjectMetadata): string | null {
+  const movementKey = entry.movement?.constant ?? "";
+  const movement = movementKey ? metadata.movements[movementKey] : undefined;
+  const facingValue = movement?.facing ?? "";
+  if (facingValue) {
+    if (metadata.facings[facingValue]) {
+      return facingValue;
+    }
+    const normalized = facingValue.toUpperCase();
+    const mapped =
+      metadata.defaultFacingForDirection[facingValue] ??
+      metadata.defaultFacingForDirection[normalized] ??
+      metadata.defaultFacingForDirection[normalized.toLowerCase()];
+    if (mapped && metadata.facings[mapped]) {
+      return mapped;
+    }
+  }
+  const fallback =
+    metadata.defaultFacingForDirection.DOWN ??
+    metadata.defaultFacingForDirection.Down ??
+    metadata.defaultFacingForDirection.down ??
+    "FACING_STEP_DOWN_0";
+  if (fallback && metadata.facings[fallback]) {
+    return fallback;
+  }
+  const firstKey = Object.keys(metadata.facings)[0];
+  return firstKey ?? null;
+}
+
 function snapToHalf(value: number): number {
   if (!Number.isFinite(value)) {
     return 0;
@@ -175,6 +223,8 @@ export default function MapCanvas({
   selectedNeighborhoodId = null,
   onSelectNeighborhood,
   onOffsetChange,
+  objectMetadata = null,
+  timeOfDay = "day",
 }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const appRef = useRef<Application | null>(null);
@@ -200,6 +250,9 @@ export default function MapCanvas({
   const highlightTimersRef = useRef<Map<string, number>>(new Map());
   const backlinkRef = useRef<WarpBacklink | null>(null);
   const handleOverlayWarpRef = useRef<((warp: MapWarp) => void) | null>(null);
+  const objectMetadataRef = useRef<ObjectMetadata | null>(null);
+  const objectSpriteCacheRef = useRef<ObjectSpriteCache | null>(null);
+  const objectCacheSourceRef = useRef<ObjectMetadata | null>(null);
   const [ready, setReady] = useState(false);
 
   const baseOffsetsRef = useRef<Record<string, OffsetTuple>>({});
@@ -221,6 +274,10 @@ export default function MapCanvas({
   useEffect(() => {
     warpMetadataRef.current = warpMetadata ?? null;
   }, [warpMetadata]);
+
+  useEffect(() => {
+    objectMetadataRef.current = objectMetadata ?? null;
+  }, [objectMetadata]);
 
   const applySpriteTransforms = useCallback((): void => {
     const world = worldRef.current;
@@ -395,6 +452,17 @@ export default function MapCanvas({
         window.clearTimeout(persistTimerRef.current);
         persistTimerRef.current = null;
       }
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      const cache = objectSpriteCacheRef.current;
+      if (cache) {
+        cache.destroy();
+        objectSpriteCacheRef.current = null;
+      }
+      objectCacheSourceRef.current = null;
     };
   }, []);
 
@@ -930,11 +998,155 @@ export default function MapCanvas({
           }
           graphic.alpha = baseAlpha;
         });
+        graphic.zIndex = 10;
         entry.sprite.addChild(graphic);
         entry.warpMarkers.push({ warp, graphic });
       }
+      entry.sprite.sortChildren();
     }
   }, [computeCellSize, editing, handleWarpMarkerTap]);
+
+  const refreshObjectSprites = useCallback((): void => {
+    const metadata = objectMetadataRef.current;
+    const cache = objectSpriteCacheRef.current;
+    const atlasBlockSize = atlas && Number.isFinite(atlas.blockPixelSize) && atlas.blockPixelSize > 0
+      ? Math.abs(atlas.blockPixelSize)
+      : 32;
+
+    if (!metadata || !cache) {
+      for (const entry of animationsRef.current) {
+        if (entry.objectContainer) {
+          const removedChildren = entry.objectContainer.removeChildren();
+          for (const child of removedChildren) {
+            if (typeof (child as { destroy?: () => void }).destroy === "function") {
+              (child as { destroy: () => void }).destroy();
+            }
+          }
+          entry.sprite.removeChild(entry.objectContainer);
+          entry.objectContainer.destroy();
+          entry.objectContainer = null;
+        }
+        entry.objectMarkers = [];
+      }
+      return;
+    }
+
+    cache.setTimeOfDay(timeOfDay);
+
+    const metadataBlockSize = Number.isFinite(metadata.blockPixelSize) && metadata.blockPixelSize > 0
+      ? Math.abs(metadata.blockPixelSize)
+      : atlasBlockSize;
+    const cellsPerBlock = Number.isFinite(metadata.cellsPerBlock) && metadata.cellsPerBlock > 0
+      ? Math.trunc(metadata.cellsPerBlock)
+      : 2;
+    const baseCellPixelSize = Number.isFinite(metadata.eventCellPixelSize) && metadata.eventCellPixelSize > 0
+      ? Math.abs(metadata.eventCellPixelSize)
+      : Math.max(1, Math.trunc(metadataBlockSize / Math.max(1, cellsPerBlock)));
+    const pixelScale = metadataBlockSize !== 0 ? atlasBlockSize / metadataBlockSize : 1;
+    const placementContext: PlacementContext = {
+      atlasBlockPixelSize: atlasBlockSize,
+      metadataBlockPixelSize: metadataBlockSize,
+      cellsPerBlock,
+      eventCellPixelSize: baseCellPixelSize,
+    };
+
+    for (const entry of animationsRef.current) {
+      let container = entry.objectContainer;
+      if (!container) {
+        container = new Container();
+        container.eventMode = "none";
+        container.interactiveChildren = false;
+        container.zIndex = 5;
+        entry.sprite.addChild(container);
+        entry.objectContainer = container;
+      }
+      const removedChildren = container.removeChildren();
+      for (const child of removedChildren) {
+        if (typeof (child as { destroy?: () => void }).destroy === "function") {
+          (child as { destroy: () => void }).destroy();
+        }
+      }
+      entry.objectMarkers = [];
+
+      const mapData = metadata.maps[entry.placement.label];
+      if (!mapData || !Array.isArray(mapData.objects) || mapData.objects.length === 0) {
+        if (container.children.length === 0) {
+          entry.sprite.removeChild(container);
+          container.destroy();
+          entry.objectContainer = null;
+        }
+        continue;
+      }
+
+      for (const objectEntry of mapData.objects) {
+        if (!isObjectVisibleAtTime(objectEntry, timeOfDay)) {
+          continue;
+        }
+        const spriteKey = objectEntry.sprite.constant;
+        if (!spriteKey) {
+          continue;
+        }
+        const spriteDef = metadata.sprites[spriteKey];
+        if (!spriteDef) {
+          continue;
+        }
+        const facingKey = resolveFacingConstant(objectEntry, metadata);
+        if (!facingKey) {
+          continue;
+        }
+        const paletteName = objectEntry.paletteOverride.constant ?? spriteDef.defaultPalette;
+        const record = cache.getFacingTexture(spriteKey, facingKey, paletteName);
+        if (!record) {
+          continue;
+        }
+        const sprite = new Sprite(record.texture);
+        sprite.eventMode = "none";
+        sprite.cursor = "auto";
+        const { x: baseX, y: baseY } = computeObjectPosition(objectEntry, placementContext);
+        const offsetX = record.offsetX * pixelScale;
+        const offsetY = record.offsetY * pixelScale;
+        sprite.x = baseX + offsetX;
+        sprite.y = baseY + offsetY;
+        sprite.scale.set(pixelScale);
+        container.addChild(sprite);
+        entry.objectMarkers.push({ object: objectEntry, sprite });
+      }
+
+      if (container.children.length === 0) {
+        entry.sprite.removeChild(container);
+        container.destroy();
+        entry.objectContainer = null;
+      }
+      entry.sprite.sortChildren();
+    }
+  }, [atlas, timeOfDay]);
+
+  useEffect(() => {
+    const metadata = objectMetadata ?? null;
+    objectMetadataRef.current = metadata;
+    const cache = objectSpriteCacheRef.current;
+    const currentSource = objectCacheSourceRef.current;
+    if (!metadata) {
+      objectCacheSourceRef.current = null;
+      if (cache) {
+        cache.destroy();
+        objectSpriteCacheRef.current = null;
+      }
+      refreshObjectSprites();
+      return;
+    }
+    if (!cache || currentSource !== metadata) {
+      if (cache) {
+        cache.destroy();
+      }
+      const nextCache = new ObjectSpriteCache(metadata, timeOfDay);
+      objectSpriteCacheRef.current = nextCache;
+      objectCacheSourceRef.current = metadata;
+    } else {
+      cache.setTimeOfDay(timeOfDay);
+    }
+    refreshObjectSprites();
+  }, [objectMetadata, timeOfDay, refreshObjectSprites]);
 
   const restoreViewState = useCallback((): boolean => {
     const stored = readStoredViewState();
@@ -1044,6 +1256,17 @@ export default function MapCanvas({
       clearHighlightTimers();
       const entries = animationsRef.current.splice(0, animationsRef.current.length);
       for (const entry of entries) {
+        if (entry.objectContainer) {
+          const removedChildren = entry.objectContainer.removeChildren();
+          for (const child of removedChildren) {
+            if (typeof (child as { destroy?: () => void }).destroy === "function") {
+              (child as { destroy: () => void }).destroy();
+            }
+          }
+          entry.objectContainer.destroy();
+          entry.objectContainer = null;
+        }
+        entry.objectMarkers = [];
         spriteEntryMapRef.current.delete(entry.sprite);
         entry.sprite.destroy();
         for (const marker of entry.warpMarkers ?? []) {
@@ -1127,6 +1350,7 @@ export default function MapCanvas({
         sprite.y = placement.y;
         sprite.eventMode = "static";
         sprite.cursor = "pointer";
+        sprite.sortableChildren = true;
         const neighborhoodId = typeof placement.metadata?.neighborhoodId === "string" ? placement.metadata.neighborhoodId : null;
         const neighborhoodZ = placement.metadata?.neighborhoodZ ?? 0;
         sprite.zIndex = neighborhoodZ * 1_000_000 + index;
@@ -1139,6 +1363,8 @@ export default function MapCanvas({
           order: index,
           neighborhoodId,
           warpMarkers: [],
+          objectContainer: null,
+          objectMarkers: [],
         };
         animationsRef.current.push(entry);
         spriteEntryMapRef.current.set(sprite, entry);
@@ -1161,6 +1387,7 @@ export default function MapCanvas({
         }
         applySpriteTransforms();
         refreshWarpMarkers();
+        refreshObjectSprites();
       })
       .catch((err) => {
         console.error("Failed to load map sprites", err);
@@ -1175,13 +1402,14 @@ export default function MapCanvas({
       cancelled = true;
       disposeChildren();
     };
-  }, [atlas, ready, clampWorldToBounds, persistViewState, restoreViewState, applySpriteTransforms, refreshWarpMarkers]);
+  }, [atlas, ready, clampWorldToBounds, persistViewState, restoreViewState, applySpriteTransforms, refreshWarpMarkers, refreshObjectSprites]);
 
   useEffect(() => {
     if (!ready) {
       return;
     }
     refreshWarpMarkers();
+    refreshObjectSprites();
     return () => {
       for (const entry of animationsRef.current) {
         for (const marker of entry.warpMarkers) {
@@ -1189,9 +1417,21 @@ export default function MapCanvas({
           marker.graphic.destroy();
         }
         entry.warpMarkers = [];
+        if (entry.objectContainer) {
+          const removedChildren = entry.objectContainer.removeChildren();
+          for (const child of removedChildren) {
+            if (typeof (child as { destroy?: () => void }).destroy === "function") {
+              (child as { destroy: () => void }).destroy();
+            }
+          }
+          entry.sprite.removeChild(entry.objectContainer);
+          entry.objectContainer.destroy();
+          entry.objectContainer = null;
+        }
+        entry.objectMarkers = [];
       }
     };
-  }, [ready, refreshWarpMarkers, warpMetadata, atlas, editing]);
+  }, [ready, refreshWarpMarkers, refreshObjectSprites, warpMetadata, atlas, editing]);
 
   useEffect(() => {
     if (!ready) {

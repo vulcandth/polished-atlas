@@ -1012,6 +1012,11 @@ export default function MapCanvas({
           maxScale: MAX_SCALE,
           positioned: false,
         };
+        const elapsed = Math.max(0, app.ticker.lastTime - syncStartRef.current);
+        const initialFrame = frameIndexForTime(elapsed, resource.frameDurations, resource.loopDuration);
+        if (sprite.currentFrame !== initialFrame) {
+          sprite.gotoAndStop(initialFrame);
+        }
         refreshOverlayObjects();
         const world = worldRef.current;
         if (world) {
@@ -1688,6 +1693,13 @@ export default function MapCanvas({
         const nextFrame = frameIndexForTime(elapsed, entry.resource.frameDurations, entry.resource.loopDuration);
         if (entry.sprite.currentFrame !== nextFrame) {
           entry.sprite.gotoAndStop(nextFrame);
+        }
+      }
+      const overlayState = overlayStateRef.current;
+      if (overlayState) {
+        const nextFrame = frameIndexForTime(elapsed, overlayState.resource.frameDurations, overlayState.resource.loopDuration);
+        if (overlayState.sprite.currentFrame !== nextFrame) {
+          overlayState.sprite.gotoAndStop(nextFrame);
         }
       }
     };

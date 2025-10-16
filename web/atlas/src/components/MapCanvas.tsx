@@ -178,6 +178,23 @@ function isObjectVisibleAtTime(entry: ObjectEventEntry, timeOfDay: string): bool
 function resolveFacingConstant(entry: ObjectEventEntry, metadata: ObjectMetadata): string | null {
   const movementKey = entry.movement?.constant ?? "";
   const movement = movementKey ? metadata.movements[movementKey] : undefined;
+  const movementAction = movement?.action ?? "";
+  if (movementAction === "OBJECT_ACTION_CUT_TREE" && metadata.facings["FACING_CUT_TREE"]) {
+    return "FACING_CUT_TREE";
+  }
+  if (movementAction === "OBJECT_ACTION_FRUIT") {
+    const treeNameRaw = entry.extra?.["tree"];
+    const treeName = typeof treeNameRaw === "string" ? treeNameRaw : "";
+    if (treeName.includes("APRICORN") && metadata.facings["FACING_APRICORN"]) {
+      return "FACING_APRICORN";
+    }
+    if (metadata.facings["FACING_BERRY"]) {
+      return "FACING_BERRY";
+    }
+    if (metadata.facings["FACING_PICKED_FRUIT"]) {
+      return "FACING_PICKED_FRUIT";
+    }
+  }
   const facingValue = movement?.facing ?? "";
   if (facingValue) {
     if (metadata.facings[facingValue]) {

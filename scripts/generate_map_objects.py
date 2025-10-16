@@ -30,6 +30,17 @@ DEFAULT_FACE_FOR_DIRECTION = {
     "LEFT": "FACING_STEP_LEFT_0",
     "RIGHT": "FACING_STEP_RIGHT_0",
 }
+
+COPY_PALETTE_ALIASES: Dict[str, str] = {
+    "PAL_OW_COPY_BG_GRAY": "PAL_OW_GRAY",
+    "PAL_OW_COPY_BG_RED": "PAL_OW_RED",
+    "PAL_OW_COPY_BG_GREEN": "PAL_OW_GREEN",
+    "PAL_OW_COPY_BG_WATER": "PAL_OW_AZURE",
+    "PAL_OW_COPY_BG_YELLOW": "PAL_OW_YELLOW",
+    "PAL_OW_COPY_BG_BROWN": "PAL_OW_BROWN",
+    "PAL_OW_COPY_BG_ROOF": "PAL_OW_ORANGE",
+    "PAL_OW_COPY_BG_TEXT": "PAL_OW_BLACK",
+}
 EVENT_CELLS_PER_BLOCK = 2
 
 
@@ -591,6 +602,29 @@ def parse_darkness_palettes(root: Path, names: Sequence[str]) -> Dict[str, List[
         mapping[names[index]] = colors
         index += 1
     return mapping
+
+
+def infer_copy_palette_static(
+    name: str,
+    time_palettes: Dict[str, Dict[str, List[List[int]]]],
+    individual_palettes: Dict[str, List[List[int]]],
+) -> Optional[List[List[int]]]:
+    alias = COPY_PALETTE_ALIASES.get(name)
+    if not alias:
+        return None
+    base_variants = time_palettes.get(alias, {})
+    for slot in ("day", "morn", "eve", "nite"):
+        colors = base_variants.get(slot)
+        if colors:
+            return [list(color) for color in colors]
+    if base_variants:
+        first_variant = next(iter(base_variants.values()), None)
+        if first_variant:
+            return [list(color) for color in first_variant]
+    base_static = individual_palettes.get(alias)
+    if base_static:
+        return [list(color) for color in base_static]
+    return None
 
 
 def parse_sprite_headers(root: Path, constants: ASMConstantParser) -> Tuple[List[SpriteHeader], Dict[str, SpriteHeader]]:
@@ -1344,6 +1378,7 @@ def build_payload(
     individual_palettes: Dict[str, List[List[int]]],
     overcast_palettes: Dict[str, Dict[str, List[List[int]]]],
     darkness_palettes: Dict[str, List[List[int]]],
+    copy_palette_names: Sequence[str],
     palette_names: Sequence[str],
     block_pixel_size: int,
 ) -> Dict[str, object]:
@@ -1379,14 +1414,35 @@ def build_payload(
         map_data.label: map_data.to_payload(block_pixel_size, palette_names)
         for map_data in map_objects
     }
-    palette_payload: Dict[str, object] = {}
+    palette_payload: Dict[str, Dict[str, object]] = {}
     for name in palette_names:
         palette_payload[name] = {
             "time_variants": time_palettes.get(name, {}),
             "overcast": overcast_palettes.get(name, {}),
             "darkness": darkness_palettes.get(name),
         }
-    palette_payload.update({name: {"static": colors} for name, colors in individual_palettes.items()})
+    for name, colors in individual_palettes.items():
+        entry = palette_payload.setdefault(
+            name,
+            {
+                "time_variants": time_palettes.get(name, {}),
+                "overcast": overcast_palettes.get(name, {}),
+                "darkness": darkness_palettes.get(name),
+            },
+        )
+        entry["static"] = colors
+    for name in copy_palette_names:
+        entry = palette_payload.setdefault(
+            name,
+            {
+                "time_variants": time_palettes.get(name, {}),
+                "overcast": overcast_palettes.get(name, {}),
+                "darkness": darkness_palettes.get(name),
+            },
+        )
+        colors = infer_copy_palette_static(name, time_palettes, individual_palettes)
+        if colors:
+            entry["static"] = colors
     return {
         "version": 1,
         "generated_at": datetime.utcnow().replace(tzinfo=None).isoformat() + "Z",
@@ -1395,7 +1451,7 @@ def build_payload(
         "event_cell_pixel_size": max(1, block_pixel_size // (EVENT_CELLS_PER_BLOCK if EVENT_CELLS_PER_BLOCK > 0 else 1))
         if block_pixel_size > 0
         else 1,
-        "palettes": palette_payload,
+    "palettes": palette_payload,
         "sprites": sprite_payload,
         "movements": movement_payload,
         "facings": facing_payload,
@@ -1436,6 +1492,7 @@ def main() -> None:
         individual_palettes=individual_palettes,
         overcast_palettes=overcast_palettes,
         darkness_palettes=darkness_palettes,
+        copy_palette_names=copy_palette_names,
         palette_names=palette_names,
         block_pixel_size=block_pixel_size,
     )

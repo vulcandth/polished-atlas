@@ -202,6 +202,17 @@ function resolveFacingConstant(entry: ObjectEventEntry, metadata: ObjectMetadata
       return "FACING_PICKED_FRUIT";
     }
   }
+  if (movementAction === "OBJECT_ACTION_BIG_GYARADOS") {
+    if (metadata.facings["FACING_BIG_GYARADOS_2"]) {
+      return "FACING_BIG_GYARADOS_2";
+    }
+    if (metadata.facings["FACING_BIG_GYARADOS_1"]) {
+      return "FACING_BIG_GYARADOS_1";
+    }
+  }
+  if (movementAction === "OBJECT_ACTION_BIG_SNORLAX" && metadata.facings["FACING_BIG_DOLL_SYM"]) {
+    return "FACING_BIG_DOLL_SYM";
+  }
   if (movementAction === "OBJECT_ACTION_SAILBOAT_TOP" && metadata.facings["FACING_SAILBOAT_TOP"]) {
     return "FACING_SAILBOAT_TOP";
   }

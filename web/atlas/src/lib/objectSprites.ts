@@ -303,12 +303,25 @@ export class ObjectSpriteCache {
     if (rawIndex >= 0 && rawIndex < limit) {
       return rawIndex;
     }
-    if (rawIndex >= 0x80 && spriteName === "SPRITE_SAILBOAT") {
-      // Sailboat graphics load into VRAM bank 1 in-game, so high tile IDs
-      // need to wrap back into the tail of the decoded sheet.
-      const adjusted = rawIndex - 0x74;
-      if (adjusted >= 0 && adjusted < limit) {
-        return adjusted;
+    if (rawIndex >= 0x80) {
+      if (spriteName === "SPRITE_SAILBOAT") {
+        // Sailboat graphics load into VRAM bank 1 in-game, so high tile IDs
+        // need to wrap back into the tail of the decoded sheet.
+        const adjusted = rawIndex - 0x74;
+        if (adjusted >= 0 && adjusted < limit) {
+          return adjusted;
+        }
+      } else if (spriteName === "SPRITE_BIG_GYARADOS") {
+        // Big Gyarados splits its tiles across both VRAM banks. The lower
+        // indices reference the first half, while the high-bit variants point
+        // at the second half. Map them contiguously so the atlas can find the
+        // decoded tiles.
+        const half = Math.floor(limit / 2);
+        const offset = rawIndex & 0x7f;
+        const adjusted = half + offset;
+        if (adjusted >= 0 && adjusted < limit) {
+          return adjusted;
+        }
       }
     }
     return null;

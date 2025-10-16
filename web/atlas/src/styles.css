@@ -51,6 +51,15 @@ main {
   color: rgba(240, 246, 252, 0.7);
 }
 
+.brand .version {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: rgba(240, 246, 252, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .actions {
   display: flex;
   align-items: center;

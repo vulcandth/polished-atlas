@@ -13,3 +13,5 @@ web/atlas/.env.local
 web/atlas/.env.*.local
 
 __pycache__/
+
+external/

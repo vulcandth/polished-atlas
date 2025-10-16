@@ -18,6 +18,17 @@ const TIME_OF_DAY_OPTIONS = [
 type TimeOfDayOption = (typeof TIME_OF_DAY_OPTIONS)[number];
 type TimeOfDaySlug = TimeOfDayOption["value"];
 
+const POLISHED_VERSION = (() => {
+  const raw = import.meta.env.VITE_POLISHED_VERSION;
+  if (typeof raw === "string") {
+    const trimmed = raw.trim();
+    if (trimmed.length > 0) {
+      return trimmed;
+    }
+  }
+  return "v3.2.0";
+})();
+
 function sanitizeTimeOfDay(value: unknown): TimeOfDaySlug {
   const text = typeof value === "string" ? value : value != null ? String(value) : "";
   const normalized = text.trim().toLowerCase();
@@ -498,6 +509,7 @@ export default function App() {
         <div className="brand">
           <h1>Polished Atlas</h1>
           <span className="subtitle">{subtitle}</span>
+          <span className="version">polishedcrystal {POLISHED_VERSION}</span>
         </div>
         <div className="actions">
           <div className="time-picker">

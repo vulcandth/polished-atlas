@@ -11,6 +11,14 @@ type WarpMarkerEntry = {
   graphic: Graphics;
 };
 
+type WarpBacklink = {
+  applicableTo: string | null;
+  mapLabel: string;
+  mapConstant: string | null;
+  warpIndex: number;
+  previous: WarpBacklink | null;
+};
+
 interface MapCanvasProps {
   atlas: AtlasLayout | null;
   loading: boolean;
@@ -124,9 +132,12 @@ type OverlayState = {
   sprite: AnimatedSprite;
   resource: MapAnimationResource;
   background: Graphics;
+  markers: WarpMarkerEntry[];
   highlight?: Graphics;
   baseWidth: number;
   baseHeight: number;
+  cellSize: number;
+  baseAlpha: number;
   keyHandler: (event: KeyboardEvent) => void;
 };
 
@@ -187,6 +198,8 @@ export default function MapCanvas({
   const overlayStateRef = useRef<OverlayState | null>(null);
   const overlayTokenRef = useRef(0);
   const highlightTimersRef = useRef<Map<string, number>>(new Map());
+  const backlinkRef = useRef<WarpBacklink | null>(null);
+  const handleOverlayWarpRef = useRef<((warp: MapWarp) => void) | null>(null);
   const [ready, setReady] = useState(false);
 
   const baseOffsetsRef = useRef<Record<string, OffsetTuple>>({});
@@ -346,11 +359,19 @@ export default function MapCanvas({
     if (!overlay || !state) {
       return;
     }
+    const backlink = backlinkRef.current;
+    if (backlink && backlink.applicableTo === state.mapLabel) {
+      backlinkRef.current = backlink.previous ?? null;
+    }
     if (typeof window !== "undefined" && state.keyHandler) {
       window.removeEventListener("keydown", state.keyHandler);
     }
     if (app) {
       app.renderer.off("resize", positionOverlayContents);
+    }
+    for (const marker of state.markers) {
+      marker.graphic.removeAllListeners();
+      marker.graphic.destroy();
     }
     const children = overlay.removeChildren();
     for (const child of children) {
@@ -367,113 +388,6 @@ export default function MapCanvas({
     }
   }, [positionOverlayContents]);
 
-  const openOverlay = useCallback(
-    async (mapLabel: string, target: MapWarp["target"]): Promise<void> => {
-      if (!resolveAssetHref) {
-        return;
-      }
-      const overlay = overlayRef.current;
-      const app = appRef.current;
-      if (!overlay || !app) {
-        return;
-      }
-      const assetUrl = resolveAssetHref(mapLabel);
-      if (!assetUrl) {
-        return;
-      }
-      const token = overlayTokenRef.current + 1;
-      overlayTokenRef.current = token;
-      try {
-        const resource = await loadMapAnimation(assetUrl);
-        if (overlayTokenRef.current !== token) {
-          disposeAnimationResource(resource);
-          return;
-        }
-        closeOverlay();
-        if (!overlayRef.current) {
-          disposeAnimationResource(resource);
-          return;
-        }
-        const background = new Graphics();
-        background.eventMode = "static";
-        background.cursor = "pointer";
-        background.on("pointertap", () => {
-          closeOverlay();
-        });
-
-        const sprite = new AnimatedSprite(resource.textures);
-        sprite.loop = true;
-        sprite.autoUpdate = false;
-        sprite.animationSpeed = 0;
-        sprite.gotoAndStop(0);
-        sprite.eventMode = "static";
-        sprite.on("pointertap", (event) => {
-          event.stopPropagation();
-        });
-
-        overlay.addChild(background);
-        overlay.addChild(sprite);
-
-        let highlight: Graphics | undefined;
-        const cellSize = computeCellSize();
-        if (
-          typeof target?.xCells === "number" && Number.isFinite(target.xCells) &&
-          typeof target?.yCells === "number" && Number.isFinite(target.yCells)
-        ) {
-          highlight = new Graphics();
-          const margin = Math.max(0, cellSize * 0.1);
-          const radius = Math.max(4, cellSize * 0.25);
-          highlight.lineStyle(Math.max(1, cellSize * 0.1), 0xf1c40f, 0.95);
-          highlight.beginFill(0xf39c12, 0.3);
-          highlight.drawRoundedRect(margin, margin, cellSize - margin * 2, cellSize - margin * 2, radius);
-          highlight.endFill();
-          highlight.x = target.xCells * cellSize;
-          highlight.y = target.yCells * cellSize;
-          sprite.addChild(highlight);
-        }
-
-        const frame = resource.textures[0];
-        const baseWidth = frame?.width ?? sprite.width;
-        const baseHeight = frame?.height ?? sprite.height;
-
-        const keyHandler = (event: KeyboardEvent): void => {
-          if (event.key === "Escape") {
-            if (typeof event.preventDefault === "function") {
-              event.preventDefault();
-            }
-            closeOverlay();
-          }
-        };
-
-        overlay.visible = true;
-        overlayStateRef.current = {
-          mapLabel,
-          sprite,
-          resource,
-          background,
-          highlight,
-          baseWidth,
-          baseHeight,
-          keyHandler,
-        };
-        const world = worldRef.current;
-        if (world) {
-          world.visible = false;
-        }
-        if (typeof window !== "undefined") {
-          window.addEventListener("keydown", keyHandler);
-        }
-        app.renderer.off("resize", positionOverlayContents);
-        app.renderer.on("resize", positionOverlayContents);
-        positionOverlayContents();
-      } catch (err) {
-        if (overlayTokenRef.current === token) {
-          console.error(`Failed to open overlay for ${mapLabel}`, err);
-        }
-      }
-    },
-    [computeCellSize, closeOverlay, positionOverlayContents, resolveAssetHref]
-  );
 
   useEffect(() => {
     return () => {
@@ -581,56 +495,385 @@ export default function MapCanvas({
     [clampWorldToBounds, schedulePersistViewState]
   );
 
+  const resolveTargetLabel = useCallback((target: MapWarp["target"] | null | undefined): string | null => {
+    if (!target) {
+      return null;
+    }
+    const direct = typeof target.mapLabel === "string" ? target.mapLabel.trim() : "";
+    if (direct.length > 0) {
+      return direct;
+    }
+    const constant = typeof target.mapConstant === "string" ? target.mapConstant.trim() : "";
+    if (constant.length === 0) {
+      return null;
+    }
+    const lookup = warpMetadataRef.current?.constantLookup ?? {};
+    const mapped = lookup[constant];
+    if (typeof mapped === "string" && mapped.trim().length > 0) {
+      return mapped.trim();
+    }
+    return null;
+  }, []);
+
+  const getMapMetadata = useCallback((mapLabel: string | null | undefined) => {
+    if (typeof mapLabel !== "string" || mapLabel.trim().length === 0) {
+      return null;
+    }
+    const metadata = warpMetadataRef.current?.maps?.[mapLabel];
+    return metadata ?? null;
+  }, []);
+
+  const getWarpMetadata = useCallback(
+    (mapLabel: string | null | undefined, warpIndex: number | null | undefined) => {
+      if (typeof warpIndex !== "number" || !Number.isFinite(warpIndex)) {
+        return null;
+      }
+      const mapMeta = getMapMetadata(mapLabel);
+      if (!mapMeta || !Array.isArray(mapMeta.warps)) {
+        return null;
+      }
+      return mapMeta.warps.find((item) => item.index === warpIndex) ?? null;
+    },
+    [getMapMetadata]
+  );
+
+  const findWorldEntry = useCallback((mapLabel: string | null | undefined): SyncedAnimation | null => {
+    if (typeof mapLabel !== "string" || mapLabel.trim().length === 0) {
+      return null;
+    }
+    return animationsRef.current.find((item) => item.placement.label === mapLabel) ?? null;
+  }, []);
+
+  const focusEntryOnWarp = useCallback(
+    (entry: SyncedAnimation | null, coordinates: { xCells: number | null; yCells: number | null } | null | undefined): void => {
+      if (!entry) {
+        return;
+      }
+      const cellSize = computeCellSize();
+      if (
+        coordinates &&
+        typeof coordinates.xCells === "number" && Number.isFinite(coordinates.xCells) &&
+        typeof coordinates.yCells === "number" && Number.isFinite(coordinates.yCells)
+      ) {
+        const worldX = entry.sprite.x + coordinates.xCells * cellSize + cellSize / 2;
+        const worldY = entry.sprite.y + coordinates.yCells * cellSize + cellSize / 2;
+        focusWorldOn(worldX, worldY);
+        return;
+      }
+      const worldX = entry.sprite.x + entry.placement.widthPx / 2;
+      const worldY = entry.sprite.y + entry.placement.heightPx / 2;
+      focusWorldOn(worldX, worldY);
+    },
+    [computeCellSize, focusWorldOn]
+  );
+
+  const openOverlay = useCallback(
+    async (
+      mapLabel: string,
+      highlight?: {
+        xCells?: number | null;
+        yCells?: number | null;
+      }
+    ): Promise<void> => {
+      if (!resolveAssetHref) {
+        return;
+      }
+      const overlay = overlayRef.current;
+      const app = appRef.current;
+      if (!overlay || !app) {
+        return;
+      }
+      const assetUrl = resolveAssetHref(mapLabel);
+      if (!assetUrl) {
+        return;
+      }
+      const token = overlayTokenRef.current + 1;
+      overlayTokenRef.current = token;
+      try {
+        const resource = await loadMapAnimation(assetUrl);
+        if (overlayTokenRef.current !== token) {
+          disposeAnimationResource(resource);
+          return;
+        }
+        closeOverlay();
+        if (!overlayRef.current) {
+          disposeAnimationResource(resource);
+          return;
+        }
+        const background = new Graphics();
+        background.eventMode = "static";
+        background.cursor = "pointer";
+        background.on("pointertap", () => {
+          closeOverlay();
+        });
+
+        const sprite = new AnimatedSprite(resource.textures);
+        sprite.loop = true;
+        sprite.autoUpdate = false;
+        sprite.animationSpeed = 0;
+        sprite.gotoAndStop(0);
+        sprite.eventMode = "static";
+        sprite.on("pointertap", (event) => {
+          event.stopPropagation();
+        });
+
+        overlay.addChild(background);
+        overlay.addChild(sprite);
+
+        const cellSize = computeCellSize();
+        const baseAlpha = 0.9;
+        const markers: WarpMarkerEntry[] = [];
+        const mapMeta = getMapMetadata(mapLabel);
+
+        if (mapMeta && Array.isArray(mapMeta.warps)) {
+          for (const warp of mapMeta.warps) {
+            const { xCells, yCells } = warp;
+            if (typeof xCells !== "number" || !Number.isFinite(xCells) || typeof yCells !== "number" || !Number.isFinite(yCells)) {
+              continue;
+            }
+            const graphic = new Graphics();
+            const margin = Math.max(0, cellSize * 0.1);
+            const radius = Math.max(4, cellSize * 0.25);
+            graphic.beginFill(0x1abc9c, 0.35);
+            graphic.lineStyle(Math.max(1, cellSize * 0.08), 0xffffff, 0.9);
+            graphic.drawRoundedRect(margin, margin, cellSize - margin * 2, cellSize - margin * 2, radius);
+            graphic.endFill();
+            graphic.alpha = baseAlpha;
+            graphic.x = xCells * cellSize;
+            graphic.y = yCells * cellSize;
+            graphic.eventMode = "static";
+            graphic.cursor = "pointer";
+            graphic.on("pointertap", (event) => {
+              event.stopPropagation();
+              if (typeof event.preventDefault === "function") {
+                event.preventDefault();
+              }
+              const handler = handleOverlayWarpRef.current;
+              if (handler) {
+                handler(warp);
+              }
+            });
+            graphic.on("pointerover", () => {
+              graphic.alpha = 1;
+            });
+            graphic.on("pointerout", () => {
+              graphic.alpha = baseAlpha;
+            });
+            sprite.addChild(graphic);
+            markers.push({ warp, graphic });
+          }
+        }
+
+        let highlightGraphic: Graphics | undefined;
+        if (
+          highlight &&
+          typeof highlight.xCells === "number" && Number.isFinite(highlight.xCells) &&
+          typeof highlight.yCells === "number" && Number.isFinite(highlight.yCells)
+        ) {
+          highlightGraphic = new Graphics();
+          const margin = Math.max(0, cellSize * 0.1);
+          const radius = Math.max(4, cellSize * 0.25);
+          highlightGraphic.lineStyle(Math.max(1, cellSize * 0.1), 0xf1c40f, 0.95);
+          highlightGraphic.beginFill(0xf39c12, 0.3);
+          highlightGraphic.drawRoundedRect(margin, margin, cellSize - margin * 2, cellSize - margin * 2, radius);
+          highlightGraphic.endFill();
+          highlightGraphic.x = highlight.xCells * cellSize;
+          highlightGraphic.y = highlight.yCells * cellSize;
+          sprite.addChild(highlightGraphic);
+        }
+
+        const frame = resource.textures[0];
+        const baseWidth = frame?.width ?? sprite.width;
+        const baseHeight = frame?.height ?? sprite.height;
+
+        const keyHandler = (event: KeyboardEvent): void => {
+          if (event.key === "Escape") {
+            if (typeof event.preventDefault === "function") {
+              event.preventDefault();
+            }
+            closeOverlay();
+          }
+        };
+
+        overlay.visible = true;
+        overlayStateRef.current = {
+          mapLabel,
+          sprite,
+          resource,
+          background,
+          markers,
+          highlight: highlightGraphic,
+          baseWidth,
+          baseHeight,
+          cellSize,
+          baseAlpha,
+          keyHandler,
+        };
+        const world = worldRef.current;
+        if (world) {
+          world.visible = false;
+        }
+        if (typeof window !== "undefined") {
+          window.addEventListener("keydown", keyHandler);
+        }
+        app.renderer.off("resize", positionOverlayContents);
+        app.renderer.on("resize", positionOverlayContents);
+        positionOverlayContents();
+      } catch (err) {
+        if (overlayTokenRef.current === token) {
+          console.error(`Failed to open overlay for ${mapLabel}`, err);
+        }
+      }
+    },
+    [closeOverlay, computeCellSize, getMapMetadata, positionOverlayContents, resolveAssetHref]
+  );
+
   const handleWarpMarkerTap = useCallback(
     (entry: SyncedAnimation, warp: MapWarp): void => {
       if (editing) {
         return;
       }
       highlightWarpMarker(entry, warp.index);
-      const cellSize = computeCellSize();
       const target = warp.target;
-      const lookup = warpMetadataRef.current?.constantLookup ?? {};
-      let targetLabel = target.mapLabel && target.mapLabel.trim().length > 0 ? target.mapLabel.trim() : null;
-      if (!targetLabel && target.mapConstant) {
-        const mapped = lookup[target.mapConstant];
-        if (mapped && mapped.trim().length > 0) {
-          targetLabel = mapped.trim();
-        }
-      }
+      const targetLabel = resolveTargetLabel(target);
       if (targetLabel) {
-        const targetEntry = animationsRef.current.find((item) => item.placement.label === targetLabel) ?? null;
+        const targetEntry = findWorldEntry(targetLabel);
         if (targetEntry) {
-          if (
-            typeof target.xCells === "number" && Number.isFinite(target.xCells) &&
-            typeof target.yCells === "number" && Number.isFinite(target.yCells)
-          ) {
-            const worldX = targetEntry.sprite.x + target.xCells * cellSize + cellSize / 2;
-            const worldY = targetEntry.sprite.y + target.yCells * cellSize + cellSize / 2;
-            focusWorldOn(worldX, worldY);
-          } else {
-            const worldX = targetEntry.sprite.x + targetEntry.placement.widthPx / 2;
-            const worldY = targetEntry.sprite.y + targetEntry.placement.heightPx / 2;
-            focusWorldOn(worldX, worldY);
+          focusEntryOnWarp(targetEntry, target);
+          if (typeof target.warpIndex === "number") {
+            highlightWarpMarker(targetEntry, target.warpIndex);
           }
+          backlinkRef.current = null;
+          return;
+        }
+        const sourceMeta = getMapMetadata(entry.placement.label);
+        backlinkRef.current = {
+          applicableTo: targetLabel,
+          mapLabel: entry.placement.label,
+          mapConstant: sourceMeta?.mapConstant ?? null,
+          warpIndex: warp.index,
+          previous: backlinkRef.current,
+        };
+        void openOverlay(targetLabel, {
+          xCells: target.xCells,
+          yCells: target.yCells,
+        });
+        return;
+      }
+      focusEntryOnWarp(entry, warp);
+    },
+    [editing, findWorldEntry, focusEntryOnWarp, getMapMetadata, highlightWarpMarker, openOverlay, resolveTargetLabel]
+  );
+
+  const handleOverlayWarp = useCallback(
+    (warp: MapWarp): void => {
+      const state = overlayStateRef.current;
+      if (!state) {
+        return;
+      }
+      const currentMapLabel = state.mapLabel;
+      const target = warp.target;
+      const targetLabel = resolveTargetLabel(target);
+      const highlightOverlayMarker = (warpIndex: number): void => {
+        const entry = overlayStateRef.current;
+        if (!entry) {
+          return;
+        }
+        const marker = entry.markers.find((item) => item.warp.index === warpIndex);
+        if (!marker) {
+          return;
+        }
+        marker.graphic.alpha = 1;
+        marker.graphic.scale.set(1.15);
+        if (typeof window !== "undefined") {
+          window.setTimeout(() => {
+            const active = overlayStateRef.current;
+            if (!active || active.mapLabel !== entry.mapLabel) {
+              return;
+            }
+            if ((marker.graphic as { destroyed?: boolean }).destroyed) {
+              return;
+            }
+            marker.graphic.alpha = entry.baseAlpha;
+            marker.graphic.scale.set(1);
+          }, 900);
+          return;
+        }
+        marker.graphic.alpha = entry.baseAlpha;
+        marker.graphic.scale.set(1);
+      };
+
+      if (typeof target.warpIndex === "number" && target.warpIndex >= 0 && (!targetLabel || targetLabel === currentMapLabel)) {
+        highlightOverlayMarker(target.warpIndex);
+      }
+
+      if (typeof target.warpIndex === "number" && target.warpIndex === -1) {
+        const backlink = backlinkRef.current;
+        if (!backlink || backlink.applicableTo !== currentMapLabel) {
+          return;
+        }
+        backlinkRef.current = backlink.previous ?? null;
+        const fallbackLabel = backlink.mapLabel;
+        const fallbackEntry = findWorldEntry(fallbackLabel);
+        if (fallbackEntry) {
+          closeOverlay();
+          const fallbackWarp = getWarpMetadata(fallbackLabel, backlink.warpIndex);
+          focusEntryOnWarp(fallbackEntry, fallbackWarp ?? null);
+          highlightWarpMarker(fallbackEntry, backlink.warpIndex);
+          return;
+        }
+        const fallbackWarp = getWarpMetadata(fallbackLabel, backlink.warpIndex);
+        void openOverlay(fallbackLabel, {
+          xCells: fallbackWarp?.xCells ?? null,
+          yCells: fallbackWarp?.yCells ?? null,
+        });
+        return;
+      }
+
+      if (targetLabel) {
+        const targetEntry = findWorldEntry(targetLabel);
+        if (targetEntry) {
+          const backlink = backlinkRef.current;
+          if (backlink && backlink.applicableTo === currentMapLabel) {
+            backlinkRef.current = backlink.previous ?? null;
+          }
+          closeOverlay();
+          focusEntryOnWarp(targetEntry, target);
           if (typeof target.warpIndex === "number") {
             highlightWarpMarker(targetEntry, target.warpIndex);
           }
           return;
         }
-        void openOverlay(targetLabel, target);
+        const sourceMeta = getMapMetadata(currentMapLabel);
+        backlinkRef.current = {
+          applicableTo: targetLabel,
+          mapLabel: currentMapLabel,
+          mapConstant: sourceMeta?.mapConstant ?? null,
+          warpIndex: warp.index,
+          previous: backlinkRef.current,
+        };
+        void openOverlay(targetLabel, {
+          xCells: target.xCells,
+          yCells: target.yCells,
+        });
         return;
       }
-      if (
-        typeof warp.xCells === "number" && Number.isFinite(warp.xCells) &&
-        typeof warp.yCells === "number" && Number.isFinite(warp.yCells)
-      ) {
-        const worldX = entry.sprite.x + warp.xCells * cellSize + cellSize / 2;
-        const worldY = entry.sprite.y + warp.yCells * cellSize + cellSize / 2;
-        focusWorldOn(worldX, worldY);
+
+      if (typeof target.warpIndex === "number" && target.warpIndex >= 0) {
+        highlightOverlayMarker(target.warpIndex);
       }
     },
-    [computeCellSize, editing, focusWorldOn, highlightWarpMarker, openOverlay]
+    [closeOverlay, findWorldEntry, focusEntryOnWarp, getMapMetadata, getWarpMetadata, highlightWarpMarker, openOverlay, resolveTargetLabel]
   );
+
+  useEffect(() => {
+    handleOverlayWarpRef.current = handleOverlayWarp;
+    return () => {
+      if (handleOverlayWarpRef.current === handleOverlayWarp) {
+        handleOverlayWarpRef.current = null;
+      }
+    };
+  }, [handleOverlayWarp]);
 
   const refreshWarpMarkers = useCallback((): void => {
     const metadata = warpMetadataRef.current;

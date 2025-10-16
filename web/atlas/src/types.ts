@@ -273,6 +273,31 @@ export interface MovementModel {
   note?: string;
 }
 
+export interface MapCellCoordinate {
+  x: number;
+  y: number;
+}
+
+export interface MovementBounds {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
+export interface MovementSummary {
+  model: MovementModel;
+  startCell: MapCellCoordinate;
+  medium: MovementMedium;
+  description: string;
+  axis?: MovementAxes;
+  path?: MapCellCoordinate[];
+  bounds?: MovementBounds;
+  reachable?: MapCellCoordinate[];
+  blockedNotes?: string[];
+  notes?: string[];
+}
+
 export interface ObjectFacingEntry {
   label: string;
   tiles: Array<{

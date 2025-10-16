@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Application, Container, AnimatedSprite, FederatedPointerEvent, Assets, Graphics, Sprite } from "pixi.js";
-import { AtlasLayout, MapPlacement, MapWarp, ObjectMetadata, ObjectEventEntry, WarpMetadata } from "@/types";
+import { Application, Container, AnimatedSprite, FederatedPointerEvent, Assets, Graphics, Sprite, Texture } from "pixi.js";
+import { AtlasLayout, MapPlacement, MapWarp, ObjectMetadata, ObjectEventEntry, WarpMetadata, MovementSummary } from "@/types";
 import { registerPixiExtensions } from "@/pixi/registerExtensions";
 import { loadMapAnimation, type MapAnimationResource } from "@/lib/loadMapAnimation";
 import { ObjectSpriteCache } from "@/lib/objectSprites";
 import { computeObjectPosition, type PlacementContext } from "@/lib/objectPlacement";
+import { createCollisionHelper, type CollisionHelper } from "@/lib/collision";
+import { getMovementModel } from "@/lib/movementModel";
+import { simulateNpcMovement } from "@/lib/movementSimulation";
 
 type OffsetTuple = [number, number];
 
@@ -21,9 +24,70 @@ type WarpBacklink = {
   previous: WarpBacklink | null;
 };
 
+type CardinalDirection = "down" | "up" | "left" | "right";
+
+type Offset = { dx: number; dy: number };
+
+type SpriteFrameRef = {
+  key: string;
+  texture: Texture;
+  offsetX: number;
+  offsetY: number;
+};
+
+type MovementFrameSet = {
+  framesByDirection: Partial<Record<CardinalDirection, SpriteFrameRef[]>>;
+  availableDirections: CardinalDirection[];
+  defaultFrame: SpriteFrameRef;
+  defaultDirection: CardinalDirection | null;
+};
+
+type MovementSegment =
+  | {
+      type: "move";
+      from: Offset;
+      to: Offset;
+      direction: CardinalDirection;
+      durationMs: number;
+    }
+  | {
+      type: "wait";
+      position: Offset;
+      direction: CardinalDirection;
+      durationMs: number;
+    };
+
+type PathMovementAnimator = {
+  kind: "path";
+  segments: MovementSegment[];
+  totalDurationMs: number;
+};
+
+type SpinStep = {
+  direction: CardinalDirection;
+  durationMs: number;
+};
+
+type SpinMovementAnimator = {
+  kind: "spin";
+  steps: SpinStep[];
+  totalDurationMs: number;
+};
+
+type MovementAnimator = PathMovementAnimator | SpinMovementAnimator;
+
 type ObjectMarkerEntry = {
   object: ObjectEventEntry;
   sprite: Sprite;
+  movementSummary: MovementSummary | null;
+  animator: MovementAnimator | null;
+  basePosition: { x: number; y: number };
+  spriteOffset: { x: number; y: number };
+  cellPixelSize: number;
+  frameSet: MovementFrameSet | null;
+  currentFrameKey: string | null;
+  spriteScale: number;
+  lastDirection: CardinalDirection | null;
 };
 
 interface MapCanvasProps {
@@ -136,6 +200,7 @@ type SyncedAnimation = {
   warpMarkers: WarpMarkerEntry[];
   objectContainer: Container | null;
   objectMarkers: ObjectMarkerEntry[];
+  collisionHelper: CollisionHelper | null;
 };
 
 type OverlayState = {
@@ -152,6 +217,7 @@ type OverlayState = {
   keyHandler: (event: KeyboardEvent) => void;
   objectContainer: Container | null;
   objectMarkers: ObjectMarkerEntry[];
+  collisionHelper: CollisionHelper | null;
   scale: number;
   fitScale: number;
   minScale: number;
@@ -243,6 +309,622 @@ function resolveFacingConstant(entry: ObjectEventEntry, metadata: ObjectMetadata
   }
   const firstKey = Object.keys(metadata.facings)[0];
   return firstKey ?? null;
+}
+
+function computeMovementSummaryForObject(
+  objectEntry: ObjectEventEntry,
+  collisionHelper: CollisionHelper | null,
+): MovementSummary | null {
+  const model = getMovementModel(objectEntry.movement?.constant ?? null);
+  try {
+    return simulateNpcMovement({
+      object: objectEntry,
+      model,
+      collisionHelper,
+    });
+  } catch (err) {
+    console.warn("Failed to compute movement summary", objectEntry, err);
+    return null;
+  }
+}
+
+const FRAME_DURATION_MS = 1000 / 60;
+
+const STEP_FRAMES_BY_SPEED: Record<string, number> = {
+  slow: 32,
+  normal: 16,
+  fast: 8,
+};
+
+const IDLE_FRAMES_BY_SPEED: Record<string, number> = {
+  slow: 48,
+  normal: 32,
+  fast: 20,
+};
+
+const SPIN_INTERVAL_BY_SPEED: Record<string, number> = {
+  slow: 700,
+  normal: 540,
+  fast: 360,
+};
+
+const STEP_FACING_KEYS: Record<CardinalDirection, string[]> = {
+  down: ["FACING_STEP_DOWN_0", "FACING_STEP_DOWN_1", "FACING_STEP_DOWN_2", "FACING_STEP_DOWN_3"],
+  up: ["FACING_STEP_UP_0", "FACING_STEP_UP_1", "FACING_STEP_UP_2", "FACING_STEP_UP_3"],
+  left: ["FACING_STEP_LEFT_0", "FACING_STEP_LEFT_1", "FACING_STEP_LEFT_2", "FACING_STEP_LEFT_3"],
+  right: ["FACING_STEP_RIGHT_0", "FACING_STEP_RIGHT_1", "FACING_STEP_RIGHT_2", "FACING_STEP_RIGHT_3"],
+};
+
+const CLOCKWISE_SEQUENCE: CardinalDirection[] = ["right", "down", "left", "up"];
+const COUNTERCLOCKWISE_SEQUENCE: CardinalDirection[] = ["right", "up", "left", "down"];
+
+const DIRECTION_DELTAS: Record<CardinalDirection, Offset> = {
+  down: { dx: 0, dy: 1 },
+  up: { dx: 0, dy: -1 },
+  left: { dx: -1, dy: 0 },
+  right: { dx: 1, dy: 0 },
+};
+
+function movementSpeedToStepDuration(speed: MovementSummary["model"]["speed"] | undefined): number {
+  const frames = speed ? STEP_FRAMES_BY_SPEED[speed] : undefined;
+  const frameCount = Number.isFinite(frames) ? (frames as number) : STEP_FRAMES_BY_SPEED.normal;
+  return frameCount * FRAME_DURATION_MS;
+}
+
+function movementSpeedToIdleDuration(speed: MovementSummary["model"]["speed"] | undefined): number {
+  const frames = speed ? IDLE_FRAMES_BY_SPEED[speed] : undefined;
+  const frameCount = Number.isFinite(frames) ? (frames as number) : IDLE_FRAMES_BY_SPEED.normal;
+  return frameCount * FRAME_DURATION_MS;
+}
+
+function movementSpeedToSpinInterval(speed: MovementSummary["model"]["speed"] | undefined): number {
+  const interval = speed ? SPIN_INTERVAL_BY_SPEED[speed] : undefined;
+  return Number.isFinite(interval) ? (interval as number) : SPIN_INTERVAL_BY_SPEED.normal;
+}
+
+function resolveDirectionFromFacingKey(key: string | null | undefined): CardinalDirection | null {
+  if (!key) {
+    return null;
+  }
+  const normalized = key.toUpperCase();
+  if (normalized.includes("_DOWN")) {
+    return "down";
+  }
+  if (normalized.includes("_UP")) {
+    return "up";
+  }
+  if (normalized.includes("_LEFT")) {
+    return "left";
+  }
+  if (normalized.includes("_RIGHT")) {
+    return "right";
+  }
+  return null;
+}
+
+function createSpriteFrameRef(
+  key: string,
+  record: ReturnType<ObjectSpriteCache["getFacingTexture"]>,
+): SpriteFrameRef {
+  return {
+    key,
+    texture: record.texture,
+    offsetX: record.offsetX,
+    offsetY: record.offsetY,
+  };
+}
+
+function createSeededRandom(seed: number): () => number {
+  let value = seed >>> 0;
+  return () => {
+    value = (value * 1664525 + 1013904223) >>> 0;
+    return value / 0xffffffff;
+  };
+}
+
+function deltaToDirection(dx: number, dy: number): CardinalDirection | null {
+  if (dx === 0 && dy === 0) {
+    return null;
+  }
+  if (dx === 0) {
+    if (dy > 0) {
+      return "down";
+    }
+    if (dy < 0) {
+      return "up";
+    }
+  }
+  if (dy === 0) {
+    if (dx > 0) {
+      return "right";
+    }
+    if (dx < 0) {
+      return "left";
+    }
+  }
+  return null;
+}
+
+function oppositeDirection(direction: CardinalDirection): CardinalDirection {
+  switch (direction) {
+    case "down":
+      return "up";
+    case "up":
+      return "down";
+    case "left":
+      return "right";
+    case "right":
+      return "left";
+    default:
+      return direction;
+  }
+}
+
+function buildMovementFrameSet(
+  cache: ObjectSpriteCache,
+  spriteKey: string,
+  paletteName: string | null,
+  baseKey: string,
+  baseRecord: ReturnType<ObjectSpriteCache["getFacingTexture"]>,
+): MovementFrameSet {
+  const defaultFrame = createSpriteFrameRef(baseKey, baseRecord);
+  const framesByDirection: Partial<Record<CardinalDirection, SpriteFrameRef[]>> = {};
+  const availableDirections: CardinalDirection[] = [];
+
+  (Object.keys(STEP_FACING_KEYS) as CardinalDirection[]).forEach((direction) => {
+    const keys = STEP_FACING_KEYS[direction];
+    const frames: SpriteFrameRef[] = [];
+    for (const facingKey of keys) {
+      const record = cache.getFacingTexture(spriteKey, facingKey, paletteName ?? null);
+      if (record) {
+        frames.push(createSpriteFrameRef(facingKey, record));
+      }
+    }
+    if (frames.length > 0) {
+      if (frames.length < 4) {
+        const originals = frames.slice();
+        while (frames.length < 4) {
+          frames.push(originals[frames.length % originals.length]);
+        }
+      }
+      framesByDirection[direction] = frames;
+      if (!availableDirections.includes(direction)) {
+        availableDirections.push(direction);
+      }
+    }
+  });
+
+  let defaultDirection = resolveDirectionFromFacingKey(baseKey);
+  if (!defaultDirection && availableDirections.length > 0) {
+    defaultDirection = availableDirections[0];
+  }
+  if (defaultDirection && !availableDirections.includes(defaultDirection)) {
+    availableDirections.unshift(defaultDirection);
+  }
+
+  return {
+    framesByDirection,
+    availableDirections,
+    defaultFrame,
+    defaultDirection: defaultDirection ?? null,
+  };
+}
+
+function createAxisPathAnimator(summary: MovementSummary, frameSet: MovementFrameSet | null): PathMovementAnimator | null {
+  if (!summary.path || summary.path.length === 0) {
+    return null;
+  }
+  const start = summary.startCell;
+  const path = summary.path;
+  const startIndex = path.findIndex((cell) => cell.x === start.x && cell.y === start.y);
+  if (startIndex === -1) {
+    return null;
+  }
+  const positiveOffsets = path
+    .slice(startIndex + 1)
+    .map((cell) => ({ dx: cell.x - start.x, dy: cell.y - start.y }));
+  const negativeOffsets = path
+    .slice(0, startIndex)
+    .map((cell) => ({ dx: cell.x - start.x, dy: cell.y - start.y }))
+    .reverse();
+
+  if (positiveOffsets.length === 0 && negativeOffsets.length === 0) {
+    return null;
+  }
+
+  const moveDuration = Math.max(90, movementSpeedToStepDuration(summary.model.speed));
+  const idleDuration = Math.max(120, movementSpeedToIdleDuration(summary.model.speed) * 0.6);
+
+  const segments: MovementSegment[] = [];
+  let current: Offset = { dx: 0, dy: 0 };
+  let currentDirection: CardinalDirection = frameSet?.defaultDirection ?? (summary.axis === "x" ? "right" : "down");
+
+  const pushMove = (target: Offset): void => {
+    if (target.dx === current.dx && target.dy === current.dy) {
+      return;
+    }
+    const direction = deltaToDirection(target.dx - current.dx, target.dy - current.dy);
+    if (!direction) {
+      return;
+    }
+    segments.push({
+      type: "move",
+      from: { ...current },
+      to: { ...target },
+      direction,
+      durationMs: moveDuration,
+    });
+    current = { ...target };
+    currentDirection = direction;
+  };
+
+  const pushIdle = (duration: number): void => {
+    if (!(duration > 0)) {
+      return;
+    }
+    segments.push({
+      type: "wait",
+      position: { ...current },
+      direction: currentDirection,
+      durationMs: duration,
+    });
+  };
+
+  const traverseOffsets = (offsets: Offset[]): void => {
+    if (!offsets.length) {
+      return;
+    }
+    for (const offset of offsets) {
+      pushMove(offset);
+      pushIdle(idleDuration);
+    }
+    for (let index = offsets.length - 2; index >= 0; index -= 1) {
+      const offset = offsets[index];
+      if (!offset) {
+        continue;
+      }
+      pushMove(offset);
+      pushIdle(idleDuration);
+    }
+    pushMove({ dx: 0, dy: 0 });
+    pushIdle(idleDuration);
+  };
+
+  traverseOffsets(positiveOffsets);
+  traverseOffsets(negativeOffsets);
+
+  if (!segments.length) {
+    return null;
+  }
+  const totalDuration = segments.reduce((total, segment) => total + Math.max(0, segment.durationMs), 0);
+  if (!(totalDuration > 0)) {
+    return null;
+  }
+
+  return {
+    kind: "path",
+    segments,
+    totalDurationMs: totalDuration,
+  };
+}
+
+function createWanderAnimator(
+  summary: MovementSummary,
+  objectEntry: ObjectEventEntry,
+  frameSet: MovementFrameSet | null,
+): PathMovementAnimator | null {
+  const bounds = summary.bounds ?? {
+    left: summary.startCell.x,
+    right: summary.startCell.x,
+    top: summary.startCell.y,
+    bottom: summary.startCell.y,
+  };
+  const reachableCells = summary.reachable ?? null;
+  const reachableSet = reachableCells
+    ? new Set(reachableCells.map((cell) => `${cell.x},${cell.y}`))
+    : null;
+
+  const seedBase = (objectEntry.index ?? 0) * 1103515245 + summary.startCell.x * 1237 + summary.startCell.y * 1999;
+  const rng = createSeededRandom(seedBase >>> 0);
+  const moveDuration = Math.max(90, movementSpeedToStepDuration(summary.model.speed));
+  const idleBase = Math.max(120, movementSpeedToIdleDuration(summary.model.speed));
+  const directionPool: CardinalDirection[] = ["down", "up", "left", "right"];
+
+  let current: Offset = { dx: 0, dy: 0 };
+  let currentDirection: CardinalDirection = frameSet?.defaultDirection ?? "down";
+
+  const maxExtentX = bounds.right - bounds.left;
+  const maxExtentY = bounds.bottom - bounds.top;
+  const halfLength = Math.max(3, Math.min(12, maxExtentX + maxExtentY + 4));
+
+  const forwardDirections: CardinalDirection[] = [];
+
+  for (let step = 0; step < halfLength; step += 1) {
+    const candidates: CardinalDirection[] = [];
+    for (const direction of directionPool) {
+      const delta = DIRECTION_DELTAS[direction];
+      const next = { dx: current.dx + delta.dx, dy: current.dy + delta.dy };
+      const absX = summary.startCell.x + next.dx;
+      const absY = summary.startCell.y + next.dy;
+      if (absX < bounds.left || absX > bounds.right || absY < bounds.top || absY > bounds.bottom) {
+        continue;
+      }
+      if (reachableSet && !reachableSet.has(`${absX},${absY}`)) {
+        continue;
+      }
+      candidates.push(direction);
+    }
+    if (!candidates.length) {
+      break;
+    }
+    const choice = candidates[Math.floor(rng() * candidates.length)];
+    forwardDirections.push(choice);
+    const delta = DIRECTION_DELTAS[choice];
+    current = { dx: current.dx + delta.dx, dy: current.dy + delta.dy };
+  }
+
+  if (!forwardDirections.length) {
+    return null;
+  }
+
+  const directions: CardinalDirection[] = [...forwardDirections];
+  for (let index = forwardDirections.length - 1; index >= 0; index -= 1) {
+    directions.push(oppositeDirection(forwardDirections[index]));
+  }
+
+  current = { dx: 0, dy: 0 };
+  const segments: MovementSegment[] = [];
+  for (const direction of directions) {
+    const delta = DIRECTION_DELTAS[direction];
+    const target = { dx: current.dx + delta.dx, dy: current.dy + delta.dy };
+    segments.push({
+      type: "move",
+      from: { ...current },
+      to: target,
+      direction,
+      durationMs: moveDuration,
+    });
+    current = target;
+    currentDirection = direction;
+    const idleDuration = idleBase * (0.6 + rng() * 0.6);
+    segments.push({
+      type: "wait",
+      position: { ...current },
+      direction: currentDirection,
+      durationMs: idleDuration,
+    });
+  }
+
+  if (current.dx !== 0 || current.dy !== 0) {
+    while (current.dx !== 0) {
+      const direction = current.dx > 0 ? "left" : "right";
+      const delta = DIRECTION_DELTAS[direction];
+      const target = { dx: current.dx + delta.dx, dy: current.dy + delta.dy };
+      segments.push({
+        type: "move",
+        from: { ...current },
+        to: target,
+        direction,
+        durationMs: moveDuration,
+      });
+      current = target;
+      currentDirection = direction;
+    }
+    while (current.dy !== 0) {
+      const direction = current.dy > 0 ? "up" : "down";
+      const delta = DIRECTION_DELTAS[direction];
+      const target = { dx: current.dx + delta.dx, dy: current.dy + delta.dy };
+      segments.push({
+        type: "move",
+        from: { ...current },
+        to: target,
+        direction,
+        durationMs: moveDuration,
+      });
+      current = target;
+      currentDirection = direction;
+    }
+    segments.push({
+      type: "wait",
+      position: { ...current },
+      direction: currentDirection,
+      durationMs: idleBase,
+    });
+  }
+
+  const totalDuration = segments.reduce((total, segment) => total + Math.max(0, segment.durationMs), 0);
+  if (!(totalDuration > 0)) {
+    return null;
+  }
+
+  return {
+    kind: "path",
+    segments,
+    totalDurationMs: totalDuration,
+  };
+}
+
+function createSpinAnimator(
+  summary: MovementSummary,
+  objectEntry: ObjectEventEntry,
+  frameSet: MovementFrameSet | null,
+): SpinMovementAnimator | null {
+  const directionMode = summary.model.spinDirection ?? "random";
+  const interval = Math.max(180, movementSpeedToSpinInterval(summary.model.speed));
+  const steps: SpinStep[] = [];
+
+  if (directionMode === "clockwise" || directionMode === "counterclockwise") {
+    const sequence = directionMode === "clockwise" ? CLOCKWISE_SEQUENCE : COUNTERCLOCKWISE_SEQUENCE;
+    const startDirection = frameSet?.defaultDirection ?? sequence[0];
+    const startIndex = sequence.indexOf(startDirection);
+    const normalizedStart = startIndex >= 0 ? startIndex : 0;
+    for (let index = 0; index < sequence.length; index += 1) {
+      const direction = sequence[(normalizedStart + index) % sequence.length];
+      steps.push({ direction, durationMs: interval });
+    }
+  } else {
+    const available = frameSet?.availableDirections?.length
+      ? frameSet.availableDirections
+      : (["down", "up", "left", "right"] as CardinalDirection[]);
+    const rngSeed = (objectEntry.index ?? 0) * 214013 + summary.startCell.x * 2531011 + summary.startCell.y * 1376312589;
+    const rng = createSeededRandom(rngSeed >>> 0);
+    const stepCount = 6;
+    for (let index = 0; index < stepCount; index += 1) {
+      const direction = available[Math.floor(rng() * available.length)] ?? "down";
+      const duration = interval * (0.6 + rng() * 0.8);
+      steps.push({ direction, durationMs: duration });
+    }
+  }
+
+  const totalDuration = steps.reduce((total, step) => total + Math.max(0, step.durationMs), 0);
+  if (!(totalDuration > 0)) {
+    return null;
+  }
+
+  return {
+    kind: "spin",
+    steps,
+    totalDurationMs: totalDuration,
+  };
+}
+
+function createMovementAnimator(
+  summary: MovementSummary | null,
+  objectEntry: ObjectEventEntry,
+  frameSet: MovementFrameSet | null,
+): MovementAnimator | null {
+  if (!summary) {
+    return null;
+  }
+  if (summary.model.category === "axis-walk") {
+    return createAxisPathAnimator(summary, frameSet);
+  }
+  if (summary.model.category === "random-walk") {
+    return createWanderAnimator(summary, objectEntry, frameSet);
+  }
+  if (summary.model.category === "spin") {
+    return createSpinAnimator(summary, objectEntry, frameSet);
+  }
+  return null;
+}
+
+function applySpriteFrame(marker: ObjectMarkerEntry, direction: CardinalDirection | null, frameIndex: number): void {
+  const frameSet = marker.frameSet;
+  if (!frameSet) {
+    if (direction) {
+      marker.lastDirection = direction;
+    }
+    return;
+  }
+  let frames = direction && frameSet.framesByDirection[direction]?.length
+    ? frameSet.framesByDirection[direction]
+    : undefined;
+  let resolvedDirection = direction;
+  if ((!frames || frames.length === 0) && frameSet.defaultDirection) {
+    const fallback = frameSet.framesByDirection[frameSet.defaultDirection];
+    if (fallback && fallback.length) {
+      frames = fallback;
+      resolvedDirection = frameSet.defaultDirection;
+    }
+  }
+  if ((!frames || frames.length === 0) && frameSet.availableDirections.length > 0) {
+    const fallbackDirection = frameSet.availableDirections[0];
+    const fallback = frameSet.framesByDirection[fallbackDirection];
+    if (fallback && fallback.length) {
+      frames = fallback;
+      resolvedDirection = fallbackDirection;
+    }
+  }
+  let frame: SpriteFrameRef | null = null;
+  if (frames && frames.length > 0) {
+    const normalizedIndex = Math.max(0, Math.floor(frameIndex)) % frames.length;
+    frame = frames[normalizedIndex];
+  }
+  if (!frame) {
+    frame = frameSet.defaultFrame;
+  }
+  if (marker.currentFrameKey !== frame.key) {
+    marker.sprite.texture = frame.texture;
+    marker.currentFrameKey = frame.key;
+  }
+  marker.spriteOffset.x = frame.offsetX * marker.spriteScale;
+  marker.spriteOffset.y = frame.offsetY * marker.spriteScale;
+  if (resolvedDirection) {
+    marker.lastDirection = resolvedDirection;
+  }
+}
+
+function updateMarkerAnimation(marker: ObjectMarkerEntry, elapsedMs: number): void {
+  const baseX = marker.basePosition.x;
+  const baseY = marker.basePosition.y;
+  const cellSize = marker.cellPixelSize;
+  const animator = marker.animator;
+
+  if (!animator) {
+    applySpriteFrame(marker, marker.lastDirection ?? marker.frameSet?.defaultDirection ?? null, 0);
+    marker.sprite.x = baseX + marker.spriteOffset.x;
+    marker.sprite.y = baseY + marker.spriteOffset.y;
+    return;
+  }
+
+  if (animator.kind === "path") {
+    const total = animator.totalDurationMs;
+    if (!(total > 0) || animator.segments.length === 0) {
+      applySpriteFrame(marker, marker.lastDirection ?? marker.frameSet?.defaultDirection ?? null, 0);
+      marker.sprite.x = baseX + marker.spriteOffset.x;
+      marker.sprite.y = baseY + marker.spriteOffset.y;
+      return;
+    }
+    const timeInCycle = ((elapsedMs % total) + total) % total;
+    let accumulator = 0;
+    let activeSegment = animator.segments[animator.segments.length - 1];
+    for (const segment of animator.segments) {
+      const next = accumulator + segment.durationMs;
+      if (timeInCycle < next) {
+        activeSegment = segment;
+        break;
+      }
+      accumulator = next;
+    }
+    if (activeSegment.type === "move") {
+      const segmentElapsed = timeInCycle - accumulator;
+      const duration = activeSegment.durationMs > 0 ? activeSegment.durationMs : 1;
+      const progress = Math.max(0, Math.min(1, segmentElapsed / duration));
+      const interpDx = activeSegment.from.dx + (activeSegment.to.dx - activeSegment.from.dx) * progress;
+      const interpDy = activeSegment.from.dy + (activeSegment.to.dy - activeSegment.from.dy) * progress;
+      const frameIndex = Math.floor(progress * 4);
+      applySpriteFrame(marker, activeSegment.direction, frameIndex);
+      marker.sprite.x = baseX + marker.spriteOffset.x + interpDx * cellSize;
+      marker.sprite.y = baseY + marker.spriteOffset.y + interpDy * cellSize;
+    } else {
+      applySpriteFrame(marker, activeSegment.direction, 0);
+      marker.sprite.x = baseX + marker.spriteOffset.x + activeSegment.position.dx * cellSize;
+      marker.sprite.y = baseY + marker.spriteOffset.y + activeSegment.position.dy * cellSize;
+    }
+    return;
+  }
+
+  const total = animator.totalDurationMs;
+  if (!(total > 0) || animator.steps.length === 0) {
+    applySpriteFrame(marker, marker.lastDirection ?? marker.frameSet?.defaultDirection ?? null, 0);
+    marker.sprite.x = baseX + marker.spriteOffset.x;
+    marker.sprite.y = baseY + marker.spriteOffset.y;
+    return;
+  }
+  const timeInCycle = ((elapsedMs % total) + total) % total;
+  let accumulator = 0;
+  let activeStep = animator.steps[animator.steps.length - 1];
+  for (const step of animator.steps) {
+    const next = accumulator + step.durationMs;
+    if (timeInCycle < next) {
+      activeStep = step;
+      break;
+    }
+    accumulator = next;
+  }
+  applySpriteFrame(marker, activeStep.direction, 0);
+  marker.sprite.x = baseX + marker.spriteOffset.x;
+  marker.sprite.y = baseY + marker.spriteOffset.y;
 }
 
 function snapToHalf(value: number): number {
@@ -748,6 +1430,12 @@ export default function MapCanvas({
     const cache = objectSpriteCacheRef.current;
     const sprite = state.sprite;
 
+    if (!state.collisionHelper) {
+      const collisionMeta = getCollisionMetadata(state.mapLabel);
+      const permissions = warpMetadataRef.current?.collisionPermissions ?? null;
+      state.collisionHelper = createCollisionHelper(collisionMeta, permissions);
+    }
+
     const disposeContainer = (): void => {
       if (!state.objectContainer) {
         return;
@@ -811,7 +1499,8 @@ export default function MapCanvas({
       cellsPerBlock,
       eventCellPixelSize: baseCellPixelSize,
     };
-    const pixelScale = metadataBlockSize !== 0 ? atlasBlockPixelSize / metadataBlockSize : 1;
+  const pixelScale = metadataBlockSize !== 0 ? atlasBlockPixelSize / metadataBlockSize : 1;
+  const atlasCellPixelSize = cellsPerBlock > 0 ? atlasBlockPixelSize / cellsPerBlock : atlasBlockPixelSize;
 
     let container = state.objectContainer;
     if (!container) {
@@ -856,17 +1545,38 @@ export default function MapCanvas({
       if (!record) {
         continue;
       }
-      const spriteInstance = new Sprite(record.texture);
+      const baseFrame = createSpriteFrameRef(facingKey, record);
+      const frameSet = buildMovementFrameSet(cache, spriteKey, paletteName, facingKey, record);
+      const spriteInstance = new Sprite(baseFrame.texture);
       spriteInstance.eventMode = "none";
       spriteInstance.cursor = "auto";
       const { x: baseX, y: baseY } = computeObjectPosition(objectEntry, placementContext);
-      const offsetX = record.offsetX * pixelScale;
-      const offsetY = record.offsetY * pixelScale;
+      const offsetX = baseFrame.offsetX * pixelScale;
+      const offsetY = baseFrame.offsetY * pixelScale;
       spriteInstance.x = baseX + offsetX;
       spriteInstance.y = baseY + offsetY;
       spriteInstance.scale.set(pixelScale);
       container.addChild(spriteInstance);
-      state.objectMarkers.push({ object: objectEntry, sprite: spriteInstance });
+      const movementSummary = computeMovementSummaryForObject(objectEntry, state.collisionHelper);
+      const animator = createMovementAnimator(movementSummary, objectEntry, frameSet);
+      state.objectMarkers.push({
+        object: objectEntry,
+        sprite: spriteInstance,
+        movementSummary,
+        animator,
+        basePosition: { x: baseX, y: baseY },
+        spriteOffset: { x: offsetX, y: offsetY },
+        cellPixelSize: atlasCellPixelSize,
+        frameSet,
+        currentFrameKey: baseFrame.key,
+        spriteScale: pixelScale,
+        lastDirection: frameSet?.defaultDirection ?? resolveDirectionFromFacingKey(facingKey),
+      });
+    }
+
+    const overlayElapsed = appRef.current?.ticker?.lastTime ?? 0;
+    for (const marker of state.objectMarkers) {
+      updateMarkerAnimation(marker, overlayElapsed);
     }
 
     if (container.children.length === 0) {
@@ -880,7 +1590,7 @@ export default function MapCanvas({
     }
 
     sprite.sortChildren();
-  }, [atlas, timeOfDay]);
+  }, [atlas, timeOfDay, getCollisionMetadata]);
 
   const openOverlay = useCallback(
     async (
@@ -947,6 +1657,9 @@ export default function MapCanvas({
         const baseAlpha = 0.9;
         const markers: WarpMarkerEntry[] = [];
         const mapMeta = getMapMetadata(mapLabel);
+        const collisionMeta = getCollisionMetadata(mapLabel);
+        const permissions = warpMetadataRef.current?.collisionPermissions ?? null;
+        const collisionHelper = createCollisionHelper(collisionMeta, permissions);
 
         if (mapMeta && Array.isArray(mapMeta.warps)) {
           for (const warp of mapMeta.warps) {
@@ -1040,6 +1753,7 @@ export default function MapCanvas({
           keyHandler,
           objectContainer,
           objectMarkers: [],
+          collisionHelper,
           scale: Number.NaN,
           fitScale: 1,
           minScale: MIN_SCALE,
@@ -1068,7 +1782,7 @@ export default function MapCanvas({
         }
       }
     },
-    [closeOverlay, computeCellSize, getMapMetadata, positionOverlayContents, refreshOverlayObjects, resolveAssetHref]
+    [closeOverlay, computeCellSize, getMapMetadata, getCollisionMetadata, positionOverlayContents, refreshOverlayObjects, resolveAssetHref]
   );
 
   const handleWarpMarkerTap = useCallback(
@@ -1317,7 +2031,8 @@ export default function MapCanvas({
     const baseCellPixelSize = Number.isFinite(metadata.eventCellPixelSize) && metadata.eventCellPixelSize > 0
       ? Math.abs(metadata.eventCellPixelSize)
       : Math.max(1, Math.trunc(metadataBlockSize / Math.max(1, cellsPerBlock)));
-    const pixelScale = metadataBlockSize !== 0 ? atlasBlockSize / metadataBlockSize : 1;
+  const pixelScale = metadataBlockSize !== 0 ? atlasBlockSize / metadataBlockSize : 1;
+  const atlasCellPixelSize = cellsPerBlock > 0 ? atlasBlockSize / cellsPerBlock : atlasBlockSize;
     const placementContext: PlacementContext = {
       atlasBlockPixelSize: atlasBlockSize,
       metadataBlockPixelSize: metadataBlockSize,
@@ -1326,6 +2041,10 @@ export default function MapCanvas({
     };
 
     for (const entry of animationsRef.current) {
+      const collisionMeta = getCollisionMetadata(entry.placement.label);
+      const permissions = warpMetadataRef.current?.collisionPermissions ?? null;
+      entry.collisionHelper = createCollisionHelper(collisionMeta, permissions);
+
       let container = entry.objectContainer;
       if (!container) {
         container = new Container();
@@ -1377,17 +2096,38 @@ export default function MapCanvas({
         if (!record) {
           continue;
         }
-        const sprite = new Sprite(record.texture);
+        const baseFrame = createSpriteFrameRef(facingKey, record);
+        const frameSet = buildMovementFrameSet(cache, spriteKey, paletteName, facingKey, record);
+        const sprite = new Sprite(baseFrame.texture);
         sprite.eventMode = "none";
         sprite.cursor = "auto";
         const { x: baseX, y: baseY } = computeObjectPosition(objectEntry, placementContext);
-        const offsetX = record.offsetX * pixelScale;
-        const offsetY = record.offsetY * pixelScale;
+        const offsetX = baseFrame.offsetX * pixelScale;
+        const offsetY = baseFrame.offsetY * pixelScale;
         sprite.x = baseX + offsetX;
         sprite.y = baseY + offsetY;
         sprite.scale.set(pixelScale);
         container.addChild(sprite);
-        entry.objectMarkers.push({ object: objectEntry, sprite });
+        const movementSummary = computeMovementSummaryForObject(objectEntry, entry.collisionHelper);
+        const animator = createMovementAnimator(movementSummary, objectEntry, frameSet);
+        entry.objectMarkers.push({
+          object: objectEntry,
+          sprite,
+          movementSummary,
+          animator,
+          basePosition: { x: baseX, y: baseY },
+          spriteOffset: { x: offsetX, y: offsetY },
+          cellPixelSize: atlasCellPixelSize,
+          frameSet,
+          currentFrameKey: baseFrame.key,
+          spriteScale: pixelScale,
+          lastDirection: frameSet?.defaultDirection ?? resolveDirectionFromFacingKey(facingKey),
+        });
+      }
+
+      const entryElapsed = appRef.current?.ticker?.lastTime ?? 0;
+      for (const marker of entry.objectMarkers) {
+        updateMarkerAnimation(marker, entryElapsed);
       }
 
       if (container.children.length === 0) {
@@ -1397,7 +2137,7 @@ export default function MapCanvas({
       }
       entry.sprite.sortChildren();
     }
-  }, [atlas, timeOfDay]);
+  }, [atlas, timeOfDay, getCollisionMetadata]);
 
   useEffect(() => {
     const metadata = objectMetadata ?? null;
@@ -1636,6 +2376,9 @@ export default function MapCanvas({
         sprite.zIndex = neighborhoodZ * 1_000_000 + index;
         world.addChild(sprite);
         world.sortChildren();
+        const collisionMeta = getCollisionMetadata(placement.label);
+        const permissions = warpMetadataRef.current?.collisionPermissions ?? null;
+        const collisionHelper = createCollisionHelper(collisionMeta, permissions);
         const entry: SyncedAnimation = {
           sprite,
           resource,
@@ -1645,6 +2388,7 @@ export default function MapCanvas({
           warpMarkers: [],
           objectContainer: null,
           objectMarkers: [],
+          collisionHelper,
         };
         animationsRef.current.push(entry);
         spriteEntryMapRef.current.set(sprite, entry);
@@ -1683,7 +2427,7 @@ export default function MapCanvas({
       cancelled = true;
       disposeChildren();
     };
-  }, [atlas, ready, clampWorldToBounds, persistViewState, restoreViewState, applySpriteTransforms, refreshOverlayObjects, refreshWarpMarkers, refreshObjectSprites]);
+  }, [atlas, ready, clampWorldToBounds, persistViewState, restoreViewState, applySpriteTransforms, refreshOverlayObjects, refreshWarpMarkers, refreshObjectSprites, getCollisionMetadata]);
 
   useEffect(() => {
     if (!ready) {
@@ -1731,12 +2475,18 @@ export default function MapCanvas({
         if (entry.sprite.currentFrame !== nextFrame) {
           entry.sprite.gotoAndStop(nextFrame);
         }
+        for (const marker of entry.objectMarkers) {
+          updateMarkerAnimation(marker, elapsed);
+        }
       }
       const overlayState = overlayStateRef.current;
       if (overlayState) {
         const nextFrame = frameIndexForTime(elapsed, overlayState.resource.frameDurations, overlayState.resource.loopDuration);
         if (overlayState.sprite.currentFrame !== nextFrame) {
           overlayState.sprite.gotoAndStop(nextFrame);
+        }
+        for (const marker of overlayState.objectMarkers) {
+          updateMarkerAnimation(marker, elapsed);
         }
       }
     };

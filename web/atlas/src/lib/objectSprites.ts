@@ -133,7 +133,7 @@ export class ObjectSpriteCache {
       return null;
     }
     const palette = this.resolvePalette(paletteName ?? spriteDef.defaultPalette);
-    const record = this.buildTexture(spriteDef, facing, tiles, palette);
+    const record = this.buildTexture(spriteName, spriteDef, facing, tiles, palette);
     if (!record) {
       return null;
     }
@@ -210,6 +210,7 @@ export class ObjectSpriteCache {
   }
 
   private buildTexture(
+    spriteName: string,
     spriteDef: ObjectSpriteDefinition,
     facing: ObjectFacingEntry,
     tiles: Uint8Array[],
@@ -238,11 +239,16 @@ export class ObjectSpriteCache {
     for (const tileEntry of facing.tiles) {
       const dx = tileEntry.dx ?? 0;
       const dy = tileEntry.dy ?? 0;
-      const index = tileEntry.tile ?? 0;
-      if (index < 0 || index >= tiles.length) {
+      const normalizedIndex = this.normalizeTileIndex(
+        spriteName,
+        spriteDef,
+        tiles.length,
+        tileEntry.tile ?? 0
+      );
+      if (normalizedIndex === null) {
         continue;
       }
-      const tilePixels = tiles[index];
+      const tilePixels = tiles[normalizedIndex];
       const attributes = tileEntry.attributes ?? 0;
       const flipX = (attributes & 0x20) !== 0;
       const flipY = (attributes & 0x40) !== 0;
@@ -272,7 +278,7 @@ export class ObjectSpriteCache {
       }
     }
 
-  const baseTexture = BaseTexture.fromBuffer(buffer, width, height);
+    const baseTexture = BaseTexture.fromBuffer(buffer, width, height);
     const texture = new Texture(baseTexture);
     return {
       texture,
@@ -281,5 +287,30 @@ export class ObjectSpriteCache {
       width,
       height,
     };
+  }
+
+  private normalizeTileIndex(
+    spriteName: string,
+    spriteDef: ObjectSpriteDefinition,
+    tileCount: number,
+    rawIndex: number
+  ): number | null {
+    if (!Number.isFinite(rawIndex)) {
+      return null;
+    }
+    const declaredCount = spriteDef.tileCount > 0 ? spriteDef.tileCount : tileCount;
+    const limit = Math.max(0, Math.min(tileCount, declaredCount));
+    if (rawIndex >= 0 && rawIndex < limit) {
+      return rawIndex;
+    }
+    if (rawIndex >= 0x80 && spriteName === "SPRITE_SAILBOAT") {
+      // Sailboat graphics load into VRAM bank 1 in-game, so high tile IDs
+      // need to wrap back into the tail of the decoded sheet.
+      const adjusted = rawIndex - 0x74;
+      if (adjusted >= 0 && adjusted < limit) {
+        return adjusted;
+      }
+    }
+    return null;
   }
 }

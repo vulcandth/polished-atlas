@@ -202,6 +202,12 @@ function resolveFacingConstant(entry: ObjectEventEntry, metadata: ObjectMetadata
       return "FACING_PICKED_FRUIT";
     }
   }
+  if (movementAction === "OBJECT_ACTION_SAILBOAT_TOP" && metadata.facings["FACING_SAILBOAT_TOP"]) {
+    return "FACING_SAILBOAT_TOP";
+  }
+  if (movementAction === "OBJECT_ACTION_SAILBOAT_BOTTOM" && metadata.facings["FACING_SAILBOAT_BOTTOM"]) {
+    return "FACING_SAILBOAT_BOTTOM";
+  }
   const facingValue = movement?.facing ?? "";
   if (facingValue) {
     if (metadata.facings[facingValue]) {

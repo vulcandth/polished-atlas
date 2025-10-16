@@ -17,7 +17,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Iterable, Iterator, List, Optional, Sequence, Tuple
+from typing import Dict, Iterable, Iterator, List, Optional, Sequence, Set, Tuple
 
 import render_map
 
@@ -265,6 +265,7 @@ class ObjectEventEntry:
     script_argument: Optional[str]
     event_flag: Optional[str]
     extra_payload: Dict[str, object] = field(default_factory=dict)
+    event_flag_set: bool = False
 
     def to_payload(self, block_pixel_size: int, palette_lookup: Sequence[str]) -> Dict[str, object]:
         division = EVENT_CELLS_PER_BLOCK if EVENT_CELLS_PER_BLOCK > 0 else 1
@@ -313,6 +314,7 @@ class ObjectEventEntry:
                 "argument": self.script_argument,
             },
             "event_flag": self.event_flag,
+            "event_flag_set": self.event_flag_set,
         }
         if self.species_constant or self.species_id is not None:
             payload["species"] = {
@@ -602,6 +604,36 @@ def parse_darkness_palettes(root: Path, names: Sequence[str]) -> Dict[str, List[
         mapping[names[index]] = colors
         index += 1
     return mapping
+
+
+def parse_initial_event_flags(root: Path) -> Set[str]:
+    path = root / "data/events/initialize_events.asm"
+    flags: Set[str] = set()
+    if not path.exists():
+        return flags
+    current_section: Optional[str] = None
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        code, *_ = raw_line.split(";", 1)
+        line = code.strip()
+        if not line:
+            continue
+        if line.endswith(":"):
+            current_section = line[:-1]
+            continue
+        if current_section not in {"InitialEvents", "InitialEngineFlags"}:
+            continue
+        if not line.startswith("dw"):
+            continue
+        payload = line[2:].strip()
+        if not payload:
+            continue
+        tokens = [token.strip() for token in payload.split(",") if token.strip()]
+        for token in tokens:
+            if token == "-1":
+                current_section = None
+                continue
+            flags.add(token)
+    return flags
 
 
 def infer_copy_palette_static(
@@ -1226,6 +1258,7 @@ def parse_map_objects(
     sprite_lookup: Dict[str, SpriteHeader],
     movement_lookup: Dict[str, MovementInfo],
     palette_names: Sequence[str],
+    initial_event_flags: Set[str],
 ) -> List[MapObjectData]:
     repo_index = render_map.RepositoryIndex(root)
     block_pixel_size = render_map.MetatileSet.METATILE_DIM * render_map.Tileset.TILE_SIZE
@@ -1269,6 +1302,8 @@ def parse_map_objects(
                 palette_names=palette_names,
                 extra_payload=extra_payload,
             )
+            if entry.event_flag and entry.event_flag in initial_event_flags:
+                entry.event_flag_set = True
             map_objects.append(entry)
         if not map_objects:
             continue
@@ -1476,12 +1511,14 @@ def main() -> None:
     movements = parse_movement_table(polished_root, constants)
     facings = parse_facings(polished_root, constants)
     block_pixel_size = render_map.MetatileSet.METATILE_DIM * render_map.Tileset.TILE_SIZE
+    initial_event_flags = parse_initial_event_flags(polished_root)
     map_objects = parse_map_objects(
         polished_root,
         constants,
         sprite_lookup,
         movements,
         palette_names,
+        initial_event_flags,
     )
     payload = build_payload(
         sprites=sprites,

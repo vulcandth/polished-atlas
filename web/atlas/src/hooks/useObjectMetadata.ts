@@ -86,6 +86,7 @@ type RawObjectEventEntry = {
     argument?: string | null;
   };
   event_flag?: string | null;
+  event_flag_set?: boolean;
   species?: {
     constant?: string | null;
     id?: number | null;
@@ -254,6 +255,7 @@ function sanitizeObjectEvent(raw: RawObjectEventEntry | undefined): ObjectEventE
       argument: typeof raw?.script?.argument === "string" ? raw!.script!.argument : null,
     },
     eventFlag: typeof raw?.event_flag === "string" ? raw!.event_flag : null,
+  eventFlagSet: raw?.event_flag_set === true,
     species:
       raw?.species && (typeof raw.species.constant === "string" || Number.isFinite(raw.species.id))
         ? {

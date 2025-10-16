@@ -805,6 +805,9 @@ export default function MapCanvas({
       if (!isObjectVisibleAtTime(objectEntry, timeOfDay)) {
         continue;
       }
+      if (objectEntry.eventFlagSet) {
+        continue;
+      }
       const spriteKey = objectEntry.sprite.constant;
       if (!spriteKey) {
         continue;
@@ -1321,6 +1324,9 @@ export default function MapCanvas({
 
       for (const objectEntry of mapData.objects) {
         if (!isObjectVisibleAtTime(objectEntry, timeOfDay)) {
+          continue;
+        }
+        if (objectEntry.eventFlagSet) {
           continue;
         }
         const spriteKey = objectEntry.sprite.constant;

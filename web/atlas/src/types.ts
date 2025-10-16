@@ -263,6 +263,7 @@ export interface ObjectEventEntry {
     argument: string | null;
   };
   eventFlag: string | null;
+  eventFlagSet: boolean;
   species?: {
     constant: string | null;
     id: number | null;

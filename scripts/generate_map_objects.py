@@ -45,7 +45,7 @@ class ASMConstantParser:
     _RE_SHIFT_CONST = re.compile(r"^shift_const\s+([A-Za-z0-9_]+)$")
     _RE_CONST_SKIP = re.compile(r"^const_skip(?:\s+(.+))?$")
     _RE_CONST_NEXT = re.compile(r"^const_next\s+(.+)$")
-    _RE_DEF_EQU = re.compile(r"^DEF\s+([A-Za-z0-9_]+)\s+EQU\s+(.+)$")
+    _RE_DEF_EQU = re.compile(r"^(?:DEF|def|REDEF|redef)\s+([A-Za-z0-9_]+)\s+(?:EQU|equ)\s+(.+)$")
 
     def __init__(self) -> None:
         self.symbols: Dict[str, int] = {
@@ -367,6 +367,7 @@ def gather_constants(root: Path) -> ASMConstantParser:
         "constants/script_constants.asm",
         "constants/ram_constants.asm",
         "constants/hardware_constants.asm",
+        "constants/hardware.inc",
         "constants/pokemon_constants.asm",
     ]
     for relative in constant_files:

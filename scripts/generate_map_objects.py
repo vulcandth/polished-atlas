@@ -46,6 +46,7 @@ class ASMConstantParser:
     _RE_CONST_SKIP = re.compile(r"^const_skip(?:\s+(.+))?$")
     _RE_CONST_NEXT = re.compile(r"^const_next\s+(.+)$")
     _RE_DEF_EQU = re.compile(r"^(?:DEF|def|REDEF|redef)\s+([A-Za-z0-9_]+)\s+(?:EQU|equ)\s+(.+)$")
+    _RE_OW_NPC_PAL_CONST = re.compile(r"^ow_npc_pal_const\s+([A-Za-z0-9_]+)$")
 
     def __init__(self) -> None:
         self.symbols: Dict[str, int] = {
@@ -130,6 +131,15 @@ class ASMConstantParser:
                 except ExpressionError:
                     continue
                 self._define(name, value)
+                continue
+            match = self._RE_OW_NPC_PAL_CONST.match(line)
+            if match:
+                name = match.group(1)
+                pal_ow = f"PAL_OW_{name}"
+                pal_npc = f"PAL_NPC_{name}"
+                self._define(pal_ow, const_value)
+                self._define(pal_npc, const_value + 1)
+                const_value += const_inc
                 continue
             # Ignore any other directives.
 
@@ -413,8 +423,26 @@ def convert_gb_rgb(value: int) -> int:
     return max(0, min(255, round((value / 31) * 255)))
 
 
+def _resolve_palette_file(root: Path, relative: str) -> Path:
+    candidate = root / relative
+    if candidate.exists():
+        return candidate
+    if candidate.suffix:
+        alt = candidate.with_suffix(candidate.suffix + ".inc")
+        if alt.exists():
+            return alt
+        alt = candidate.with_suffix(".pal.inc")
+        if alt.exists():
+            return alt
+    else:
+        alt = candidate.with_suffix(".pal")
+        if alt.exists():
+            return alt
+    return candidate
+
+
 def parse_time_of_day_palettes(root: Path, names: Sequence[str]) -> Dict[str, Dict[str, List[List[int]]]]:
-    path = root / "gfx/overworld/npc_sprites.pal"
+    path = _resolve_palette_file(root, "gfx/overworld/npc_sprites.pal")
     result: Dict[str, Dict[str, List[List[int]]]] = {name: {} for name in names}
     if not path.exists():
         return result
@@ -438,7 +466,15 @@ def parse_time_of_day_palettes(root: Path, names: Sequence[str]) -> Dict[str, Di
             continue
         if palette_index >= len(names):
             continue
-        numbers = [int(part.strip()) for part in line[4:].split(",")]
+        numbers: List[int] = []
+        for part in line[4:].split(","):
+            value = part.strip()
+            if not value:
+                continue
+            try:
+                numbers.append(int(value, 0))
+            except ValueError:
+                numbers.append(0)
         colors: List[List[int]] = []
         for idx in range(0, len(numbers), 3):
             r = convert_gb_rgb(numbers[idx])
@@ -452,7 +488,7 @@ def parse_time_of_day_palettes(root: Path, names: Sequence[str]) -> Dict[str, Di
 
 
 def parse_single_object_palettes(root: Path, names: Sequence[str]) -> Dict[str, List[List[int]]]:
-    path = root / "gfx/overworld/npc_single_object.pal"
+    path = _resolve_palette_file(root, "gfx/overworld/npc_single_object.pal")
     mapping: Dict[str, List[List[int]]] = {}
     if not path.exists():
         return mapping
@@ -467,7 +503,15 @@ def parse_single_object_palettes(root: Path, names: Sequence[str]) -> Dict[str, 
             continue
         if index >= len(names):
             continue
-        numbers = [int(part.strip()) for part in line[4:].split(",")]
+        numbers: List[int] = []
+        for part in line[4:].split(","):
+            value = part.strip()
+            if not value:
+                continue
+            try:
+                numbers.append(int(value, 0))
+            except ValueError:
+                numbers.append(0)
         colors: List[List[int]] = []
         for idx in range(0, len(numbers), 3):
             colors.append([convert_gb_rgb(numbers[idx]), convert_gb_rgb(numbers[idx + 1]), convert_gb_rgb(numbers[idx + 2])])
@@ -477,7 +521,7 @@ def parse_single_object_palettes(root: Path, names: Sequence[str]) -> Dict[str, 
 
 
 def parse_special_overcast_palettes(root: Path, names: Sequence[str]) -> Dict[str, Dict[str, List[List[int]]]]:
-    path = root / "gfx/overworld/npc_sprites_overcast.pal"
+    path = _resolve_palette_file(root, "gfx/overworld/npc_sprites_overcast.pal")
     result: Dict[str, Dict[str, List[List[int]]]] = {name: {} for name in names}
     if not path.exists():
         return result
@@ -499,7 +543,15 @@ def parse_special_overcast_palettes(root: Path, names: Sequence[str]) -> Dict[st
             continue
         if index >= len(names):
             continue
-        numbers = [int(part.strip()) for part in line[4:].split(",")]
+        numbers: List[int] = []
+        for part in line[4:].split(","):
+            value = part.strip()
+            if not value:
+                continue
+            try:
+                numbers.append(int(value, 0))
+            except ValueError:
+                numbers.append(0)
         colors: List[List[int]] = []
         for idx in range(0, len(numbers), 3):
             colors.append([convert_gb_rgb(numbers[idx]), convert_gb_rgb(numbers[idx + 1]), convert_gb_rgb(numbers[idx + 2])])
@@ -509,7 +561,7 @@ def parse_special_overcast_palettes(root: Path, names: Sequence[str]) -> Dict[st
 
 
 def parse_darkness_palettes(root: Path, names: Sequence[str]) -> Dict[str, List[List[int]]]:
-    path = root / "gfx/overworld/npc_sprites_darkness.pal"
+    path = _resolve_palette_file(root, "gfx/overworld/npc_sprites_darkness.pal")
     mapping: Dict[str, List[List[int]]] = {}
     if not path.exists():
         return mapping
@@ -524,7 +576,15 @@ def parse_darkness_palettes(root: Path, names: Sequence[str]) -> Dict[str, List[
             continue
         if index >= len(names):
             continue
-        numbers = [int(part.strip()) for part in line[4:].split(",")]
+        numbers: List[int] = []
+        for part in line[4:].split(","):
+            value = part.strip()
+            if not value:
+                continue
+            try:
+                numbers.append(int(value, 0))
+            except ValueError:
+                numbers.append(0)
         colors: List[List[int]] = []
         for idx in range(0, len(numbers), 3):
             colors.append([convert_gb_rgb(numbers[idx]), convert_gb_rgb(numbers[idx + 1]), convert_gb_rgb(numbers[idx + 2])])

@@ -152,6 +152,11 @@ type OverlayState = {
   keyHandler: (event: KeyboardEvent) => void;
   objectContainer: Container | null;
   objectMarkers: ObjectMarkerEntry[];
+  scale: number;
+  fitScale: number;
+  minScale: number;
+  maxScale: number;
+  positioned: boolean;
 };
 
 function frameIndexForTime(elapsedMs: number, durations: number[], loopDuration: number): number {
@@ -416,15 +421,51 @@ export default function MapCanvas({
     const sprite = state.sprite;
     const baseWidth = state.baseWidth || sprite.texture.width || sprite.width || 1;
     const baseHeight = state.baseHeight || sprite.texture.height || sprite.height || 1;
-    let scale = 1;
-    if (baseWidth > 0 && baseHeight > 0) {
-      const availableWidth = renderer.width * 0.9;
-      const availableHeight = renderer.height * 0.9;
-      scale = Math.min(1, availableWidth / baseWidth, availableHeight / baseHeight);
+
+    const availableWidth = renderer.width * 0.9;
+    const availableHeight = renderer.height * 0.9;
+    const fitScale = baseWidth > 0 && baseHeight > 0
+      ? Math.min(1, availableWidth / baseWidth, availableHeight / baseHeight)
+      : 1;
+    const minScale = Math.max(MIN_SCALE, fitScale * 0.5);
+    const maxScale = MAX_SCALE;
+
+    state.fitScale = fitScale;
+    state.minScale = minScale;
+    state.maxScale = maxScale;
+
+    let scale = state.scale;
+    if (!Number.isFinite(scale) || scale <= 0) {
+      scale = fitScale;
     }
+    scale = Math.min(maxScale, Math.max(minScale, scale));
+    if (scale !== state.scale) {
+      state.scale = scale;
+    }
+
     sprite.scale.set(scale);
-    sprite.x = Math.max(0, (renderer.width - sprite.width) / 2);
-    sprite.y = Math.max(0, (renderer.height - sprite.height) / 2);
+
+    const scaledWidth = baseWidth * scale;
+    const scaledHeight = baseHeight * scale;
+
+    const clampAxis = (value: number, total: number, viewport: number): number => {
+      if (!(total > 0) || !(viewport > 0)) {
+        return value;
+      }
+      if (total <= viewport) {
+        return Math.max(0, (viewport - total) / 2);
+      }
+      const min = viewport - total;
+      const max = 0;
+      return Math.min(max, Math.max(min, value));
+    };
+
+    const nextX = state.positioned ? sprite.x : 0;
+    const nextY = state.positioned ? sprite.y : 0;
+
+    sprite.x = clampAxis(nextX, scaledWidth, renderer.width);
+    sprite.y = clampAxis(nextY, scaledHeight, renderer.height);
+    state.positioned = true;
   }, []);
 
   const closeOverlay = useCallback((): void => {
@@ -907,6 +948,7 @@ export default function MapCanvas({
             graphic.on("pointerout", () => {
               graphic.alpha = baseAlpha;
             });
+            graphic.zIndex = 10;
             sprite.addChild(graphic);
             markers.push({ warp, graphic });
           }
@@ -927,8 +969,14 @@ export default function MapCanvas({
           highlightGraphic.endFill();
           highlightGraphic.x = highlight.xCells * cellSize;
           highlightGraphic.y = highlight.yCells * cellSize;
+          highlightGraphic.eventMode = "none";
+          highlightGraphic.interactive = false;
+          highlightGraphic.cursor = "auto";
+          highlightGraphic.zIndex = 4;
           sprite.addChild(highlightGraphic);
         }
+
+        sprite.sortChildren();
 
         const frame = resource.textures[0];
         const baseWidth = frame?.width ?? sprite.width;
@@ -958,6 +1006,11 @@ export default function MapCanvas({
           keyHandler,
           objectContainer,
           objectMarkers: [],
+          scale: Number.NaN,
+          fitScale: 1,
+          minScale: MIN_SCALE,
+          maxScale: MAX_SCALE,
+          positioned: false,
         };
         refreshOverlayObjects();
         const world = worldRef.current;
@@ -1868,6 +1921,60 @@ export default function MapCanvas({
       schedulePersistViewState();
     };
 
+    const applyOverlayScale = (nextScale: number, focus?: { x: number; y: number }): void => {
+      const state = overlayStateRef.current;
+      const appInstance = appRef.current;
+      if (!state || !appInstance) {
+        return;
+      }
+      const overlaySprite = state.sprite;
+      const canvasElement = appInstance.view as HTMLCanvasElement | null;
+      if (!canvasElement) {
+        return;
+      }
+      const rect = canvasElement.getBoundingClientRect();
+      const renderer = appInstance.renderer;
+      const minScale = state.minScale ?? Math.max(MIN_SCALE, (state.fitScale || 1) * 0.5);
+      const maxScale = state.maxScale ?? MAX_SCALE;
+      const clamped = Math.min(maxScale, Math.max(minScale, nextScale));
+      const focusLocalX = focus ? focus.x - rect.left : rect.width / 2;
+      const focusLocalY = focus ? focus.y - rect.top : rect.height / 2;
+      const currentScale = overlaySprite.scale.x || 1;
+      const spriteLocalX = (focusLocalX - overlaySprite.x) / currentScale;
+      const spriteLocalY = (focusLocalY - overlaySprite.y) / currentScale;
+      const baseWidth = state.baseWidth || overlaySprite.texture.width || (currentScale ? overlaySprite.width / currentScale : overlaySprite.width) || 1;
+      const baseHeight = state.baseHeight || overlaySprite.texture.height || (currentScale ? overlaySprite.height / currentScale : overlaySprite.height) || 1;
+
+      overlaySprite.scale.set(clamped);
+      state.scale = clamped;
+
+      overlaySprite.x = focusLocalX - spriteLocalX * clamped;
+      overlaySprite.y = focusLocalY - spriteLocalY * clamped;
+
+      const scaledWidth = baseWidth * clamped;
+      const scaledHeight = baseHeight * clamped;
+
+      if (scaledWidth > 0 && renderer.width > 0) {
+        if (scaledWidth <= renderer.width) {
+          overlaySprite.x = Math.max(0, (renderer.width - scaledWidth) / 2);
+        } else {
+          const minX = renderer.width - scaledWidth;
+          overlaySprite.x = Math.min(0, Math.max(minX, overlaySprite.x));
+        }
+      }
+
+      if (scaledHeight > 0 && renderer.height > 0) {
+        if (scaledHeight <= renderer.height) {
+          overlaySprite.y = Math.max(0, (renderer.height - scaledHeight) / 2);
+        } else {
+          const minY = renderer.height - scaledHeight;
+          overlaySprite.y = Math.min(0, Math.max(minY, overlaySprite.y));
+        }
+      }
+
+      state.positioned = true;
+    };
+
     const updatePinchStart = (): void => {
       if (pointers.size < 2) {
         pinchStartDistance = null;
@@ -1888,6 +1995,9 @@ export default function MapCanvas({
       if (editing) {
         return;
       }
+      if (overlayStateRef.current) {
+        return;
+      }
       pointers.set(event.pointerId, { clientX: event.clientX, clientY: event.clientY });
       if (pointers.size === 1) {
         dragPointer = event.pointerId;
@@ -1901,6 +2011,9 @@ export default function MapCanvas({
 
     const handlePointerMove = (event: PointerEvent): void => {
       if (editing) {
+        return;
+      }
+      if (overlayStateRef.current) {
         return;
       }
       if (!pointers.has(event.pointerId)) {
@@ -1943,6 +2056,9 @@ export default function MapCanvas({
       if (editing) {
         return;
       }
+      if (overlayStateRef.current) {
+        return;
+      }
       if (!pointers.has(event.pointerId)) {
         return;
       }
@@ -1968,6 +2084,17 @@ export default function MapCanvas({
     };
 
     const handleWheel = (event: WheelEvent): void => {
+      const overlayState = overlayStateRef.current;
+      if (overlayState) {
+        event.preventDefault();
+        const delta = event.deltaY;
+        const currentScale = Number.isFinite(overlayState.scale) && overlayState.scale > 0
+          ? overlayState.scale
+          : overlayState.fitScale || 1;
+        const factor = Math.exp(-delta / 500);
+        applyOverlayScale(currentScale * factor, { x: event.clientX, y: event.clientY });
+        return;
+      }
       event.preventDefault();
       const delta = event.deltaY;
       const factor = Math.exp(-delta / 500);
@@ -1975,10 +2102,16 @@ export default function MapCanvas({
     };
 
     const handleDoubleClick = (): void => {
+      if (overlayStateRef.current) {
+        return;
+      }
       resetViewRef.current?.();
     };
 
     const handleRendererResize = (): void => {
+      if (overlayStateRef.current) {
+        positionOverlayContents();
+      }
       clampWorldToBounds();
       schedulePersistViewState();
     };
@@ -2005,7 +2138,7 @@ export default function MapCanvas({
       dragPointer = null;
       pinchStartDistance = null;
     };
-  }, [ready, editing]);
+  }, [ready, editing, clampWorldToBounds, positionOverlayContents, schedulePersistViewState]);
 
   return (
     <div className="canvas-stage" ref={containerRef}>

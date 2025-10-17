@@ -22,6 +22,12 @@ const DEFAULT_PALETTE: RgbTuple[] = [
   [0, 0, 0],
 ];
 
+const DEBUG_SPRITES = new Set([
+  "SPRITE_SAILBOAT",
+  "SPRITE_BIG_GYARADOS",
+  "SPRITE_BIG_SNORLAX",
+]);
+
 function decodeTilePixels(tileBytes: Uint8Array): Uint8Array[] {
   if (tileBytes.length % 16 !== 0) {
     return [];
@@ -197,6 +203,7 @@ export class ObjectSpriteCache {
     tiles: Uint8Array[],
     palette: RgbTuple[]
   ): FacingTextureRecord | null {
+    const shouldDebug = import.meta.env?.DEV && DEBUG_SPRITES.has(spriteName);
     let minX = 0;
     let minY = 0;
     let maxX = 0;
@@ -224,7 +231,8 @@ export class ObjectSpriteCache {
         spriteName,
         spriteDef,
         tiles.length,
-        tileEntry.tile ?? 0
+        tileEntry.tile ?? 0,
+        tileEntry.attributes ?? 0
       );
       if (normalizedIndex === null) {
         continue;
@@ -261,6 +269,11 @@ export class ObjectSpriteCache {
 
     const baseTexture = BaseTexture.fromBuffer(buffer, width, height);
     const texture = new Texture(baseTexture);
+    if (shouldDebug) {
+      console.info(
+        `[SpriteCache] ${spriteName} built facing ${facing.label} at ${width}x${height} (min=${minX},${minY}) using ${facing.tiles.length} tiles`
+      );
+    }
     return {
       texture,
       offsetX: minX,
@@ -274,9 +287,16 @@ export class ObjectSpriteCache {
     spriteName: string,
     spriteDef: ObjectSpriteDefinition,
     tileCount: number,
-    rawIndex: number
+    rawIndex: number,
+    attributes: number
   ): number | null {
+    const shouldDebug = import.meta.env?.DEV && DEBUG_SPRITES.has(spriteName);
     if (!Number.isFinite(rawIndex)) {
+      if (shouldDebug) {
+        console.info(
+          `[SpriteCache] ${spriteName} received NaN tile index (facing attr=${attributes.toString(16)})`
+        );
+      }
       return null;
     }
     const declaredCount = spriteDef.tileCount > 0 ? spriteDef.tileCount : tileCount;
@@ -284,27 +304,100 @@ export class ObjectSpriteCache {
     if (rawIndex >= 0 && rawIndex < limit) {
       return rawIndex;
     }
+    const ABSOLUTE_TILE_ID_FLAG = 1 << 2;
+    if ((attributes & ABSOLUTE_TILE_ID_FLAG) !== 0) {
+      return rawIndex >= 0 && rawIndex < limit ? rawIndex : null;
+    }
+
     if (rawIndex >= 0x80) {
-      if (spriteName === "SPRITE_SAILBOAT") {
-        // Sailboat graphics load into VRAM bank 1 in-game, so high tile IDs
-        // need to wrap back into the tail of the decoded sheet.
-        const adjusted = rawIndex - 0x74;
-        if (adjusted >= 0 && adjusted < limit) {
-          return adjusted;
+      const adjustedBankIndex = this.resolveBankedTileIndex(spriteName, spriteDef, limit, rawIndex);
+      if (adjustedBankIndex !== null) {
+        if (shouldDebug) {
+          console.info(
+            `[SpriteCache] ${spriteName} mapped 0x${rawIndex.toString(16)} -> ${adjustedBankIndex} (limit=${limit})`
+          );
         }
-      } else if (spriteName === "SPRITE_BIG_GYARADOS") {
-        // Big Gyarados splits its tiles across both VRAM banks. The lower
-        // indices reference the first half, while the high-bit variants point
-        // at the second half. Map them contiguously so the atlas can find the
-        // decoded tiles.
-        const half = Math.floor(limit / 2);
-        const offset = rawIndex & 0x7f;
-        const adjusted = half + offset;
-        if (adjusted >= 0 && adjusted < limit) {
-          return adjusted;
-        }
+        return adjustedBankIndex;
       }
     }
+    if (shouldDebug) {
+      console.info(
+        `[SpriteCache] ${spriteName} failed to map tile 0x${rawIndex.toString(16)} (limit=${limit}, attr=0x${attributes.toString(16)})`
+      );
+    }
     return null;
+  }
+
+  private resolveBankedTileIndex(
+    spriteName: string,
+    spriteDef: ObjectSpriteDefinition,
+    limit: number,
+    rawIndex: number
+  ): number | null {
+    if (!(limit > 0) || rawIndex < 0x80) {
+      return null;
+    }
+    const bankIndex = Math.floor(rawIndex / 0x80);
+    if (bankIndex <= 0) {
+      return null;
+    }
+    const baseIndex = rawIndex & 0x7f;
+
+    const perBankSpan = this.inferPerBankSpan(spriteName, spriteDef, limit);
+    if (perBankSpan > 0 && baseIndex < perBankSpan) {
+      const adjusted = bankIndex * perBankSpan + baseIndex;
+      if (adjusted >= 0 && adjusted < limit) {
+        return adjusted;
+      }
+    }
+
+    if (spriteName === "SPRITE_SAILBOAT") {
+      // Sailboat graphics load banked tiles late in the sheet; strip the high
+      // bit and fall back to the decoded tail so we keep the hull intact.
+      const adjusted = rawIndex - 0x74;
+      if (adjusted >= 0 && adjusted < limit) {
+        return adjusted;
+      }
+    }
+
+    if (spriteName === "SPRITE_BIG_GYARADOS") {
+      // The large Gyarados sprite dedicates the second bank to follow the first
+      // half directly, so mirror that layout for the atlas textures.
+      const half = Math.floor(limit / 2);
+      const offset = rawIndex & 0x7f;
+      const adjusted = half + offset;
+      if (adjusted >= 0 && adjusted < limit) {
+        return adjusted;
+      }
+    }
+
+    if (spriteName === "SPRITE_BIG_SNORLAX") {
+      // Big Snorlax only ships a single bank of tiles; the upper-half indices
+      // simply repeat the base sheet. Strip the bank bit and reuse the first
+      // bank entry.
+      const adjusted = rawIndex & 0x7f;
+      if (adjusted >= 0 && adjusted < limit) {
+        return adjusted;
+      }
+    }
+
+    return null;
+  }
+
+  private inferPerBankSpan(
+    spriteName: string,
+    spriteDef: ObjectSpriteDefinition,
+    limit: number
+  ): number {
+    if (!(limit > 0)) {
+      return 0;
+    }
+    if (spriteDef.spriteType === "WALKING_SPRITE") {
+      return Math.floor(limit / 2);
+    }
+    if (spriteName === "SPRITE_BIG_GYARADOS" || spriteName === "SPRITE_SAILBOAT") {
+      return Math.floor(limit / 2);
+    }
+    return 0;
   }
 }

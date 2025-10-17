@@ -285,6 +285,13 @@ export interface MovementBounds {
   bottom: number;
 }
 
+export interface MovementStep {
+  index: number;
+  from: MapCellCoordinate;
+  to: MapCellCoordinate;
+  direction: "down" | "up" | "left" | "right";
+}
+
 export interface MovementSummary {
   model: MovementModel;
   startCell: MapCellCoordinate;
@@ -296,6 +303,7 @@ export interface MovementSummary {
   reachable?: MapCellCoordinate[];
   blockedNotes?: string[];
   notes?: string[];
+  steps?: MovementStep[];
 }
 
 export interface ObjectFacingEntry {

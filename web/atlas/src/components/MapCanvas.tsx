@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Application, Container, AnimatedSprite, FederatedPointerEvent, Assets, Graphics, Sprite, Texture } from "pixi.js";
-import { AtlasLayout, MapPlacement, MapWarp, ObjectMetadata, ObjectEventEntry, WarpMetadata, MovementSummary } from "@/types";
+import {
+  AtlasLayout,
+  MapPlacement,
+  MapWarp,
+  ObjectMetadata,
+  ObjectEventEntry,
+  ObjectSpriteDefinition,
+  WarpMetadata,
+  MovementSummary,
+} from "@/types";
 import { registerPixiExtensions } from "@/pixi/registerExtensions";
 import { loadMapAnimation, type MapAnimationResource } from "@/lib/loadMapAnimation";
 import { ObjectSpriteCache } from "@/lib/objectSprites";
@@ -49,18 +58,21 @@ type MovementSegment =
       to: Offset;
       direction: CardinalDirection;
       durationMs: number;
+      stepIndex: number;
     }
   | {
       type: "wait";
       position: Offset;
       direction: CardinalDirection;
       durationMs: number;
+      stepIndex: number;
     };
 
 type PathMovementAnimator = {
   kind: "path";
   segments: MovementSegment[];
   totalDurationMs: number;
+  stepCount: number;
 };
 
 type SpinStep = {
@@ -88,6 +100,9 @@ type ObjectMarkerEntry = {
   currentFrameKey: string | null;
   spriteScale: number;
   lastDirection: CardinalDirection | null;
+  currentStepIndex: number | null;
+  stepProgress: number;
+  stepCount: number | null;
 };
 
 interface MapCanvasProps {
@@ -404,7 +419,7 @@ function resolveDirectionFromFacingKey(key: string | null | undefined): Cardinal
 
 function createSpriteFrameRef(
   key: string,
-  record: ReturnType<ObjectSpriteCache["getFacingTexture"]>,
+  record: NonNullable<ReturnType<ObjectSpriteCache["getFacingTexture"]>>,
 ): SpriteFrameRef {
   return {
     key,
@@ -463,13 +478,23 @@ function oppositeDirection(direction: CardinalDirection): CardinalDirection {
 function buildMovementFrameSet(
   cache: ObjectSpriteCache,
   spriteKey: string,
+  spriteDef: ObjectSpriteDefinition,
   paletteName: string | null,
   baseKey: string,
-  baseRecord: ReturnType<ObjectSpriteCache["getFacingTexture"]>,
+  baseRecord: NonNullable<ReturnType<ObjectSpriteCache["getFacingTexture"]>>,
 ): MovementFrameSet {
   const defaultFrame = createSpriteFrameRef(baseKey, baseRecord);
   const framesByDirection: Partial<Record<CardinalDirection, SpriteFrameRef[]>> = {};
   const availableDirections: CardinalDirection[] = [];
+
+  if (spriteDef.spriteType !== "WALKING_SPRITE") {
+    return {
+      framesByDirection,
+      availableDirections,
+      defaultFrame,
+      defaultDirection: resolveDirectionFromFacingKey(baseKey),
+    };
+  }
 
   (Object.keys(STEP_FACING_KEYS) as CardinalDirection[]).forEach((direction) => {
     const keys = STEP_FACING_KEYS[direction];
@@ -516,6 +541,7 @@ function createAxisPathAnimator(summary: MovementSummary, frameSet: MovementFram
   }
   const start = summary.startCell;
   const path = summary.path;
+  const recordedSteps = summary.steps ?? [];
   const startIndex = path.findIndex((cell) => cell.x === start.x && cell.y === start.y);
   if (startIndex === -1) {
     return null;
@@ -538,6 +564,29 @@ function createAxisPathAnimator(summary: MovementSummary, frameSet: MovementFram
   const segments: MovementSegment[] = [];
   let current: Offset = { dx: 0, dy: 0 };
   let currentDirection: CardinalDirection = frameSet?.defaultDirection ?? (summary.axis === "x" ? "right" : "down");
+  let lastStepIndex: number = recordedSteps.length > 0 ? recordedSteps[0].index : 0;
+  let nextStepCursor = 0;
+  let moveSegmentCount = 0;
+
+  const claimStepIndex = (target: Offset, direction: CardinalDirection): number => {
+    if (recordedSteps.length === 0) {
+      const index = nextStepCursor;
+      nextStepCursor += 1;
+      return index;
+    }
+    const targetX = start.x + target.dx;
+    const targetY = start.y + target.dy;
+    for (let cursor = nextStepCursor; cursor < recordedSteps.length; cursor += 1) {
+      const step = recordedSteps[cursor];
+      if (step.to.x === targetX && step.to.y === targetY && step.direction === direction) {
+        nextStepCursor = cursor + 1;
+        return step.index;
+      }
+    }
+    const fallbackStep = recordedSteps[Math.min(recordedSteps.length - 1, nextStepCursor)] ?? recordedSteps[recordedSteps.length - 1];
+    nextStepCursor = Math.min(recordedSteps.length, nextStepCursor + 1);
+    return fallbackStep ? fallbackStep.index : recordedSteps.length;
+  };
 
   const pushMove = (target: Offset): void => {
     if (target.dx === current.dx && target.dy === current.dy) {
@@ -547,15 +596,19 @@ function createAxisPathAnimator(summary: MovementSummary, frameSet: MovementFram
     if (!direction) {
       return;
     }
+    const stepIndex = claimStepIndex(target, direction);
     segments.push({
       type: "move",
       from: { ...current },
       to: { ...target },
       direction,
       durationMs: moveDuration,
+      stepIndex,
     });
     current = { ...target };
     currentDirection = direction;
+    lastStepIndex = stepIndex;
+    moveSegmentCount += 1;
   };
 
   const pushIdle = (duration: number): void => {
@@ -567,6 +620,7 @@ function createAxisPathAnimator(summary: MovementSummary, frameSet: MovementFram
       position: { ...current },
       direction: currentDirection,
       durationMs: duration,
+      stepIndex: lastStepIndex,
     });
   };
 
@@ -600,11 +654,13 @@ function createAxisPathAnimator(summary: MovementSummary, frameSet: MovementFram
   if (!(totalDuration > 0)) {
     return null;
   }
+  const stepCount = recordedSteps.length > 0 ? recordedSteps.length : moveSegmentCount;
 
   return {
     kind: "path",
     segments,
     totalDurationMs: totalDuration,
+    stepCount,
   };
 }
 
@@ -632,6 +688,9 @@ function createWanderAnimator(
 
   let current: Offset = { dx: 0, dy: 0 };
   let currentDirection: CardinalDirection = frameSet?.defaultDirection ?? "down";
+  let lastStepIndex = 0;
+  let nextStepIndex = 0;
+  let moveSegmentCount = 0;
 
   const maxExtentX = bounds.right - bounds.left;
   const maxExtentY = bounds.bottom - bounds.top;
@@ -677,21 +736,27 @@ function createWanderAnimator(
   for (const direction of directions) {
     const delta = DIRECTION_DELTAS[direction];
     const target = { dx: current.dx + delta.dx, dy: current.dy + delta.dy };
+    const stepIndex = nextStepIndex;
+    nextStepIndex += 1;
     segments.push({
       type: "move",
       from: { ...current },
       to: target,
       direction,
       durationMs: moveDuration,
+      stepIndex,
     });
     current = target;
     currentDirection = direction;
+    lastStepIndex = stepIndex;
+    moveSegmentCount += 1;
     const idleDuration = idleBase * (0.6 + rng() * 0.6);
     segments.push({
       type: "wait",
       position: { ...current },
       direction: currentDirection,
       durationMs: idleDuration,
+      stepIndex: lastStepIndex,
     });
   }
 
@@ -700,35 +765,46 @@ function createWanderAnimator(
       const direction = current.dx > 0 ? "left" : "right";
       const delta = DIRECTION_DELTAS[direction];
       const target = { dx: current.dx + delta.dx, dy: current.dy + delta.dy };
+      const stepIndex = nextStepIndex;
+      nextStepIndex += 1;
       segments.push({
         type: "move",
         from: { ...current },
         to: target,
         direction,
         durationMs: moveDuration,
+        stepIndex,
       });
       current = target;
       currentDirection = direction;
+      lastStepIndex = stepIndex;
+      moveSegmentCount += 1;
     }
     while (current.dy !== 0) {
       const direction = current.dy > 0 ? "up" : "down";
       const delta = DIRECTION_DELTAS[direction];
       const target = { dx: current.dx + delta.dx, dy: current.dy + delta.dy };
+      const stepIndex = nextStepIndex;
+      nextStepIndex += 1;
       segments.push({
         type: "move",
         from: { ...current },
         to: target,
         direction,
         durationMs: moveDuration,
+        stepIndex,
       });
       current = target;
       currentDirection = direction;
+      lastStepIndex = stepIndex;
+      moveSegmentCount += 1;
     }
     segments.push({
       type: "wait",
       position: { ...current },
       direction: currentDirection,
       durationMs: idleBase,
+      stepIndex: moveSegmentCount > 0 ? lastStepIndex : 0,
     });
   }
 
@@ -736,11 +812,16 @@ function createWanderAnimator(
   if (!(totalDuration > 0)) {
     return null;
   }
+  const stepCount = moveSegmentCount;
+  if (stepCount === 0) {
+    return null;
+  }
 
   return {
     kind: "path",
     segments,
     totalDurationMs: totalDuration,
+    stepCount,
   };
 }
 
@@ -845,6 +926,17 @@ function applySpriteFrame(marker: ObjectMarkerEntry, direction: CardinalDirectio
   }
   if (marker.currentFrameKey !== frame.key) {
     marker.sprite.texture = frame.texture;
+    const spriteName = marker.object.sprite.constant;
+    if (
+      import.meta.env?.DEV &&
+      spriteName &&
+      (spriteName === "SPRITE_SAILBOAT" || spriteName === "SPRITE_BIG_GYARADOS" || spriteName === "SPRITE_BIG_SNORLAX")
+    ) {
+      const tex = frame.texture;
+      console.info(
+        `[SpriteCache] ${spriteName} frame ${frame.key} resolved ${tex.width}x${tex.height} (offset=${frame.offsetX},${frame.offsetY})`
+      );
+    }
     marker.currentFrameKey = frame.key;
   }
   marker.spriteOffset.x = frame.offsetX * marker.spriteScale;
@@ -869,10 +961,13 @@ function updateMarkerAnimation(marker: ObjectMarkerEntry, elapsedMs: number): vo
 
   if (animator.kind === "path") {
     const total = animator.totalDurationMs;
+    marker.stepCount = animator.stepCount;
     if (!(total > 0) || animator.segments.length === 0) {
       applySpriteFrame(marker, marker.lastDirection ?? marker.frameSet?.defaultDirection ?? null, 0);
       marker.sprite.x = baseX + marker.spriteOffset.x;
       marker.sprite.y = baseY + marker.spriteOffset.y;
+      marker.currentStepIndex = null;
+      marker.stepProgress = 0;
       return;
     }
     const timeInCycle = ((elapsedMs % total) + total) % total;
@@ -892,14 +987,26 @@ function updateMarkerAnimation(marker: ObjectMarkerEntry, elapsedMs: number): vo
       const progress = Math.max(0, Math.min(1, segmentElapsed / duration));
       const interpDx = activeSegment.from.dx + (activeSegment.to.dx - activeSegment.from.dx) * progress;
       const interpDy = activeSegment.from.dy + (activeSegment.to.dy - activeSegment.from.dy) * progress;
-      const frameIndex = Math.floor(progress * 4);
+      const stepIndex = activeSegment.stepIndex ?? 0;
+      const parity = stepIndex & 1;
+      const inStride = progress >= 0.5;
+      const baseFrameIndex = parity === 0 ? 0 : 2;
+      const strideFrameIndex = parity === 0 ? 1 : 3;
+      const frameIndex = inStride ? strideFrameIndex : baseFrameIndex;
       applySpriteFrame(marker, activeSegment.direction, frameIndex);
       marker.sprite.x = baseX + marker.spriteOffset.x + interpDx * cellSize;
       marker.sprite.y = baseY + marker.spriteOffset.y + interpDy * cellSize;
+      marker.currentStepIndex = activeSegment.stepIndex;
+      marker.stepProgress = progress;
     } else {
-      applySpriteFrame(marker, activeSegment.direction, 0);
+      const stepIndex = activeSegment.stepIndex ?? 0;
+      const parity = stepIndex & 1;
+      const frameIndex = parity === 0 ? 0 : 2;
+      applySpriteFrame(marker, activeSegment.direction, frameIndex);
       marker.sprite.x = baseX + marker.spriteOffset.x + activeSegment.position.dx * cellSize;
       marker.sprite.y = baseY + marker.spriteOffset.y + activeSegment.position.dy * cellSize;
+      marker.currentStepIndex = activeSegment.stepIndex;
+      marker.stepProgress = 0;
     }
     return;
   }
@@ -909,6 +1016,9 @@ function updateMarkerAnimation(marker: ObjectMarkerEntry, elapsedMs: number): vo
     applySpriteFrame(marker, marker.lastDirection ?? marker.frameSet?.defaultDirection ?? null, 0);
     marker.sprite.x = baseX + marker.spriteOffset.x;
     marker.sprite.y = baseY + marker.spriteOffset.y;
+    marker.currentStepIndex = null;
+    marker.stepProgress = 0;
+    marker.stepCount = null;
     return;
   }
   const timeInCycle = ((elapsedMs % total) + total) % total;
@@ -925,6 +1035,9 @@ function updateMarkerAnimation(marker: ObjectMarkerEntry, elapsedMs: number): vo
   applySpriteFrame(marker, activeStep.direction, 0);
   marker.sprite.x = baseX + marker.spriteOffset.x;
   marker.sprite.y = baseY + marker.spriteOffset.y;
+  marker.currentStepIndex = null;
+  marker.stepProgress = 0;
+  marker.stepCount = null;
 }
 
 function snapToHalf(value: number): number {
@@ -1499,8 +1612,8 @@ export default function MapCanvas({
       cellsPerBlock,
       eventCellPixelSize: baseCellPixelSize,
     };
-  const pixelScale = metadataBlockSize !== 0 ? atlasBlockPixelSize / metadataBlockSize : 1;
-  const atlasCellPixelSize = cellsPerBlock > 0 ? atlasBlockPixelSize / cellsPerBlock : atlasBlockPixelSize;
+    const pixelScale = metadataBlockSize !== 0 ? atlasBlockPixelSize / metadataBlockSize : 1;
+    const atlasCellPixelSize = cellsPerBlock > 0 ? atlasBlockPixelSize / cellsPerBlock : atlasBlockPixelSize;
 
     let container = state.objectContainer;
     if (!container) {
@@ -1546,7 +1659,7 @@ export default function MapCanvas({
         continue;
       }
       const baseFrame = createSpriteFrameRef(facingKey, record);
-      const frameSet = buildMovementFrameSet(cache, spriteKey, paletteName, facingKey, record);
+      const frameSet = buildMovementFrameSet(cache, spriteKey, spriteDef, paletteName, facingKey, record);
       const spriteInstance = new Sprite(baseFrame.texture);
       spriteInstance.eventMode = "none";
       spriteInstance.cursor = "auto";
@@ -1559,6 +1672,7 @@ export default function MapCanvas({
       container.addChild(spriteInstance);
       const movementSummary = computeMovementSummaryForObject(objectEntry, state.collisionHelper);
       const animator = createMovementAnimator(movementSummary, objectEntry, frameSet);
+      const stepCount = animator?.kind === "path" ? animator.stepCount : null;
       state.objectMarkers.push({
         object: objectEntry,
         sprite: spriteInstance,
@@ -1571,6 +1685,9 @@ export default function MapCanvas({
         currentFrameKey: baseFrame.key,
         spriteScale: pixelScale,
         lastDirection: frameSet?.defaultDirection ?? resolveDirectionFromFacingKey(facingKey),
+        currentStepIndex: stepCount && stepCount > 0 ? 0 : null,
+        stepProgress: 0,
+        stepCount,
       });
     }
 
@@ -2097,7 +2214,7 @@ export default function MapCanvas({
           continue;
         }
         const baseFrame = createSpriteFrameRef(facingKey, record);
-        const frameSet = buildMovementFrameSet(cache, spriteKey, paletteName, facingKey, record);
+        const frameSet = buildMovementFrameSet(cache, spriteKey, spriteDef, paletteName, facingKey, record);
         const sprite = new Sprite(baseFrame.texture);
         sprite.eventMode = "none";
         sprite.cursor = "auto";
@@ -2110,6 +2227,7 @@ export default function MapCanvas({
         container.addChild(sprite);
         const movementSummary = computeMovementSummaryForObject(objectEntry, entry.collisionHelper);
         const animator = createMovementAnimator(movementSummary, objectEntry, frameSet);
+        const stepCount = animator?.kind === "path" ? animator.stepCount : null;
         entry.objectMarkers.push({
           object: objectEntry,
           sprite,
@@ -2122,6 +2240,9 @@ export default function MapCanvas({
           currentFrameKey: baseFrame.key,
           spriteScale: pixelScale,
           lastDirection: frameSet?.defaultDirection ?? resolveDirectionFromFacingKey(facingKey),
+          currentStepIndex: stepCount && stepCount > 0 ? 0 : null,
+          stepProgress: 0,
+          stepCount,
         });
       }
 

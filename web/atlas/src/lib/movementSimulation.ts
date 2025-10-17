@@ -5,6 +5,7 @@ import type {
   MovementMedium,
   MovementModel,
   MovementSummary,
+  MovementStep,
   ObjectEventEntry,
 } from "@/types";
 import type { CollisionHelper } from "@/lib/collision";
@@ -26,6 +27,29 @@ const CARDINAL_STEPS: Array<{ dx: number; dy: number }> = [
   { dx: 0, dy: 1 },
   { dx: 0, dy: -1 },
 ];
+
+function deltaToDirection(dx: number, dy: number): MovementStep["direction"] | null {
+  if (dx === 0 && dy === 0) {
+    return null;
+  }
+  if (dx === 0) {
+    if (dy > 0) {
+      return "down";
+    }
+    if (dy < 0) {
+      return "up";
+    }
+  }
+  if (dy === 0) {
+    if (dx > 0) {
+      return "right";
+    }
+    if (dx < 0) {
+      return "left";
+    }
+  }
+  return null;
+}
 
 function toInt(value: number | null | undefined): number {
   if (!Number.isFinite(value)) {
@@ -142,6 +166,40 @@ function simulateAxisWalk(
     blockedNotes,
     notes,
   };
+  const steps: MovementStep[] = [];
+  let stepIndex = 0;
+  const currentPosition = cloneMapCell(start);
+
+  const walkTo = (targets: MapCellCoordinate[]): void => {
+    for (const target of targets) {
+      const direction = deltaToDirection(target.x - currentPosition.x, target.y - currentPosition.y);
+      if (!direction) {
+        continue;
+      }
+      const from = cloneMapCell(currentPosition);
+      currentPosition.x = target.x;
+      currentPosition.y = target.y;
+      steps.push({
+        index: stepIndex,
+        from,
+        to: cloneMapCell(currentPosition),
+        direction,
+      });
+      stepIndex += 1;
+    }
+  };
+
+  const positiveBackToStart = positiveCells.slice(0, -1).reverse();
+  const negativeBackToStart = negativeCells.slice(0, -1).reverse();
+
+  walkTo(positiveCells);
+  walkTo(positiveBackToStart.concat(cloneMapCell(start)));
+  walkTo(negativeCells);
+  walkTo(negativeBackToStart.concat(cloneMapCell(start)));
+
+  if (steps.length > 0) {
+    summary.steps = steps;
+  }
   if (notes.length > 0) {
     summary.notes = notes;
   }

@@ -5,6 +5,7 @@ import {
   MapPlacement,
   MapWarp,
   ObjectMetadata,
+  MapObjectMetadataEntry,
   ObjectEventEntry,
   ObjectSpriteDefinition,
   WarpMetadata,
@@ -362,6 +363,62 @@ function computeMovementSummaryForObject(
     console.warn("Failed to compute movement summary", objectEntry, err);
     return null;
   }
+}
+
+function isObjectWithinMapBounds(
+  objectEntry: ObjectEventEntry,
+  mapData: MapObjectMetadataEntry | null | undefined,
+  cellsPerBlock: number,
+  eventCellPixelSize: number,
+): boolean {
+  if (!mapData) {
+    return true;
+  }
+  const normalisedCellsPerBlock = Number.isFinite(cellsPerBlock) && cellsPerBlock > 0
+    ? Math.trunc(Math.abs(cellsPerBlock))
+    : null;
+  if (!normalisedCellsPerBlock) {
+    return true;
+  }
+  const widthBlocks = Number.isFinite(mapData.widthBlocks) && mapData.widthBlocks && mapData.widthBlocks > 0
+    ? Math.abs(mapData.widthBlocks)
+    : null;
+  const heightBlocks = Number.isFinite(mapData.heightBlocks) && mapData.heightBlocks && mapData.heightBlocks > 0
+    ? Math.abs(mapData.heightBlocks)
+    : null;
+  if (!widthBlocks && !heightBlocks) {
+    return true;
+  }
+  const widthCells = widthBlocks ? widthBlocks * normalisedCellsPerBlock : null;
+  const heightCells = heightBlocks ? heightBlocks * normalisedCellsPerBlock : null;
+  const baseCellSize = Number.isFinite(eventCellPixelSize) && eventCellPixelSize > 0
+    ? Math.abs(eventCellPixelSize)
+    : null;
+
+  const resolveCells = (tiles: number, pixels: number): number | null => {
+    if (Number.isFinite(tiles)) {
+      return tiles;
+    }
+    if (baseCellSize && Number.isFinite(pixels)) {
+      return pixels / baseCellSize;
+    }
+    return null;
+  };
+
+  const xCells = resolveCells(objectEntry.xTiles, objectEntry.xPixels);
+  const yCells = resolveCells(objectEntry.yTiles, objectEntry.yPixels);
+
+  if (widthCells !== null && xCells !== null) {
+    if (xCells < 0 || xCells >= widthCells) {
+      return false;
+    }
+  }
+  if (heightCells !== null && yCells !== null) {
+    if (yCells < 0 || yCells >= heightCells) {
+      return false;
+    }
+  }
+  return true;
 }
 
 const FRAME_DURATION_MS = 1000 / 60;
@@ -1956,6 +2013,9 @@ export default function MapCanvas({
       if (objectEntry.eventFlagSet) {
         continue;
       }
+      if (!isObjectWithinMapBounds(objectEntry, mapData, cellsPerBlock, baseCellPixelSize)) {
+        continue;
+      }
       const spriteKey = objectEntry.sprite.constant;
       if (!spriteKey) {
         continue;
@@ -2537,6 +2597,9 @@ export default function MapCanvas({
           continue;
         }
         if (objectEntry.eventFlagSet) {
+          continue;
+        }
+        if (!isObjectWithinMapBounds(objectEntry, mapData, cellsPerBlock, baseCellPixelSize)) {
           continue;
         }
         const spriteKey = objectEntry.sprite.constant;

@@ -8,6 +8,9 @@ import type {
   ObjectMovementDefinition,
   ObjectPaletteEntry,
   ObjectSpriteDefinition,
+  PokemonIconMetadata,
+  PokemonIconSpeciesDefinition,
+  PokemonIconVariantDefinition,
   RgbTuple,
 } from "@/types";
 
@@ -117,6 +120,36 @@ type RawObjectMetadata = {
   movements?: Record<string, RawMovementDefinition>;
   facings?: Record<string, RawFacingEntry>;
   maps?: Record<string, RawMapObjectEntry>;
+  pokemon_icons?: RawPokemonIconMetadata;
+};
+
+type RawPokemonIconPalette = {
+  normal?: string | null;
+  shiny?: string | null;
+};
+
+type RawPokemonIconVariant = {
+  tile_path?: string;
+  tile_count?: number;
+  tiles_2bpp_base64?: string;
+  frame_count?: number;
+  frame_tile_stride?: number;
+  frame_duration_frames?: number;
+  width?: number;
+  height?: number;
+  palette?: RawPokemonIconPalette;
+};
+
+type RawPokemonIconSpeciesEntry = {
+  forms?: Record<string, RawPokemonIconVariant>;
+};
+
+type RawPokemonIconMetadata = {
+  frame_tile_stride?: number;
+  frame_pixel_width?: number;
+  frame_pixel_height?: number;
+  default_frame_duration_frames?: number;
+  entries?: Record<string, RawPokemonIconSpeciesEntry>;
 };
 
 const DEFAULT_OBJECT_BLOCK_SIZE = 32;
@@ -178,6 +211,104 @@ function sanitizeSpriteDefinition(raw: RawSpriteDefinition | undefined): ObjectS
     tilePath: typeof raw?.tile_path === "string" ? raw!.tile_path : "",
     tileCount: Number.isFinite(raw?.tile_count) ? Math.trunc(raw?.tile_count as number) : 0,
     tiles2bppBase64: typeof raw?.tiles_2bpp_base64 === "string" ? raw!.tiles_2bpp_base64 : "",
+  };
+}
+
+function sanitizePokemonIconVariant(
+  raw: RawPokemonIconVariant | undefined,
+  defaults: { frameTileStride: number; frameDurationFrames: number; width: number; height: number },
+): PokemonIconVariantDefinition | null {
+  const tiles2bppBase64 = typeof raw?.tiles_2bpp_base64 === "string" ? raw.tiles_2bpp_base64 : "";
+  if (!tiles2bppBase64) {
+    return null;
+  }
+  const tileCount = Number.isFinite(raw?.tile_count) ? Math.max(0, Math.trunc(raw!.tile_count as number)) : 0;
+  const frameTileStride = Number.isFinite(raw?.frame_tile_stride)
+    ? Math.max(1, Math.trunc(raw!.frame_tile_stride as number))
+    : defaults.frameTileStride;
+  const inferredFrameCount = frameTileStride > 0 ? Math.max(1, Math.trunc(tileCount / frameTileStride)) : 1;
+  const frameCount = Number.isFinite(raw?.frame_count)
+    ? Math.max(1, Math.trunc(raw!.frame_count as number))
+    : inferredFrameCount;
+  const frameDurationFrames = Number.isFinite(raw?.frame_duration_frames)
+    ? Math.max(1, Math.trunc(raw!.frame_duration_frames as number))
+    : defaults.frameDurationFrames;
+  const width = Number.isFinite(raw?.width) ? Math.max(1, Math.trunc(raw!.width as number)) : defaults.width;
+  const height = Number.isFinite(raw?.height) ? Math.max(1, Math.trunc(raw!.height as number)) : defaults.height;
+  const tilePath = typeof raw?.tile_path === "string" ? raw.tile_path : "";
+  const paletteNormal =
+    typeof raw?.palette?.normal === "string"
+      ? raw.palette!.normal
+      : raw?.palette?.normal === null
+        ? null
+        : null;
+  const paletteShiny =
+    typeof raw?.palette?.shiny === "string"
+      ? raw.palette!.shiny
+      : raw?.palette?.shiny === null
+        ? null
+        : null;
+
+  return {
+    tilePath,
+    tileCount,
+    tiles2bppBase64,
+    frameCount,
+    frameTileStride,
+    frameDurationFrames,
+    width,
+    height,
+    palette: {
+      normal: paletteNormal,
+      shiny: paletteShiny,
+    },
+  };
+}
+
+function sanitizePokemonIconMetadata(raw: RawPokemonIconMetadata | undefined): PokemonIconMetadata | null {
+  if (!raw) {
+    return null;
+  }
+  const frameTileStride = Number.isFinite(raw.frame_tile_stride)
+    ? Math.max(1, Math.trunc(raw.frame_tile_stride as number))
+    : 4;
+  const width = Number.isFinite(raw.frame_pixel_width)
+    ? Math.max(1, Math.trunc(raw.frame_pixel_width as number))
+    : 16;
+  const height = Number.isFinite(raw.frame_pixel_height)
+    ? Math.max(1, Math.trunc(raw.frame_pixel_height as number))
+    : width;
+  const defaultFrameDurationFrames = Number.isFinite(raw.default_frame_duration_frames)
+    ? Math.max(1, Math.trunc(raw.default_frame_duration_frames as number))
+    : 8;
+  const entries: Record<string, PokemonIconSpeciesDefinition> = {};
+  for (const [species, speciesRaw] of Object.entries(raw.entries ?? {})) {
+    const formEntries = speciesRaw?.forms ?? {};
+    const forms: Record<string, PokemonIconVariantDefinition> = {};
+    for (const [formKey, variantRaw] of Object.entries(formEntries)) {
+      const variant = sanitizePokemonIconVariant(variantRaw, {
+        frameTileStride,
+        frameDurationFrames: defaultFrameDurationFrames,
+        width,
+        height,
+      });
+      if (variant) {
+        forms[formKey] = variant;
+      }
+    }
+    if (Object.keys(forms).length > 0) {
+      entries[species] = { forms };
+    }
+  }
+  if (Object.keys(entries).length === 0) {
+    return null;
+  }
+  return {
+    frameTileStride,
+    framePixelWidth: width,
+    framePixelHeight: height,
+    defaultFrameDurationFrames,
+    entries,
   };
 }
 
@@ -305,6 +436,7 @@ function convertObjectMetadata(payload: RawObjectMetadata): ObjectMetadata {
   for (const [name, rawEntry] of Object.entries(payload.sprites ?? {})) {
     sprites[name] = sanitizeSpriteDefinition(rawEntry);
   }
+  const pokemonIcons = sanitizePokemonIconMetadata(payload.pokemon_icons);
   const movements: Record<string, ObjectMovementDefinition> = {};
   let fallbackId = 0;
   for (const [name, rawEntry] of Object.entries(payload.movements ?? {})) {
@@ -334,6 +466,7 @@ function convertObjectMetadata(payload: RawObjectMetadata): ObjectMetadata {
     movements,
     facings,
     maps,
+    pokemonIcons,
   };
 }
 

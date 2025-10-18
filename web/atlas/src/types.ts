@@ -234,6 +234,33 @@ export interface ObjectSpriteDefinition {
   tiles2bppBase64: string;
 }
 
+export interface PokemonIconVariantDefinition {
+  tilePath: string;
+  tileCount: number;
+  tiles2bppBase64: string;
+  frameCount: number;
+  frameTileStride: number;
+  frameDurationFrames: number;
+  width: number;
+  height: number;
+  palette: {
+    normal: string | null;
+    shiny: string | null;
+  };
+}
+
+export interface PokemonIconSpeciesDefinition {
+  forms: Record<string, PokemonIconVariantDefinition>;
+}
+
+export interface PokemonIconMetadata {
+  frameTileStride: number;
+  framePixelWidth: number;
+  framePixelHeight: number;
+  defaultFrameDurationFrames: number;
+  entries: Record<string, PokemonIconSpeciesDefinition>;
+}
+
 export interface ObjectMovementDefinition {
   id: number;
   function: string;
@@ -383,4 +410,5 @@ export interface ObjectMetadata {
   movements: Record<string, ObjectMovementDefinition>;
   facings: Record<string, ObjectFacingEntry>;
   maps: Record<string, MapObjectMetadataEntry>;
+  pokemonIcons: PokemonIconMetadata | null;
 }

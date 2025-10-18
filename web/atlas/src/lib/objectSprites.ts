@@ -3,6 +3,7 @@ import type {
   ObjectFacingEntry,
   ObjectMetadata,
   ObjectSpriteDefinition,
+  PokemonIconMetadata,
   RgbTuple,
 } from "@/types";
 import { decodeBase64 } from "@/lib/base64";
@@ -69,6 +70,9 @@ export class ObjectSpriteCache {
   private readonly facingKeyByLabel: Map<string, string>;
   private readonly tileCache = new Map<string, Uint8Array[]>();
   private readonly textureCache = new Map<string, FacingTextureRecord>();
+  private readonly pokemonIcons: PokemonIconMetadata | null;
+  private readonly pokemonIconTileCache = new Map<string, Uint8Array[]>();
+  private readonly pokemonIconTextureCache = new Map<string, FacingTextureRecord[]>();
   private timeOfDay: string;
 
   constructor(metadata: ObjectMetadata, timeOfDay: string) {
@@ -78,6 +82,7 @@ export class ObjectSpriteCache {
     for (const [key, entry] of Object.entries(metadata.facings)) {
       this.facingKeyByLabel.set(entry.label, key);
     }
+    this.pokemonIcons = metadata.pokemonIcons ?? null;
   }
 
   setTimeOfDay(next: string): void {
@@ -108,21 +113,47 @@ export class ObjectSpriteCache {
       return cached;
     }
     const spriteDef = this.metadata.sprites[spriteName];
-    if (!spriteDef || spriteDef.tileCount <= 0 || !spriteDef.tiles2bppBase64) {
-      return null;
-    }
-    const tiles = this.ensureTilePixels(spriteName, spriteDef);
-    if (!tiles.length) {
-      return null;
-    }
-    const facing = this.resolveFacingEntry(facingKey);
-    if (!facing || facing.tiles.length === 0) {
+    if (!spriteDef) {
       return null;
     }
     const palette = this.resolvePalette(paletteName ?? spriteDef.defaultPalette);
+    const buildFallback = (): FacingTextureRecord | null => {
+      const fallback = this.buildGeneratedTexture(spriteName, palette);
+      if (fallback && import.meta.env?.DEV && DEBUG_SPRITES.has(spriteName)) {
+        console.info(`[SpriteCache] Generated fallback texture for ${spriteName} (${facingKey}) at ${fallback.width}x${fallback.height}`);
+      }
+      return fallback;
+    };
+    if (spriteDef.tileCount <= 0 || !spriteDef.tiles2bppBase64) {
+      const fallback = buildFallback();
+      if (fallback) {
+        this.textureCache.set(cacheKey, fallback);
+      }
+      return fallback;
+    }
+    const tiles = this.ensureTilePixels(spriteName, spriteDef);
+    if (!tiles.length) {
+      const fallback = buildFallback();
+      if (fallback) {
+        this.textureCache.set(cacheKey, fallback);
+      }
+      return fallback;
+    }
+    const facing = this.resolveFacingEntry(facingKey);
+    if (!facing || facing.tiles.length === 0) {
+      const fallback = buildFallback();
+      if (fallback) {
+        this.textureCache.set(cacheKey, fallback);
+      }
+      return fallback;
+    }
     const record = this.buildTexture(spriteName, spriteDef, facing, tiles, palette);
     if (!record) {
-      return null;
+      const fallback = buildFallback();
+      if (fallback) {
+        this.textureCache.set(cacheKey, fallback);
+      }
+      return fallback ?? null;
     }
     this.textureCache.set(cacheKey, record);
     return record;
@@ -133,6 +164,12 @@ export class ObjectSpriteCache {
       record.texture.destroy(true);
     }
     this.textureCache.clear();
+    for (const records of this.pokemonIconTextureCache.values()) {
+      for (const record of records) {
+        record.texture.destroy(true);
+      }
+    }
+    this.pokemonIconTextureCache.clear();
   }
 
   private ensureTilePixels(name: string, definition: ObjectSpriteDefinition): Uint8Array[] {
@@ -154,6 +191,129 @@ export class ObjectSpriteCache {
       this.tileCache.set(name, []);
       return [];
     }
+  }
+
+  getPokemonIconFrameTextures(
+    speciesConstant: string | null,
+    formConstant: string | null,
+    overridePalette: string | null,
+  ): { frames: FacingTextureRecord[]; frameDurationFrames: number } | null {
+    if (!this.pokemonIcons || !speciesConstant) {
+      return null;
+    }
+    const speciesEntry = this.pokemonIcons.entries?.[speciesConstant];
+    if (!speciesEntry) {
+      return null;
+    }
+    const forms = speciesEntry.forms ?? {};
+    const normalizedForm = formConstant && forms[formConstant] ? formConstant : forms["NO_FORM"] ? "NO_FORM" : Object.keys(forms)[0];
+    if (!normalizedForm) {
+      return null;
+    }
+    const variant = forms[normalizedForm];
+    if (!variant || !variant.tiles2bppBase64) {
+      return null;
+    }
+    const paletteKey = overridePalette ?? variant.palette?.normal ?? null;
+    const cacheKey = `icon|${speciesConstant}|${normalizedForm}|${paletteKey ?? ""}|${this.timeOfDay}`;
+    const cachedFrames = this.pokemonIconTextureCache.get(cacheKey);
+    if (cachedFrames) {
+      const durationFrames = Math.max(1, Math.trunc(variant.frameDurationFrames || this.pokemonIcons.defaultFrameDurationFrames || 8));
+      return { frames: cachedFrames, frameDurationFrames: durationFrames };
+    }
+
+    let tiles = this.pokemonIconTileCache.get(variant.tiles2bppBase64);
+    if (!tiles) {
+      try {
+        const bytes = decodeBase64(variant.tiles2bppBase64);
+        tiles = decodeTilePixels(bytes);
+      } catch (err) {
+        console.error("Failed to decode pokemon icon tiles", speciesConstant, normalizedForm, err);
+        tiles = [];
+      }
+      this.pokemonIconTileCache.set(variant.tiles2bppBase64, tiles);
+    }
+    if (!tiles || tiles.length === 0) {
+      return null;
+    }
+
+    const frameTileStride = Math.max(1, Math.trunc(variant.frameTileStride || this.pokemonIcons.frameTileStride || 4));
+    const width = Math.max(8, Math.trunc(variant.width || this.pokemonIcons.framePixelWidth || 16));
+    const height = Math.max(8, Math.trunc(variant.height || this.pokemonIcons.framePixelHeight || width));
+    const inferredFrameCount = Math.max(1, Math.trunc(tiles.length / frameTileStride));
+    const frameCount = Math.max(1, Math.trunc(variant.frameCount || inferredFrameCount));
+    if (tiles.length < frameTileStride) {
+      return null;
+    }
+
+    const palette = this.resolvePalette(paletteKey);
+    const colors = clampPalette(palette);
+    const frames: FacingTextureRecord[] = [];
+    const tilesPerRow = Math.max(1, Math.ceil(width / 8));
+    const tilesPerColumn = Math.max(1, Math.ceil(height / 8));
+    const stride = tilesPerRow * tilesPerColumn;
+    const effectiveStride = Math.max(frameTileStride, stride);
+
+    for (let frameIndex = 0; frameIndex < frameCount; frameIndex += 1) {
+      const start = frameIndex * effectiveStride;
+      const end = start + effectiveStride;
+      if (end > tiles.length) {
+        break;
+      }
+      const frameTiles = tiles.slice(start, end);
+      if (frameTiles.length < stride) {
+        break;
+      }
+      const buffer = new Uint8Array(width * height * 4);
+      for (let tileRow = 0; tileRow < tilesPerColumn; tileRow += 1) {
+        for (let tileCol = 0; tileCol < tilesPerRow; tileCol += 1) {
+          const tileIndex = tileRow * tilesPerRow + tileCol;
+          const tilePixels = frameTiles[tileIndex];
+          if (!tilePixels) {
+            continue;
+          }
+          for (let row = 0; row < 8; row += 1) {
+            const destY = tileRow * 8 + row;
+            if (destY >= height) {
+              continue;
+            }
+            for (let column = 0; column < 8; column += 1) {
+              const destX = tileCol * 8 + column;
+              if (destX >= width) {
+                continue;
+              }
+              const pixelValue = tilePixels[row * 8 + column];
+              if (pixelValue === 0) {
+                continue;
+              }
+              const color = colors[pixelValue] ?? DEFAULT_PALETTE[Math.min(pixelValue, DEFAULT_PALETTE.length - 1)];
+              const offset = (destY * width + destX) * 4;
+              buffer[offset] = color[0];
+              buffer[offset + 1] = color[1];
+              buffer[offset + 2] = color[2];
+              buffer[offset + 3] = 255;
+            }
+          }
+        }
+      }
+      const baseTexture = BaseTexture.fromBuffer(buffer, width, height);
+      const texture = new Texture(baseTexture);
+      frames.push({
+        texture,
+        offsetX: -Math.floor(width / 2),
+        offsetY: -Math.floor(height / 2),
+        width,
+        height,
+      });
+    }
+
+    if (frames.length === 0) {
+      return null;
+    }
+
+    this.pokemonIconTextureCache.set(cacheKey, frames);
+    const durationFrames = Math.max(1, Math.trunc(variant.frameDurationFrames || this.pokemonIcons.defaultFrameDurationFrames || 8));
+    return { frames, frameDurationFrames: durationFrames };
   }
 
   private resolveFacingEntry(key: string): ObjectFacingEntry | null {
@@ -399,5 +559,56 @@ export class ObjectSpriteCache {
       return Math.floor(limit / 2);
     }
     return 0;
+  }
+
+  private buildGeneratedTexture(spriteName: string, palette: RgbTuple[]): FacingTextureRecord | null {
+    if (spriteName !== "SPRITE_MON_ICON") {
+      return null;
+    }
+    const colors = clampPalette(palette);
+    const outline = colors[3] ?? colors[2] ?? colors[1] ?? colors[0];
+    const fill = colors[1] ?? colors[0];
+    const highlight = colors[0] ?? fill;
+    const width = 16;
+    const height = 16;
+    const centerX = (width - 1) / 2;
+    const centerY = (height - 1) / 2;
+    const radius = 6;
+    const radiusSq = radius * radius;
+    const borderSq = Math.max(0, (radius - 1) * (radius - 1));
+    const highlightSq = 9;
+    const buffer = new Uint8Array(width * height * 4);
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const dx = x - centerX;
+        const dy = y - centerY;
+        const distSq = dx * dx + dy * dy;
+        if (distSq > radiusSq) {
+          continue;
+        }
+        let color: RgbTuple;
+        if (distSq >= borderSq) {
+          color = outline;
+        } else if (distSq <= highlightSq && dy < 0) {
+          color = highlight;
+        } else {
+          color = fill;
+        }
+        const offset = (y * width + x) * 4;
+        buffer[offset] = color[0];
+        buffer[offset + 1] = color[1];
+        buffer[offset + 2] = color[2];
+        buffer[offset + 3] = 255;
+      }
+    }
+    const baseTexture = BaseTexture.fromBuffer(buffer, width, height);
+    const texture = new Texture(baseTexture);
+    return {
+      texture,
+      offsetX: -8,
+      offsetY: -8,
+      width,
+      height,
+    };
   }
 }

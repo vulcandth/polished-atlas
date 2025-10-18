@@ -74,6 +74,7 @@ class ASMConstantParser:
             "SCREEN_HEIGHT": 18,
         }
         self.order: List[str] = []
+        self.ext_const_value = 0
 
     def parse_file(self, path: Path) -> None:
         const_value = 0
@@ -85,6 +86,27 @@ class ASMConstantParser:
                 continue
             if line.startswith("MACRO "):
                 # Macro bodies can contain const_def etc but we only care about top level.
+                continue
+            if line.startswith("ext_const_def"):
+                args_text = line[len("ext_const_def"):].strip()
+                args = [arg.strip() for arg in args_text.split(",") if arg.strip()]
+                if args:
+                    try:
+                        self.ext_const_value = self._evaluate(args[0], const_value, const_inc)
+                    except ExpressionError:
+                        self.ext_const_value = 0
+                else:
+                    self.ext_const_value = 0
+                if len(args) >= 2:
+                    self._define(args[1], self.ext_const_value)
+                self.ext_const_value += const_inc
+                continue
+            if line.startswith("ext_const"):
+                parts = line.split()
+                if len(parts) >= 2:
+                    const_value += const_inc
+                    self._define(parts[1], self.ext_const_value)
+                    self.ext_const_value += const_inc
                 continue
             match = self._RE_CONST_DEF.match(line)
             if match:
@@ -173,6 +195,7 @@ class ASMConstantParser:
         locals_map = dict(self.symbols)
         locals_map.setdefault("const_value", const_value)
         locals_map.setdefault("const_inc", const_inc)
+        locals_map.setdefault("ext_const_value", getattr(self, "ext_const_value", 0))
         locals_map.setdefault("low", lambda value: value & 0xFF)
         locals_map.setdefault("high", lambda value: (value >> 8) & 0xFF)
         locals_map.setdefault("bank", lambda value: (value >> 14) & 0x7F)
@@ -636,6 +659,264 @@ def parse_initial_event_flags(root: Path) -> Set[str]:
     return flags
 
 
+def _read_species_sequence(path: Path, expected_count: int) -> List[Optional[str]]:
+    entries: List[Optional[str]] = []
+    if not path.exists():
+        return entries
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        code, *_ = raw_line.split(";", 1)
+        line = code.strip()
+        if not line:
+            continue
+        if line.startswith("const_def"):
+            continue
+        if line.startswith("const_skip"):
+            entries.append(None)
+            continue
+        if line.startswith("const "):
+            parts = line.split()
+            if len(parts) >= 2:
+                entries.append(parts[1])
+            continue
+        if line.startswith("DEF NUM_SPECIES"):
+            break
+    if expected_count > 0:
+        if len(entries) < expected_count:
+            entries.extend([None] * (expected_count - len(entries)))
+        elif len(entries) > expected_count:
+            entries = entries[:expected_count]
+    return entries
+
+
+def _parse_dp_table(path: Path, label: str) -> List[Tuple[str, str]]:
+    results: List[Tuple[str, str]] = []
+    if not path.exists():
+        return results
+    lines = path.read_text(encoding="utf-8").splitlines()
+    in_section = False
+    for raw_line in lines:
+        code, *_ = raw_line.split(";", 1)
+        line = code.strip()
+        if not line:
+            continue
+        if not in_section:
+            if line.startswith(f"{label}:"):
+                in_section = True
+            continue
+        if line.startswith("assert_table_length"):
+            break
+        if not line.startswith("dp"):
+            continue
+        payload = line[2:].strip()
+        tokens = [token.strip() for token in payload.split(",") if token.strip()]
+        if len(tokens) >= 2:
+            results.append((tokens[0], tokens[1]))
+    return results
+
+
+def _parse_mini_icon_block(lines: Sequence[str], constants: ASMConstantParser) -> List[str]:
+    entries: List[str] = []
+    index = 0
+    total = len(lines)
+    while index < total:
+        raw_line = lines[index]
+        index += 1
+        code, *_ = raw_line.split(";", 1)
+        line = code.strip()
+        if not line:
+            continue
+        if line.startswith("rept"):
+            expr = line[4:].strip()
+            repeat = constants.evaluate(expr, fallback=0) or 0
+            block: List[str] = []
+            depth = 1
+            while index < total and depth > 0:
+                candidate = lines[index]
+                index += 1
+                code_inner, *_ = candidate.split(";", 1)
+                stripped_inner = code_inner.strip()
+                if stripped_inner.startswith("rept"):
+                    depth += 1
+                elif stripped_inner.startswith("endr"):
+                    depth -= 1
+                    if depth == 0:
+                        break
+                block.append(candidate)
+            if repeat > 0 and block:
+                sub_entries = _parse_mini_icon_block(block, constants)
+                for _ in range(repeat):
+                    entries.extend(sub_entries)
+            continue
+        if line.startswith("endr"):
+            break
+        if line.startswith("mini_icon"):
+            payload = line[len("mini_icon"):].strip()
+            token = payload.split(",", 1)[0].strip()
+            if token:
+                entries.append(token)
+            continue
+    return entries
+
+
+def _parse_mini_icon_pointer_names(path: Path, constants: ASMConstantParser) -> List[str]:
+    if not path.exists():
+        return []
+    lines = path.read_text(encoding="utf-8").splitlines()
+    return _parse_mini_icon_block(lines, constants)
+
+
+def _parse_icon_palette_entries(path: Path) -> List[Tuple[Optional[str], Optional[str]]]:
+    palettes: List[Tuple[Optional[str], Optional[str]]] = []
+    if not path.exists():
+        return palettes
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        code, *_ = raw_line.split(";", 1)
+        line = code.strip()
+        if not line or not line.startswith("iconpal"):
+            continue
+        payload = line[len("iconpal"):].strip()
+        tokens = [token.strip() for token in payload.split(",") if token.strip()]
+        if len(tokens) >= 2:
+            shiny = f"PAL_OW_{tokens[0]}"
+            normal = f"PAL_OW_{tokens[1]}"
+            palettes.append((normal, shiny))
+    return palettes
+
+
+def _parse_pokemon_icon_sources(root: Path) -> Dict[str, str]:
+    path = root / "gfx/minis_icons.asm"
+    mapping: Dict[str, str] = {}
+    if not path.exists():
+        return mapping
+    pending: List[str] = []
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        code, *_ = raw_line.split(";", 1)
+        line = code.strip()
+        if not line or line.startswith("SECTION"):
+            continue
+        inline_match = re.match(r'^([A-Za-z0-9_]+)::\s+INCBIN\s+"([^"]+)"', line)
+        if inline_match:
+            relative = inline_match.group(2)
+            labels = [inline_match.group(1)]
+            if pending:
+                labels = pending + labels
+            for label in labels:
+                mapping[label] = relative
+            pending = []
+            continue
+        if line.endswith("::"):
+            pending.append(line[:-2])
+            continue
+        match = re.search(r'INCBIN\s+"([^"]+)"', line)
+        if match and pending:
+            relative = match.group(1)
+            for label in pending:
+                mapping[label] = relative
+            pending = []
+    return mapping
+
+
+def gather_pokemon_icon_metadata(root: Path, constants: ASMConstantParser) -> Dict[str, object]:
+    num_species = constants.get("NUM_SPECIES", 0) or 0
+    cosmetic_forms = _parse_dp_table(root / "data/pokemon/variant_forms.asm", "CosmeticSpeciesAndFormTable")
+    variant_forms = _parse_dp_table(root / "data/pokemon/variant_forms.asm", "VariantSpeciesAndFormTable")
+    if num_species <= 0:
+        return {}
+
+    species_sequence = _read_species_sequence(root / "constants/pokemon_constants.asm", num_species)
+    pointer_names = _parse_mini_icon_pointer_names(root / "data/pokemon/mini_icon_pointers.asm", constants)
+
+    # Mini icon pointers reuse the base Magikarp art for all cosmetic forms, so the pointer list
+    # contains one entry per form even though `CosmeticSpeciesAndFormTable` omits a value.
+    # Backfill the missing entry so our sequential species/form mapping stays aligned.
+    magikarp_pointer_repeats = pointer_names[num_species:].count("Magikarp")
+    if magikarp_pointer_repeats:
+        magikarp_cosmetic_forms = [form for species, form in cosmetic_forms if species == "MAGIKARP"]
+        deficit = magikarp_pointer_repeats - len(magikarp_cosmetic_forms)
+        if deficit > 0:
+            last_form = magikarp_cosmetic_forms[-1] if magikarp_cosmetic_forms else "NO_FORM"
+            cosmetic_forms.extend(("MAGIKARP", last_form) for _ in range(deficit))
+
+    num_cosmetic = len(cosmetic_forms)
+    num_variant = len(variant_forms)
+    palette_entries = _parse_icon_palette_entries(root / "data/pokemon/overworld_icon_pals.asm")
+    icon_sources = _parse_pokemon_icon_sources(root)
+
+    total_required = num_species + num_cosmetic + num_variant
+    if len(palette_entries) < len(pointer_names):
+        palette_entries = palette_entries + [(None, None)] * (len(pointer_names) - len(palette_entries))
+
+    spec_map: List[Tuple[Optional[str], str]] = []
+    for index in range(num_species):
+        species = species_sequence[index] if index < len(species_sequence) else None
+        spec_map.append((species, "NO_FORM"))
+    for species, form in cosmetic_forms[:num_cosmetic]:
+        spec_map.append((species, form))
+    for species, form in variant_forms[:num_variant]:
+        spec_map.append((species, form))
+    if len(spec_map) < total_required:
+        spec_map.extend([(None, "NO_FORM")] * (total_required - len(spec_map)))
+
+    tile_cache: Dict[str, bytes] = {}
+
+    def load_tiles(relative_path: str) -> bytes:
+        if relative_path in tile_cache:
+            return tile_cache[relative_path]
+        data = read_sprite_graphics(root, relative_path)
+        tile_cache[relative_path] = data
+        return data
+
+    species_payload: Dict[str, Dict[str, object]] = {}
+    limit = min(len(pointer_names), len(spec_map))
+    for index in range(limit):
+        pointer = pointer_names[index]
+        species_constant, form_constant = spec_map[index]
+        if not species_constant:
+            continue
+        palette_normal, palette_shiny = palette_entries[index] if index < len(palette_entries) else (None, None)
+        icon_label = f"{pointer}Icon"
+        tile_path = icon_sources.get(icon_label)
+        if not tile_path:
+            continue
+        tile_bytes = load_tiles(tile_path)
+        if not tile_bytes:
+            continue
+        tile_count = len(tile_bytes) // 16 if tile_bytes else 0
+        if tile_count <= 0:
+            continue
+        frame_stride = 4
+        frame_count = max(1, tile_count // frame_stride)
+        variant_payload = {
+            "tile_path": tile_path,
+            "tile_count": tile_count,
+            "tiles_2bpp_base64": base64.b64encode(tile_bytes).decode("ascii"),
+            "frame_count": frame_count,
+            "frame_tile_stride": frame_stride,
+            "frame_duration_frames": 8,
+            "width": 16,
+            "height": 16,
+            "palette": {
+                "normal": palette_normal,
+                "shiny": palette_shiny,
+            },
+        }
+        entry = species_payload.setdefault(species_constant, {"forms": {}})
+        form_key = form_constant if form_constant else "NO_FORM"
+        forms = entry.setdefault("forms", {})
+        forms[form_key] = variant_payload
+
+    if not species_payload:
+        return {}
+
+    return {
+        "frame_tile_stride": 4,
+        "frame_pixel_width": 16,
+        "frame_pixel_height": 16,
+        "default_frame_duration_frames": 8,
+        "entries": species_payload,
+    }
+
+
 def infer_copy_palette_static(
     name: str,
     time_palettes: Dict[str, Dict[str, List[List[int]]]],
@@ -967,7 +1248,12 @@ def evaluate_expression(expr: str, constants: ASMConstantParser) -> Optional[int
 
 
 def macro_object_event(args: List[str]) -> Tuple[List[str], Dict[str, object]]:
-    return args, {}
+    extra: Dict[str, object] = {}
+    if len(args) >= 10 and args[2] == "SPRITE_MON_ICON":
+        species = args[5]
+        form = args[9] if len(args) > 9 else "NO_FORM"
+        extra = {"species": species, "form": form}
+    return args, extra
 
 
 def macro_itemball_event(args: List[str]) -> Tuple[List[str], Dict[str, object]]:
@@ -1416,6 +1702,7 @@ def build_payload(
     copy_palette_names: Sequence[str],
     palette_names: Sequence[str],
     block_pixel_size: int,
+    pokemon_icons: Dict[str, object],
 ) -> Dict[str, object]:
     sprite_payload: Dict[str, object] = {}
     for sprite in sprites:
@@ -1494,6 +1781,7 @@ def build_payload(
         "palette_names": list(palette_names),
         "default_facing_for_direction": DEFAULT_FACE_FOR_DIRECTION,
         "time_of_day_slots": list(TIME_OF_DAY_SLUGS),
+        "pokemon_icons": pokemon_icons,
     }
 
 
@@ -1520,6 +1808,7 @@ def main() -> None:
         palette_names,
         initial_event_flags,
     )
+    pokemon_icons = gather_pokemon_icon_metadata(polished_root, constants)
     payload = build_payload(
         sprites=sprites,
         movements=movements,
@@ -1532,6 +1821,7 @@ def main() -> None:
         copy_palette_names=copy_palette_names,
         palette_names=palette_names,
         block_pixel_size=block_pixel_size,
+        pokemon_icons=pokemon_icons,
     )
     output_path = args.output.resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)

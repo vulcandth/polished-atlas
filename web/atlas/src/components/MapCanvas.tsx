@@ -51,6 +51,8 @@ type MovementFrameSet = {
   defaultDirection: CardinalDirection | null;
 };
 
+type PokemonIconFrameRecord = NonNullable<ReturnType<ObjectSpriteCache["getPokemonIconFrameTextures"]>>["frames"][number];
+
 type MovementSegment =
   | {
       type: "move";
@@ -86,7 +88,15 @@ type SpinMovementAnimator = {
   totalDurationMs: number;
 };
 
-type MovementAnimator = PathMovementAnimator | SpinMovementAnimator;
+type IdleMovementAnimator = {
+  kind: "idle";
+  direction: CardinalDirection | null;
+  frameCount: number;
+  frameDurationMs: number;
+  phaseOffsetMs: number;
+};
+
+type MovementAnimator = PathMovementAnimator | SpinMovementAnimator | IdleMovementAnimator;
 
 type ObjectMarkerEntry = {
   object: ObjectEventEntry;
@@ -326,6 +336,17 @@ function resolveFacingConstant(entry: ObjectEventEntry, metadata: ObjectMetadata
   return firstKey ?? null;
 }
 
+function resolvePokemonSpecies(entry: ObjectEventEntry): { species: string | null; form: string | null } {
+  const speciesConstant = typeof entry.species?.constant === "string" ? entry.species.constant : null;
+  const fallbackSpecies = typeof entry.extra?.["species"] === "string" ? (entry.extra!["species"] as string) : null;
+  const rawForm = entry.extra?.["form"];
+  const formConstant = typeof rawForm === "string" ? rawForm : null;
+  return {
+    species: speciesConstant ?? fallbackSpecies,
+    form: formConstant,
+  };
+}
+
 function computeMovementSummaryForObject(
   objectEntry: ObjectEventEntry,
   collisionHelper: CollisionHelper | null,
@@ -344,6 +365,9 @@ function computeMovementSummaryForObject(
 }
 
 const FRAME_DURATION_MS = 1000 / 60;
+const POKEMON_ICON_FRAME_DURATION_SCALE = 2;
+const MIN_POKEMON_ICON_FRAME_DURATION_MS = 120;
+const MOVEMENT_SPEED_SCALE = 2;
 
 const STEP_FRAMES_BY_SPEED: Record<string, number> = {
   slow: 32,
@@ -383,18 +407,19 @@ const DIRECTION_DELTAS: Record<CardinalDirection, Offset> = {
 function movementSpeedToStepDuration(speed: MovementSummary["model"]["speed"] | undefined): number {
   const frames = speed ? STEP_FRAMES_BY_SPEED[speed] : undefined;
   const frameCount = Number.isFinite(frames) ? (frames as number) : STEP_FRAMES_BY_SPEED.normal;
-  return frameCount * FRAME_DURATION_MS;
+  return frameCount * FRAME_DURATION_MS * MOVEMENT_SPEED_SCALE;
 }
 
 function movementSpeedToIdleDuration(speed: MovementSummary["model"]["speed"] | undefined): number {
   const frames = speed ? IDLE_FRAMES_BY_SPEED[speed] : undefined;
   const frameCount = Number.isFinite(frames) ? (frames as number) : IDLE_FRAMES_BY_SPEED.normal;
-  return frameCount * FRAME_DURATION_MS;
+  return frameCount * FRAME_DURATION_MS * MOVEMENT_SPEED_SCALE;
 }
 
 function movementSpeedToSpinInterval(speed: MovementSummary["model"]["speed"] | undefined): number {
   const interval = speed ? SPIN_INTERVAL_BY_SPEED[speed] : undefined;
-  return Number.isFinite(interval) ? (interval as number) : SPIN_INTERVAL_BY_SPEED.normal;
+  const base = Number.isFinite(interval) ? (interval as number) : SPIN_INTERVAL_BY_SPEED.normal;
+  return base * MOVEMENT_SPEED_SCALE;
 }
 
 function resolveDirectionFromFacingKey(key: string | null | undefined): CardinalDirection | null {
@@ -475,6 +500,36 @@ function oppositeDirection(direction: CardinalDirection): CardinalDirection {
   }
 }
 
+function buildStaticAnimationFrames(
+  cache: ObjectSpriteCache,
+  spriteKey: string,
+  paletteName: string | null,
+  defaultDirection: CardinalDirection | null,
+): { direction: CardinalDirection; frames: SpriteFrameRef[] } | null {
+  if (spriteKey !== "SPRITE_BIG_GYARADOS") {
+    return null;
+  }
+  const facingKeys = ["FACING_BIG_GYARADOS_1", "FACING_BIG_GYARADOS_2"];
+  const frames: SpriteFrameRef[] = [];
+  for (const facingKey of facingKeys) {
+    const record = cache.getFacingTexture(spriteKey, facingKey, paletteName ?? null);
+    if (record) {
+      frames.push(createSpriteFrameRef(facingKey, record));
+    }
+  }
+  if (frames.length === 0) {
+    return null;
+  }
+  if (frames.length === 1) {
+    frames.push(frames[0]);
+  }
+  const direction = defaultDirection ?? "down";
+  return {
+    direction,
+    frames,
+  };
+}
+
 function buildMovementFrameSet(
   cache: ObjectSpriteCache,
   spriteKey: string,
@@ -486,13 +541,24 @@ function buildMovementFrameSet(
   const defaultFrame = createSpriteFrameRef(baseKey, baseRecord);
   const framesByDirection: Partial<Record<CardinalDirection, SpriteFrameRef[]>> = {};
   const availableDirections: CardinalDirection[] = [];
+  let defaultDirection = resolveDirectionFromFacingKey(baseKey);
 
   if (spriteDef.spriteType !== "WALKING_SPRITE") {
+    const staticFrames = buildStaticAnimationFrames(cache, spriteKey, paletteName ?? null, defaultDirection ?? null);
+    if (staticFrames) {
+      framesByDirection[staticFrames.direction] = staticFrames.frames;
+      if (!availableDirections.includes(staticFrames.direction)) {
+        availableDirections.push(staticFrames.direction);
+      }
+      if (!defaultDirection) {
+        defaultDirection = staticFrames.direction;
+      }
+    }
     return {
       framesByDirection,
       availableDirections,
       defaultFrame,
-      defaultDirection: resolveDirectionFromFacingKey(baseKey),
+      defaultDirection: defaultDirection ?? resolveDirectionFromFacingKey(baseKey),
     };
   }
 
@@ -519,7 +585,7 @@ function buildMovementFrameSet(
     }
   });
 
-  let defaultDirection = resolveDirectionFromFacingKey(baseKey);
+  defaultDirection = defaultDirection ?? resolveDirectionFromFacingKey(baseKey);
   if (!defaultDirection && availableDirections.length > 0) {
     defaultDirection = availableDirections[0];
   }
@@ -535,7 +601,105 @@ function buildMovementFrameSet(
   };
 }
 
-function createAxisPathAnimator(summary: MovementSummary, frameSet: MovementFrameSet | null): PathMovementAnimator | null {
+function buildPokemonIconFrameSet(
+  cache: ObjectSpriteCache,
+  objectEntry: ObjectEventEntry,
+  _spriteDef: ObjectSpriteDefinition,
+  facingKey: string,
+  paletteName: string | null,
+  logContext: string,
+): { baseFrame: SpriteFrameRef | null; frameSet: MovementFrameSet | null; frameDurationMs: number | null } {
+  const spriteKey = "SPRITE_MON_ICON";
+  const { species, form } = resolvePokemonSpecies(objectEntry);
+  const palette = paletteName ?? null;
+  const direction = resolveDirectionFromFacingKey(facingKey) ?? "down";
+  const fallbackRecord = cache.getFacingTexture(spriteKey, facingKey, palette);
+  const iconData = cache.getPokemonIconFrameTextures(species, form, palette);
+
+  const convertFrame = (frameRecord: PokemonIconFrameRecord, index: number): SpriteFrameRef => {
+    const halfWidth = Math.round((frameRecord.width ?? 0) / 2);
+    const halfHeight = Math.round((frameRecord.height ?? 0) / 2);
+    return {
+      key: `${spriteKey}:${species ?? "UNKNOWN"}:${form ?? "NO_FORM"}:${index}`,
+      texture: frameRecord.texture,
+      offsetX: frameRecord.offsetX + halfWidth,
+      offsetY: frameRecord.offsetY + halfHeight,
+    };
+  };
+
+  if (iconData && iconData.frames.length > 0) {
+    console.info(`[MapCanvas] Pokémon icon lookup (${logContext})`, {
+      species,
+      form,
+      palette,
+      hasEntry: true,
+      frameCount: iconData.frames.length,
+      frameDurationFrames: iconData.frameDurationFrames,
+    });
+
+    const frames: SpriteFrameRef[] = iconData.frames.map((frameRecord, index) => convertFrame(frameRecord, index));
+    const baseFrame = frames[0] ?? null;
+    const frameSet = baseFrame
+      ? {
+          framesByDirection: { [direction]: frames },
+          availableDirections: [direction],
+          defaultFrame: baseFrame,
+          defaultDirection: direction,
+        }
+      : null;
+    const frameDurationMs = Math.max(
+      MIN_POKEMON_ICON_FRAME_DURATION_MS,
+      iconData.frameDurationFrames * FRAME_DURATION_MS * POKEMON_ICON_FRAME_DURATION_SCALE,
+    );
+    return {
+      baseFrame,
+      frameSet,
+      frameDurationMs,
+    };
+  }
+
+  console.warn(`[MapCanvas] Falling back to placeholder icon (${logContext})`, {
+    species,
+    form,
+    palette,
+    hasEntry: Boolean(iconData?.frames.length),
+  });
+
+  if (!fallbackRecord) {
+    return {
+      baseFrame: null,
+      frameSet: null,
+      frameDurationMs: null,
+    };
+  }
+
+  const halfWidth = Math.round((fallbackRecord.width ?? 0) / 2);
+  const halfHeight = Math.round((fallbackRecord.height ?? 0) / 2);
+  const fallbackFrame: SpriteFrameRef = {
+    key: `${spriteKey}:${facingKey}:fallback`,
+    texture: fallbackRecord.texture,
+    offsetX: fallbackRecord.offsetX + halfWidth,
+    offsetY: fallbackRecord.offsetY + halfHeight,
+  };
+  const fallbackFrameSet: MovementFrameSet = {
+    framesByDirection: { [direction]: [fallbackFrame] },
+    availableDirections: [direction],
+    defaultFrame: fallbackFrame,
+    defaultDirection: direction,
+  };
+
+  return {
+    baseFrame: fallbackFrame,
+    frameSet: fallbackFrameSet,
+    frameDurationMs: null,
+  };
+}
+
+function createAxisPathAnimator(
+  summary: MovementSummary,
+  objectEntry: ObjectEventEntry,
+  frameSet: MovementFrameSet | null,
+): PathMovementAnimator | null {
   if (!summary.path || summary.path.length === 0) {
     return null;
   }
@@ -567,6 +731,11 @@ function createAxisPathAnimator(summary: MovementSummary, frameSet: MovementFram
   let lastStepIndex: number = recordedSteps.length > 0 ? recordedSteps[0].index : 0;
   let nextStepCursor = 0;
   let moveSegmentCount = 0;
+
+  const rngSeedBase = ((objectEntry.index ?? 0) * 1103515245 + start.x * 1237 + start.y * 1999) >>> 0;
+  const rng = createSeededRandom(rngSeedBase);
+  const earlyTurnChance = 0.35;
+  const earlyTurnFloor = 0.5;
 
   const claimStepIndex = (target: Offset, direction: CardinalDirection): number => {
     if (recordedSteps.length === 0) {
@@ -624,8 +793,33 @@ function createAxisPathAnimator(summary: MovementSummary, frameSet: MovementFram
     });
   };
 
-  const traverseOffsets = (offsets: Offset[]): void => {
+  const planSequences = (offsets: Offset[]): Offset[][] => {
+    if (offsets.length === 0) {
+      return [];
+    }
+    const passes = offsets.length > 1 ? 2 : 1;
+    const sequences: Offset[][] = [];
+    for (let pass = 0; pass < passes; pass += 1) {
+      let length = offsets.length;
+      if (pass > 0 && offsets.length > 1 && rng() < earlyTurnChance) {
+        const minSteps = Math.max(1, Math.floor(offsets.length * earlyTurnFloor));
+        const maxSteps = Math.max(minSteps, offsets.length - 1);
+        if (maxSteps > minSteps) {
+          const span = maxSteps - minSteps + 1;
+          length = minSteps + Math.floor(rng() * span);
+        } else {
+          length = minSteps;
+        }
+      }
+      length = Math.max(1, Math.min(offsets.length, length));
+      sequences.push(offsets.slice(0, length));
+    }
+    return sequences;
+  };
+
+  const runSequence = (offsets: Offset[]): void => {
     if (!offsets.length) {
+      pushIdle(idleDuration);
       return;
     }
     for (const offset of offsets) {
@@ -644,8 +838,24 @@ function createAxisPathAnimator(summary: MovementSummary, frameSet: MovementFram
     pushIdle(idleDuration);
   };
 
-  traverseOffsets(positiveOffsets);
-  traverseOffsets(negativeOffsets);
+  const positiveSequences = planSequences(positiveOffsets);
+  const negativeSequences = planSequences(negativeOffsets);
+  const totalSequences = Math.max(positiveSequences.length, negativeSequences.length);
+
+  if (totalSequences === 0) {
+    return null;
+  }
+
+  for (let pass = 0; pass < totalSequences; pass += 1) {
+    const forward = positiveSequences[pass];
+    if (forward) {
+      runSequence(forward);
+    }
+    const backward = negativeSequences[pass];
+    if (backward) {
+      runSequence(backward);
+    }
+  }
 
   if (!segments.length) {
     return null;
@@ -869,6 +1079,61 @@ function createSpinAnimator(
   };
 }
 
+function createIdleAnimator(
+  summary: MovementSummary,
+  objectEntry: ObjectEventEntry,
+  frameSet: MovementFrameSet | null,
+): IdleMovementAnimator | null {
+  if (!frameSet) {
+    return null;
+  }
+  const primaryDirection = frameSet.defaultDirection ?? frameSet.availableDirections[0] ?? null;
+  if (!primaryDirection) {
+    return null;
+  }
+  const frames = frameSet.framesByDirection[primaryDirection];
+  if (!frames || frames.length <= 1) {
+    return null;
+  }
+  const frameDuration = Math.max(260, movementSpeedToIdleDuration(summary.model.speed));
+  const seed = ((objectEntry.index ?? 0) * 2147483647 + summary.startCell.x * 2654435761 + summary.startCell.y * 40503) >>> 0;
+  const rng = createSeededRandom(seed);
+  const phaseOffsetMs = Math.floor(rng() * frameDuration * frames.length);
+  return {
+    kind: "idle",
+    direction: primaryDirection,
+    frameCount: frames.length,
+    frameDurationMs: frameDuration,
+    phaseOffsetMs,
+  };
+}
+
+function createPokemonIconAnimator(
+  objectEntry: ObjectEventEntry,
+  frameSet: MovementFrameSet | null,
+  frameDurationMs: number,
+): IdleMovementAnimator | null {
+  if (!frameSet || !frameSet.defaultDirection) {
+    return null;
+  }
+  const direction = frameSet.defaultDirection;
+  const frames = frameSet.framesByDirection[direction];
+  if (!frames || frames.length <= 1) {
+    return null;
+  }
+  const duration = Math.max(60, Math.round(frameDurationMs));
+  const seed = ((objectEntry.index ?? 0) * 1103515245 + duration * 1664525) >>> 0;
+  const rng = createSeededRandom(seed);
+  const phaseOffsetMs = Math.floor(rng() * duration * frames.length);
+  return {
+    kind: "idle",
+    direction,
+    frameCount: frames.length,
+    frameDurationMs: duration,
+    phaseOffsetMs,
+  };
+}
+
 function createMovementAnimator(
   summary: MovementSummary | null,
   objectEntry: ObjectEventEntry,
@@ -878,13 +1143,22 @@ function createMovementAnimator(
     return null;
   }
   if (summary.model.category === "axis-walk") {
-    return createAxisPathAnimator(summary, frameSet);
+    return createAxisPathAnimator(summary, objectEntry, frameSet);
   }
   if (summary.model.category === "random-walk") {
     return createWanderAnimator(summary, objectEntry, frameSet);
   }
   if (summary.model.category === "spin") {
     return createSpinAnimator(summary, objectEntry, frameSet);
+  }
+  if (
+    summary.model.category === "object" &&
+    objectEntry.movement?.constant === "SPRITEMOVEDATA_BIG_GYARADOS"
+  ) {
+    const idleAnimator = createIdleAnimator(summary, objectEntry, frameSet);
+    if (idleAnimator) {
+      return idleAnimator;
+    }
   }
   return null;
 }
@@ -956,6 +1230,9 @@ function updateMarkerAnimation(marker: ObjectMarkerEntry, elapsedMs: number): vo
     applySpriteFrame(marker, marker.lastDirection ?? marker.frameSet?.defaultDirection ?? null, 0);
     marker.sprite.x = baseX + marker.spriteOffset.x;
     marker.sprite.y = baseY + marker.spriteOffset.y;
+    marker.stepCount = null;
+    marker.currentStepIndex = null;
+    marker.stepProgress = 0;
     return;
   }
 
@@ -1011,33 +1288,61 @@ function updateMarkerAnimation(marker: ObjectMarkerEntry, elapsedMs: number): vo
     return;
   }
 
-  const total = animator.totalDurationMs;
-  if (!(total > 0) || animator.steps.length === 0) {
-    applySpriteFrame(marker, marker.lastDirection ?? marker.frameSet?.defaultDirection ?? null, 0);
+  if (animator.kind === "idle") {
+    const frameCount = Math.max(1, animator.frameCount);
+    const frameDuration = Math.max(1, animator.frameDurationMs);
+    const loopDuration = frameCount * frameDuration;
+    const cycleTime = ((elapsedMs + animator.phaseOffsetMs) % loopDuration + loopDuration) % loopDuration;
+    const frameIndex = Math.floor(cycleTime / frameDuration) % frameCount;
+    applySpriteFrame(marker, animator.direction, frameIndex);
     marker.sprite.x = baseX + marker.spriteOffset.x;
     marker.sprite.y = baseY + marker.spriteOffset.y;
+    marker.lastDirection = animator.direction ?? marker.lastDirection;
+    marker.stepCount = null;
     marker.currentStepIndex = null;
     marker.stepProgress = 0;
-    marker.stepCount = null;
     return;
   }
-  const timeInCycle = ((elapsedMs % total) + total) % total;
-  let accumulator = 0;
-  let activeStep = animator.steps[animator.steps.length - 1];
-  for (const step of animator.steps) {
-    const next = accumulator + step.durationMs;
-    if (timeInCycle < next) {
-      activeStep = step;
-      break;
+
+  if (animator.kind === "spin") {
+    const total = animator.totalDurationMs;
+    if (!(total > 0) || animator.steps.length === 0) {
+      applySpriteFrame(marker, marker.lastDirection ?? marker.frameSet?.defaultDirection ?? null, 0);
+      marker.sprite.x = baseX + marker.spriteOffset.x;
+      marker.sprite.y = baseY + marker.spriteOffset.y;
+      marker.stepCount = null;
+      marker.currentStepIndex = null;
+      marker.stepProgress = 0;
+      return;
     }
-    accumulator = next;
+    const timeInCycle = ((elapsedMs % total) + total) % total;
+    let accumulator = 0;
+    let activeStep = animator.steps[animator.steps.length - 1];
+    for (const step of animator.steps) {
+      const next = accumulator + step.durationMs;
+      if (timeInCycle < next) {
+        activeStep = step;
+        break;
+      }
+      accumulator = next;
+    }
+    applySpriteFrame(marker, activeStep.direction, 0);
+    marker.sprite.x = baseX + marker.spriteOffset.x;
+    marker.sprite.y = baseY + marker.spriteOffset.y;
+    marker.lastDirection = activeStep.direction;
+    marker.stepCount = null;
+    marker.currentStepIndex = null;
+    marker.stepProgress = 0;
+    return;
   }
-  applySpriteFrame(marker, activeStep.direction, 0);
+
+  applySpriteFrame(marker, marker.lastDirection ?? marker.frameSet?.defaultDirection ?? null, 0);
   marker.sprite.x = baseX + marker.spriteOffset.x;
   marker.sprite.y = baseY + marker.spriteOffset.y;
+  marker.stepCount = null;
   marker.currentStepIndex = null;
   marker.stepProgress = 0;
-  marker.stepCount = null;
+
 }
 
 function snapToHalf(value: number): number {
@@ -1220,27 +1525,37 @@ export default function MapCanvas({
 
   const positionOverlayContents = useCallback((): void => {
     const state = overlayStateRef.current;
+    const overlay = overlayRef.current;
     const app = appRef.current;
-    if (!state || !app) {
+    if (!state || !overlay || !app) {
       return;
     }
     const renderer = app.renderer;
-    const background = state.background;
-    background.clear();
-    background.beginFill(0x000000, 0.6);
-    background.drawRect(0, 0, renderer.width, renderer.height);
-    background.endFill();
     const sprite = state.sprite;
-    const baseWidth = state.baseWidth || sprite.texture.width || sprite.width || 1;
-    const baseHeight = state.baseHeight || sprite.texture.height || sprite.height || 1;
+    const background = state.background;
+    const rendererWidth = Math.max(1, renderer.width ?? renderer.screen?.width ?? 0);
+    const rendererHeight = Math.max(1, renderer.height ?? renderer.screen?.height ?? 0);
 
-    const availableWidth = renderer.width * 0.9;
-    const availableHeight = renderer.height * 0.9;
-    const fitScale = baseWidth > 0 && baseHeight > 0
-      ? Math.min(1, availableWidth / baseWidth, availableHeight / baseHeight)
-      : 1;
-    const minScale = Math.max(MIN_SCALE, fitScale * 0.5);
-    const maxScale = MAX_SCALE;
+    if (background) {
+      background.clear();
+      background.beginFill(0x000000, Math.max(0, Math.min(1, state.baseAlpha ?? 0.9)));
+      background.drawRect(0, 0, rendererWidth, rendererHeight);
+      background.endFill();
+    }
+
+    const baseWidth = state.baseWidth || sprite.width || 1;
+    const baseHeight = state.baseHeight || sprite.height || 1;
+    const padding = Math.max(12, Math.min(rendererWidth, rendererHeight) * 0.05);
+    const availableWidth = Math.max(1, rendererWidth - padding * 2);
+    const availableHeight = Math.max(1, rendererHeight - padding * 2);
+
+    const fitScale = Math.min(
+      Math.max(MIN_SCALE, availableWidth / baseWidth),
+      Math.max(MIN_SCALE, availableHeight / baseHeight),
+      MAX_SCALE
+    );
+    const minScale = Math.max(MIN_SCALE, Math.min(fitScale, MAX_SCALE));
+    const maxScale = Math.max(minScale, Math.min(MAX_SCALE, fitScale * 1.5));
 
     state.fitScale = fitScale;
     state.minScale = minScale;
@@ -1272,11 +1587,11 @@ export default function MapCanvas({
       return Math.min(max, Math.max(min, value));
     };
 
-    const nextX = state.positioned ? sprite.x : 0;
-    const nextY = state.positioned ? sprite.y : 0;
+    const nextX = state.positioned ? sprite.x - padding : 0;
+    const nextY = state.positioned ? sprite.y - padding : 0;
 
-    sprite.x = clampAxis(nextX, scaledWidth, renderer.width);
-    sprite.y = clampAxis(nextY, scaledHeight, renderer.height);
+    sprite.x = clampAxis(nextX, scaledWidth, availableWidth) + padding;
+    sprite.y = clampAxis(nextY, scaledHeight, availableHeight) + padding;
     state.positioned = true;
   }, []);
 
@@ -1654,12 +1969,34 @@ export default function MapCanvas({
         continue;
       }
       const paletteName = objectEntry.paletteOverride.constant ?? spriteDef.defaultPalette;
-      const record = cache.getFacingTexture(spriteKey, facingKey, paletteName);
-      if (!record) {
+      let baseFrame: SpriteFrameRef | null = null;
+      let frameSet: MovementFrameSet | null = null;
+      let iconFrameDurationMs: number | null = null;
+
+      if (spriteKey === "SPRITE_MON_ICON") {
+        const iconResult = buildPokemonIconFrameSet(
+          cache,
+          objectEntry,
+          spriteDef,
+          facingKey,
+          paletteName ?? null,
+          "overlay",
+        );
+        baseFrame = iconResult.baseFrame;
+        frameSet = iconResult.frameSet;
+        iconFrameDurationMs = iconResult.frameDurationMs;
+      } else {
+        const record = cache.getFacingTexture(spriteKey, facingKey, paletteName);
+        if (!record) {
+          continue;
+        }
+        baseFrame = createSpriteFrameRef(facingKey, record);
+        frameSet = buildMovementFrameSet(cache, spriteKey, spriteDef, paletteName, facingKey, record);
+      }
+
+      if (!baseFrame || !frameSet) {
         continue;
       }
-      const baseFrame = createSpriteFrameRef(facingKey, record);
-      const frameSet = buildMovementFrameSet(cache, spriteKey, spriteDef, paletteName, facingKey, record);
       const spriteInstance = new Sprite(baseFrame.texture);
       spriteInstance.eventMode = "none";
       spriteInstance.cursor = "auto";
@@ -1671,7 +2008,13 @@ export default function MapCanvas({
       spriteInstance.scale.set(pixelScale);
       container.addChild(spriteInstance);
       const movementSummary = computeMovementSummaryForObject(objectEntry, state.collisionHelper);
-      const animator = createMovementAnimator(movementSummary, objectEntry, frameSet);
+      let animator = createMovementAnimator(movementSummary, objectEntry, frameSet);
+      if (!animator && spriteKey === "SPRITE_MON_ICON" && iconFrameDurationMs) {
+        const idleAnimator = createPokemonIconAnimator(objectEntry, frameSet, iconFrameDurationMs);
+        if (idleAnimator) {
+          animator = idleAnimator;
+        }
+      }
       const stepCount = animator?.kind === "path" ? animator.stepCount : null;
       state.objectMarkers.push({
         object: objectEntry,
@@ -2209,12 +2552,35 @@ export default function MapCanvas({
           continue;
         }
         const paletteName = objectEntry.paletteOverride.constant ?? spriteDef.defaultPalette;
-        const record = cache.getFacingTexture(spriteKey, facingKey, paletteName);
-        if (!record) {
+        let baseFrame: SpriteFrameRef | null = null;
+        let frameSet: MovementFrameSet | null = null;
+        let iconFrameDurationMs: number | null = null;
+
+        if (spriteKey === "SPRITE_MON_ICON") {
+          const iconResult = buildPokemonIconFrameSet(
+            cache,
+            objectEntry,
+            spriteDef,
+            facingKey,
+            paletteName ?? null,
+            "world",
+          );
+          baseFrame = iconResult.baseFrame;
+          frameSet = iconResult.frameSet;
+          iconFrameDurationMs = iconResult.frameDurationMs;
+        } else {
+          const record = cache.getFacingTexture(spriteKey, facingKey, paletteName);
+          if (!record) {
+            continue;
+          }
+          baseFrame = createSpriteFrameRef(facingKey, record);
+          frameSet = buildMovementFrameSet(cache, spriteKey, spriteDef, paletteName, facingKey, record);
+        }
+
+        if (!baseFrame || !frameSet) {
           continue;
         }
-        const baseFrame = createSpriteFrameRef(facingKey, record);
-        const frameSet = buildMovementFrameSet(cache, spriteKey, spriteDef, paletteName, facingKey, record);
+
         const sprite = new Sprite(baseFrame.texture);
         sprite.eventMode = "none";
         sprite.cursor = "auto";
@@ -2226,7 +2592,13 @@ export default function MapCanvas({
         sprite.scale.set(pixelScale);
         container.addChild(sprite);
         const movementSummary = computeMovementSummaryForObject(objectEntry, entry.collisionHelper);
-        const animator = createMovementAnimator(movementSummary, objectEntry, frameSet);
+        let animator = createMovementAnimator(movementSummary, objectEntry, frameSet);
+        if (!animator && spriteKey === "SPRITE_MON_ICON" && iconFrameDurationMs) {
+          const idleAnimator = createPokemonIconAnimator(objectEntry, frameSet, iconFrameDurationMs);
+          if (idleAnimator) {
+            animator = idleAnimator;
+          }
+        }
         const stepCount = animator?.kind === "path" ? animator.stepCount : null;
         entry.objectMarkers.push({
           object: objectEntry,

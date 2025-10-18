@@ -93,24 +93,24 @@ run_generators() {
 
   for time_slug in "${canonical_slugs[@]}"; do
     log "Rendering polishedcrystal maps (${time_slug})"
-    "${PYTHON_BIN}" "${ROOT_DIR}/scripts/render_all_maps.py" \
+  "${PYTHON_BIN}" "${ROOT_DIR}/scripts/render_maps.py" \
       --polishedcrystal "${POLISHED_DIR}" \
       --time-of-day "${time_slug}" \
       --weekday "${WEEKDAY}" \
       --format sheet
 
     log "Generating atlas connection layouts (${time_slug})"
-    "${PYTHON_BIN}" "${ROOT_DIR}/scripts/generate_all_map_connections.py" \
+  "${PYTHON_BIN}" "${ROOT_DIR}/scripts/generate_map_neighborhoods.py" \
       --polishedcrystal "${POLISHED_DIR}" \
       --time-of-day "${time_slug}"
   done
 
   log "Extracting warp metadata"
-  "${PYTHON_BIN}" "${ROOT_DIR}/scripts/generate_map_metadata.py" \
+  "${PYTHON_BIN}" "${ROOT_DIR}/scripts/generate_warp_metadata.py" \
     --polishedcrystal "${POLISHED_DIR}"
 
   log "Generating overworld object metadata"
-  "${PYTHON_BIN}" "${ROOT_DIR}/scripts/generate_map_objects.py" \
+  "${PYTHON_BIN}" "${ROOT_DIR}/scripts/generate_object_metadata.py" \
     --polishedcrystal "${POLISHED_DIR}"
 }
 

@@ -26,10 +26,10 @@
 
 While prototyping, the individual Python scripts can be invoked directly:
 
-- `python3 scripts/render_all_maps.py --help`
-- `python3 scripts/generate_all_map_connections.py --help`
-- `python3 scripts/generate_map_metadata.py --help`
-- `python3 scripts/generate_map_objects.py --help`
+- `python3 scripts/render_maps.py --help`
+- `python3 scripts/generate_map_neighborhoods.py --help`
+- `python3 scripts/generate_warp_metadata.py --help`
+- `python3 scripts/generate_object_metadata.py --help`
 
 Each script offers flags to control the polishedcrystal path, time of day, and
 other parameters. Generated assets land under `maps/` by default.
@@ -61,6 +61,6 @@ Repository variables can tweak CI without altering the workflow:
   checkout. Re-run `build_atlas.sh` with `POLISHED_UPDATE=true`.
 - The map renderer relies on the polishedcrystal `utils/png.py` module; no extra
   pip dependencies are required for sheet output. For GIF generation, install
-  Pillow (`pip install pillow`) and re-run `render_all_maps.py --format gif`.
+  Pillow (`pip install pillow`) and re-run `render_maps.py --format gif`.
 - If Vite build failures mention missing JSON, ensure the Python scripts ran to
   completion and check the timestamps under `maps/`.

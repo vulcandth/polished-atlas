@@ -7,10 +7,10 @@
 - Provide hooks for future overlays such as points of interest, routes, and search.
 
 ## Data Flow
-1. **Neighborhood Manifest**: `scripts/generate_all_map_connections.py` emits one connection JSON per overworld neighborhood plus `map_neighborhoods.json`, which lists each neighborhood, its root map, bounds, default offsets (supporting fractional blocks like `0.5`), and `z_offset` stacking order for resolving overlap.
+1. **Neighborhood Manifest**: `scripts/generate_map_neighborhoods.py` emits one connection JSON per overworld neighborhood plus `map_neighborhoods.json`, which lists each neighborhood, its root map, bounds, default offsets (supporting fractional blocks like `0.5`), and `z_offset` stacking order for resolving overlap.
 2. **Connection Graph**: Individual JSON files (e.g. `NewBarkTown_connections.json`) referenced by the manifest. Each file contains map adjacency, offsets, and metadata for a single neighborhood.
-3. **Map Assets**: `scripts/render_all_maps.py` renders animation metadata JSON files plus sprite sheet PNGs located in `maps/<time>/animated/`. Filenames align with map labels and the build pipeline produces assets for every palette (`day`, `morn`, `nite`, `eve`).
-4. **Warp Metadata**: `scripts/generate_map_metadata.py` extracts warp coordinates, destinations, and overworld flags from polishedcrystal map scripts into `maps/warp_metadata.json`.
+3. **Map Assets**: `scripts/render_maps.py` renders animation metadata JSON files plus sprite sheet PNGs located in `maps/<time>/animated/`. Filenames align with map labels and the build pipeline produces assets for every palette (`day`, `morn`, `nite`, `eve`).
+4. **Warp Metadata**: `scripts/generate_warp_metadata.py` extracts warp coordinates, destinations, and overworld flags from polishedcrystal map scripts into `maps/warp_metadata.json`.
 5. **Web Bundle**: Vite consumes the generated JSON + sprite sheets inside `web/atlas/src/` to produce the production-ready `dist/` directory served by GitHub Pages.
 
 ## Front-End Stack

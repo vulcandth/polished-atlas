@@ -19,6 +19,8 @@ from typing import Dict, Iterable, List, Optional, Tuple
 
 import render_map
 
+import atlas_common
+
 _MAP_ATTRIBUTES_RE = re.compile(
     r"map_attributes\s+([A-Za-z0-9_]+),\s*([A-Z0-9_]+),\s*([^,]+),\s*(.+)"
 )
@@ -184,7 +186,7 @@ def _serialise_connections(
 def _to_pixels(blocks: Optional[int]) -> Optional[int]:
     if blocks is None:
         return None
-    return blocks * render_map.MetatileSet.METATILE_DIM * render_map.Tileset.TILE_SIZE
+    return blocks * atlas_common.block_pixel_size()
 
 
 def _normalise_asset_prefix(prefix: Optional[str]) -> str:
@@ -200,17 +202,12 @@ def _default_asset_path(label: str, asset_prefix: str) -> str:
     return f"{asset_prefix}/{label}.animation.json"
 
 
-def _default_repo_root() -> Path:
-    return Path(__file__).resolve().parent.parent
-
-
 def _default_output_path(root_label: str, time_slug: str) -> Path:
     base = re.sub(r"[^A-Za-z0-9_-]+", "_", root_label) or "root"
-    return _default_repo_root() / "maps" / time_slug / "animated" / f"{base}_connections.json"
+    return atlas_common.DEFAULT_MAPS_DIR / time_slug / "animated" / f"{base}_connections.json"
 
 
 def parse_args() -> argparse.Namespace:
-    repo_root = _default_repo_root()
     parser = argparse.ArgumentParser(
         description="Generate a connection graph for maps starting from ROOT."
     )
@@ -221,13 +218,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--attributes",
         type=Path,
-        default=repo_root / "external/polishedcrystal/data/maps/attributes.asm",
+        default=atlas_common.DEFAULT_POLISHED_PATH / "data/maps/attributes.asm",
         help="Path to attributes.asm (defaults to the polishedcrystal checkout).",
     )
     parser.add_argument(
         "--polishedcrystal",
         type=Path,
-        default=repo_root / "external/polishedcrystal",
+        default=atlas_common.DEFAULT_POLISHED_PATH,
         help="Path to the polishedcrystal repository root (for additional metadata).",
     )
     parser.add_argument(
@@ -281,7 +278,7 @@ def main() -> None:
         "root": args.root,
         "map_count": len(reachable),
         "maps": _serialise_connections(reachable, asset_prefix=asset_prefix),
-        "block_pixel_size": _to_pixels(1),
+        "block_pixel_size": atlas_common.block_pixel_size(),
     }
 
     output_path = (args.output or _default_output_path(args.root, time_slug)).resolve()

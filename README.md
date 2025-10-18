@@ -61,11 +61,13 @@ tips.
 ## Available scripts
 
 - `scripts/build_atlas.sh` – orchestrates the entire asset + web build pipeline.
-- `scripts/render_all_maps.py` – renders animated sprite sheets for every map.
-- `scripts/generate_all_map_connections.py` – creates neighborhood connection
+- `scripts/render_maps.py` – renders animated sprite sheets for every map.
+- `scripts/generate_map_neighborhoods.py` – creates neighborhood connection
 	graphs and layout manifests.
-- `scripts/generate_map_metadata.py` – emits warp metadata consumed by the web
+- `scripts/generate_warp_metadata.py` – emits warp metadata consumed by the web
 	application.
+- `scripts/generate_object_metadata.py` – exports NPC and object placement
+	metadata for overlay rendering.
 
 ## Continuous integration & deployment
 

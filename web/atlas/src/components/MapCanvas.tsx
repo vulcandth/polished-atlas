@@ -230,6 +230,9 @@ type SyncedAnimation = {
   objectContainer: Container | null;
   objectMarkers: ObjectMarkerEntry[];
   collisionHelper: CollisionHelper | null;
+  // Whether this map sprite is currently within (or near) the viewport
+  // and should be updated/rendered. Used for simple view culling.
+  visible?: boolean;
 };
 
 type OverlayState = {
@@ -2791,11 +2794,26 @@ export default function MapCanvas({
     let destroyed = false;
 
     const boot = async (): Promise<void> => {
+      const isMobile = (() => {
+        if (typeof navigator === "undefined") return false;
+        const ua = navigator.userAgent || "";
+        return /Android|iPhone|iPad|iPod|Mobile|Silk\//i.test(ua);
+      })();
+      const targetResolution = (() => {
+        const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+        // Cap resolution on mobile to reduce fill-rate; allow a bit higher on desktop
+        return isMobile ? Math.min(1.5, Math.max(1, dpr)) : Math.min(2, Math.max(1, dpr));
+      })();
+
       const app = new Application({
         backgroundAlpha: 0,
         resizeTo: container,
         // Disable antialias so canvas doesn't blur pixel-art edges when scaled.
         antialias: false,
+        // Prefer integrated/low-power GPU on devices that support it.
+        powerPreference: "low-power",
+        // Lower internal backing resolution on high-DPR devices to reduce GPU load.
+        resolution: targetResolution,
         hello: false,
       });
       if (destroyed) {
@@ -2830,6 +2848,26 @@ export default function MapCanvas({
       world.sortChildren();
       warpsLayerRef.current = warpsLayer;
       setReady(true);
+
+      // Cap FPS to reduce main-thread and GPU work, especially on mobile.
+      try {
+        app.ticker.maxFPS = isMobile ? 30 : 60;
+      } catch {
+        /* ignore if older pixi */
+      }
+
+      // Pause updates when the tab is hidden to avoid background CPU usage.
+      const handleVisibility = (): void => {
+        if (document.hidden) app.ticker.stop();
+        else app.ticker.start();
+      };
+      document.addEventListener("visibilitychange", handleVisibility);
+      // Ensure we clean up the listener when this effect unmounts/app is destroyed
+      const cleanupVisibility = (): void => {
+        document.removeEventListener("visibilitychange", handleVisibility);
+      };
+      // Attach cleanup to app destroy path as well
+      (app.view as unknown as HTMLCanvasElement).addEventListener("_pixi_cleanup", cleanupVisibility, { once: true } as any);
     };
 
     boot().catch((err) => {
@@ -2843,6 +2881,14 @@ export default function MapCanvas({
       clearHighlightTimers();
       const app = appRef.current;
       if (app) {
+        // Fire a synthetic cleanup hook for any per-app listeners we attached above
+        const view = app.view as unknown as HTMLCanvasElement;
+        try {
+          const evt = new Event("_pixi_cleanup");
+          view.dispatchEvent(evt);
+        } catch {
+          /* noop */
+        }
         app.destroy(true, { children: true });
         appRef.current = null;
       }
@@ -3083,7 +3129,44 @@ export default function MapCanvas({
     const ticker = app.ticker;
     const updateAnimations = (): void => {
       const elapsed = Math.max(0, ticker.lastTime - syncStartRef.current);
+      const appInst = appRef.current;
+      const world = worldRef.current;
+      let cullX = 0, cullY = 0, cullW = 0, cullH = 0;
+      if (appInst && world) {
+        const worldScale = world.scale.x || 1;
+        const viewX = -world.x / worldScale;
+        const viewY = -world.y / worldScale;
+        const viewW = appInst.renderer.width / worldScale;
+        const viewH = appInst.renderer.height / worldScale;
+        const margin = 256 / worldScale;
+        cullX = viewX - margin;
+        cullY = viewY - margin;
+        cullW = viewW + margin * 2;
+        cullH = viewH + margin * 2;
+      }
+      const rectsIntersect = (ax: number, ay: number, aw: number, ah: number, bx: number, by: number, bw: number, bh: number): boolean =>
+        ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+
       for (const entry of animationsRef.current) {
+        // Culling based on sprite position and first frame dimensions
+        const texW = entry.resource.textures[0]?.width ?? entry.sprite.width;
+        const texH = entry.resource.textures[0]?.height ?? entry.sprite.height;
+        const isVisible = rectsIntersect(entry.sprite.x, entry.sprite.y, texW, texH, cullX, cullY, cullW, cullH);
+        if (entry.visible !== isVisible) {
+          entry.visible = isVisible;
+          entry.sprite.renderable = isVisible;
+        }
+
+        if (entry.visible === false) {
+          // Hide and skip updates for offscreen content
+          for (const wm of entry.warpMarkers) wm.graphic.renderable = false;
+          for (const om of entry.objectMarkers) om.sprite.renderable = false;
+          continue;
+        } else {
+          for (const wm of entry.warpMarkers) wm.graphic.renderable = true;
+          for (const om of entry.objectMarkers) om.sprite.renderable = true;
+        }
+
         const nextFrame = frameIndexForTime(elapsed, entry.resource.frameDurations, entry.resource.loopDuration);
         if (entry.sprite.currentFrame !== nextFrame) {
           entry.sprite.gotoAndStop(nextFrame);

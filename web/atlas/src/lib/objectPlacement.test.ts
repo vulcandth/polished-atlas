@@ -14,7 +14,8 @@ describe("computeObjectPosition", () => {
       context
     );
     expect(position.x).toBe(48);
-    expect(position.y).toBe(32);
+    // With quarter-cell upward offset applied: 2 * 16 - 4 = 28
+    expect(position.y).toBe(28);
   });
 
   it("falls back to pixels when tile data is missing", () => {
@@ -29,6 +30,7 @@ describe("computeObjectPosition", () => {
       context
     );
     expect(position.x).toBeCloseTo(160, 6);
+    // No offset when using pixel fallback
     expect(position.y).toBeCloseTo(96, 6);
   });
 
@@ -44,6 +46,7 @@ describe("computeObjectPosition", () => {
       context
     );
     expect(position.x).toBe(32);
-    expect(position.y).toBe(32);
+    // atlasCellPixelSize = 32 here, so 1 * 32 - 8 = 24
+    expect(position.y).toBe(24);
   });
 });

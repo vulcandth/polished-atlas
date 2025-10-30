@@ -34,19 +34,26 @@ export function computeObjectPosition(
   const pixelScale = metadataBlock !== 0 ? atlasBlock / metadataBlock : 1;
   const atlasCellPixelSize = baseCellPixelSize * pixelScale;
 
-  const xCells = Number.isFinite(entry.xTiles)
-    ? entry.xTiles
+  const usingTileUnitsX = Number.isFinite(entry.xTiles);
+  const usingTileUnitsY = Number.isFinite(entry.yTiles);
+
+  const xCells = usingTileUnitsX
+    ? (entry.xTiles as number)
     : Number.isFinite(entry.xPixels)
-      ? entry.xPixels / baseCellPixelSize
+      ? (entry.xPixels as number) / baseCellPixelSize
       : 0;
-  const yCells = Number.isFinite(entry.yTiles)
-    ? entry.yTiles
+  const yCells = usingTileUnitsY
+    ? (entry.yTiles as number)
     : Number.isFinite(entry.yPixels)
-      ? entry.yPixels / baseCellPixelSize
+      ? (entry.yPixels as number) / baseCellPixelSize
       : 0;
+
+  // Sprites in-game are anchored slightly above the top-left of the collision cell.
+  // Empirically, a quarter-cell upward adjustment aligns feet with the floor.
+  const yOffset = usingTileUnitsY ? atlasCellPixelSize / 4 : 0;
 
   return {
     x: xCells * atlasCellPixelSize,
-    y: yCells * atlasCellPixelSize,
+    y: yCells * atlasCellPixelSize - yOffset,
   };
 }

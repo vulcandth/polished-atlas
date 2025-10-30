@@ -1606,13 +1606,12 @@ export default function MapCanvas({
     const availableWidth = Math.max(1, rendererWidth - padding * 2);
     const availableHeight = Math.max(1, rendererHeight - padding * 2);
 
-    const fitScale = Math.min(
-      Math.max(MIN_SCALE, availableWidth / baseWidth),
-      Math.max(MIN_SCALE, availableHeight / baseHeight),
-      MAX_SCALE
-    );
-    const minScale = Math.max(MIN_SCALE, Math.min(fitScale, MAX_SCALE));
-    const maxScale = Math.max(minScale, Math.min(MAX_SCALE, fitScale * 1.5));
+    const fitWidthScale = availableWidth / baseWidth;
+    const fitHeightScale = availableHeight / baseHeight;
+    const rawFitScale = Math.min(fitWidthScale, fitHeightScale, MAX_SCALE);
+    const fitScale = Math.max(MIN_SCALE, rawFitScale);
+    const minScale = Math.min(fitScale, Math.max(MIN_SCALE, fitScale * 0.5));
+    const maxScale = Math.min(MAX_SCALE, Math.max(fitScale * 2, minScale * 2));
 
     state.fitScale = fitScale;
     state.minScale = minScale;

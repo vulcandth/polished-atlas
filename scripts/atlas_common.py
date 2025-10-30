@@ -12,7 +12,7 @@ import importlib
 import sys
 from pathlib import Path
 from types import ModuleType
-from typing import Dict, Optional
+from typing import Dict, Optional, Set, Tuple
 
 import render_map
 
@@ -22,6 +22,7 @@ DEFAULT_MAPS_DIR: Path = ROOT_DIR / "maps"
 
 _repo_cache: Dict[Path, render_map.RepositoryIndex] = {}
 _png_cache: Dict[Path, ModuleType] = {}
+_time_invariant_cache: Dict[Path, Set[str]] = {}
 
 
 def resolve_path(candidate: Optional[Path], fallback: Path) -> Path:
@@ -63,3 +64,81 @@ def maps_output_dir(time_slug: Optional[str] = None) -> Path:
     if not time_slug:
         return DEFAULT_MAPS_DIR
     return DEFAULT_MAPS_DIR / time_slug / "animated"
+
+
+_TIME_OF_DAY_VALUES: Tuple[int, ...] = (0, 1, 2, 3)
+_WEEKDAY_VALUES: Tuple[int, ...] = tuple(range(7))
+
+
+def _palette_signature(
+    repo_index: render_map.RepositoryIndex,
+    map_info: render_map.MapInfo,
+    *,
+    time_of_day: int,
+    weekday: int,
+    events: Set[str],
+) -> Tuple[Optional[int], Tuple[Tuple[Tuple[int, int, int], ...], ...]]:
+    overcast_index = repo_index.get_overcast_index(map_info, weekday=weekday, events=events)
+    palette = repo_index.special_background_palette(
+        map_info,
+        time_of_day,
+        weekday=weekday,
+        events=events,
+    )
+    if palette is None:
+        palette = repo_index.environment_palette(map_info, time_of_day)
+    palette_copy = [list(row) for row in palette]
+    render_map._ensure_palette_rows(palette_copy)
+    allows_roof_palette = map_info.map_type in {"TOWN", "ROUTE", "ISOLATED"}
+    if (
+        allows_roof_palette
+        and map_info.tileset != "TILESET_SNOWTOP_MOUNTAIN"
+    ):
+        if overcast_index is not None:
+            roof_override = repo_index.overcast_roof_palette(overcast_index, time_of_day=time_of_day)
+        else:
+            roof_override = repo_index.roof_palette(map_info.group, time_of_day=time_of_day)
+        render_map._apply_roof_color_override(palette_copy, roof_override)
+    signature = tuple(
+        tuple(tuple(int(channel) for channel in color) for color in row)
+        for row in palette_copy
+    )
+    return overcast_index, signature
+
+
+def _is_time_invariant_map(
+    repo_index: render_map.RepositoryIndex,
+    map_info: render_map.MapInfo,
+    *,
+    events: Set[str],
+) -> bool:
+    baseline: Optional[Tuple[Optional[int], Tuple[Tuple[Tuple[int, int, int], ...], ...]]] = None
+    for weekday in _WEEKDAY_VALUES:
+        for time_of_day in _TIME_OF_DAY_VALUES:
+            signature = _palette_signature(
+                repo_index,
+                map_info,
+                time_of_day=time_of_day,
+                weekday=weekday,
+                events=events,
+            )
+            if baseline is None:
+                baseline = signature
+            elif signature != baseline:
+                return False
+    return True
+
+
+def time_invariant_maps(repo_index: render_map.RepositoryIndex) -> Set[str]:
+    """Return the set of maps whose rendering is unaffected by time-of-day or weekday."""
+    root = Path(repo_index.root).resolve()
+    cached = _time_invariant_cache.get(root)
+    if cached is not None:
+        return set(cached)
+    event_flags = set(repo_index.initial_event_flags)
+    invariant_labels: Set[str] = set()
+    for map_info in repo_index.maps.values():
+        if _is_time_invariant_map(repo_index, map_info, events=event_flags):
+            invariant_labels.add(map_info.label)
+    _time_invariant_cache[root] = set(invariant_labels)
+    return set(invariant_labels)

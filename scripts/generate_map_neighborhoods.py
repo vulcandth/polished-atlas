@@ -113,6 +113,12 @@ def parse_args() -> argparse.Namespace:
         help="Override the asset path prefix stored in connection graphs (defaults to maps/<time>/animated).",
     )
     parser.add_argument(
+        "--common-asset-prefix",
+        type=str,
+        default=None,
+        help="Override the asset prefix used for time-invariant map assets (defaults to maps/common/animated).",
+    )
+    parser.add_argument(
         "--layout-template",
         type=Path,
         default=None,
@@ -329,11 +335,18 @@ def _write_connection_file(
     graph: Dict[str, MapAttributes],
     root_label: str,
     asset_prefix: str,
+    common_asset_prefix: str,
+    invariant_labels: Set[str],
 ) -> None:
     payload = {
         "root": root_label,
         "map_count": len(graph),
-        "maps": _serialise_connections(graph, asset_prefix=asset_prefix),
+        "maps": _serialise_connections(
+            graph,
+            asset_prefix=asset_prefix,
+            common_asset_prefix=common_asset_prefix,
+            invariant_labels=invariant_labels,
+        ),
         "block_pixel_size": atlas_common.block_pixel_size(),
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -383,6 +396,7 @@ def main() -> None:
     time_slug = render_map.time_of_day_slug(time_of_day)
     output_dir = (args.output_dir or atlas_common.maps_output_dir(time_slug)).resolve()
     asset_prefix = _normalise_asset_prefix(args.asset_prefix or f"maps/{time_slug}/animated")
+    common_asset_prefix = _normalise_asset_prefix(args.common_asset_prefix or "maps/common/animated")
     manifest_path = (args.manifest or (output_dir / MANIFEST_FILENAME)).resolve()
     layout_sources: List[Path] = [manifest_path]
     if args.layout_template:
@@ -406,6 +420,7 @@ def main() -> None:
     raw_graph = parser.parse()
 
     repo_index = atlas_common.repository(polished_path)
+    invariant_labels = atlas_common.time_invariant_maps(repo_index)
     _augment_with_repo(raw_graph, repo_index)
 
     adjacency = _build_adjacency(raw_graph)
@@ -432,7 +447,14 @@ def main() -> None:
         reachable = _collect_reachable(raw_graph, root_label)
         filename = _connection_filename(root_label)
         output_path = output_dir / filename
-        _write_connection_file(output_path, reachable, root_label, asset_prefix)
+        _write_connection_file(
+            output_path,
+            reachable,
+            root_label,
+            asset_prefix,
+            common_asset_prefix,
+            invariant_labels,
+        )
         _, bounds = _build_layout(reachable, root_label)
         map_labels = list(reachable.keys())
         fingerprint = _fingerprint(map_labels)

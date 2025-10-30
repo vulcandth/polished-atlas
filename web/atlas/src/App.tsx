@@ -167,39 +167,75 @@ export default function App() {
   const isLoading = loading || warpLoading || objectLoading;
   const neighborhoods: NeighborhoodSummary[] = layout?.metadata?.neighborhoods ?? [];
   const assetResolver = useMemo(() => {
-    const fallback = (mapLabel: string): string =>
-      joinBasePath("maps", timeOfDay, "animated", `${mapLabel}.animation.json`);
+    const fallback = (rawLabel: string): string => {
+      const trimmed = rawLabel.trim();
+      return joinBasePath("maps", timeOfDay, "animated", `${trimmed}.animation.json`);
+    };
     if (!layout?.placements?.length) {
       return fallback;
     }
-    const sampleAsset = layout.placements.find((placement) => placement.asset)?.asset;
-    if (!sampleAsset) {
-      return fallback;
-    }
-    return (mapLabel: string): string => {
-      const trimmedLabel = typeof mapLabel === "string" && mapLabel.trim().length > 0 ? mapLabel.trim() : mapLabel;
-      if (typeof window !== "undefined") {
-        try {
-          const base = window.location?.href ?? window.location?.origin ?? undefined;
-          const parsed = base ? new URL(sampleAsset, base) : new URL(sampleAsset);
-          const pattern = /^(.*\/maps\/)([^/]+)(\/animated\/)([^/]+\.animation\.json)$/;
-          const match = pattern.exec(parsed.pathname);
-          if (match) {
-            parsed.pathname = `${match[1]}${timeOfDay}${match[3]}${trimmedLabel}.animation.json`;
-            return parsed.toString();
-          }
-        } catch {
-          /* fall back to string replacement */
-        }
+    const assetsByLabel = new Map<string, string>();
+    let templateAsset: string | null = null;
+    for (const placement of layout.placements) {
+      if (!placement.asset) {
+        continue;
       }
-      const substringPattern = /maps\/[^/]+\/animated\/[^/]+\.animation\.json/;
-      if (substringPattern.test(sampleAsset)) {
-        return withBasePath(
-          sampleAsset.replace(
-          substringPattern,
-          `maps/${timeOfDay}/animated/${trimmedLabel}.animation.json`
-        )
-        );
+      const normalisedLabel = placement.label.trim();
+      if (normalisedLabel.length > 0) {
+        assetsByLabel.set(normalisedLabel, placement.asset);
+      }
+      const normalisedAsset = placement.asset.replace(/\\/g, "/");
+      if (!templateAsset && /\/maps\/[^/]+\/animated\//.test(normalisedAsset)) {
+        templateAsset = placement.asset;
+      }
+    }
+
+    const rewriteWithSlug = (rawAsset: string, slug: string): string | null => {
+      const normalised = rawAsset.replace(/\\/g, "/");
+      const pattern = /^(.*\/maps\/)([^/]+)(\/animated\/)([^/]+\.animation\.json)(\?.*)?$/;
+      const match = pattern.exec(normalised);
+      if (!match) {
+        return null;
+      }
+      const [, prefix, , animatedSegment, filename, query = ""] = match;
+      return `${prefix}${slug}${animatedSegment}${filename}${query}`;
+    };
+
+    const rewriteWithLabel = (rawAsset: string, slug: string, label: string): string | null => {
+      const normalised = rawAsset.replace(/\\/g, "/");
+      const pattern = /^(.*\/maps\/)([^/]+)(\/animated\/)([^/]+?)(\.animation\.json)(\?.*)?$/;
+      const match = pattern.exec(normalised);
+      if (!match) {
+        return null;
+      }
+      const [, prefix, , animatedSegment, , extension, query = ""] = match;
+      const trimmed = label.trim();
+      const target = trimmed.length > 0 ? trimmed : label;
+      return `${prefix}${slug}${animatedSegment}${target}${extension}${query}`;
+    };
+
+    const resolveAsset = (rawAsset: string): string => {
+      const normalised = rawAsset.replace(/\\/g, "/");
+      if (/\/maps\/common\/animated\//.test(normalised)) {
+        return withBasePath(normalised);
+      }
+      const rewritten = rewriteWithSlug(normalised, timeOfDay);
+      if (rewritten) {
+        return withBasePath(rewritten);
+      }
+      return withBasePath(normalised);
+    };
+
+    return (mapLabel: string): string => {
+      const trimmedLabel = mapLabel.trim();
+      if (trimmedLabel.length > 0 && assetsByLabel.has(trimmedLabel)) {
+        return resolveAsset(assetsByLabel.get(trimmedLabel)!);
+      }
+      if (templateAsset && trimmedLabel.length > 0) {
+        const rewritten = rewriteWithLabel(templateAsset, timeOfDay, trimmedLabel);
+        if (rewritten) {
+          return withBasePath(rewritten);
+        }
       }
       return fallback(trimmedLabel);
     };

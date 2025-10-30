@@ -15,7 +15,7 @@ import re
 from collections import deque
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 import render_map
 
@@ -151,10 +151,15 @@ def _serialise_connections(
     attributes: Dict[str, MapAttributes],
     *,
     asset_prefix: Optional[str] = None,
+    common_asset_prefix: Optional[str] = None,
+    invariant_labels: Optional[Set[str]] = None,
 ) -> Dict[str, dict]:
     prefix = _normalise_asset_prefix(asset_prefix)
+    common_prefix = _normalise_asset_prefix(common_asset_prefix or "maps/common/animated")
+    invariant_set = set(invariant_labels or ())
     serialised: Dict[str, dict] = {}
     for label, data in attributes.items():
+        active_prefix = common_prefix if data.label in invariant_set else prefix
         serialised[label] = {
             "label": data.label,
             "map_constant": data.constant,
@@ -168,7 +173,7 @@ def _serialise_connections(
             "group": data.group,
             "tileset": data.tileset,
             "roof_constant": data.roof_constant,
-            "asset": _default_asset_path(data.label, prefix),
+            "asset": _default_asset_path(data.label, active_prefix),
             "connections": [
                 {
                     "direction": conn.direction,
@@ -242,6 +247,12 @@ def parse_args() -> argparse.Namespace:
         help="Override the asset path prefix stored in the connection graph (defaults to maps/<time>/animated).",
     )
     parser.add_argument(
+        "--common-asset-prefix",
+        type=str,
+        default=None,
+        help="Override the asset prefix used for time-invariant map assets (defaults to maps/common/animated).",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=None,
@@ -261,7 +272,7 @@ def main() -> None:
     repo_index: Optional[render_map.RepositoryIndex]
     if polished_path.exists():
         try:
-            repo_index = render_map.RepositoryIndex(polished_path)
+            repo_index = atlas_common.repository(polished_path)
         except Exception as exc:  # pragma: no cover - defensive guard
             raise RuntimeError(f"Failed to initialise RepositoryIndex at {polished_path}: {exc}") from exc
     else:
@@ -274,10 +285,17 @@ def main() -> None:
     time_of_day = args.time_of_day
     time_slug = render_map.time_of_day_slug(time_of_day)
     asset_prefix = _normalise_asset_prefix(args.asset_prefix or f"maps/{time_slug}/animated")
+    common_asset_prefix = _normalise_asset_prefix(args.common_asset_prefix or "maps/common/animated")
+    invariant_labels: Set[str] = atlas_common.time_invariant_maps(repo_index) if repo_index else set()
     payload = {
         "root": args.root,
         "map_count": len(reachable),
-        "maps": _serialise_connections(reachable, asset_prefix=asset_prefix),
+        "maps": _serialise_connections(
+            reachable,
+            asset_prefix=asset_prefix,
+            common_asset_prefix=common_asset_prefix,
+            invariant_labels=invariant_labels,
+        ),
         "block_pixel_size": atlas_common.block_pixel_size(),
     }
 

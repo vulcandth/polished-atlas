@@ -8,7 +8,7 @@ import os
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Tuple
+from typing import Dict, Iterable, List, Tuple
 
 import render_map
 
@@ -45,6 +45,12 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=None,
         help="Directory to place rendered assets (defaults to ./maps/<time>/animated).",
+    )
+    parser.add_argument(
+        "--common-output-dir",
+        type=Path,
+        default=None,
+        help="Directory for time-invariant map assets (defaults to ./maps/common/animated).",
     )
     parser.add_argument(
         "--workers",
@@ -182,33 +188,39 @@ def _render_all(
     polished_path: Path,
     repo_index: render_map.RepositoryIndex,
     labels: Iterable[str],
-    output_dir: Path,
+    output_directories: Dict[str, Path],
     workers: int,
     format_choice: str,
     time_of_day: int,
     weekday: int,
     executor_mode: str,
 ) -> Tuple[int, Tuple[Tuple[str, Exception], ...]]:
-    output_dir.mkdir(parents=True, exist_ok=True)
+    unique_dirs = {path.resolve() for path in output_directories.values()}
+    for directory in unique_dirs:
+        directory.mkdir(parents=True, exist_ok=True)
     label_list = list(labels)
     errors: List[Tuple[str, Exception]] = []
 
     if executor_mode == "thread":
         with ThreadPoolExecutor(max_workers=workers) as executor:
-            futures = {
-                executor.submit(
+            futures: Dict[object, str] = {}
+            for label in label_list:
+                try:
+                    target_dir = output_directories[label]
+                except KeyError as exc:
+                    raise KeyError(f"No output directory configured for map '{label}'") from exc
+                future = executor.submit(
                     _render_single,
                     png_module,
                     polished_path,
                     repo_index,
                     label,
-                    output_dir,
+                    target_dir,
                     format_choice,
                     time_of_day,
                     weekday,
-                ): label
-                for label in label_list
-            }
+                )
+                futures[future] = label
             for future in as_completed(futures):
                 label = futures[future]
                 try:
@@ -217,17 +229,22 @@ def _render_all(
                     errors.append((label, exc))
         return (len(label_list) - len(errors), tuple(errors))
 
-    tasks = [
-        _RenderTask(
-            map_label=label,
-            output_dir=str(output_dir),
-            format_choice=format_choice,
-            time_of_day=time_of_day,
-            weekday=weekday,
-            polished_path=str(polished_path),
+    tasks: List[_RenderTask] = []
+    for label in label_list:
+        try:
+            target_dir = output_directories[label]
+        except KeyError as exc:
+            raise KeyError(f"No output directory configured for map '{label}'") from exc
+        tasks.append(
+            _RenderTask(
+                map_label=label,
+                output_dir=str(target_dir),
+                format_choice=format_choice,
+                time_of_day=time_of_day,
+                weekday=weekday,
+                polished_path=str(polished_path),
+            )
         )
-        for label in label_list
-    ]
     with ProcessPoolExecutor(max_workers=workers) as executor:
         futures = {executor.submit(_render_single_task, task): task.map_label for task in tasks}
         for future in as_completed(futures):
@@ -247,6 +264,7 @@ def main() -> None:
     time_of_day = args.time_of_day
     time_slug = render_map.time_of_day_slug(time_of_day)
     output_dir = (args.output_dir or atlas_common.maps_output_dir(time_slug)).resolve()
+    common_output_dir = (args.common_output_dir or atlas_common.maps_output_dir("common")).resolve()
     workers = args.workers or _default_worker_count()
     format_choice = args.format
     if args.animated:
@@ -257,29 +275,52 @@ def main() -> None:
     png = atlas_common.png_module(polished_path)
 
     repo_index = atlas_common.repository(polished_path)
+    invariant_labels = atlas_common.time_invariant_maps(repo_index)
     labels = sorted(repo_index.maps.keys())
+    label_output_dirs: Dict[str, Path] = {
+        label: (common_output_dir if label in invariant_labels else output_dir)
+        for label in labels
+    }
     total = len(labels)
+    invariant_count = sum(1 for label in labels if label in invariant_labels)
+    variant_count = total - invariant_count
     mode = {
         "gif": "animated GIFs",
         "png": "PNGs",
         "sheet": "sprite sheets",
     }[format_choice]
-    print(
-        f"Rendering {total} maps into {output_dir} as {mode} with {workers} {executor_mode} worker(s)..."
-    )
+    if invariant_count and variant_count:
+        print(
+            f"Rendering {variant_count} time-varying map(s) into {output_dir} and {invariant_count} invariant map(s) into {common_output_dir} as {mode} with {workers} {executor_mode} worker(s)..."
+        )
+    elif invariant_count:
+        print(
+            f"Rendering {invariant_count} invariant map(s) into {common_output_dir} as {mode} with {workers} {executor_mode} worker(s)..."
+        )
+    else:
+        print(
+            f"Rendering {total} maps into {output_dir} as {mode} with {workers} {executor_mode} worker(s)..."
+        )
     rendered, errors = _render_all(
         png,
         polished_path,
         repo_index,
         labels,
-        output_dir,
+        label_output_dirs,
         workers,
         format_choice,
         time_of_day,
         weekday,
         executor_mode,
     )
-    print(f"Rendered {rendered}/{total} maps into {output_dir} as {mode}.")
+    if invariant_count and variant_count:
+        print(
+            f"Rendered {rendered}/{total} maps ({variant_count} time-varying, {invariant_count} invariant) into {output_dir} and {common_output_dir} as {mode}."
+        )
+    elif invariant_count:
+        print(f"Rendered {rendered}/{total} maps into {common_output_dir} as {mode}.")
+    else:
+        print(f"Rendered {rendered}/{total} maps into {output_dir} as {mode}.")
     if errors:
         print("The following maps failed:")
         for label, exc in errors:

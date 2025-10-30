@@ -209,14 +209,18 @@ function disposeAnimationResource(resource: MapAnimationResource | null | undefi
   if (!resource) {
     return;
   }
+  // First, dispose of the Texture wrappers without touching the BaseTexture
+  // so that the asset system can own the BaseTexture lifecycle.
   for (const texture of resource.textures) {
-    if (texture && !texture.destroyed) {
-      texture.destroy();
+    try {
+      if (texture && !texture.destroyed) {
+        texture.destroy(false);
+      }
+    } catch {
+      /* ignore individual texture destroy issues */
     }
   }
-  if (!resource.baseTexture.destroyed) {
-    resource.baseTexture.destroy();
-  }
+  // Then, unload via Assets which will properly destroy the BaseTexture it manages.
   void Assets.unload(resource.imageUrl);
 }
 
@@ -2191,8 +2195,8 @@ export default function MapCanvas({
         objectContainer.zIndex = 5;
         sprite.addChild(objectContainer);
 
-        const cellSize = computeCellSize();
-        const baseAlpha = 0.9;
+  const cellSize = computeCellSize();
+  const baseAlpha = 0.9;
         const markers: WarpMarkerEntry[] = [];
         const mapMeta = getMapMetadata(mapLabel);
         const collisionMeta = getCollisionMetadata(mapLabel);
@@ -2398,8 +2402,14 @@ export default function MapCanvas({
         marker.graphic.scale.set(1);
       };
 
-      if (typeof target.warpIndex === "number" && target.warpIndex >= 0 && (!targetLabel || targetLabel === currentMapLabel)) {
+      if (
+        typeof target.warpIndex === "number" &&
+        target.warpIndex >= 0 &&
+        (!targetLabel || targetLabel === currentMapLabel)
+      ) {
+        // In-map warp: just highlight the destination tile and stay within the same overlay.
         highlightOverlayMarker(target.warpIndex);
+        return;
       }
 
       if (typeof target.warpIndex === "number" && target.warpIndex === -1) {

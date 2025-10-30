@@ -153,14 +153,16 @@ def _serialise_connections(
     asset_prefix: Optional[str] = None,
     common_asset_prefix: Optional[str] = None,
     invariant_labels: Optional[Set[str]] = None,
+    z_index_lookup: Optional[Dict[str, int]] = None,
 ) -> Dict[str, dict]:
     prefix = _normalise_asset_prefix(asset_prefix)
     common_prefix = _normalise_asset_prefix(common_asset_prefix or "maps/common/animated")
     invariant_set = set(invariant_labels or ())
     serialised: Dict[str, dict] = {}
+    z_lookup = dict(z_index_lookup or {})
     for label, data in attributes.items():
         active_prefix = common_prefix if data.label in invariant_set else prefix
-        serialised[label] = {
+        entry = {
             "label": data.label,
             "map_constant": data.constant,
             "border_block": data.border_block,
@@ -185,6 +187,13 @@ def _serialise_connections(
                 for conn in data.connections
             ],
         }
+        if data.label in z_lookup:
+            try:
+                entry["z_index"] = int(z_lookup[data.label])
+            except Exception:
+                # Ignore invalid z assignments gracefully
+                pass
+        serialised[label] = entry
     return serialised
 
 

@@ -138,6 +138,14 @@ def parse_args() -> argparse.Namespace:
         default=AUTO_MARGIN_BLOCKS,
         help="Blocks of vertical spacing inserted between auto-positioned neighborhoods.",
     )
+    parser.add_argument(
+        "--overlay-rules",
+        type=Path,
+        default=None,
+        help=(
+            "Optional JSON file describing map overlay preferences (above/below constraints) to control per-map z order."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -283,6 +291,81 @@ def _build_layout(component: Dict[str, MapAttributes], root: str) -> Tuple[Dict[
     return placements, bounds
 
 
+def _load_overlay_rules(config_path: Optional[Path]) -> List[Tuple[str, str]]:
+    """Load overlay constraints from a JSON file.
+
+    The expected JSON structure is:
+    {
+      "version": 1,
+      "overlays": [ {"above": "MapA", "below": "MapB"}, ... ]
+    }
+
+    Each entry indicates that MapA should be drawn on top of MapB when they overlap.
+    """
+    if config_path is None:
+        # Try default alongside this script
+        default_path = (Path(__file__).parent / "overlay_rules.json").resolve()
+        if not default_path.exists():
+            return []
+        config_path = default_path
+    if not config_path.exists():
+        return []
+    try:
+        payload = json.loads(config_path.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    raw = payload.get("overlays")
+    results: List[Tuple[str, str]] = []
+    if isinstance(raw, list):
+        for entry in raw:
+            if not isinstance(entry, dict):
+                continue
+            above = entry.get("above")
+            below = entry.get("below")
+            if isinstance(above, str) and isinstance(below, str) and above and below:
+                results.append((above, below))
+    return results
+
+
+def _compute_map_z_indices(labels: Sequence[str], constraints: List[Tuple[str, str]]) -> Dict[str, int]:
+    """Compute a deterministic per-map z_index from pairwise overlay constraints.
+
+    Constraints are (above, below) pairs indicating above should be drawn above below.
+    We produce a bottom-to-top ordering using Kahn's algorithm on edges (below -> above).
+    Ties are broken alphabetically for stability.
+    """
+    present: Set[str] = set(labels)
+    # Build graph: edge from lower to higher
+    edges: Dict[str, Set[str]] = {label: set() for label in present}
+    indegree: Dict[str, int] = {label: 0 for label in present}
+    for above, below in constraints:
+        if above not in present or below not in present:
+            continue
+        # below must come before above
+        if above in edges[below]:
+            continue
+        edges[below].add(above)
+        indegree[above] += 1
+    # Kahn's algorithm with alphabetical tie-breaker
+    queue: List[str] = sorted([n for n, deg in indegree.items() if deg == 0])
+    order: List[str] = []
+    while queue:
+        node = queue.pop(0)
+        order.append(node)
+        for nbr in sorted(edges.get(node, ())):
+            indegree[nbr] -= 1
+            if indegree[nbr] == 0:
+                # Insert maintaining sorted order
+                insert_at = 0
+                while insert_at < len(queue) and queue[insert_at] < nbr:
+                    insert_at += 1
+                queue.insert(insert_at, nbr)
+    # Append any remaining nodes (cycles or disconnected), in alpha order but preserving any existing order first
+    remaining = sorted([n for n in present if n not in order])
+    order.extend(remaining)
+    return {label: idx for idx, label in enumerate(order)}
+
+
 def _load_existing_layout(manifest_paths: Iterable[Path]) -> Tuple[Dict[str, LayoutSpec], Dict[str, LayoutSpec], int]:
     by_fingerprint: Dict[str, LayoutSpec] = {}
     by_id: Dict[str, LayoutSpec] = {}
@@ -337,6 +420,7 @@ def _write_connection_file(
     asset_prefix: str,
     common_asset_prefix: str,
     invariant_labels: Set[str],
+    z_lookup: Optional[Dict[str, int]] = None,
 ) -> None:
     payload = {
         "root": root_label,
@@ -346,6 +430,7 @@ def _write_connection_file(
             asset_prefix=asset_prefix,
             common_asset_prefix=common_asset_prefix,
             invariant_labels=invariant_labels,
+            z_index_lookup=z_lookup,
         ),
         "block_pixel_size": atlas_common.block_pixel_size(),
     }
@@ -435,6 +520,7 @@ def main() -> None:
         global_seen.update(members)
 
     existing_by_fingerprint, existing_by_id, auto_z_start = _load_existing_layout(deduped_layout_sources)
+    overlay_constraints = _load_overlay_rules(args.overlay_rules)
     auto_cursor: float = 0.0
     auto_z = auto_z_start
     neighborhoods: List[NeighborhoodRecord] = []
@@ -447,6 +533,9 @@ def main() -> None:
         reachable = _collect_reachable(raw_graph, root_label)
         filename = _connection_filename(root_label)
         output_path = output_dir / filename
+        # Compute per-map z order from overlay constraints
+        map_labels = list(reachable.keys())
+        z_lookup = _compute_map_z_indices(map_labels, overlay_constraints)
         _write_connection_file(
             output_path,
             reachable,
@@ -454,9 +543,9 @@ def main() -> None:
             asset_prefix,
             common_asset_prefix,
             invariant_labels,
+            z_lookup,
         )
         _, bounds = _build_layout(reachable, root_label)
-        map_labels = list(reachable.keys())
         fingerprint = _fingerprint(map_labels)
         if fingerprint in encountered_fingerprints:
             raise RuntimeError(f"Duplicate neighborhood detected for root {root_label}")

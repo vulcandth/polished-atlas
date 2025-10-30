@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "overlays": [
+    { "above": "GoldenrodCity", "below": "GoldenrodHarbor" },
+    { "above": "RuinsOfAlphOutside", "below": "VioletCity" }
+  ]
+}

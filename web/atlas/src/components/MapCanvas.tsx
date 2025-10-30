@@ -1502,7 +1502,10 @@ export default function MapCanvas({
 
       const baseZ = placement.metadata?.neighborhoodZ ?? 0;
       const targetZ = editingEnabled && neighborhoodId ? zMap[neighborhoodId] ?? baseZ : baseZ;
-      sprite.zIndex = targetZ * 1_000_000 + order;
+      const localMapZ = Number.isFinite(placement.metadata?.mapZ as number)
+        ? Math.trunc((placement.metadata?.mapZ as number) || 0)
+        : order;
+      sprite.zIndex = targetZ * 1_000_000 + localMapZ * 1_000 + order;
 
       if (editingEnabled) {
         const isSelected = selectedId ? neighborhoodId === selectedId : false;
@@ -2928,7 +2931,10 @@ export default function MapCanvas({
         sprite.sortableChildren = true;
         const neighborhoodId = typeof placement.metadata?.neighborhoodId === "string" ? placement.metadata.neighborhoodId : null;
         const neighborhoodZ = placement.metadata?.neighborhoodZ ?? 0;
-        sprite.zIndex = neighborhoodZ * 1_000_000 + index;
+        const localMapZ = Number.isFinite(placement.metadata?.mapZ as number)
+          ? Math.trunc((placement.metadata?.mapZ as number) || 0)
+          : index;
+        sprite.zIndex = neighborhoodZ * 1_000_000 + localMapZ * 1_000 + index;
         world.addChild(sprite);
         world.sortChildren();
         const collisionMeta = getCollisionMetadata(placement.label);

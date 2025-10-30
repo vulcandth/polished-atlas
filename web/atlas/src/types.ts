@@ -22,6 +22,7 @@ export interface MapDTO {
   tileset?: string | null;
   roof_constant?: string | null;
   asset: string;
+  z_index?: number | null;
   connections: ConnectionDTO[];
 }
 
@@ -50,6 +51,7 @@ export interface MapPlacement {
     neighborhoodId?: string | null;
     neighborhoodRoot?: string | null;
     neighborhoodZ?: number | null;
+    mapZ?: number | null;
   };
 }
 

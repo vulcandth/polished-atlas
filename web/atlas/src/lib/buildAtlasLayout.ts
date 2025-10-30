@@ -121,6 +121,7 @@ export function buildAtlasLayout(graph: ConnectionGraphDTO, options: BuildAtlasL
       metadata: {
         mapType: dto?.map_type ?? null,
         tileset: dto?.tileset ?? null,
+        mapZ: Number.isFinite((dto as any)?.z_index) ? Math.trunc(((dto as any)?.z_index as number)) : null,
       },
     };
   });

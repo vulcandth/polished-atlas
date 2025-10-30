@@ -121,6 +121,9 @@ main {
   width: 100%;
   height: 100%;
   touch-action: none;
+  /* Favor crisp upscaling in browsers that honor CSS image-rendering on canvas */
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 .status-banner {

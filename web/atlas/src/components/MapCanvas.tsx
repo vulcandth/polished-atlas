@@ -2794,7 +2794,8 @@ export default function MapCanvas({
       const app = new Application({
         backgroundAlpha: 0,
         resizeTo: container,
-        antialias: true,
+        // Disable antialias so canvas doesn't blur pixel-art edges when scaled.
+        antialias: false,
         hello: false,
       });
       if (destroyed) {

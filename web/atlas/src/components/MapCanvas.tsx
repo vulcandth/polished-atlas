@@ -24,6 +24,9 @@ type OffsetTuple = [number, number];
 type WarpMarkerEntry = {
   warp: MapWarp;
   graphic: Graphics;
+  // Local pixel offsets within the map sprite
+  localX: number;
+  localY: number;
 };
 
 type WarpBacklink = {
@@ -1445,6 +1448,7 @@ export default function MapCanvas({
   const overlayRef = useRef<Container | null>(null);
   const overlayStateRef = useRef<OverlayState | null>(null);
   const overlayTokenRef = useRef(0);
+  const warpsLayerRef = useRef<Container | null>(null);
   const highlightTimersRef = useRef<Map<string, number>>(new Map());
   const backlinkRef = useRef<WarpBacklink | null>(null);
   const handleOverlayWarpRef = useRef<((warp: MapWarp) => void) | null>(null);
@@ -1506,6 +1510,15 @@ export default function MapCanvas({
         ? Math.trunc((placement.metadata?.mapZ as number) || 0)
         : order;
       sprite.zIndex = targetZ * 1_000_000 + localMapZ * 1_000 + order;
+
+      // Update global warp marker positions to follow sprite world transforms
+      const warpsLayer = warpsLayerRef.current;
+      if (warpsLayer && Array.isArray(entry.warpMarkers) && entry.warpMarkers.length > 0) {
+        for (const marker of entry.warpMarkers) {
+          marker.graphic.x = sprite.x + marker.localX;
+          marker.graphic.y = sprite.y + marker.localY;
+        }
+      }
 
       if (editingEnabled) {
         const isSelected = selectedId ? neighborhoodId === selectedId : false;
@@ -2219,7 +2232,7 @@ export default function MapCanvas({
             });
             graphic.zIndex = 10;
             sprite.addChild(graphic);
-            markers.push({ warp, graphic });
+            markers.push({ warp, graphic, localX: xCells * cellSize, localY: yCells * cellSize });
           }
         }
 
@@ -2459,6 +2472,8 @@ export default function MapCanvas({
     const cellSize = computeCellSize();
     const baseAlpha = editing ? 0.5 : 0.9;
     clearHighlightTimers();
+    const warpsLayer = warpsLayerRef.current;
+    const hasWarpsLayer = Boolean(warpsLayer);
     for (const entry of animationsRef.current) {
       for (const marker of entry.warpMarkers) {
         marker.graphic.removeAllListeners();
@@ -2483,8 +2498,16 @@ export default function MapCanvas({
         graphic.drawRoundedRect(margin, margin, cellSize - margin * 2, cellSize - margin * 2, radius);
         graphic.endFill();
         graphic.alpha = baseAlpha;
-        graphic.x = xCells * cellSize;
-        graphic.y = yCells * cellSize;
+        const localX = xCells * cellSize;
+        const localY = yCells * cellSize;
+        // Position in world coordinates if using the global warps layer; otherwise relative to the sprite
+        if (hasWarpsLayer && warpsLayer) {
+          graphic.x = (entry.sprite?.x ?? 0) + localX;
+          graphic.y = (entry.sprite?.y ?? 0) + localY;
+        } else {
+          graphic.x = localX;
+          graphic.y = localY;
+        }
         graphic.eventMode = editing ? "none" : "static";
         graphic.cursor = editing ? "not-allowed" : "pointer";
         graphic.on("pointertap", (event) => {
@@ -2510,10 +2533,18 @@ export default function MapCanvas({
           graphic.alpha = baseAlpha;
         });
         graphic.zIndex = 10;
-        entry.sprite.addChild(graphic);
-        entry.warpMarkers.push({ warp, graphic });
+        if (hasWarpsLayer && warpsLayer) {
+          warpsLayer.addChild(graphic);
+        } else {
+          entry.sprite.addChild(graphic);
+        }
+        entry.warpMarkers.push({ warp, graphic, localX, localY });
       }
-      entry.sprite.sortChildren();
+      if (hasWarpsLayer && warpsLayer) {
+        warpsLayer.sortChildren();
+      } else {
+        entry.sprite.sortChildren();
+      }
     }
   }, [computeCellSize, editing, handleWarpMarkerTap]);
 
@@ -2787,6 +2818,16 @@ export default function MapCanvas({
       overlay.interactiveChildren = true;
       app.stage.addChild(overlay);
       overlayRef.current = overlay;
+      // Add a dedicated warps overlay layer above all map sprites
+      const warpsLayer = new Container();
+      warpsLayer.sortableChildren = true;
+      warpsLayer.eventMode = "static";
+      warpsLayer.interactiveChildren = true;
+      // Assign a very high zIndex so it renders atop any map sprite ordering
+      warpsLayer.zIndex = 10_000_000_000;
+      world.addChild(warpsLayer);
+      world.sortChildren();
+      warpsLayerRef.current = warpsLayer;
       setReady(true);
     };
 
@@ -2810,6 +2851,7 @@ export default function MapCanvas({
         worldRef.current = null;
       }
       overlayRef.current = null;
+      warpsLayerRef.current = null;
       overlayStateRef.current = null;
       scaleRef.current = 1;
       boundsRef.current = null;
@@ -2865,6 +2907,15 @@ export default function MapCanvas({
           child.destroy();
         }
       }
+      // Recreate the global warps layer after clearing the world so future markers have a visible parent
+      const warpsLayer = new Container();
+      warpsLayer.sortableChildren = true;
+      warpsLayer.eventMode = "static";
+      warpsLayer.interactiveChildren = true;
+      warpsLayer.zIndex = 10_000_000_000;
+      world.addChild(warpsLayer);
+      world.sortChildren();
+      warpsLayerRef.current = warpsLayer;
     };
 
     let cancelled = false;

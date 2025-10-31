@@ -138,6 +138,32 @@ def parse_args() -> argparse.Namespace:
         default=AUTO_MARGIN_BLOCKS,
         help="Blocks of vertical spacing inserted between auto-positioned neighborhoods.",
     )
+    parser.add_argument(
+        "--overlay-rules",
+        type=Path,
+        default=None,
+        help=(
+            "Optional JSON file describing map overlay preferences (above/below constraints) to control per-map z order."
+        ),
+    )
+    parser.add_argument(
+        "--overworld-exclude",
+        action="append",
+        default=[],
+        help=(
+            "Map label to treat as indoor (exclude from overworld/neighborhoods). "
+            "May be specified multiple times."
+        ),
+    )
+    parser.add_argument(
+        "--overworld-exclude-file",
+        type=Path,
+        default=None,
+        help=(
+            "Optional JSON or text file listing map labels to exclude from the overworld. "
+            "JSON may be an array of strings or an object with 'exclude_labels'/'labels'."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -337,6 +363,7 @@ def _write_connection_file(
     asset_prefix: str,
     common_asset_prefix: str,
     invariant_labels: Set[str],
+    z_lookup: Optional[Dict[str, int]] = None,
 ) -> None:
     payload = {
         "root": root_label,
@@ -346,6 +373,7 @@ def _write_connection_file(
             asset_prefix=asset_prefix,
             common_asset_prefix=common_asset_prefix,
             invariant_labels=invariant_labels,
+            z_index_lookup=z_lookup,
         ),
         "block_pixel_size": atlas_common.block_pixel_size(),
     }
@@ -386,6 +414,122 @@ def _build_manifest(
     with manifest_path.open("w", encoding="utf-8") as handle:
         json.dump(manifest_payload, handle, indent=2, sort_keys=True)
         handle.write("\n")
+
+
+def _load_excluded_labels(config_path: Optional[Path], extras: Sequence[str]) -> Set[str]:
+    """Load a set of labels to exclude from overworld processing.
+
+    Supports:
+    - JSON array of strings
+    - JSON object with key 'exclude_labels' or 'labels'
+    - Plain text file with one label per line (comments with '#')
+    """
+    labels: Set[str] = set(l for l in (extras or []) if isinstance(l, str) and l.strip())
+    if config_path is None:
+        return labels
+    path = config_path.resolve()
+    if not path.exists():
+        return labels
+    text = path.read_text(encoding="utf-8")
+    data: Optional[object] = None
+    try:
+        data = json.loads(text)
+    except Exception:
+        data = None
+    if isinstance(data, list):
+        for item in data:
+            if isinstance(item, str) and item.strip():
+                labels.add(item.strip())
+        return labels
+    if isinstance(data, dict):
+        for key in ("exclude_labels", "labels"):
+            raw = data.get(key)
+            if isinstance(raw, list):
+                for item in raw:
+                    if isinstance(item, str) and item.strip():
+                        labels.add(item.strip())
+        return labels
+    # Fallback: treat as newline-delimited text
+    for raw_line in text.splitlines():
+        line = raw_line.split("#", 1)[0].strip()
+        if line:
+            labels.add(line)
+    return labels
+
+
+def _load_overlay_rules(config_path: Optional[Path]) -> List[Tuple[str, str]]:
+    """Load overlay constraints from a JSON file.
+
+    The expected JSON structure is:
+    {
+      "version": 1,
+      "overlays": [ {"above": "MapA", "below": "MapB"}, ... ]
+    }
+
+    Each entry indicates that MapA should be drawn on top of MapB when they overlap.
+    """
+    if config_path is None:
+        # Try default alongside this script
+        default_path = (Path(__file__).parent / "overlay_rules.json").resolve()
+        if not default_path.exists():
+            return []
+        config_path = default_path
+    if not config_path.exists():
+        return []
+    try:
+        payload = json.loads(config_path.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    raw = payload.get("overlays")
+    results: List[Tuple[str, str]] = []
+    if isinstance(raw, list):
+        for entry in raw:
+            if not isinstance(entry, dict):
+                continue
+            above = entry.get("above")
+            below = entry.get("below")
+            if isinstance(above, str) and isinstance(below, str) and above and below:
+                results.append((above, below))
+    return results
+
+
+def _compute_map_z_indices(labels: Sequence[str], constraints: List[Tuple[str, str]]) -> Dict[str, int]:
+    """Compute a deterministic per-map z_index from pairwise overlay constraints.
+
+    Constraints are (above, below) pairs indicating above should be drawn above below.
+    We produce a bottom-to-top ordering using Kahn's algorithm on edges (below -> above).
+    Ties are broken alphabetically for stability.
+    """
+    present: Set[str] = set(labels)
+    # Build graph: edge from lower to higher
+    edges: Dict[str, Set[str]] = {label: set() for label in present}
+    indegree: Dict[str, int] = {label: 0 for label in present}
+    for above, below in constraints:
+        if above not in present or below not in present:
+            continue
+        # below must come before above
+        if above in edges[below]:
+            continue
+        edges[below].add(above)
+        indegree[above] += 1
+    # Kahn's algorithm with alphabetical tie-breaker
+    queue: List[str] = sorted([n for n, deg in indegree.items() if deg == 0])
+    order: List[str] = []
+    while queue:
+        node = queue.pop(0)
+        order.append(node)
+        for nbr in sorted(edges.get(node, ())):
+            indegree[nbr] -= 1
+            if indegree[nbr] == 0:
+                # Insert maintaining sorted order
+                insert_at = 0
+                while insert_at < len(queue) and queue[insert_at] < nbr:
+                    insert_at += 1
+                queue.insert(insert_at, nbr)
+    # Append any remaining nodes (cycles or disconnected), in alpha order but preserving any existing order first
+    remaining = sorted([n for n in present if n not in order])
+    order.extend(remaining)
+    return {label: idx for idx, label in enumerate(order)}
 
 
 def main() -> None:
@@ -435,34 +579,50 @@ def main() -> None:
         global_seen.update(members)
 
     existing_by_fingerprint, existing_by_id, auto_z_start = _load_existing_layout(deduped_layout_sources)
+    # Try default exclusion file alongside this script when not explicitly provided.
+    default_exclude_path = (Path(__file__).parent / "overworld_exclude.json").resolve()
+    exclude_source = args.overworld_exclude_file or (default_exclude_path if default_exclude_path.exists() else None)
+    excluded_labels: Set[str] = _load_excluded_labels(exclude_source, args.overworld_exclude)
+    overlay_constraints = _load_overlay_rules(args.overlay_rules)
     auto_cursor: float = 0.0
     auto_z = auto_z_start
     neighborhoods: List[NeighborhoodRecord] = []
     encountered_fingerprints: Set[str] = set()
 
     for members in sorted((sorted(component) for component in components), key=lambda labels: labels[0]):
-        if not _component_has_target(members, raw_graph, target_types):
+        # Drop excluded labels from consideration when determining if a component is overworld
+        allowed_members = [label for label in members if label not in excluded_labels]
+        if not allowed_members:
             continue
-        root_label = _select_root(members, raw_graph, target_types)
+        if not _component_has_target(allowed_members, raw_graph, target_types):
+            continue
+        root_label = _select_root(allowed_members, raw_graph, target_types)
         reachable = _collect_reachable(raw_graph, root_label)
+        # Filter out excluded labels from the reachable subgraph
+        filtered = {k: v for k, v in reachable.items() if k not in excluded_labels}
+        if not filtered:
+            continue
         filename = _connection_filename(root_label)
         output_path = output_dir / filename
+        # Compute per-map z order from overlay constraints (after filtering exclusions)
+        map_labels = list(filtered.keys())
+        z_lookup = _compute_map_z_indices(map_labels, overlay_constraints)
         _write_connection_file(
             output_path,
-            reachable,
+            filtered,
             root_label,
             asset_prefix,
             common_asset_prefix,
             invariant_labels,
+            z_lookup,
         )
-        _, bounds = _build_layout(reachable, root_label)
-        map_labels = list(reachable.keys())
+        _, bounds = _build_layout(filtered, root_label)
         fingerprint = _fingerprint(map_labels)
         if fingerprint in encountered_fingerprints:
             raise RuntimeError(f"Duplicate neighborhood detected for root {root_label}")
         encountered_fingerprints.add(fingerprint)
-        primary_type = reachable[root_label].map_type
-        types_present = sorted({reachable[label].map_type or "UNKNOWN" for label in map_labels})
+        primary_type = filtered[root_label].map_type
+        types_present = sorted({filtered[label].map_type or "UNKNOWN" for label in map_labels})
         layout_hint = existing_by_fingerprint.get(fingerprint)
         if layout_hint is None:
             layout_hint = existing_by_id.get(root_label)

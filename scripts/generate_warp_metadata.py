@@ -15,7 +15,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Set
 
 import render_map
 
@@ -55,6 +55,24 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=atlas_common.DEFAULT_MAPS_DIR / "warp_metadata.json",
         help="Destination for the generated metadata payload (defaults to maps/warp_metadata.json).",
+    )
+    parser.add_argument(
+        "--overworld-exclude",
+        action="append",
+        default=[],
+        help=(
+            "Map label to treat as indoor (exclude from overworld classification). "
+            "May be specified multiple times."
+        ),
+    )
+    parser.add_argument(
+        "--overworld-exclude-file",
+        type=Path,
+        default=None,
+        help=(
+            "Optional JSON or text file listing map labels to exclude from overworld classification. "
+            "JSON may be an array of strings or an object with 'exclude_labels'/'labels'."
+        ),
     )
     return parser.parse_args()
 
@@ -316,9 +334,43 @@ def _block_pixel_size() -> int:
     return atlas_common.block_pixel_size()
 
 
+def _load_excluded_labels(config_path: Optional[Path], extras: Sequence[str]) -> Set[str]:
+    labels: Set[str] = set(l for l in (extras or []) if isinstance(l, str) and l.strip())
+    if config_path is None:
+        return labels
+    path = config_path.resolve()
+    if not path.exists():
+        return labels
+    text = path.read_text(encoding="utf-8")
+    data: Optional[object] = None
+    try:
+        data = json.loads(text)
+    except Exception:
+        data = None
+    if isinstance(data, list):
+        for item in data:
+            if isinstance(item, str) and item.strip():
+                labels.add(item.strip())
+        return labels
+    if isinstance(data, dict):
+        for key in ("exclude_labels", "labels"):
+            raw = data.get(key)
+            if isinstance(raw, list):
+                for item in raw:
+                    if isinstance(item, str) and item.strip():
+                        labels.add(item.strip())
+        return labels
+    for raw_line in text.splitlines():
+        line = raw_line.split("#", 1)[0].strip()
+        if line:
+            labels.add(line)
+    return labels
+
+
 def build_metadata(
     polished_path: Path,
     attributes_path: Optional[Path],
+    excluded_overworld: Set[str],
 ) -> Tuple[Dict[str, dict], Dict[str, str], Dict[str, object]]:
     repo_index = atlas_common.repository(polished_path)
     attributes_source = attributes_path or polished_path / "data/maps/attributes.asm"
@@ -356,7 +408,9 @@ def build_metadata(
             height_blocks = info.height
         elif attr is not None:
             map_constant = attr.constant
-        is_overworld = map_type in TARGET_OVERWORLD_TYPES if map_type else False
+        is_overworld = (map_type in TARGET_OVERWORLD_TYPES) if map_type else False
+        if label in excluded_overworld:
+            is_overworld = False
         warp_entries: List[dict] = []
         for warp in warps:
             target_constant = warp.target_constant
@@ -378,7 +432,10 @@ def build_metadata(
                         "map_label": target_label,
                         "warp_index": warp.target_warp_index,
                         "map_type": target_info.map_type if target_info else None,
-                        "is_overworld": (target_info.map_type in TARGET_OVERWORLD_TYPES) if target_info else False,
+                        "is_overworld": (
+                            (target_info.map_type in TARGET_OVERWORLD_TYPES) if target_info else False
+                        )
+                        and (target_label not in excluded_overworld if target_label else False),
                         "x_cells": destination_warp.x_cell if destination_warp else None,
                         "y_cells": destination_warp.y_cell if destination_warp else None,
                     },
@@ -450,7 +507,11 @@ def main() -> None:
     if attributes_path and not attributes_path.exists():
         raise FileNotFoundError(f"attributes.asm not found at {attributes_path}")
 
-    metadata, constant_lookup, aux_data = build_metadata(polished_path, attributes_path)
+    # Try default exclusion file alongside this script when not explicitly provided.
+    default_exclude_path = (Path(__file__).parent / "overworld_exclude.json").resolve()
+    exclude_source = args.overworld_exclude_file or (default_exclude_path if default_exclude_path.exists() else None)
+    excluded = _load_excluded_labels(exclude_source, args.overworld_exclude)
+    metadata, constant_lookup, aux_data = build_metadata(polished_path, attributes_path, excluded)
     output_path = args.output.resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     payload = {

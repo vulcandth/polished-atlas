@@ -102,12 +102,15 @@ run_generators() {
     log "Generating atlas connection layouts (${time_slug})"
   "${PYTHON_BIN}" "${ROOT_DIR}/scripts/generate_map_neighborhoods.py" \
       --polishedcrystal "${POLISHED_DIR}" \
-      --time-of-day "${time_slug}"
+      --time-of-day "${time_slug}" \
+      --overlay-rules "${ROOT_DIR}/scripts/overlay_rules.json" \
+      --overworld-exclude-file "${ROOT_DIR}/scripts/overworld_exclude.json"
   done
 
   log "Extracting warp metadata"
   "${PYTHON_BIN}" "${ROOT_DIR}/scripts/generate_warp_metadata.py" \
-    --polishedcrystal "${POLISHED_DIR}"
+    --polishedcrystal "${POLISHED_DIR}" \
+    --overworld-exclude-file "${ROOT_DIR}/scripts/overworld_exclude.json"
 
   log "Generating overworld object metadata"
   "${PYTHON_BIN}" "${ROOT_DIR}/scripts/generate_object_metadata.py" \

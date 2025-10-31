@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-10-18T19:04:19.453524Z",
+  "generated_at": "2025-10-30T23:50:21.293035Z",
   "neighborhoods": [
     {
       "bounds_blocks": {
@@ -209,29 +209,6 @@
     },
     {
       "bounds_blocks": {
-        "height": 9,
-        "width": 16
-      },
-      "fingerprint": "4551cc31a44dc92c68759d9f",
-      "graph": "CinnabarLab_connections.json",
-      "id": "CinnabarLab",
-      "map_count": 1,
-      "map_labels": [
-        "CinnabarLab"
-      ],
-      "offset_blocks": [
-        56.0,
-        180.0
-      ],
-      "primary_type": "ISOLATED",
-      "root": "CinnabarLab",
-      "types_present": [
-        "ISOLATED"
-      ],
-      "z_offset": 1
-    },
-    {
-      "bounds_blocks": {
         "height": 23,
         "width": 17
       },
@@ -302,29 +279,6 @@
     },
     {
       "bounds_blocks": {
-        "height": 27,
-        "width": 21
-      },
-      "fingerprint": "520552124ba05d56d30b4465",
-      "graph": "NationalParkBugContest_connections.json",
-      "id": "NationalParkBugContest",
-      "map_count": 1,
-      "map_labels": [
-        "NationalParkBugContest"
-      ],
-      "offset_blocks": [
-        33.0,
-        178.5
-      ],
-      "primary_type": "ROUTE",
-      "root": "NationalParkBugContest",
-      "types_present": [
-        "ROUTE"
-      ],
-      "z_offset": 1
-    },
-    {
-      "bounds_blocks": {
         "height": 16,
         "width": 13
       },
@@ -343,29 +297,6 @@
       "root": "NavelRockOutside",
       "types_present": [
         "TOWN"
-      ],
-      "z_offset": 1
-    },
-    {
-      "bounds_blocks": {
-        "height": 6,
-        "width": 6
-      },
-      "fingerprint": "4d83ae35df38ade691703fb1",
-      "graph": "Route22Past_connections.json",
-      "id": "Route22Past",
-      "map_count": 1,
-      "map_labels": [
-        "Route22Past"
-      ],
-      "offset_blocks": [
-        48.0,
-        171.0
-      ],
-      "primary_type": "ISOLATED",
-      "root": "Route22Past",
-      "types_present": [
-        "ISOLATED"
       ],
       "z_offset": 1
     },
@@ -722,29 +653,6 @@
     },
     {
       "bounds_blocks": {
-        "height": 27,
-        "width": 21
-      },
-      "fingerprint": "fc201dd1c5c5e19a91287235",
-      "graph": "NationalPark_connections.json",
-      "id": "NationalPark",
-      "map_count": 1,
-      "map_labels": [
-        "NationalPark"
-      ],
-      "offset_blocks": [
-        50.5,
-        61.5
-      ],
-      "primary_type": "ROUTE",
-      "root": "NationalPark",
-      "types_present": [
-        "ROUTE"
-      ],
-      "z_offset": 2
-    },
-    {
-      "bounds_blocks": {
         "height": 10,
         "width": 10
       },
@@ -784,29 +692,6 @@
       ],
       "primary_type": "ROUTE",
       "root": "ShamoutiShrineRuins",
-      "types_present": [
-        "ROUTE"
-      ],
-      "z_offset": 2
-    },
-    {
-      "bounds_blocks": {
-        "height": 26,
-        "width": 19
-      },
-      "fingerprint": "594cc5268b3c03640a33e531",
-      "graph": "ViridianForest_connections.json",
-      "id": "ViridianForest",
-      "map_count": 1,
-      "map_labels": [
-        "ViridianForest"
-      ],
-      "offset_blocks": [
-        296.0,
-        5.5
-      ],
-      "primary_type": "ROUTE",
-      "root": "ViridianForest",
       "types_present": [
         "ROUTE"
       ],
@@ -882,29 +767,6 @@
         "TOWN"
       ],
       "z_offset": 21
-    },
-    {
-      "bounds_blocks": {
-        "height": 13,
-        "width": 9
-      },
-      "fingerprint": "2c75080a577b7845b9829669",
-      "graph": "SinjohRuins_connections.json",
-      "id": "SinjohRuins",
-      "map_count": 1,
-      "map_labels": [
-        "SinjohRuins"
-      ],
-      "offset_blocks": [
-        58.0,
-        165.0
-      ],
-      "primary_type": "ISOLATED",
-      "root": "SinjohRuins",
-      "types_present": [
-        "ISOLATED"
-      ],
-      "z_offset": 29
     }
   ],
   "version": 1

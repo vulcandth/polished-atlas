@@ -947,7 +947,7 @@
     "YELLOW_FOREST": "YellowForest",
     "YELLOW_FOREST_GATE": "YellowForestGate"
   },
-  "generated_at": "2025-10-18T19:05:38.423172Z",
+  "generated_at": "2025-10-30T23:51:36.163230Z",
   "maps": {
     "AzaleaGym": {
       "collision": {
@@ -7505,7 +7505,7 @@
         "width_cells": 32
       },
       "height_blocks": 9,
-      "is_overworld": true,
+      "is_overworld": false,
       "label": "CinnabarLab",
       "map_constant": "CINNABAR_LAB",
       "map_type": "ISOLATED",
@@ -18295,7 +18295,7 @@
         {
           "index": 1,
           "target": {
-            "is_overworld": true,
+            "is_overworld": false,
             "map_constant": "SINJOH_RUINS",
             "map_label": "SinjohRuins",
             "map_type": "ISOLATED",
@@ -18309,7 +18309,7 @@
         {
           "index": 2,
           "target": {
-            "is_overworld": true,
+            "is_overworld": false,
             "map_constant": "SINJOH_RUINS",
             "map_label": "SinjohRuins",
             "map_type": "ISOLATED",
@@ -18334,7 +18334,7 @@
         "width_cells": 42
       },
       "height_blocks": 27,
-      "is_overworld": true,
+      "is_overworld": false,
       "label": "NationalPark",
       "map_constant": "NATIONAL_PARK",
       "map_type": "ROUTE",
@@ -18409,7 +18409,7 @@
         "width_cells": 42
       },
       "height_blocks": 27,
-      "is_overworld": true,
+      "is_overworld": false,
       "label": "NationalParkBugContest",
       "map_constant": "NATIONAL_PARK_BUG_CONTEST",
       "map_type": "ROUTE",
@@ -24863,7 +24863,7 @@
         "width_cells": 12
       },
       "height_blocks": 6,
-      "is_overworld": true,
+      "is_overworld": false,
       "label": "Route22Past",
       "map_constant": "ROUTE_22_PAST",
       "map_type": "ISOLATED",
@@ -26791,7 +26791,7 @@
         {
           "index": 1,
           "target": {
-            "is_overworld": true,
+            "is_overworld": false,
             "map_constant": "NATIONAL_PARK",
             "map_label": "NationalPark",
             "map_type": "ROUTE",
@@ -26805,7 +26805,7 @@
         {
           "index": 2,
           "target": {
-            "is_overworld": true,
+            "is_overworld": false,
             "map_constant": "NATIONAL_PARK",
             "map_label": "NationalPark",
             "map_type": "ROUTE",
@@ -27011,7 +27011,7 @@
         {
           "index": 1,
           "target": {
-            "is_overworld": true,
+            "is_overworld": false,
             "map_constant": "NATIONAL_PARK",
             "map_label": "NationalPark",
             "map_type": "ROUTE",
@@ -27025,7 +27025,7 @@
         {
           "index": 2,
           "target": {
-            "is_overworld": true,
+            "is_overworld": false,
             "map_constant": "NATIONAL_PARK",
             "map_label": "NationalPark",
             "map_type": "ROUTE",
@@ -35131,7 +35131,7 @@
         "width_cells": 18
       },
       "height_blocks": 13,
-      "is_overworld": true,
+      "is_overworld": false,
       "label": "SinjohRuins",
       "map_constant": "SINJOH_RUINS",
       "map_type": "ISOLATED",
@@ -35200,7 +35200,7 @@
         {
           "index": 1,
           "target": {
-            "is_overworld": true,
+            "is_overworld": false,
             "map_constant": "SINJOH_RUINS",
             "map_label": "SinjohRuins",
             "map_type": "ISOLATED",
@@ -35214,7 +35214,7 @@
         {
           "index": 2,
           "target": {
-            "is_overworld": true,
+            "is_overworld": false,
             "map_constant": "SINJOH_RUINS",
             "map_label": "SinjohRuins",
             "map_type": "ISOLATED",
@@ -39536,7 +39536,7 @@
         "width_cells": 38
       },
       "height_blocks": 26,
-      "is_overworld": true,
+      "is_overworld": false,
       "label": "ViridianForest",
       "map_constant": "VIRIDIAN_FOREST",
       "map_type": "ROUTE",
@@ -39605,7 +39605,7 @@
         {
           "index": 1,
           "target": {
-            "is_overworld": true,
+            "is_overworld": false,
             "map_constant": "VIRIDIAN_FOREST",
             "map_label": "ViridianForest",
             "map_type": "ROUTE",
@@ -39619,7 +39619,7 @@
         {
           "index": 2,
           "target": {
-            "is_overworld": true,
+            "is_overworld": false,
             "map_constant": "VIRIDIAN_FOREST",
             "map_label": "ViridianForest",
             "map_type": "ROUTE",
@@ -39680,7 +39680,7 @@
         {
           "index": 1,
           "target": {
-            "is_overworld": true,
+            "is_overworld": false,
             "map_constant": "VIRIDIAN_FOREST",
             "map_label": "ViridianForest",
             "map_type": "ROUTE",
@@ -39694,7 +39694,7 @@
         {
           "index": 2,
           "target": {
-            "is_overworld": true,
+            "is_overworld": false,
             "map_constant": "VIRIDIAN_FOREST",
             "map_label": "ViridianForest",
             "map_type": "ROUTE",

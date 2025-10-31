@@ -114,7 +114,8 @@ run_generators() {
 
   log "Generating overworld object metadata"
   "${PYTHON_BIN}" "${ROOT_DIR}/scripts/generate_object_metadata.py" \
-    --polishedcrystal "${POLISHED_DIR}"
+    --polishedcrystal "${POLISHED_DIR}" \
+    --event-overrides "${ROOT_DIR}/scripts/event_overrides.json"
 }
 
 build_web_bundle() {

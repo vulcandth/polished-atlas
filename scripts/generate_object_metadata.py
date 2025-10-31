@@ -395,6 +395,12 @@ def parse_args() -> argparse.Namespace:
         default=atlas_common.DEFAULT_MAPS_DIR / "object_metadata.json",
         help="Destination for the generated metadata payload.",
     )
+    parser.add_argument(
+        "--event-overrides",
+        type=Path,
+        default=None,
+        help="Optional path to a JSON file with event flag overrides: {\"set\": [...], \"clear\": [...]}.",
+    )
     return parser.parse_args()
 
 
@@ -658,6 +664,36 @@ def parse_initial_event_flags(root: Path) -> Set[str]:
                 continue
             flags.add(token)
     return flags
+
+
+def parse_event_overrides(path: Optional[Path]) -> Tuple[Set[str], Set[str]]:
+    """Load event flag overrides from a JSON file.
+
+    Supported formats:
+    - Object with keys {"set": [..], "clear": [..]}
+    - Array of strings, treated as the "set" list
+    If the file is missing or empty, returns empty sets.
+    """
+    set_flags: Set[str] = set()
+    clear_flags: Set[str] = set()
+    if not path:
+        return set_flags, clear_flags
+    try:
+        if not path.exists():
+            return set_flags, clear_flags
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(data, list):
+            set_flags.update([str(x) for x in data if isinstance(x, str) and x])
+        elif isinstance(data, dict):
+            for key, dest in (("set", set_flags), ("clear", clear_flags)):
+                values = data.get(key, [])
+                if isinstance(values, list):
+                    dest.update([str(x) for x in values if isinstance(x, str) and x])
+        # Ignore other shapes silently.
+    except Exception:
+        # Be permissive; if overrides can't be read, proceed without them.
+        return set(), set()
+    return set_flags, clear_flags
 
 
 def _read_species_sequence(path: Path, expected_count: int) -> List[Optional[str]]:
@@ -1800,7 +1836,13 @@ def main() -> None:
     movements = parse_movement_table(polished_root, constants)
     facings = parse_facings(polished_root, constants)
     block_pixel_size = atlas_common.block_pixel_size()
+    # Load initial event flags and apply optional overrides.
     initial_event_flags = parse_initial_event_flags(polished_root)
+    override_set, override_clear = parse_event_overrides(args.event_overrides)
+    if override_clear:
+        initial_event_flags.difference_update(override_clear)
+    if override_set:
+        initial_event_flags.update(override_set)
     map_objects = parse_map_objects(
         polished_root,
         constants,

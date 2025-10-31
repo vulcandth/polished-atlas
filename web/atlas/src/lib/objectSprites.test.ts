@@ -69,6 +69,7 @@ function loadMetadataSubset(): LoadedMetadata {
     movements: {},
     facings: {} as Record<string, ObjectFacingEntry>,
     maps: {},
+    pokemonIcons: null,
   };
 
   const tileCounts: Record<SpriteKey, number> = {

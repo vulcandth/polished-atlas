@@ -18,6 +18,7 @@ import { computeObjectPosition, type PlacementContext } from "@/lib/objectPlacem
 import { createCollisionHelper, type CollisionHelper } from "@/lib/collision";
 import { getMovementModel } from "@/lib/movementModel";
 import { simulateNpcMovement } from "@/lib/movementSimulation";
+import { analyzeAllSpriteLimits, type SpriteLimitIssue, type MapScope } from "@/lib/spriteLimitAnalysis";
 
 type OffsetTuple = [number, number];
 
@@ -259,6 +260,11 @@ type OverlayState = {
   minScale: number;
   maxScale: number;
   positioned: boolean;
+  // Sprite limit analysis
+  spriteLimitEnabled?: boolean;
+  spriteIssues?: SpriteLimitIssue[];
+  spriteIssueIndex?: number;
+  spriteIssueHighlight?: Graphics;
 };
 
 function frameIndexForTime(elapsedMs: number, durations: number[], loopDuration: number): number {
@@ -1464,6 +1470,18 @@ export default function MapCanvas({
   const objectCacheSourceRef = useRef<ObjectMetadata | null>(null);
   const [ready, setReady] = useState(false);
 
+  // Sprite limits UI state
+  const [spriteLimitEnabled, setSpriteLimitEnabled] = useState(false);
+  const [spriteIssues, setSpriteIssues] = useState<SpriteLimitIssue[] | null>(null);
+  const [spriteIssuesAll, setSpriteIssuesAll] = useState<SpriteLimitIssue[] | null>(null);
+  const [spriteIssueIndex, setSpriteIssueIndex] = useState<number>(0);
+  const [spriteScope, setSpriteScope] = useState<MapScope>("all");
+  const [spriteScanlineLimit, setSpriteScanlineLimit] = useState<number>(10);
+  const [spriteTotalLimit, setSpriteTotalLimit] = useState<number>(40);
+  const [spriteIncludeFollower, setSpriteIncludeFollower] = useState<boolean>(false);
+  const [spriteIncludeWeather, setSpriteIncludeWeather] = useState<boolean>(false);
+  const [spriteOnlyErrors, setSpriteOnlyErrors] = useState<boolean>(false);
+
   const baseOffsetsRef = useRef<Record<string, OffsetTuple>>({});
   const offsetOverridesRef = useRef<Record<string, OffsetTuple>>({});
   const zOverridesRef = useRef<Record<string, number>>({});
@@ -1603,6 +1621,79 @@ export default function MapCanvas({
     [editing]
   );
 
+  const drawSpriteIssueHighlight = useCallback((issue: SpriteLimitIssue | null): void => {
+    const state = overlayStateRef.current;
+    if (!state || !state.sprite) {
+      return;
+    }
+    // Remove previous
+    if (state.spriteIssueHighlight) {
+      try {
+        state.spriteIssueHighlight.destroy({ children: true });
+      } catch {
+        /* ignore */
+      }
+      state.spriteIssueHighlight = undefined;
+    }
+    if (!issue) {
+      setSpriteIssueIndex(0);
+      return;
+    }
+    const g = new Graphics();
+    // Viewport rectangle
+    g.lineStyle(Math.max(1, state.cellSize * 0.1), issue.severity === "exceeds" ? 0xe74c3c : 0xf1c40f, 0.95);
+    g.beginFill(issue.severity === "exceeds" ? 0xe74c3c : 0xf39c12, 0.15);
+    g.drawRect(issue.viewportPx.x, issue.viewportPx.y, issue.viewportPx.width, issue.viewportPx.height);
+    g.endFill();
+    // Scanline indicator
+    if (issue.type === "scanline-limit" && Number.isFinite(issue.scanlineY)) {
+      const y = issue.viewportPx.y + (issue.scanlineY ?? 0);
+      g.lineStyle(Math.max(1, state.cellSize * 0.15), 0xe74c3c, 0.9);
+      g.moveTo(issue.viewportPx.x, y);
+      g.lineTo(issue.viewportPx.x + issue.viewportPx.width, y);
+    }
+    g.zIndex = 50;
+    state.sprite.addChild(g);
+    state.sprite.sortChildren();
+    state.spriteIssueHighlight = g;
+  }, []);
+
+  const runSpriteLimitAnalysis = useCallback(() => {
+    const warp = warpMetadataRef.current;
+    const objects = objectMetadataRef.current;
+    if (!objects || !warp) {
+      setSpriteIssues([]);
+      return;
+    }
+    try {
+      const results = analyzeAllSpriteLimits(objects, warp, {
+        timeOfDay,
+        stopAtFirst: false,
+        scope: spriteScope,
+        scanlineLimit: Math.max(0, Math.trunc(spriteScanlineLimit || 0)),
+        totalLimit: Math.max(0, Math.trunc(spriteTotalLimit || 0)),
+        includeFollower: Boolean(spriteIncludeFollower),
+        includeWeather: Boolean(spriteIncludeWeather),
+      });
+      const filtered = spriteOnlyErrors ? results.filter((r) => r.severity === "exceeds") : results;
+      setSpriteIssuesAll(results);
+      setSpriteIssues(filtered);
+      setSpriteIssueIndex(filtered.length > 0 ? 0 : 0);
+    } catch (err) {
+      console.warn("Sprite limit analysis (all) failed", err);
+      setSpriteIssuesAll([]);
+      setSpriteIssues([]);
+    }
+  }, [timeOfDay, spriteScope, spriteScanlineLimit, spriteTotalLimit, spriteIncludeFollower, spriteIncludeWeather, spriteOnlyErrors]);
+
+  // Re-filter without re-analyzing when toggling the severity filter
+  useEffect(() => {
+    if (!spriteIssuesAll) return;
+    const filtered = spriteOnlyErrors ? spriteIssuesAll.filter((r) => r.severity === "exceeds") : spriteIssuesAll;
+    setSpriteIssues(filtered);
+    setSpriteIssueIndex(0);
+  }, [spriteOnlyErrors, spriteIssuesAll]);
+
   const positionOverlayContents = useCallback((): void => {
     const state = overlayStateRef.current;
     const overlay = overlayRef.current;
@@ -1704,6 +1795,14 @@ export default function MapCanvas({
       }
       state.objectContainer.destroy({ children: true });
     }
+    if (state.spriteIssueHighlight) {
+      try {
+        state.spriteIssueHighlight.destroy({ children: true });
+      } catch {
+        /* ignore */
+      }
+      state.spriteIssueHighlight = undefined;
+    }
     state.objectMarkers = [];
     for (const marker of state.markers) {
       marker.graphic.removeAllListeners();
@@ -1718,6 +1817,8 @@ export default function MapCanvas({
     disposeAnimationResource(state.resource);
     overlay.visible = false;
     overlayStateRef.current = null;
+  setSpriteIssues(null);
+  setSpriteIssueIndex(0);
     const world = worldRef.current;
     if (world) {
       world.visible = true;
@@ -3649,6 +3750,241 @@ export default function MapCanvas({
     <div className="canvas-stage" ref={containerRef}>
       {loading && <div className="status-banner info">Loading atlas…</div>}
       {!loading && !atlas && <div className="status-banner warning">No map data available.</div>}
+      {/* Sprite Limits Panel */}
+      <div
+        style={{
+          position: "absolute",
+          right: 12,
+          top: 12,
+          padding: 8,
+          background: "rgba(0,0,0,0.5)",
+          color: "#fff",
+          borderRadius: 6,
+          display: "flex",
+          gap: 8,
+          alignItems: "center",
+          zIndex: 1000,
+        }}
+      >
+        <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <input
+            type="checkbox"
+            checked={spriteLimitEnabled}
+            onChange={(e) => setSpriteLimitEnabled(e.target.checked)}
+          />
+          <span>Sprite Limits</span>
+        </label>
+        {/* Severity filter */}
+        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+          <input
+            type="checkbox"
+            checked={spriteOnlyErrors}
+            onChange={(e) => setSpriteOnlyErrors(e.target.checked)}
+            disabled={!spriteLimitEnabled}
+          />
+          <span>Only errors (&gt; limit)</span>
+        </label>
+        {/* Follower toggle */}
+        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+          <input
+            type="checkbox"
+            checked={spriteIncludeFollower}
+            onChange={(e) => setSpriteIncludeFollower(e.target.checked)}
+            disabled={!spriteLimitEnabled}
+          />
+          <span>Follower Pokémon</span>
+        </label>
+        {/* Weather toggle (overworld only when applied in analysis) */}
+        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+          <input
+            type="checkbox"
+            checked={spriteIncludeWeather}
+            onChange={(e) => setSpriteIncludeWeather(e.target.checked)}
+            disabled={!spriteLimitEnabled}
+          />
+          <span>Weather (reserve 1)</span>
+        </label>
+        {/* Scope selector */}
+        <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
+          <span>Scope</span>
+          <select
+            value={spriteScope}
+            onChange={(e) => setSpriteScope((e.target.value as MapScope) ?? "all")}
+            disabled={!spriteLimitEnabled}
+            style={{ fontSize: 12 }}
+          >
+            <option value="all">All</option>
+            <option value="overworld">Overworld</option>
+            <option value="indoor">Indoor</option>
+          </select>
+        </label>
+        {/* Limits */}
+        <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
+          <span>Scanline</span>
+          <input
+            type="number"
+            value={spriteScanlineLimit}
+            onChange={(e) => setSpriteScanlineLimit(Number.isFinite(parseInt(e.target.value)) ? parseInt(e.target.value) : 10)}
+            min={0}
+            step={1}
+            style={{ width: 64, fontSize: 12 }}
+            disabled={!spriteLimitEnabled}
+          />
+        </label>
+        <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
+          <span>Total</span>
+          <input
+            type="number"
+            value={spriteTotalLimit}
+            onChange={(e) => setSpriteTotalLimit(Number.isFinite(parseInt(e.target.value)) ? parseInt(e.target.value) : 40)}
+            min={0}
+            step={1}
+            style={{ width: 64, fontSize: 12 }}
+            disabled={!spriteLimitEnabled}
+          />
+        </label>
+        <button
+          type="button"
+          onClick={() => runSpriteLimitAnalysis()}
+          disabled={!spriteLimitEnabled}
+        >
+          Analyze
+        </button>
+      </div>
+      {/* When no overlay is open, Analyze scans the entire overworld. */}
+      {spriteLimitEnabled && spriteIssues && spriteIssues.length > 0 && (
+        <div
+          style={{
+            position: "absolute",
+            right: 12,
+            top: 56,
+            width: 320,
+            maxHeight: 360,
+            overflow: "auto",
+            padding: 8,
+            background: "rgba(0,0,0,0.6)",
+            color: "#fff",
+            borderRadius: 6,
+            zIndex: 1000,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <strong>{spriteIssues.length} issue{spriteIssues.length === 1 ? "" : "s"}</strong>
+            <div style={{ display: "flex", gap: 6 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!spriteIssues) return;
+                  const next = (spriteIssueIndex - 1 + spriteIssues.length) % spriteIssues.length;
+                  setSpriteIssueIndex(next);
+                  const issue = spriteIssues[next];
+                  const overlay = overlayStateRef.current;
+                  if (!overlay || (issue && issue.mapLabel && overlay.mapLabel !== issue.mapLabel)) {
+                    if (issue && issue.mapLabel) {
+                      void openOverlay(issue.mapLabel).then(() => {
+                        drawSpriteIssueHighlight(issue);
+                      });
+                    }
+                  } else {
+                    drawSpriteIssueHighlight(issue ?? null);
+                  }
+                }}
+              >
+                ◀
+              </button>
+              <span>{spriteIssueIndex + 1}/{spriteIssues.length}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!spriteIssues) return;
+                  const next = (spriteIssueIndex + 1) % spriteIssues.length;
+                  setSpriteIssueIndex(next);
+                  const issue = spriteIssues[next];
+                  const overlay = overlayStateRef.current;
+                  if (!overlay || (issue && issue.mapLabel && overlay.mapLabel !== issue.mapLabel)) {
+                    if (issue && issue.mapLabel) {
+                      void openOverlay(issue.mapLabel).then(() => {
+                        drawSpriteIssueHighlight(issue);
+                      });
+                    }
+                  } else {
+                    drawSpriteIssueHighlight(issue ?? null);
+                  }
+                }}
+              >
+                ▶
+              </button>
+            </div>
+          </div>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 6 }}>
+            {spriteIssues.map((issue, idx) => (
+              <li key={`${issue.type}-${idx}`}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSpriteIssueIndex(idx);
+                    const overlay = overlayStateRef.current;
+                    if (!overlay || (issue && issue.mapLabel && overlay.mapLabel !== issue.mapLabel)) {
+                      if (issue && issue.mapLabel) {
+                        void openOverlay(issue.mapLabel).then(() => {
+                          drawSpriteIssueHighlight(issue);
+                        });
+                      }
+                    } else {
+                      drawSpriteIssueHighlight(issue);
+                    }
+                  }}
+                  style={{
+                    width: "100%",
+                    textAlign: "left",
+                    background: idx === spriteIssueIndex ? "rgba(241,196,15,0.3)" : "rgba(255,255,255,0.08)",
+                    color: "#fff",
+                    border: "1px solid rgba(255,255,255,0.15)",
+                    borderRadius: 4,
+                    padding: "6px 8px",
+                    cursor: "pointer",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                    <span>
+                      {issue.type === "scanline-limit" ? "Scanline" : "Total"} {issue.severity === "exceeds" ? ">" : "="}{issue.limit}
+                    </span>
+                    <span>
+                      count: {issue.count}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 12, opacity: 0.85 }}>
+                    {issue.mapLabel ? `${issue.mapLabel} • ` : ""}Player @ ({issue.playerCell.x},{issue.playerCell.y})
+                    {issue.type === "scanline-limit" && typeof issue.scanlineY === "number" ? ` • y=${issue.scanlineY}` : ""}
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+          {/* Contributors for the selected issue */}
+          {spriteIssues[spriteIssueIndex] && (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>Contributors</div>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+                {spriteIssues[spriteIssueIndex].contributors.slice(0, 20).map((ref, i) => (
+                  <li key={`${ref.kind}-${ref.index ?? -1}-${ref.cell.x}-${ref.cell.y}-${i}`} style={{ fontSize: 12, opacity: 0.9 }}>
+                    {ref.kind === "player"
+                      ? "Player"
+                      : ref.kind === "follower"
+                        ? "Follower"
+                        : `NPC #${ref.index ?? "?"}`}
+                    {` at (${ref.cell.x},${ref.cell.y})`}
+                    {ref.label ? ` • ${ref.label}` : ""}
+                  </li>
+                ))}
+                {spriteIssues[spriteIssueIndex].contributors.length > 20 && (
+                  <li style={{ fontSize: 12, opacity: 0.7 }}>(+ more)</li>
+                )}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

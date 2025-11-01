@@ -145,6 +145,14 @@ function computeOverscrollPx(viewW: number, viewH: number): number {
   const candidate = Math.max(viewW, viewH) > 0 ? Math.min(viewW, viewH) * 0.1 : 64;
   return Math.max(48, Math.min(256, candidate));
 }
+
+// Provide a slightly larger buffer at the bottom, where browser UI can
+// overlap content and thumbs often need headroom.
+function computeBottomExtraPx(viewH: number): number {
+  // 1.5x the base overscroll or at least 32 additional pixels
+  const base = computeOverscrollPx(viewH, viewH);
+  return Math.max(32, Math.floor(base * 0.5));
+}
 const VIEW_STATE_STORAGE_KEY = "polished-atlas:view-state";
 const VIEW_STATE_VERSION = 1;
 
@@ -1924,8 +1932,9 @@ export default function MapCanvas({
     } else if (scaledHeight <= viewHeight) {
       world.y = (viewHeight - scaledHeight) / 2;
     } else {
-      const minY = viewHeight - scaledHeight - overscroll;
-      const maxY = 0 + overscroll;
+      const extraBottom = computeBottomExtraPx(viewHeight);
+      const minY = viewHeight - scaledHeight - overscroll - extraBottom; // allow more past bottom
+      const maxY = 0 + overscroll; // top overscroll
       world.y = Math.min(maxY, Math.max(minY, world.y));
     }
   }, []);
@@ -3613,7 +3622,8 @@ export default function MapCanvas({
         if (scaledHeight <= viewH) {
           overlaySprite.y = Math.max(0, (viewH - scaledHeight) / 2);
         } else {
-          const minY = viewH - scaledHeight - over;
+          const extraBottom = computeBottomExtraPx(viewH);
+          const minY = viewH - scaledHeight - over - extraBottom;
           const maxY = 0 + over;
           overlaySprite.y = Math.min(maxY, Math.max(minY, overlaySprite.y));
         }
@@ -3915,10 +3925,13 @@ export default function MapCanvas({
           display: "flex",
           gap: 8,
           alignItems: "center",
+          flexWrap: "wrap",
+          maxWidth: "calc(100% - 24px)",
+          overflow: "hidden",
           zIndex: 1000,
         }}
       >
-        <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
           <input
             type="checkbox"
             checked={spriteLimitEnabled}
@@ -3963,7 +3976,7 @@ export default function MapCanvas({
             value={spriteScope}
             onChange={(e) => setSpriteScope((e.target.value as MapScope) ?? "all")}
             disabled={!spriteLimitEnabled}
-            style={{ fontSize: 12 }}
+            style={{ fontSize: 12, maxWidth: 140 }}
           >
             <option value="all">All</option>
             <option value="overworld">Overworld</option>
@@ -4010,8 +4023,8 @@ export default function MapCanvas({
             position: "absolute",
             right: 12,
             top: 56,
-            width: 320,
-            maxHeight: 360,
+            width: "min(320px, calc(100% - 24px))",
+            maxHeight: "min(50vh, 360px)",
             overflow: "auto",
             padding: 8,
             background: "rgba(0,0,0,0.6)",

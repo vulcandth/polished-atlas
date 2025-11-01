@@ -1540,6 +1540,8 @@ export default function MapCanvas({
   const [spriteIncludeFollower, setSpriteIncludeFollower] = useState<boolean>(false);
   const [spriteIncludeWeather, setSpriteIncludeWeather] = useState<boolean>(false);
   const [spriteOnlyErrors, setSpriteOnlyErrors] = useState<boolean>(false);
+  const [spriteAnalyzing, setSpriteAnalyzing] = useState<boolean>(false);
+  const worldIssueHighlightRef = useRef<Graphics | null>(null);
 
   const baseOffsetsRef = useRef<Record<string, OffsetTuple>>({});
   const offsetOverridesRef = useRef<Record<string, OffsetTuple>>({});
@@ -1717,7 +1719,29 @@ export default function MapCanvas({
     state.spriteIssueHighlight = g;
   }, []);
 
-  const runSpriteLimitAnalysis = useCallback(() => {
+  const clearWorldIssueHighlight = useCallback((): void => {
+    const g = worldIssueHighlightRef.current;
+    if (g) {
+      try { g.destroy({ children: true }); } catch { /* ignore */ }
+      worldIssueHighlightRef.current = null;
+    }
+  }, []);
+
+  const drawWorldIssueHighlight = useCallback((entry: SyncedAnimation, issue: SpriteLimitIssue | null): void => {
+    clearWorldIssueHighlight();
+    if (!entry || !issue) return;
+    const g = new Graphics();
+    g.lineStyle(Math.max(1, (entry.placement.blockPixelSize ?? 16) * 0.1), issue.severity === "exceeds" ? 0xe74c3c : 0xf1c40f, 0.95);
+    g.beginFill(issue.severity === "exceeds" ? 0xe74c3c : 0xf39c12, 0.15);
+    g.drawRect(issue.viewportPx.x, issue.viewportPx.y, issue.viewportPx.width, issue.viewportPx.height);
+    g.endFill();
+    g.zIndex = 50;
+    entry.sprite.addChild(g);
+    entry.sprite.sortChildren();
+    worldIssueHighlightRef.current = g;
+  }, [clearWorldIssueHighlight]);
+
+  const computeSpriteLimitAnalysis = useCallback(() => {
     const warp = warpMetadataRef.current;
     const objects = objectMetadataRef.current;
     if (!objects || !warp) {
@@ -1744,6 +1768,18 @@ export default function MapCanvas({
       setSpriteIssues([]);
     }
   }, [timeOfDay, spriteScope, spriteScanlineLimit, spriteTotalLimit, spriteIncludeFollower, spriteIncludeWeather, spriteOnlyErrors]);
+
+  const runSpriteLimitAnalysis = useCallback(() => {
+    setSpriteAnalyzing(true);
+    // Defer compute to allow UI (button state) to update before heavy work
+    setTimeout(() => {
+      try {
+        computeSpriteLimitAnalysis();
+      } finally {
+        setSpriteAnalyzing(false);
+      }
+    }, 0);
+  }, [computeSpriteLimitAnalysis]);
 
   // Re-filter without re-analyzing when toggling the severity filter
   useEffect(() => {
@@ -1877,8 +1913,6 @@ export default function MapCanvas({
     disposeAnimationResource(state.resource);
     overlay.visible = false;
     overlayStateRef.current = null;
-  setSpriteIssues(null);
-  setSpriteIssueIndex(0);
     const world = worldRef.current;
     if (world) {
       world.visible = true;
@@ -4095,8 +4129,9 @@ export default function MapCanvas({
             <button
               type="button"
               onClick={() => runSpriteLimitAnalysis()}
+              disabled={spriteAnalyzing}
             >
-              Analyze
+              {spriteAnalyzing ? "Analyzing…" : "Analyze"}
             </button>
           </>
         )}
@@ -4131,14 +4166,24 @@ export default function MapCanvas({
                   setSpriteIssueIndex(next);
                   const issue = spriteIssues[next];
                   const overlay = overlayStateRef.current;
-                  if (!overlay || (issue && issue.mapLabel && overlay.mapLabel !== issue.mapLabel)) {
-                    if (issue && issue.mapLabel) {
+                  if (issue && issue.mapLabel) {
+                    const entry = findWorldEntry(issue.mapLabel);
+                    if (entry) {
+                      // Overworld map – show in world view
+                      if (overlay) {
+                        closeOverlay();
+                      }
+                      const cx = entry.sprite.x + issue.viewportPx.x + issue.viewportPx.width / 2;
+                      const cy = entry.sprite.y + issue.viewportPx.y + issue.viewportPx.height / 2;
+                      focusWorldOn(cx, cy);
+                      drawWorldIssueHighlight(entry, issue);
+                    } else {
+                      // Not in world (likely indoor) – use overlay
                       void openOverlay(issue.mapLabel).then(() => {
                         drawSpriteIssueHighlight(issue);
+                        clearWorldIssueHighlight();
                       });
                     }
-                  } else {
-                    drawSpriteIssueHighlight(issue ?? null);
                   }
                 }}
               >
@@ -4153,14 +4198,22 @@ export default function MapCanvas({
                   setSpriteIssueIndex(next);
                   const issue = spriteIssues[next];
                   const overlay = overlayStateRef.current;
-                  if (!overlay || (issue && issue.mapLabel && overlay.mapLabel !== issue.mapLabel)) {
-                    if (issue && issue.mapLabel) {
+                  if (issue && issue.mapLabel) {
+                    const entry = findWorldEntry(issue.mapLabel);
+                    if (entry) {
+                      if (overlay) {
+                        closeOverlay();
+                      }
+                      const cx = entry.sprite.x + issue.viewportPx.x + issue.viewportPx.width / 2;
+                      const cy = entry.sprite.y + issue.viewportPx.y + issue.viewportPx.height / 2;
+                      focusWorldOn(cx, cy);
+                      drawWorldIssueHighlight(entry, issue);
+                    } else {
                       void openOverlay(issue.mapLabel).then(() => {
                         drawSpriteIssueHighlight(issue);
+                        clearWorldIssueHighlight();
                       });
                     }
-                  } else {
-                    drawSpriteIssueHighlight(issue ?? null);
                   }
                 }}
               >
@@ -4176,14 +4229,22 @@ export default function MapCanvas({
                   onClick={() => {
                     setSpriteIssueIndex(idx);
                     const overlay = overlayStateRef.current;
-                    if (!overlay || (issue && issue.mapLabel && overlay.mapLabel !== issue.mapLabel)) {
-                      if (issue && issue.mapLabel) {
+                    if (issue && issue.mapLabel) {
+                      const entry = findWorldEntry(issue.mapLabel);
+                      if (entry) {
+                        if (overlay) {
+                          closeOverlay();
+                        }
+                        const cx = entry.sprite.x + issue.viewportPx.x + issue.viewportPx.width / 2;
+                        const cy = entry.sprite.y + issue.viewportPx.y + issue.viewportPx.height / 2;
+                        focusWorldOn(cx, cy);
+                        drawWorldIssueHighlight(entry, issue);
+                      } else {
                         void openOverlay(issue.mapLabel).then(() => {
                           drawSpriteIssueHighlight(issue);
+                          clearWorldIssueHighlight();
                         });
                       }
-                    } else {
-                      drawSpriteIssueHighlight(issue);
                     }
                   }}
                   style={{

@@ -240,6 +240,20 @@ function disposeAnimationResource(resource: MapAnimationResource | null | undefi
   void Assets.unload(resource.imageUrl);
 }
 
+function rendererOn(app: Application | null, event: string, handler: (...args: any[]) => void): void {
+  const r: any = app && (app as any).renderer;
+  if (r && typeof r.on === "function") {
+    try { r.on(event, handler); } catch { /* noop */ }
+  }
+}
+
+function rendererOff(app: Application | null, event: string, handler: (...args: any[]) => void): void {
+  const r: any = app && (app as any).renderer;
+  if (r && typeof r.off === "function") {
+    try { r.off(event, handler); } catch { /* noop */ }
+  }
+}
+
 // Compute the effective visible size of the canvas in CSS pixels, accounting for
 // mobile browser UI that reduces the visual viewport compared to the layout viewport.
 function getEffectiveViewSize(app: Application | null): { width: number; height: number } {
@@ -1827,7 +1841,7 @@ export default function MapCanvas({
       window.removeEventListener("keydown", state.keyHandler);
     }
     if (app) {
-      app.renderer.off("resize", positionOverlayContents);
+      rendererOff(app, "resize", positionOverlayContents);
     }
     if (state.objectContainer) {
       const removedSprites = state.objectContainer.removeChildren();
@@ -2462,8 +2476,8 @@ export default function MapCanvas({
         if (typeof window !== "undefined") {
           window.addEventListener("keydown", keyHandler);
         }
-        app.renderer.off("resize", positionOverlayContents);
-        app.renderer.on("resize", positionOverlayContents);
+  rendererOff(app, "resize", positionOverlayContents);
+  rendererOn(app, "resize", positionOverlayContents);
         positionOverlayContents();
       } catch (err) {
         if (overlayTokenRef.current === token) {
@@ -3539,11 +3553,11 @@ export default function MapCanvas({
     if (!canvas) {
       return () => undefined;
     }
-    const pointers = new Map<number, { clientX: number; clientY: number }>();
-    let dragPointer: number | null = null;
-    let lastDrag = { x: 0, y: 0 };
-    let pinchStartDistance: number | null = null;
-    let pinchStartScale = scaleRef.current;
+  const pointers = new Map<number, { clientX: number; clientY: number }>();
+  let dragPointer: number | null = null;
+  let lastDrag = { x: 0, y: 0 };
+  let pinchStartDistance: number | null = null;
+  let pinchStartScale = scaleRef.current;
 
     const getRect = (): DOMRect => canvas.getBoundingClientRect();
 
@@ -3571,7 +3585,7 @@ export default function MapCanvas({
       schedulePersistViewState();
     };
 
-    const applyOverlayScale = (nextScale: number, focus?: { x: number; y: number }): void => {
+  const applyOverlayScale = (nextScale: number, focus?: { x: number; y: number }): void => {
       const state = overlayStateRef.current;
       const appInstance = appRef.current;
       if (!state || !appInstance) {
@@ -3632,6 +3646,41 @@ export default function MapCanvas({
       state.positioned = true;
     };
 
+    const clampOverlayPosition = (): void => {
+      const state = overlayStateRef.current;
+      const appInstance = appRef.current;
+      if (!state || !appInstance) return;
+      const overlaySprite = state.sprite;
+      const { width: viewW, height: viewH } = getEffectiveViewSize(appInstance);
+      const scale = overlaySprite.scale.x || 1;
+      const baseWidth = state.baseWidth || overlaySprite.texture.width || (scale ? overlaySprite.width / scale : overlaySprite.width) || 1;
+      const baseHeight = state.baseHeight || overlaySprite.texture.height || (scale ? overlaySprite.height / scale : overlaySprite.height) || 1;
+      const scaledWidth = baseWidth * scale;
+      const scaledHeight = baseHeight * scale;
+      if (scaledWidth > 0 && viewW > 0) {
+        const over = computeOverscrollPx(viewW, viewH);
+        if (scaledWidth <= viewW) {
+          overlaySprite.x = Math.max(0, (viewW - scaledWidth) / 2);
+        } else {
+          const minX = viewW - scaledWidth - over;
+          const maxX = 0 + over;
+          overlaySprite.x = Math.min(maxX, Math.max(minX, overlaySprite.x));
+        }
+      }
+      if (scaledHeight > 0 && viewH > 0) {
+        const over = computeOverscrollPx(viewW, viewH);
+        if (scaledHeight <= viewH) {
+          overlaySprite.y = Math.max(0, (viewH - scaledHeight) / 2);
+        } else {
+          const extraBottom = computeBottomExtraPx(viewH);
+          const minY = viewH - scaledHeight - over - extraBottom;
+          const maxY = 0 + over;
+          overlaySprite.y = Math.min(maxY, Math.max(minY, overlaySprite.y));
+        }
+      }
+      state.positioned = true;
+    };
+
     const updatePinchStart = (): void => {
       if (pointers.size < 2) {
         pinchStartDistance = null;
@@ -3649,12 +3698,9 @@ export default function MapCanvas({
     };
 
     const handlePointerDown = (event: PointerEvent): void => {
-      if (editing) {
-        return;
-      }
-      if (overlayStateRef.current) {
-        return;
-      }
+      if (editing) return;
+      const overlayState = overlayStateRef.current;
+      // Track pointers for both world and overlay interactions
       pointers.set(event.pointerId, { clientX: event.clientX, clientY: event.clientY });
       if (pointers.size === 1) {
         dragPointer = event.pointerId;
@@ -3667,17 +3713,38 @@ export default function MapCanvas({
     };
 
     const handlePointerMove = (event: PointerEvent): void => {
-      if (editing) {
-        return;
-      }
-      if (overlayStateRef.current) {
-        return;
-      }
+      if (editing) return;
       if (!pointers.has(event.pointerId)) {
         return;
       }
       pointers.set(event.pointerId, { clientX: event.clientX, clientY: event.clientY });
+      const overlayState = overlayStateRef.current;
+      if (overlayState) {
+        // Overlay interaction
+        if (pointers.size === 1 && dragPointer === event.pointerId) {
+          const dx = event.clientX - lastDrag.x;
+          const dy = event.clientY - lastDrag.y;
+          lastDrag = { x: event.clientX, y: event.clientY };
+          overlayState.sprite.x += dx;
+          overlayState.sprite.y += dy;
+          clampOverlayPosition();
+          return;
+        }
+        if (pointers.size >= 2 && pinchStartDistance && pinchStartDistance > 0) {
+          const iterator = pointers.values();
+          const first = iterator.next().value;
+          const second = iterator.next().value;
+          if (!first || !second) return;
+          const distance = Math.hypot(second.clientX - first.clientX, second.clientY - first.clientY);
+          if (!distance) return;
+          const center = { x: (first.clientX + second.clientX) / 2, y: (first.clientY + second.clientY) / 2 };
+          const scaleFactor = distance / pinchStartDistance;
+          applyOverlayScale(pinchStartScale * scaleFactor, center);
+        }
+        return;
+      }
 
+      // World interaction
       if (pointers.size === 1 && dragPointer === event.pointerId) {
         const dx = event.clientX - lastDrag.x;
         const dy = event.clientY - lastDrag.y;
@@ -3688,34 +3755,21 @@ export default function MapCanvas({
         schedulePersistViewState();
         return;
       }
-
       if (pointers.size >= 2 && pinchStartDistance && pinchStartDistance > 0) {
         const iterator = pointers.values();
         const first = iterator.next().value;
         const second = iterator.next().value;
-        if (!first || !second) {
-          return;
-        }
+        if (!first || !second) return;
         const distance = Math.hypot(second.clientX - first.clientX, second.clientY - first.clientY);
-        if (!distance) {
-          return;
-        }
-        const center = {
-          x: (first.clientX + second.clientX) / 2,
-          y: (first.clientY + second.clientY) / 2,
-        };
+        if (!distance) return;
+        const center = { x: (first.clientX + second.clientX) / 2, y: (first.clientY + second.clientY) / 2 };
         const scaleFactor = distance / pinchStartDistance;
         applyScale(pinchStartScale * scaleFactor, center);
       }
     };
 
     const handlePointerUp = (event: PointerEvent): void => {
-      if (editing) {
-        return;
-      }
-      if (overlayStateRef.current) {
-        return;
-      }
+      if (editing) return;
       if (!pointers.has(event.pointerId)) {
         return;
       }
@@ -3737,7 +3791,9 @@ export default function MapCanvas({
       if (canvas.hasPointerCapture(event.pointerId)) {
         canvas.releasePointerCapture(event.pointerId);
       }
-      schedulePersistViewState();
+      if (!overlayStateRef.current) {
+        schedulePersistViewState();
+      }
     };
 
     const handleWheel = (event: WheelEvent): void => {
@@ -3787,7 +3843,7 @@ export default function MapCanvas({
     canvas.addEventListener("pointerleave", handlePointerUp);
     canvas.addEventListener("wheel", handleWheel, { passive: false });
     canvas.addEventListener("dblclick", handleDoubleClick);
-    app.renderer.on("resize", handleRendererResize);
+  rendererOn(app, "resize", handleRendererResize);
 
     return () => {
       canvas.removeEventListener("pointerdown", handlePointerDown);
@@ -3797,7 +3853,7 @@ export default function MapCanvas({
       canvas.removeEventListener("pointerleave", handlePointerUp);
       canvas.removeEventListener("wheel", handleWheel);
       canvas.removeEventListener("dblclick", handleDoubleClick);
-      app.renderer.off("resize", handleRendererResize);
+  rendererOff(app, "resize", handleRendererResize);
       pointers.clear();
       dragPointer = null;
       pinchStartDistance = null;
@@ -3908,6 +3964,38 @@ export default function MapCanvas({
     };
   }, [ready, editing, clampWorldToBounds, schedulePersistViewState]);
 
+  // Responsive UI hints for analysis panels
+  const [narrowUI, setNarrowUI] = useState(false);
+  useEffect(() => {
+    const recompute = (): void => {
+      const app = appRef.current;
+      const { width, height } = getEffectiveViewSize(app);
+      const w = width || (typeof window !== "undefined" ? window.innerWidth : 1024);
+      const h = height || (typeof window !== "undefined" ? window.innerHeight : 768);
+      const portrait = h >= w;
+      setNarrowUI(portrait || w <= 560);
+    };
+    recompute();
+  const app = appRef.current;
+  const onResize = (): void => recompute();
+  if (app) rendererOn(app, "resize", onResize);
+    if (typeof window !== "undefined") {
+      window.addEventListener("resize", onResize);
+      if ((window as any).visualViewport) {
+        (window as any).visualViewport.addEventListener("resize", onResize as any);
+      }
+    }
+    return () => {
+  if (app) rendererOff(app, "resize", onResize);
+      if (typeof window !== "undefined") {
+        window.removeEventListener("resize", onResize);
+        if ((window as any).visualViewport) {
+          (window as any).visualViewport.removeEventListener("resize", onResize as any);
+        }
+      }
+    };
+  }, []);
+
   return (
     <div className="canvas-stage" ref={containerRef}>
       {loading && <div className="status-banner info">Loading atlas…</div>}
@@ -3939,92 +4027,91 @@ export default function MapCanvas({
           />
           <span>Sprite Limits</span>
         </label>
-        {/* Severity filter */}
-        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-          <input
-            type="checkbox"
-            checked={spriteOnlyErrors}
-            onChange={(e) => setSpriteOnlyErrors(e.target.checked)}
-            disabled={!spriteLimitEnabled}
-          />
-          <span>Only errors (&gt; limit)</span>
-        </label>
-        {/* Follower toggle */}
-        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-          <input
-            type="checkbox"
-            checked={spriteIncludeFollower}
-            onChange={(e) => setSpriteIncludeFollower(e.target.checked)}
-            disabled={!spriteLimitEnabled}
-          />
-          <span>Follower Pokémon</span>
-        </label>
-        {/* Weather toggle (overworld only when applied in analysis) */}
-        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-          <input
-            type="checkbox"
-            checked={spriteIncludeWeather}
-            onChange={(e) => setSpriteIncludeWeather(e.target.checked)}
-            disabled={!spriteLimitEnabled}
-          />
-          <span>Weather (reserve 1)</span>
-        </label>
-        {/* Scope selector */}
-        <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
-          <span>Scope</span>
-          <select
-            value={spriteScope}
-            onChange={(e) => setSpriteScope((e.target.value as MapScope) ?? "all")}
-            disabled={!spriteLimitEnabled}
-            style={{ fontSize: 12, maxWidth: 140 }}
-          >
-            <option value="all">All</option>
-            <option value="overworld">Overworld</option>
-            <option value="indoor">Indoor</option>
-          </select>
-        </label>
-        {/* Limits */}
-        <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
-          <span>Scanline</span>
-          <input
-            type="number"
-            value={spriteScanlineLimit}
-            onChange={(e) => setSpriteScanlineLimit(Number.isFinite(parseInt(e.target.value)) ? parseInt(e.target.value) : 10)}
-            min={0}
-            step={1}
-            style={{ width: 64, fontSize: 12 }}
-            disabled={!spriteLimitEnabled}
-          />
-        </label>
-        <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
-          <span>Total</span>
-          <input
-            type="number"
-            value={spriteTotalLimit}
-            onChange={(e) => setSpriteTotalLimit(Number.isFinite(parseInt(e.target.value)) ? parseInt(e.target.value) : 40)}
-            min={0}
-            step={1}
-            style={{ width: 64, fontSize: 12 }}
-            disabled={!spriteLimitEnabled}
-          />
-        </label>
-        <button
-          type="button"
-          onClick={() => runSpriteLimitAnalysis()}
-          disabled={!spriteLimitEnabled}
-        >
-          Analyze
-        </button>
+        {spriteLimitEnabled && (
+          <>
+            {/* Severity filter */}
+            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+              <input
+                type="checkbox"
+                checked={spriteOnlyErrors}
+                onChange={(e) => setSpriteOnlyErrors(e.target.checked)}
+              />
+              <span>Only errors (&gt; limit)</span>
+            </label>
+            {/* Follower toggle */}
+            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+              <input
+                type="checkbox"
+                checked={spriteIncludeFollower}
+                onChange={(e) => setSpriteIncludeFollower(e.target.checked)}
+              />
+              <span>Follower Pokémon</span>
+            </label>
+            {/* Weather toggle (overworld only when applied in analysis) */}
+            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+              <input
+                type="checkbox"
+                checked={spriteIncludeWeather}
+                onChange={(e) => setSpriteIncludeWeather(e.target.checked)}
+              />
+              <span>Weather (reserve 1)</span>
+            </label>
+            {/* Scope selector */}
+            <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
+              <span>Scope</span>
+              <select
+                value={spriteScope}
+                onChange={(e) => setSpriteScope((e.target.value as MapScope) ?? "all")}
+                style={{ fontSize: 12, maxWidth: 140 }}
+              >
+                <option value="all">All</option>
+                <option value="overworld">Overworld</option>
+                <option value="indoor">Indoor</option>
+              </select>
+            </label>
+            {/* Limits */}
+            <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
+              <span>Scanline</span>
+              <input
+                type="number"
+                value={spriteScanlineLimit}
+                onChange={(e) => setSpriteScanlineLimit(Number.isFinite(parseInt(e.target.value)) ? parseInt(e.target.value) : 10)}
+                min={0}
+                step={1}
+                style={{ width: 64, fontSize: 12 }}
+              />
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
+              <span>Total</span>
+              <input
+                type="number"
+                value={spriteTotalLimit}
+                onChange={(e) => setSpriteTotalLimit(Number.isFinite(parseInt(e.target.value)) ? parseInt(e.target.value) : 40)}
+                min={0}
+                step={1}
+                style={{ width: 64, fontSize: 12 }}
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => runSpriteLimitAnalysis()}
+            >
+              Analyze
+            </button>
+          </>
+        )}
       </div>
       {/* When no overlay is open, Analyze scans the entire overworld. */}
       {spriteLimitEnabled && spriteIssues && spriteIssues.length > 0 && (
         <div
           style={{
             position: "absolute",
-            right: 12,
-            top: 56,
-            width: "min(320px, calc(100% - 24px))",
-            maxHeight: "min(50vh, 360px)",
+            right: narrowUI ? undefined : 12,
+            left: narrowUI ? 12 : undefined,
+            top: narrowUI ? undefined : 56,
+            bottom: narrowUI ? 12 : undefined,
+            width: narrowUI ? "calc(100% - 24px)" : "min(320px, calc(100% - 24px))",
+            maxHeight: narrowUI ? "40vh" : "min(50vh, 360px)",
             overflow: "auto",
             padding: 8,
             background: "rgba(0,0,0,0.6)",

@@ -1542,6 +1542,7 @@ export default function MapCanvas({
   const [spriteOnlyErrors, setSpriteOnlyErrors] = useState<boolean>(false);
   const [spriteAnalyzing, setSpriteAnalyzing] = useState<boolean>(false);
   const worldIssueHighlightRef = useRef<Graphics | null>(null);
+  const [resultsCollapsed, setResultsCollapsed] = useState<boolean>(false);
 
   const baseOffsetsRef = useRef<Record<string, OffsetTuple>>({});
   const offsetOverridesRef = useRef<Record<string, OffsetTuple>>({});
@@ -1717,6 +1718,19 @@ export default function MapCanvas({
     state.sprite.addChild(g);
     state.sprite.sortChildren();
     state.spriteIssueHighlight = g;
+  }, []);
+
+  const clearOverlayIssueHighlight = useCallback((): void => {
+    const state = overlayStateRef.current;
+    if (!state) return;
+    if (state.spriteIssueHighlight) {
+      try {
+        state.spriteIssueHighlight.destroy({ children: true });
+      } catch {
+        /* ignore */
+      }
+      state.spriteIssueHighlight = undefined;
+    }
   }, []);
 
   const clearWorldIssueHighlight = useCallback((): void => {
@@ -2343,6 +2357,37 @@ export default function MapCanvas({
       const overlay = overlayRef.current;
       const app = appRef.current;
       if (!overlay || !app) {
+        return;
+      }
+      // Fast path: if the requested overlay is already open for this map, reuse it
+      const existing = overlayStateRef.current;
+      if (existing && existing.mapLabel === mapLabel) {
+        overlay.visible = true;
+        const world = worldRef.current;
+        if (world) world.visible = false;
+        // Update optional tile highlight
+        if (highlight && typeof highlight.xCells === "number" && typeof highlight.yCells === "number") {
+          if (existing.highlight) {
+            try { existing.highlight.destroy({ children: true }); } catch { /* ignore */ }
+          }
+          const cellSize = existing.cellSize || computeCellSize();
+          const g = new Graphics();
+          const margin = Math.max(0, cellSize * 0.1);
+          const radius = Math.max(4, cellSize * 0.25);
+          g.lineStyle(Math.max(1, cellSize * 0.1), 0xf1c40f, 0.95);
+          g.beginFill(0xf39c12, 0.3);
+          g.drawRoundedRect(margin, margin, cellSize - margin * 2, cellSize - margin * 2, radius);
+          g.endFill();
+          g.x = (highlight.xCells ?? 0) * cellSize;
+          g.y = (highlight.yCells ?? 0) * cellSize;
+          g.eventMode = "none";
+          g.zIndex = 4;
+          existing.sprite.addChild(g);
+          existing.sprite.sortChildren();
+          existing.highlight = g;
+        }
+        rendererOn(app, "resize", positionOverlayContents);
+        positionOverlayContents();
         return;
       }
       const assetUrl = resolveAssetHref(mapLabel);
@@ -4138,6 +4183,37 @@ export default function MapCanvas({
       </div>
       {/* When no overlay is open, Analyze scans the entire overworld. */}
       {spriteLimitEnabled && spriteIssues && spriteIssues.length > 0 && (
+        resultsCollapsed ? (
+          <div
+            style={{
+              position: "absolute",
+              right: narrowUI ? undefined : 12,
+              left: narrowUI ? 12 : undefined,
+              bottom: 12,
+              padding: "6px 10px",
+              background: "rgba(0,0,0,0.6)",
+              color: "#fff",
+              borderRadius: 16,
+              zIndex: 1000,
+              cursor: "pointer",
+              userSelect: "none",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setResultsCollapsed(false)}
+              style={{
+                background: "transparent",
+                color: "#fff",
+                border: "none",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Show results ({spriteIssues.length})
+            </button>
+          </div>
+        ) : (
         <div
           style={{
             position: "absolute",
@@ -4157,7 +4233,14 @@ export default function MapCanvas({
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
             <strong>{spriteIssues.length} issue{spriteIssues.length === 1 ? "" : "s"}</strong>
-            <div style={{ display: "flex", gap: 6 }}>
+            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              <button
+                type="button"
+                onClick={() => setResultsCollapsed(true)}
+                title="Hide results"
+              >
+                Hide
+              </button>
               <button
                 type="button"
                 onClick={() => {
@@ -4218,6 +4301,20 @@ export default function MapCanvas({
                 }}
               >
                 ▶
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  // Clear results and any highlights
+                  setSpriteIssues(null);
+                  setSpriteIssuesAll(null);
+                  setSpriteIssueIndex(0);
+                  clearWorldIssueHighlight();
+                  clearOverlayIssueHighlight();
+                }}
+                title="Clear results"
+              >
+                Clear
               </button>
             </div>
           </div>
@@ -4297,6 +4394,7 @@ export default function MapCanvas({
             </div>
           )}
         </div>
+        )
       )}
     </div>
   );

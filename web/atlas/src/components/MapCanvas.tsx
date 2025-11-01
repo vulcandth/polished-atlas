@@ -138,6 +138,13 @@ interface MapCanvasProps {
 
 const MIN_SCALE = 0.25;
 const MAX_SCALE = 4;
+// Allow panning beyond the edge of the content for better UX (esp. on mobile)
+function computeOverscrollPx(viewW: number, viewH: number): number {
+  const basis = Math.min(Math.max(viewW, 1), Math.max(viewH, 1));
+  // 10% of the smaller viewport dimension, clamped to a sensible range
+  const candidate = Math.max(viewW, viewH) > 0 ? Math.min(viewW, viewH) * 0.1 : 64;
+  return Math.max(48, Math.min(256, candidate));
+}
 const VIEW_STATE_STORAGE_KEY = "polished-atlas:view-state";
 const VIEW_STATE_VERSION = 1;
 
@@ -223,6 +230,36 @@ function disposeAnimationResource(resource: MapAnimationResource | null | undefi
   }
   // Then, unload via Assets which will properly destroy the BaseTexture it manages.
   void Assets.unload(resource.imageUrl);
+}
+
+// Compute the effective visible size of the canvas in CSS pixels, accounting for
+// mobile browser UI that reduces the visual viewport compared to the layout viewport.
+function getEffectiveViewSize(app: Application | null): { width: number; height: number } {
+  if (!app) return { width: 0, height: 0 };
+  const renderer = app.renderer;
+  const canvas = app.view as unknown as HTMLCanvasElement | null;
+  const baseW = Math.max(0, renderer?.width ?? 0);
+  const baseH = Math.max(0, renderer?.height ?? 0);
+  let rectW = baseW;
+  let rectH = baseH;
+  if (canvas) {
+    const rect = canvas.getBoundingClientRect();
+    rectW = Math.max(0, Math.round(rect.width));
+    rectH = Math.max(0, Math.round(rect.height));
+  }
+  let vvW = Number.POSITIVE_INFINITY;
+  let vvH = Number.POSITIVE_INFINITY;
+  if (typeof window !== "undefined" && (window as any).visualViewport) {
+    const vv = window.visualViewport as VisualViewport;
+    vvW = Math.max(0, Math.round(vv.width));
+    vvH = Math.max(0, Math.round(vv.height));
+  }
+  const width = Math.min(baseW || Number.POSITIVE_INFINITY, rectW || Number.POSITIVE_INFINITY, vvW);
+  const height = Math.min(baseH || Number.POSITIVE_INFINITY, rectH || Number.POSITIVE_INFINITY, vvH);
+  return {
+    width: Number.isFinite(width) ? width : baseW,
+    height: Number.isFinite(height) ? height : baseH,
+  };
 }
 
 type SyncedAnimation = {
@@ -1752,8 +1789,9 @@ export default function MapCanvas({
       if (total <= viewport) {
         return Math.max(0, (viewport - total) / 2);
       }
-      const min = viewport - total;
-      const max = 0;
+      const overscroll = computeOverscrollPx(viewport, viewport);
+      const min = viewport - total - overscroll;
+      const max = 0 + overscroll;
       return Math.min(max, Math.max(min, value));
     };
 
@@ -1866,9 +1904,8 @@ export default function MapCanvas({
     if (!app || !world || !bounds || !isFiniteNumber(scale) || scale <= 0) {
       return;
     }
-    const renderer = app.renderer;
-    const viewWidth = renderer.width;
-    const viewHeight = renderer.height;
+  const { width: viewWidth, height: viewHeight } = getEffectiveViewSize(app);
+    const overscroll = computeOverscrollPx(viewWidth, viewHeight);
     const scaledWidth = bounds.width * scale;
     const scaledHeight = bounds.height * scale;
 
@@ -1877,8 +1914,8 @@ export default function MapCanvas({
     } else if (scaledWidth <= viewWidth) {
       world.x = (viewWidth - scaledWidth) / 2;
     } else {
-      const minX = viewWidth - scaledWidth;
-      const maxX = 0;
+      const minX = viewWidth - scaledWidth - overscroll;
+      const maxX = 0 + overscroll;
       world.x = Math.min(maxX, Math.max(minX, world.x));
     }
 
@@ -1887,8 +1924,8 @@ export default function MapCanvas({
     } else if (scaledHeight <= viewHeight) {
       world.y = (viewHeight - scaledHeight) / 2;
     } else {
-      const minY = viewHeight - scaledHeight;
-      const maxY = 0;
+      const minY = viewHeight - scaledHeight - overscroll;
+      const maxY = 0 + overscroll;
       world.y = Math.min(maxY, Math.max(minY, world.y));
     }
   }, []);
@@ -1934,9 +1971,9 @@ export default function MapCanvas({
       if (!app || !world || !isFiniteNumber(scale) || scale <= 0) {
         return;
       }
-      const renderer = app.renderer;
-      world.x = renderer.width / 2 - worldX * scale;
-      world.y = renderer.height / 2 - worldY * scale;
+      const { width: viewW, height: viewH } = getEffectiveViewSize(app);
+      world.x = viewW / 2 - worldX * scale;
+      world.y = viewH / 2 - worldY * scale;
       clampWorldToBounds();
       schedulePersistViewState();
     },
@@ -2889,9 +2926,9 @@ export default function MapCanvas({
     const normalizedY = clampUnit(stored.center?.y, 0.5);
     const centerX = bounds.width > 0 ? normalizedX * bounds.width : 0;
     const centerY = bounds.height > 0 ? normalizedY * bounds.height : 0;
-    const renderer = app.renderer;
-    world.x = renderer.width / 2 - centerX * scale;
-    world.y = renderer.height / 2 - centerY * scale;
+  const { width: viewW, height: viewH } = getEffectiveViewSize(app);
+  world.x = viewW / 2 - centerX * scale;
+  world.y = viewH / 2 - centerY * scale;
     clampWorldToBounds();
     persistViewState();
     return true;
@@ -3099,9 +3136,7 @@ export default function MapCanvas({
         persistViewState();
         return;
       }
-      const renderer = app.renderer;
-      const viewWidth = renderer.width;
-      const viewHeight = renderer.height;
+  const { width: viewWidth, height: viewHeight } = getEffectiveViewSize(app);
       const width = bounds.width || viewWidth || 1;
       const height = bounds.height || viewHeight || 1;
       const candidate = Math.min(viewWidth / width, viewHeight / height) || 1;
@@ -3560,21 +3595,27 @@ export default function MapCanvas({
       const scaledWidth = baseWidth * clamped;
       const scaledHeight = baseHeight * clamped;
 
-      if (scaledWidth > 0 && renderer.width > 0) {
-        if (scaledWidth <= renderer.width) {
-          overlaySprite.x = Math.max(0, (renderer.width - scaledWidth) / 2);
+      const { width: viewW, height: viewH } = getEffectiveViewSize(appInstance);
+
+      if (scaledWidth > 0 && viewW > 0) {
+        const over = computeOverscrollPx(viewW, viewH);
+        if (scaledWidth <= viewW) {
+          overlaySprite.x = Math.max(0, (viewW - scaledWidth) / 2);
         } else {
-          const minX = renderer.width - scaledWidth;
-          overlaySprite.x = Math.min(0, Math.max(minX, overlaySprite.x));
+          const minX = viewW - scaledWidth - over;
+          const maxX = 0 + over;
+          overlaySprite.x = Math.min(maxX, Math.max(minX, overlaySprite.x));
         }
       }
 
-      if (scaledHeight > 0 && renderer.height > 0) {
-        if (scaledHeight <= renderer.height) {
-          overlaySprite.y = Math.max(0, (renderer.height - scaledHeight) / 2);
+      if (scaledHeight > 0 && viewH > 0) {
+        const over = computeOverscrollPx(viewW, viewH);
+        if (scaledHeight <= viewH) {
+          overlaySprite.y = Math.max(0, (viewH - scaledHeight) / 2);
         } else {
-          const minY = renderer.height - scaledHeight;
-          overlaySprite.y = Math.min(0, Math.max(minY, overlaySprite.y));
+          const minY = viewH - scaledHeight - over;
+          const maxY = 0 + over;
+          overlaySprite.y = Math.min(maxY, Math.max(minY, overlaySprite.y));
         }
       }
 
@@ -3707,11 +3748,18 @@ export default function MapCanvas({
       applyScale(scaleRef.current * factor, { x: event.clientX, y: event.clientY });
     };
 
-    const handleDoubleClick = (): void => {
-      if (overlayStateRef.current) {
+    const handleDoubleClick = (event: MouseEvent): void => {
+      const overlayState = overlayStateRef.current;
+      const factor = 1.5;
+      if (overlayState) {
+        const currentScale = Number.isFinite(overlayState.scale) && overlayState.scale > 0
+          ? overlayState.scale
+          : overlayState.fitScale || 1;
+        applyOverlayScale(currentScale * factor, { x: event.clientX, y: event.clientY });
         return;
       }
-      resetViewRef.current?.();
+      // Zoom in centered on the double-clicked point in world view
+      applyScale(scaleRef.current * factor, { x: event.clientX, y: event.clientY });
     };
 
     const handleRendererResize = (): void => {
@@ -3745,6 +3793,110 @@ export default function MapCanvas({
       pinchStartDistance = null;
     };
   }, [ready, editing, clampWorldToBounds, positionOverlayContents, schedulePersistViewState]);
+
+  // Keyboard pan/zoom when not editing and no overlay is open
+  useEffect(() => {
+    if (!ready) return;
+    const app = appRef.current;
+    const world = worldRef.current;
+    if (!app || !world) return;
+
+    const isInteractiveTarget = (target: EventTarget | null): boolean => {
+      if (!(target instanceof HTMLElement)) return false;
+      const tag = target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+      return target.isContentEditable;
+    };
+
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      if (editing) return;
+      if (overlayStateRef.current) return;
+      if (isInteractiveTarget(event.target)) return;
+
+      let consumed = false;
+      const panStep = event.shiftKey ? 120 : 60; // screen-space px per keypress
+
+      const pan = (dx: number, dy: number): void => {
+        world.x += dx;
+        world.y += dy;
+        clampWorldToBounds();
+        schedulePersistViewState();
+      };
+
+      const zoom = (factor: number): void => {
+        const { width: viewW, height: viewH } = getEffectiveViewSize(app);
+        const current = scaleRef.current;
+        const next = clampScale(current * factor);
+        const k = next / current;
+        // Zoom around viewport center
+        const cx = viewW / 2;
+        const cy = viewH / 2;
+        world.scale.set(next);
+        scaleRef.current = next;
+        world.x = world.x + (1 - k) * (cx - world.x);
+        world.y = world.y + (1 - k) * (cy - world.y);
+        clampWorldToBounds();
+        schedulePersistViewState();
+      };
+
+      switch (event.key) {
+        case "ArrowUp":
+        case "w":
+        case "W":
+        case "i":
+        case "I":
+          pan(0, panStep);
+          consumed = true;
+          break;
+        case "ArrowDown":
+        case "s":
+        case "S":
+        case "k":
+        case "K":
+          pan(0, -panStep);
+          consumed = true;
+          break;
+        case "ArrowLeft":
+        case "a":
+        case "A":
+        case "j":
+        case "J":
+          pan(panStep, 0);
+          consumed = true;
+          break;
+        case "ArrowRight":
+        case "d":
+        case "D":
+        case "l":
+        case "L":
+          pan(-panStep, 0);
+          consumed = true;
+          break;
+        case "+":
+        case "=":
+          zoom(event.shiftKey ? 1.35 : 1.2);
+          consumed = true;
+          break;
+        case "-":
+        case "_":
+          zoom(event.shiftKey ? 1 / 1.35 : 1 / 1.2);
+          consumed = true;
+          break;
+        default:
+          break;
+      }
+
+      if (consumed) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown, { capture: true } as AddEventListenerOptions);
+    };
+  }, [ready, editing, clampWorldToBounds, schedulePersistViewState]);
 
   return (
     <div className="canvas-stage" ref={containerRef}>

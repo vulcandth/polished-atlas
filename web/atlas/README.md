@@ -36,5 +36,9 @@ Environment variables (prefixed with `VITE_`) can be provided via `.env` files o
 ## Notes
 
 - The current layout focuses on the New Bark Town graph. Additional root graphs can be produced and loaded without code changes.
-- PixiJS renders sprite-sheet animations using the shared ticker for consistent timing. Pan with drag, zoom with mouse wheel, and pinch on touch devices. Double-click resets the view.
+- PixiJS renders sprite-sheet animations using the shared ticker for consistent timing. Pan with drag, zoom with mouse wheel, and pinch on touch devices.
+- Keyboard shortcuts (when not editing layout):
+   - Pan: Arrow keys, WASD, or IJKL (hold Shift for larger steps)
+   - Zoom: + / = to zoom in, - to zoom out
+   - Double-click anywhere to zoom in on that point
 - The layout engine works in metatile (block) units derived from connection offsets. If new metadata fields are required (e.g., warp links) extend `generate_map_connections.py` accordingly.

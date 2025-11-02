@@ -34,6 +34,23 @@ While prototyping, the individual Python scripts can be invoked directly:
 Each script offers flags to control the polishedcrystal path, time of day, and
 other parameters. Generated assets land under `maps/` by default.
 
+### Scripted movement auditor
+
+A Python tool flags sprite-limit risks and follower collisions in scripted sequences across all map scripts:
+
+- Run a full overworld scan in a fix-friendly format:
+  - `python3 scripts/analyze_scripted_movements.py --scope overworld --format fix`
+- Target specific maps or labels (substring match, repeatable):
+  - `python3 scripts/analyze_scripted_movements.py --map NewBarkTown --label TeacherStops`
+- Seed event state from presets or a custom overrides file:
+  - `python3 scripts/analyze_scripted_movements.py --scenario fresh-game`
+  - `python3 scripts/analyze_scripted_movements.py --event-overrides scripts/event_overrides.json`
+
+Notes:
+- Presets are JSON files under `scripts/scenarios/<name>.json` with shape `{ "set": [], "clear": [] }`.
+- Provided presets (`fresh-game`, `post-rocket`, `post-hof`) are placeholders; populate them with project-specific flags as desired.
+- You can also add or remove individual flags via `--assume-set-event EVENT_FOO` and `--assume-clear-event EVENT_BAR`.
+
 ## Continuous integration
 
 GitHub Actions (`.github/workflows/ci.yml`) mirrors the local pipeline on every

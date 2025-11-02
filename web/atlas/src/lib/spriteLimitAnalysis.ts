@@ -291,12 +291,22 @@ function analyzeForPlayerCell(
     }
   }
 
-  // Player grass effect
+  // Player grass/puddle effects
   const tallGrassId = ctx.warpMetadata?.collisionConstants?.["COLL_TALL_GRASS"];
-  if (Number.isFinite(tallGrassId) && ctx.collision) {
+  const longGrassId = ctx.warpMetadata?.collisionConstants?.["COLL_LONG_GRASS"];
+  const puddleId = ctx.warpMetadata?.collisionConstants?.["COLL_PUDDLE"];
+  if (ctx.collision && (Number.isFinite(tallGrassId) || Number.isFinite(longGrassId) || Number.isFinite(puddleId))) {
     const cellValue = ctx.collision.getValue(playerCell.x, playerCell.y);
-    if (cellValue === tallGrassId) {
-      const ref: SpriteLimitEntityRef = { kind: "player", cell: { ...playerCell }, label: "grass-effect" };
+    let effectLabel: string | null = null;
+    if (Number.isFinite(tallGrassId) && cellValue === tallGrassId) {
+      effectLabel = "grass-effect";
+    } else if (Number.isFinite(longGrassId) && cellValue === longGrassId) {
+      effectLabel = "grass-effect";
+    } else if (Number.isFinite(puddleId) && cellValue === puddleId) {
+      effectLabel = "puddle-effect";
+    }
+    if (effectLabel) {
+      const ref: SpriteLimitEntityRef = { kind: "player", cell: { ...playerCell }, label: effectLabel };
       // Two 8x8 tiles relative to player world position: bottom-left and bottom-right of feet
       const tiles = [
         { dx: -8, dy: 8 },

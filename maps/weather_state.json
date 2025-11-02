@@ -1,0 +1,3032 @@
+{
+  "generated_at": "2025-11-02T16:29:00Z",
+  "weekday": 1,
+  "time_of_day": 1,
+  "maps": {
+    "OlivinePokeCenter1F": {
+      "constant": "OLIVINE_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "OlivineGym": {
+      "constant": "OLIVINE_GYM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "OlivineTimsHouse": {
+      "constant": "OLIVINE_TIMS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "OlivinePunishmentSpeechHouse": {
+      "constant": "OLIVINE_PUNISHMENT_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "OlivineGoodRodHouse": {
+      "constant": "OLIVINE_GOOD_ROD_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "OlivineCafe": {
+      "constant": "OLIVINE_CAFE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "OlivineMart": {
+      "constant": "OLIVINE_MART",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route38EcruteakGate": {
+      "constant": "ROUTE_38_ECRUTEAK_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route39Barn": {
+      "constant": "ROUTE_39_BARN",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route39Farmhouse": {
+      "constant": "ROUTE_39_FARMHOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route38": {
+      "constant": "ROUTE_38",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route39": {
+      "constant": "ROUTE_39",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "OlivineCity": {
+      "constant": "OLIVINE_CITY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route35CoastNorth": {
+      "constant": "ROUTE_35_COAST_NORTH",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route35CoastSouth": {
+      "constant": "ROUTE_35_COAST_SOUTH",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "OlivineCityRoute35CoastDual": {
+      "constant": "OLIVINE_CITY_ROUTE_35_COAST_DUAL",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MahoganyRedGyaradosSpeechHouse": {
+      "constant": "MAHOGANY_RED_GYARADOS_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MahoganyGym": {
+      "constant": "MAHOGANY_GYM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MahoganyPokeCenter1F": {
+      "constant": "MAHOGANY_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route42EcruteakGate": {
+      "constant": "ROUTE_42_ECRUTEAK_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route42": {
+      "constant": "ROUTE_42",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route44": {
+      "constant": "ROUTE_44",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MahoganyTown": {
+      "constant": "MAHOGANY_TOWN",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "LakeOfRageHiddenPowerHouse": {
+      "constant": "LAKE_OF_RAGE_HIDDEN_POWER_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "LakeOfRageMagikarpHouse": {
+      "constant": "LAKE_OF_RAGE_MAGIKARP_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route43MahoganyGate": {
+      "constant": "ROUTE_43_MAHOGANY_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route43Gate": {
+      "constant": "ROUTE_43_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route43": {
+      "constant": "ROUTE_43",
+      "overcast_index": 2,
+      "weather": "rain"
+    },
+    "LakeOfRage": {
+      "constant": "LAKE_OF_RAGE",
+      "overcast_index": 2,
+      "weather": "rain"
+    },
+    "SproutTower1F": {
+      "constant": "SPROUT_TOWER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SproutTower2F": {
+      "constant": "SPROUT_TOWER_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SproutTower3F": {
+      "constant": "SPROUT_TOWER_3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "TinTower1F": {
+      "constant": "TIN_TOWER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "TinTower2F": {
+      "constant": "TIN_TOWER_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "TinTower3F": {
+      "constant": "TIN_TOWER_3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "TinTower4F": {
+      "constant": "TIN_TOWER_4F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "TinTower5F": {
+      "constant": "TIN_TOWER_5F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "TinTower6F": {
+      "constant": "TIN_TOWER_6F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "TinTower7F": {
+      "constant": "TIN_TOWER_7F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "TinTower8F": {
+      "constant": "TIN_TOWER_8F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "TinTower9F": {
+      "constant": "TIN_TOWER_9F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "TinTower10F": {
+      "constant": "TIN_TOWER_10F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BurnedTower1F": {
+      "constant": "BURNED_TOWER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BurnedTowerB1F": {
+      "constant": "BURNED_TOWER_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "NationalPark": {
+      "constant": "NATIONAL_PARK",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "NationalParkBugContest": {
+      "constant": "NATIONAL_PARK_BUG_CONTEST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route35NationalParkGate": {
+      "constant": "ROUTE_35_NATIONAL_PARK_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route36NationalParkGate": {
+      "constant": "ROUTE_36_NATIONAL_PARK_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RadioTower1F": {
+      "constant": "RADIO_TOWER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RadioTower2F": {
+      "constant": "RADIO_TOWER_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RadioTower3F": {
+      "constant": "RADIO_TOWER_3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RadioTower4F": {
+      "constant": "RADIO_TOWER_4F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RadioTower5F": {
+      "constant": "RADIO_TOWER_5F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "UnionCave1F": {
+      "constant": "UNION_CAVE_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "UnionCaveB1FNorth": {
+      "constant": "UNION_CAVE_B1F_NORTH",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "UnionCaveB1FSouth": {
+      "constant": "UNION_CAVE_B1F_SOUTH",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "UnionCaveB2F": {
+      "constant": "UNION_CAVE_B2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SlowpokeWellEntrance": {
+      "constant": "SLOWPOKE_WELL_ENTRANCE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SlowpokeWellB1F": {
+      "constant": "SLOWPOKE_WELL_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SlowpokeWellB2F": {
+      "constant": "SLOWPOKE_WELL_B2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "OlivineLighthouse1F": {
+      "constant": "OLIVINE_LIGHTHOUSE_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "OlivineLighthouse2F": {
+      "constant": "OLIVINE_LIGHTHOUSE_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "OlivineLighthouse3F": {
+      "constant": "OLIVINE_LIGHTHOUSE_3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "OlivineLighthouse4F": {
+      "constant": "OLIVINE_LIGHTHOUSE_4F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "OlivineLighthouse5F": {
+      "constant": "OLIVINE_LIGHTHOUSE_5F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "OlivineLighthouse6F": {
+      "constant": "OLIVINE_LIGHTHOUSE_6F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MahoganyMart1F": {
+      "constant": "MAHOGANY_MART_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "TeamRocketBaseB1F": {
+      "constant": "TEAM_ROCKET_BASE_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "TeamRocketBaseB2F": {
+      "constant": "TEAM_ROCKET_BASE_B2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "TeamRocketBaseB3F": {
+      "constant": "TEAM_ROCKET_BASE_B3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "IlexForest": {
+      "constant": "ILEX_FOREST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "WarehouseEntrance": {
+      "constant": "WAREHOUSE_ENTRANCE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "UndergroundPathSwitchRoomEntrances": {
+      "constant": "UNDERGROUND_PATH_SWITCH_ROOM_ENTRANCES",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodDeptStoreB1F": {
+      "constant": "GOLDENROD_DEPT_STORE_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "UndergroundWarehouse": {
+      "constant": "UNDERGROUND_WAREHOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MountMortar1FOutside": {
+      "constant": "MOUNT_MORTAR_1F_OUTSIDE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MountMortar1FInside": {
+      "constant": "MOUNT_MORTAR_1F_INSIDE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MountMortar2FInside": {
+      "constant": "MOUNT_MORTAR_2F_INSIDE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MountMortarB1F": {
+      "constant": "MOUNT_MORTAR_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "IcePath1F": {
+      "constant": "ICE_PATH_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "IcePathB1F": {
+      "constant": "ICE_PATH_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "IcePathB2FMahoganySide": {
+      "constant": "ICE_PATH_B2F_MAHOGANY_SIDE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "IcePathB2FBlackthornSide": {
+      "constant": "ICE_PATH_B2F_BLACKTHORN_SIDE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "IcePathB3F": {
+      "constant": "ICE_PATH_B3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "WhirlIslandNW": {
+      "constant": "WHIRL_ISLAND_NW",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "WhirlIslandNE": {
+      "constant": "WHIRL_ISLAND_NE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "WhirlIslandSW": {
+      "constant": "WHIRL_ISLAND_SW",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "WhirlIslandCave": {
+      "constant": "WHIRL_ISLAND_CAVE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "WhirlIslandSE": {
+      "constant": "WHIRL_ISLAND_SE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "WhirlIslandB1F": {
+      "constant": "WHIRL_ISLAND_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "WhirlIslandB2F": {
+      "constant": "WHIRL_ISLAND_B2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "WhirlIslandLugiaChamber": {
+      "constant": "WHIRL_ISLAND_LUGIA_CHAMBER",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SilverCaveRoom1": {
+      "constant": "SILVER_CAVE_ROOM_1",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SilverCaveRoom2": {
+      "constant": "SILVER_CAVE_ROOM_2",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SilverCaveRoom3": {
+      "constant": "SILVER_CAVE_ROOM_3",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SilverCaveItemRooms": {
+      "constant": "SILVER_CAVE_ITEM_ROOMS",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "DarkCaveVioletEntrance": {
+      "constant": "DARK_CAVE_VIOLET_ENTRANCE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "DarkCaveBlackthornEntrance": {
+      "constant": "DARK_CAVE_BLACKTHORN_ENTRANCE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "DragonsDen1F": {
+      "constant": "DRAGONS_DEN_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "DragonsDenB1F": {
+      "constant": "DRAGONS_DEN_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "DragonShrine": {
+      "constant": "DRAGON_SHRINE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "TohjoFalls": {
+      "constant": "TOHJO_FALLS",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GiovannisCave": {
+      "constant": "GIOVANNIS_CAVE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "DiglettsCave": {
+      "constant": "DIGLETTS_CAVE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MountMoon1F": {
+      "constant": "MOUNT_MOON_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MountMoonB1F": {
+      "constant": "MOUNT_MOON_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MountMoonB2F": {
+      "constant": "MOUNT_MOON_B2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Underground": {
+      "constant": "UNDERGROUND",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RockTunnel1F": {
+      "constant": "ROCK_TUNNEL_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RockTunnelB1F": {
+      "constant": "ROCK_TUNNEL_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RockTunnel2F": {
+      "constant": "ROCK_TUNNEL_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VictoryRoad1F": {
+      "constant": "VICTORY_ROAD_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VictoryRoad2F": {
+      "constant": "VICTORY_ROAD_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VictoryRoad3F": {
+      "constant": "VICTORY_ROAD_3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "EcruteakHouse": {
+      "constant": "ECRUTEAK_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "WiseTriosRoom": {
+      "constant": "WISE_TRIOS_ROOM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "EcruteakPokeCenter1F": {
+      "constant": "ECRUTEAK_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "EcruteakLugiaSpeechHouse": {
+      "constant": "ECRUTEAK_LUGIA_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "DanceTheatre": {
+      "constant": "DANCE_THEATRE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "EcruteakMart": {
+      "constant": "ECRUTEAK_MART",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "EcruteakGym": {
+      "constant": "ECRUTEAK_GYM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "EcruteakItemfinderHouse": {
+      "constant": "ECRUTEAK_ITEMFINDER_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "EcruteakCity": {
+      "constant": "ECRUTEAK_CITY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route35": {
+      "constant": "ROUTE_35",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route36": {
+      "constant": "ROUTE_36",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route36RuinsOfAlphGate": {
+      "constant": "ROUTE_36_RUINS_OF_ALPH_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route36VioletGate": {
+      "constant": "ROUTE_36_VIOLET_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route37": {
+      "constant": "ROUTE_37",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ValeriesHouse": {
+      "constant": "VALERIES_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "EcruteakCherishBallHouse": {
+      "constant": "ECRUTEAK_CHERISH_BALL_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "EcruteakDestinyKnotHouse": {
+      "constant": "ECRUTEAK_DESTINY_KNOT_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BlackthornGym1F": {
+      "constant": "BLACKTHORN_GYM_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BlackthornGym2F": {
+      "constant": "BLACKTHORN_GYM_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BlackthornDragonSpeechHouse": {
+      "constant": "BLACKTHORN_DRAGON_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BlackthornEmysHouse": {
+      "constant": "BLACKTHORN_EMYS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BlackthornMart": {
+      "constant": "BLACKTHORN_MART",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BlackthornPokeCenter1F": {
+      "constant": "BLACKTHORN_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MoveDeletersHouse": {
+      "constant": "MOVE_DELETERS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route45": {
+      "constant": "ROUTE_45",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route46": {
+      "constant": "ROUTE_46",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BlackthornCity": {
+      "constant": "BLACKTHORN_CITY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CinnabarPokeCenter1F": {
+      "constant": "CINNABAR_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SeafoamIslands1F": {
+      "constant": "SEAFOAM_ISLANDS_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SeafoamGym": {
+      "constant": "SEAFOAM_GYM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SeafoamIslandsB1F": {
+      "constant": "SEAFOAM_ISLANDS_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SeafoamIslandsB2F": {
+      "constant": "SEAFOAM_ISLANDS_B2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SeafoamIslandsB3F": {
+      "constant": "SEAFOAM_ISLANDS_B3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SeafoamIslandsB4F": {
+      "constant": "SEAFOAM_ISLANDS_B4F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route19": {
+      "constant": "ROUTE_19",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route20": {
+      "constant": "ROUTE_20",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route21": {
+      "constant": "ROUTE_21",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "UragaChannelWest": {
+      "constant": "URAGA_CHANNEL_WEST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CinnabarIsland": {
+      "constant": "CINNABAR_ISLAND",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CinnabarVolcano1F": {
+      "constant": "CINNABAR_VOLCANO_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CinnabarVolcanoB1F": {
+      "constant": "CINNABAR_VOLCANO_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CinnabarVolcanoB2F": {
+      "constant": "CINNABAR_VOLCANO_B2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PokemonMansion1F": {
+      "constant": "POKEMON_MANSION_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PokemonMansionB1F": {
+      "constant": "POKEMON_MANSION_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CinnabarLab": {
+      "constant": "CINNABAR_LAB",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ScaryCave1F": {
+      "constant": "SCARY_CAVE_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ScaryCaveB1F": {
+      "constant": "SCARY_CAVE_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ScaryCaveShipwreck": {
+      "constant": "SCARY_CAVE_SHIPWRECK",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route19BeachHouse": {
+      "constant": "ROUTE_19_BEACH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeruleanGymBadgeSpeechHouse": {
+      "constant": "CERULEAN_GYM_BADGE_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeruleanPoliceStation": {
+      "constant": "CERULEAN_POLICE_STATION",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeruleanTradeSpeechHouse": {
+      "constant": "CERULEAN_TRADE_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeruleanPokeCenter1F": {
+      "constant": "CERULEAN_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeruleanGym": {
+      "constant": "CERULEAN_GYM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeruleanMart": {
+      "constant": "CERULEAN_MART",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route10PokeCenter1F": {
+      "constant": "ROUTE_10_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PowerPlant": {
+      "constant": "POWER_PLANT",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BillsHouse": {
+      "constant": "BILLS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route4": {
+      "constant": "ROUTE_4",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route24": {
+      "constant": "ROUTE_24",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route25": {
+      "constant": "ROUTE_25",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeruleanCape": {
+      "constant": "CERULEAN_CAPE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeruleanCity": {
+      "constant": "CERULEAN_CITY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeruleanCave1F": {
+      "constant": "CERULEAN_CAVE_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeruleanCave2F": {
+      "constant": "CERULEAN_CAVE_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeruleanCaveB1F": {
+      "constant": "CERULEAN_CAVE_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeruleanBikeShop": {
+      "constant": "CERULEAN_BIKE_SHOP",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeruleanBerryPowderHouse": {
+      "constant": "CERULEAN_BERRY_POWDER_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeruleanCoupleHouse": {
+      "constant": "CERULEAN_COUPLE_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeruleanWaterShowSpeechHouse": {
+      "constant": "CERULEAN_WATER_SHOW_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "AzaleaPokeCenter1F": {
+      "constant": "AZALEA_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CharcoalKiln": {
+      "constant": "CHARCOAL_KILN",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "AzaleaMart": {
+      "constant": "AZALEA_MART",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "KurtsHouse": {
+      "constant": "KURTS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "AzaleaGym": {
+      "constant": "AZALEA_GYM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route33": {
+      "constant": "ROUTE_33",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "AzaleaTown": {
+      "constant": "AZALEA_TOWN",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BattleTower1F": {
+      "constant": "BATTLE_TOWER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BattleTower2F": {
+      "constant": "BATTLE_TOWER_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BattleTowerBattleRoom": {
+      "constant": "BATTLE_TOWER_BATTLE_ROOM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BattleTowerElevator": {
+      "constant": "BATTLE_TOWER_ELEVATOR",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BattleTowerHallway": {
+      "constant": "BATTLE_TOWER_HALLWAY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route40BattleTowerGate": {
+      "constant": "ROUTE_40_BATTLE_TOWER_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BattleTowerOutside": {
+      "constant": "BATTLE_TOWER_OUTSIDE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route40": {
+      "constant": "ROUTE_40",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route32": {
+      "constant": "ROUTE_32",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route32Coast": {
+      "constant": "ROUTE_32_COAST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VioletCity": {
+      "constant": "VIOLET_CITY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VioletMart": {
+      "constant": "VIOLET_MART",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VioletGym": {
+      "constant": "VIOLET_GYM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "EarlsPokemonAcademy": {
+      "constant": "EARLS_POKEMON_ACADEMY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VioletNicknameSpeechHouse": {
+      "constant": "VIOLET_NICKNAME_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VioletPokeCenter1F": {
+      "constant": "VIOLET_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VioletOnixTradeHouse": {
+      "constant": "VIOLET_ONIX_TRADE_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route32RuinsOfAlphGate": {
+      "constant": "ROUTE_32_RUINS_OF_ALPH_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route32PokeCenter1F": {
+      "constant": "ROUTE_32_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route32CoastHouse": {
+      "constant": "ROUTE_32_COAST_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MagnetTunnelEast": {
+      "constant": "MAGNET_TUNNEL_EAST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VioletOutskirts": {
+      "constant": "VIOLET_OUTSKIRTS",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VioletOutskirtsHouse": {
+      "constant": "VIOLET_OUTSKIRTS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route34": {
+      "constant": "ROUTE_34",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route34Coast": {
+      "constant": "ROUTE_34_COAST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "DayCare": {
+      "constant": "DAYCARE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "StormyBeach": {
+      "constant": "STORMY_BEACH",
+      "overcast_index": 3,
+      "weather": "thunderstorm"
+    },
+    "MurkySwamp": {
+      "constant": "MURKY_SWAMP",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodCity": {
+      "constant": "GOLDENROD_CITY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodGym": {
+      "constant": "GOLDENROD_GYM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodBikeShop": {
+      "constant": "GOLDENROD_BIKE_SHOP",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodHappinessRater": {
+      "constant": "GOLDENROD_HAPPINESS_RATER",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodBillsHouse": {
+      "constant": "GOLDENROD_BILLS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodMagnetTrainStation": {
+      "constant": "GOLDENROD_MAGNET_TRAIN_STATION",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodFlowerShop": {
+      "constant": "GOLDENROD_FLOWER_SHOP",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodPPSpeechHouse": {
+      "constant": "GOLDENROD_PP_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodNameRater": {
+      "constant": "GOLDENROD_NAME_RATER",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodDeptStore1F": {
+      "constant": "GOLDENROD_DEPT_STORE_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodDeptStore2F": {
+      "constant": "GOLDENROD_DEPT_STORE_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodDeptStore3F": {
+      "constant": "GOLDENROD_DEPT_STORE_3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodDeptStore4F": {
+      "constant": "GOLDENROD_DEPT_STORE_4F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodDeptStore5F": {
+      "constant": "GOLDENROD_DEPT_STORE_5F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodDeptStore6F": {
+      "constant": "GOLDENROD_DEPT_STORE_6F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodDeptStoreElevator": {
+      "constant": "GOLDENROD_DEPT_STORE_ELEVATOR",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodDeptStoreRoof": {
+      "constant": "GOLDENROD_DEPT_STORE_ROOF",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodGameCorner": {
+      "constant": "GOLDENROD_GAME_CORNER",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodPokecomCenter1F": {
+      "constant": "GOLDENROD_POKECOM_CENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodPokecomCenterOffice": {
+      "constant": "GOLDENROD_POKECOM_CENTER_OFFICE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "IlexForestAzaleaGate": {
+      "constant": "ILEX_FOREST_AZALEA_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route34IlexForestGate": {
+      "constant": "ROUTE_34_ILEX_FOREST_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route35GoldenrodGate": {
+      "constant": "ROUTE_35_GOLDENROD_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodHoneyHouse": {
+      "constant": "GOLDENROD_HONEY_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodNetBallHouse": {
+      "constant": "GOLDENROD_NET_BALL_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodBandHouse": {
+      "constant": "GOLDENROD_BAND_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodMuseum1F": {
+      "constant": "GOLDENROD_MUSEUM_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodMuseum2F": {
+      "constant": "GOLDENROD_MUSEUM_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MagnetTunnelWest": {
+      "constant": "MAGNET_TUNNEL_WEST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MagnetTunnelInside": {
+      "constant": "MAGNET_TUNNEL_INSIDE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route6": {
+      "constant": "ROUTE_6",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route11": {
+      "constant": "ROUTE_11",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VermilionCity": {
+      "constant": "VERMILION_CITY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VermilionHouseFishingSpeechHouse": {
+      "constant": "VERMILION_HOUSE_FISHING_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VermilionPokeCenter1F": {
+      "constant": "VERMILION_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PokemonFanClub": {
+      "constant": "POKEMON_FAN_CLUB",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VermilionMagnetTrainSpeechHouse": {
+      "constant": "VERMILION_MAGNET_TRAIN_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VermilionMart": {
+      "constant": "VERMILION_MART",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VermilionHouseDiglettsCaveSpeechHouse": {
+      "constant": "VERMILION_HOUSE_DIGLETTS_CAVE_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VermilionGym": {
+      "constant": "VERMILION_GYM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route6SaffronGate": {
+      "constant": "ROUTE_6_SAFFRON_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route6UndergroundEntrance": {
+      "constant": "ROUTE_6_UNDERGROUND_ENTRANCE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route11Gate": {
+      "constant": "ROUTE_11_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route11Gate2F": {
+      "constant": "ROUTE_11_GATE_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VermilionPollutionSpeechHouse": {
+      "constant": "VERMILION_POLLUTION_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VermilionSSAnneSpeechHouse": {
+      "constant": "VERMILION_S_S_ANNE_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BattleFactory1F": {
+      "constant": "BATTLE_FACTORY_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BattleFactoryHallway": {
+      "constant": "BATTLE_FACTORY_HALLWAY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BattleFactoryBattleRoom": {
+      "constant": "BATTLE_FACTORY_BATTLE_ROOM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route1": {
+      "constant": "ROUTE_1",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PalletTown": {
+      "constant": "PALLET_TOWN",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RedsHouse1F": {
+      "constant": "REDS_HOUSE_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RedsHouse2F": {
+      "constant": "REDS_HOUSE_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BluesHouse1F": {
+      "constant": "BLUES_HOUSE_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BluesHouse2F": {
+      "constant": "BLUES_HOUSE_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "OaksLab": {
+      "constant": "OAKS_LAB",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route2North": {
+      "constant": "ROUTE_2_NORTH",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route3": {
+      "constant": "ROUTE_3",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route3PokeCenter1F": {
+      "constant": "ROUTE_3_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PewterCity": {
+      "constant": "PEWTER_CITY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PewterNidoranSpeechHouse": {
+      "constant": "PEWTER_NIDORAN_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PewterGym": {
+      "constant": "PEWTER_GYM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PewterMart": {
+      "constant": "PEWTER_MART",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PewterPokeCenter1F": {
+      "constant": "PEWTER_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PewterSnoozeSpeechHouse": {
+      "constant": "PEWTER_SNOOZE_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PewterMuseumOfScience1F": {
+      "constant": "PEWTER_MUSEUM_OF_SCIENCE_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PewterMuseumOfScience2F": {
+      "constant": "PEWTER_MUSEUM_OF_SCIENCE_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "OlivinePort": {
+      "constant": "OLIVINE_PORT",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "VermilionPort": {
+      "constant": "VERMILION_PORT",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "FastShip1F": {
+      "constant": "FAST_SHIP_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "FastShipCabins_NNW_NNE_NE": {
+      "constant": "FAST_SHIP_CABINS_NNW_NNE_NE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "FastShipCabins_SW_SSW_NW": {
+      "constant": "FAST_SHIP_CABINS_SW_SSW_NW",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "FastShipCabins_SE_SSE_CaptainsCabin": {
+      "constant": "FAST_SHIP_CABINS_SE_SSE_CAPTAINS_CABIN",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "FastShipB1F": {
+      "constant": "FAST_SHIP_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MountMoonSquare": {
+      "constant": "MOUNT_MOON_SQUARE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MountMoonGiftShop": {
+      "constant": "MOUNT_MOON_GIFT_SHOP",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "TinTowerRoof": {
+      "constant": "TIN_TOWER_ROOF",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route23": {
+      "constant": "ROUTE_23",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "IndigoPlateau": {
+      "constant": "INDIGO_PLATEAU",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "IndigoPlateauPokecenter1F": {
+      "constant": "INDIGO_PLATEAU_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "WillsRoom": {
+      "constant": "WILLS_ROOM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "KogasRoom": {
+      "constant": "KOGAS_ROOM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BrunosRoom": {
+      "constant": "BRUNOS_ROOM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "KarensRoom": {
+      "constant": "KARENS_ROOM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "LancesRoom": {
+      "constant": "LANCES_ROOM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "HallOfFame": {
+      "constant": "HALL_OF_FAME",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BellchimeTrail": {
+      "constant": "BELLCHIME_TRAIL",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route12South": {
+      "constant": "ROUTE_12_SOUTH",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route13East": {
+      "constant": "ROUTE_13_EAST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route13West": {
+      "constant": "ROUTE_13_WEST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route14": {
+      "constant": "ROUTE_14",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route15": {
+      "constant": "ROUTE_15",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route18East": {
+      "constant": "ROUTE_18_EAST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "FuchsiaCity": {
+      "constant": "FUCHSIA_CITY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "FuchsiaMart": {
+      "constant": "FUCHSIA_MART",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "FuchsiaGym": {
+      "constant": "FUCHSIA_GYM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "FuchsiaBillSpeechHouse": {
+      "constant": "FUCHSIA_BILL_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "FuchsiaSafariBallHouse": {
+      "constant": "FUCHSIA_SAFARI_BALL_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "FuchsiaPokeCenter1F": {
+      "constant": "FUCHSIA_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SafariZoneWardensHome": {
+      "constant": "SAFARI_ZONE_WARDENS_HOME",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SafariZoneFuchsiaGate": {
+      "constant": "SAFARI_ZONE_FUCHSIA_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route12Gate": {
+      "constant": "ROUTE_12_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route12Gate2F": {
+      "constant": "ROUTE_12_GATE_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route15FuchsiaGate": {
+      "constant": "ROUTE_15_FUCHSIA_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route15FuchsiaGate2F": {
+      "constant": "ROUTE_15_FUCHSIA_GATE_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route19FuchsiaGate": {
+      "constant": "ROUTE_19_FUCHSIA_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route12SuperRodHouse": {
+      "constant": "ROUTE_12_SUPER_ROD_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "LuckyIsland": {
+      "constant": "LUCKY_ISLAND",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route8": {
+      "constant": "ROUTE_8",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route8SaffronGate": {
+      "constant": "ROUTE_8_SAFFRON_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route10South": {
+      "constant": "ROUTE_10_SOUTH",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route12North": {
+      "constant": "ROUTE_12_NORTH",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "LavenderTown": {
+      "constant": "LAVENDER_TOWN",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "LavenderPokeCenter1F": {
+      "constant": "LAVENDER_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MrFujisHouse": {
+      "constant": "MR_FUJIS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "LavenderTownSpeechHouse": {
+      "constant": "LAVENDER_TOWN_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "LavenderNameRater": {
+      "constant": "LAVENDER_NAME_RATER",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "LavenderMart": {
+      "constant": "LAVENDER_MART",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SoulHouse": {
+      "constant": "SOUL_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SoulHouseB1F": {
+      "constant": "SOUL_HOUSE_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SoulHouseB2F": {
+      "constant": "SOUL_HOUSE_B2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SoulHouseB3F": {
+      "constant": "SOUL_HOUSE_B3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "LavRadioTower1F": {
+      "constant": "LAV_RADIO_TOWER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "LavRadioTower2F": {
+      "constant": "LAV_RADIO_TOWER_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "LavRadioTower3F": {
+      "constant": "LAV_RADIO_TOWER_3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "LavRadioTower4F": {
+      "constant": "LAV_RADIO_TOWER_3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "LavRadioTower5F": {
+      "constant": "LAV_RADIO_TOWER_5F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "HauntedRadioTower2F": {
+      "constant": "HAUNTED_RADIO_TOWER_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "HauntedRadioTower3F": {
+      "constant": "HAUNTED_RADIO_TOWER_3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "HauntedRadioTower4F": {
+      "constant": "HAUNTED_RADIO_TOWER_4F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "HauntedRadioTower5F": {
+      "constant": "HAUNTED_RADIO_TOWER_5F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "HauntedRadioTower6F": {
+      "constant": "HAUNTED_RADIO_TOWER_6F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route16West": {
+      "constant": "ROUTE_16_WEST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route28": {
+      "constant": "ROUTE_28",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SilverCaveOutside": {
+      "constant": "SILVER_CAVE_OUTSIDE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SilverCavePokeCenter1F": {
+      "constant": "SILVER_CAVE_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route28FamousSpeechHouse": {
+      "constant": "ROUTE_28_FAMOUS_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "NavelRockOutside": {
+      "constant": "NAVEL_ROCK_OUTSIDE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "NavelRockInside": {
+      "constant": "NAVEL_ROCK_INSIDE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "NavelRockRoof": {
+      "constant": "NAVEL_ROCK_ROOF",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "FarawayIsland": {
+      "constant": "FARAWAY_ISLAND",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "FarawayJungle": {
+      "constant": "FARAWAY_JUNGLE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SeagallopFerryVermilionGate": {
+      "constant": "SEAGALLOP_FERRY_VERMILION_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SeagallopFerryNavelGate": {
+      "constant": "SEAGALLOP_FERRY_NAVEL_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SeagallopFerryShamoutiGate": {
+      "constant": "SEAGALLOP_FERRY_SHAMOUTI_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PokeCenter2F": {
+      "constant": "POKECENTER_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "TradeCenter": {
+      "constant": "TRADE_CENTER",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Colosseum": {
+      "constant": "COLOSSEUM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "HiddenTreeGrotto": {
+      "constant": "HIDDEN_TREE_GROTTO",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "HiddenCaveGrotto": {
+      "constant": "HIDDEN_CAVE_GROTTO",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "YellowForestGate": {
+      "constant": "YELLOW_FOREST_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "YellowForest": {
+      "constant": "YELLOW_FOREST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route7": {
+      "constant": "ROUTE_7",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route16Northeast": {
+      "constant": "ROUTE_16_NORTHEAST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route16South": {
+      "constant": "ROUTE_16_SOUTH",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route17": {
+      "constant": "ROUTE_17",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route18West": {
+      "constant": "ROUTE_18_WEST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "UragaChannelEast": {
+      "constant": "URAGA_CHANNEL_EAST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonCity": {
+      "constant": "CELADON_CITY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonDeptStore1F": {
+      "constant": "CELADON_DEPT_STORE_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonDeptStore2F": {
+      "constant": "CELADON_DEPT_STORE_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonDeptStore3F": {
+      "constant": "CELADON_DEPT_STORE_3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonDeptStore4F": {
+      "constant": "CELADON_DEPT_STORE_4F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonDeptStore5F": {
+      "constant": "CELADON_DEPT_STORE_5F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonDeptStore6F": {
+      "constant": "CELADON_DEPT_STORE_6F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonDeptStoreElevator": {
+      "constant": "CELADON_DEPT_STORE_ELEVATOR",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonMansion1F": {
+      "constant": "CELADON_MANSION_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonMansion2F": {
+      "constant": "CELADON_MANSION_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonMansion3F": {
+      "constant": "CELADON_MANSION_3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonMansionRoof": {
+      "constant": "CELADON_MANSION_ROOF",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonMansionRoofHouse": {
+      "constant": "CELADON_MANSION_ROOF_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonPokeCenter1F": {
+      "constant": "CELADON_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonGameCorner": {
+      "constant": "CELADON_GAME_CORNER",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonGameCornerPrizeRoom": {
+      "constant": "CELADON_GAME_CORNER_PRIZE_ROOM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonGym": {
+      "constant": "CELADON_GYM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonCafe": {
+      "constant": "CELADON_CAFE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonChiefHouse": {
+      "constant": "CELADON_CHIEF_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonHotel1F": {
+      "constant": "CELADON_HOTEL_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonHotel2F": {
+      "constant": "CELADON_HOTEL_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonHotelRoom1": {
+      "constant": "CELADON_HOTEL_ROOM_1",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonHotelRoom2": {
+      "constant": "CELADON_HOTEL_ROOM_2",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonHotelRoom3": {
+      "constant": "CELADON_HOTEL_ROOM_3",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonHotelPool": {
+      "constant": "CELADON_HOTEL_POOL",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "EusinesHouse": {
+      "constant": "EUSINES_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PsychicInversHouse": {
+      "constant": "PSYCHIC_INVERS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route16FuchsiaSpeechHouse": {
+      "constant": "ROUTE_16_FUCHSIA_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route16Gate": {
+      "constant": "ROUTE_16_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route1617Gate": {
+      "constant": "ROUTE_16_17_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route1617Gate2F": {
+      "constant": "ROUTE_16_17_GATE_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route7SaffronGate": {
+      "constant": "ROUTE_7_SAFFRON_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route18Gate": {
+      "constant": "ROUTE_18_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route18Gate2F": {
+      "constant": "ROUTE_18_GATE_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonHomeDecorStore1F": {
+      "constant": "CELADON_HOME_DECOR_STORE_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonHomeDecorStore2F": {
+      "constant": "CELADON_HOME_DECOR_STORE_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonHomeDecorStore3F": {
+      "constant": "CELADON_HOME_DECOR_STORE_3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonHomeDecorStore4F": {
+      "constant": "CELADON_HOME_DECOR_STORE_4F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonUniversity1F": {
+      "constant": "CELADON_UNIVERSITY_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonUniversity2F": {
+      "constant": "CELADON_UNIVERSITY_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonUniversityLibrary1F": {
+      "constant": "CELADON_UNIVERSITY_LIBRARY_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonUniversityLibrary2F": {
+      "constant": "CELADON_UNIVERSITY_LIBRARY_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonUniversityPrincipalsOffice": {
+      "constant": "CELADON_UNIVERSITY_PRINCIPALS_OFFICE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonUniversityWestwoodsOffice": {
+      "constant": "CELADON_UNIVERSITY_WESTWOODS_OFFICE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonUniversityWillowsOffice": {
+      "constant": "CELADON_UNIVERSITY_WILLOWS_OFFICE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonUniversityNursesOffice": {
+      "constant": "CELADON_UNIVERSITY_NURSES_OFFICE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonUniversityLounge": {
+      "constant": "CELADON_UNIVERSITY_LOUNGE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonUniversityCafeteria": {
+      "constant": "CELADON_UNIVERSITY_CAFETERIA",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonUniversityHyperTestRoom": {
+      "constant": "CELADON_UNIVERSITY_HYPER_TEST_ROOM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonUniversityPool": {
+      "constant": "CELADON_UNIVERSITY_POOL",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonUniversityClassroom1": {
+      "constant": "CELADON_UNIVERSITY_CLASSROOM_1",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonUniversityClassroom2": {
+      "constant": "CELADON_UNIVERSITY_CLASSROOM_2",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonUniversityClassroom3": {
+      "constant": "CELADON_UNIVERSITY_CLASSROOM_3",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonUniversityClassroom4": {
+      "constant": "CELADON_UNIVERSITY_CLASSROOM_4",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonOldManSpeechHouse": {
+      "constant": "CELADON_OLD_MAN_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CeladonDevelopmentSpeechHouse": {
+      "constant": "CELADON_DEVELOPMENT_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RocketHideoutB1F": {
+      "constant": "ROCKET_HIDEOUT_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RocketHideoutB2F": {
+      "constant": "ROCKET_HIDEOUT_B2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RocketHideoutB3F": {
+      "constant": "ROCKET_HIDEOUT_B3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RocketHideoutB4F": {
+      "constant": "ROCKET_HIDEOUT_B4F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RocketHideoutElevator": {
+      "constant": "ROCKET_HIDEOUT_ELEVATOR",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route41": {
+      "constant": "ROUTE_41",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CianwoodCity": {
+      "constant": "CIANWOOD_CITY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ManiasHouse": {
+      "constant": "MANIAS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CianwoodGym": {
+      "constant": "CIANWOOD_GYM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CianwoodPokeCenter1F": {
+      "constant": "CIANWOOD_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CianwoodPharmacy": {
+      "constant": "CIANWOOD_PHARMACY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CianwoodCityPhotoStudio": {
+      "constant": "CIANWOOD_CITY_PHOTO_STUDIO",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CianwoodLugiaSpeechHouse": {
+      "constant": "CIANWOOD_LUGIA_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MoveManiacsHouse": {
+      "constant": "MOVE_MANIACS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route2South": {
+      "constant": "ROUTE_2_SOUTH",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route22": {
+      "constant": "ROUTE_22",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ViridianCity": {
+      "constant": "VIRIDIAN_CITY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ViridianGym": {
+      "constant": "VIRIDIAN_GYM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ViridianNicknameSpeechHouse": {
+      "constant": "VIRIDIAN_NICKNAME_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ViridianSchoolHouse": {
+      "constant": "VIRIDIAN_SCHOOL_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "TrainerHouse1F": {
+      "constant": "TRAINER_HOUSE_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "TrainerHouseB1F": {
+      "constant": "TRAINER_HOUSE_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ViridianMart": {
+      "constant": "VIRIDIAN_MART",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ViridianPokeCenter1F": {
+      "constant": "VIRIDIAN_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route2NuggetSpeechHouse": {
+      "constant": "ROUTE_2_NUGGET_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route2Gate": {
+      "constant": "ROUTE_2_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PokemonLeagueGate": {
+      "constant": "POKEMON_LEAGUE_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ViridianForest": {
+      "constant": "VIRIDIAN_FOREST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ViridianForestViridianGate": {
+      "constant": "VIRIDIAN_FOREST_VIRIDIAN_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ViridianForestPewterGate": {
+      "constant": "VIRIDIAN_FOREST_PEWTER_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route1ViridianGate": {
+      "constant": "ROUTE_1_VIRIDIAN_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route16Northwest": {
+      "constant": "ROUTE_16_NORTHWEST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route26": {
+      "constant": "ROUTE_26",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route27": {
+      "constant": "ROUTE_27",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route29": {
+      "constant": "ROUTE_29",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "NewBarkTown": {
+      "constant": "NEW_BARK_TOWN",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ElmsLab": {
+      "constant": "ELMS_LAB",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PlayersHouse1F": {
+      "constant": "PLAYERS_HOUSE_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PlayersHouse2F": {
+      "constant": "PLAYERS_HOUSE_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PlayersNeighborsHouse": {
+      "constant": "PLAYERS_NEIGHBORS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "LyrasHouse1F": {
+      "constant": "LYRAS_HOUSE_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "LyrasHouse2F": {
+      "constant": "LYRAS_HOUSE_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ElmsHouse": {
+      "constant": "ELMS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route26HealSpeechHouse": {
+      "constant": "ROUTE_26_HEAL_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route26DayofWeekSiblingsHouse": {
+      "constant": "ROUTE_26_DAY_OF_WEEK_SIBLINGS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route27RestHouse": {
+      "constant": "ROUTE_27_REST_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route2946Gate": {
+      "constant": "ROUTE_29_46_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "FightingDojo": {
+      "constant": "FIGHTING_DOJO",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SaffronGym": {
+      "constant": "SAFFRON_GYM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SaffronMart": {
+      "constant": "SAFFRON_MART",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SaffronPokeCenter1F": {
+      "constant": "SAFFRON_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MrPsychicsHouse": {
+      "constant": "MR_PSYCHICS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SaffronTrainStation": {
+      "constant": "SAFFRON_TRAIN_STATION",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SilphCo1F": {
+      "constant": "SILPH_CO_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SilphCo2F": {
+      "constant": "SILPH_CO_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SilphCo3F": {
+      "constant": "SILPH_CO_3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CopycatsHouse1F": {
+      "constant": "COPYCATS_HOUSE_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CopycatsHouse2F": {
+      "constant": "COPYCATS_HOUSE_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route5": {
+      "constant": "ROUTE_5",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route5UndergroundEntrance": {
+      "constant": "ROUTE_5_UNDERGROUND_ENTRANCE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route5SaffronCityGate": {
+      "constant": "ROUTE_5_SAFFRON_CITY_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route5CleanseTagSpeechHouse": {
+      "constant": "ROUTE_5_CLEANSE_TAG_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "PokemonTrainerFanClub": {
+      "constant": "POKEMON_TRAINER_FAN_CLUB",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SaffronHitmontopKidHouse": {
+      "constant": "SAFFRON_HITMONTOP_KID_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SaffronBookSpeechHouse": {
+      "constant": "SAFFRON_BOOK_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SaffronOrreSpeechHouse": {
+      "constant": "SAFFRON_ORRE_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SaffronRichSpeechHouse": {
+      "constant": "SAFFRON_RICH_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route30": {
+      "constant": "ROUTE_30",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route31": {
+      "constant": "ROUTE_31",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CherrygroveBay": {
+      "constant": "CHERRYGROVE_BAY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CherrygroveCity": {
+      "constant": "CHERRYGROVE_CITY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CherrygroveMart": {
+      "constant": "CHERRYGROVE_MART",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CherrygrovePokeCenter1F": {
+      "constant": "CHERRYGROVE_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CherrygroveGymSpeechHouse": {
+      "constant": "CHERRYGROVE_GYM_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GuideGentsHouse": {
+      "constant": "GUIDE_GENTS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CherrygroveEvolutionSpeechHouse": {
+      "constant": "CHERRYGROVE_EVOLUTION_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route30BerrySpeechHouse": {
+      "constant": "ROUTE_30_BERRY_SPEECH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MrPokemonsHouse": {
+      "constant": "MR_POKEMONS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route31VioletGate": {
+      "constant": "ROUTE_31_VIOLET_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CliffEdgeGate": {
+      "constant": "CLIFF_EDGE_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "CliffCave": {
+      "constant": "CLIFF_CAVE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route47": {
+      "constant": "ROUTE_47",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route48": {
+      "constant": "ROUTE_48",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "QuietCave1F": {
+      "constant": "QUIET_CAVE_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "QuietCaveB1F": {
+      "constant": "QUIET_CAVE_B1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "QuietCaveB2F": {
+      "constant": "QUIET_CAVE_B2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "QuietCaveB3F": {
+      "constant": "QUIET_CAVE_B3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route9": {
+      "constant": "ROUTE_9",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route10North": {
+      "constant": "ROUTE_10_NORTH",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "DimCave1F": {
+      "constant": "DIM_CAVE_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "DimCave2F": {
+      "constant": "DIM_CAVE_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "DimCave3F": {
+      "constant": "DIM_CAVE_3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "DimCave4F": {
+      "constant": "DIM_CAVE_4F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "DimCave5F": {
+      "constant": "DIM_CAVE_5F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodHarbor": {
+      "constant": "GOLDENROD_HARBOR",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "GoldenrodHarborGate": {
+      "constant": "GOLDENROD_HARBOR_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RuinsOfAlphOutside": {
+      "constant": "RUINS_OF_ALPH_OUTSIDE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RuinsOfAlphHoOhChamber": {
+      "constant": "RUINS_OF_ALPH_HO_OH_CHAMBER",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RuinsOfAlphKabutoChamber": {
+      "constant": "RUINS_OF_ALPH_KABUTO_CHAMBER",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RuinsOfAlphOmanyteChamber": {
+      "constant": "RUINS_OF_ALPH_OMANYTE_CHAMBER",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RuinsOfAlphAerodactylChamber": {
+      "constant": "RUINS_OF_ALPH_AERODACTYL_CHAMBER",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RuinsOfAlphEntranceChamber": {
+      "constant": "RUINS_OF_ALPH_ENTRANCE_CHAMBER",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RuinsOfAlphInnerChamber": {
+      "constant": "RUINS_OF_ALPH_INNER_CHAMBER",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RuinsOfAlphResearchCenter": {
+      "constant": "RUINS_OF_ALPH_RESEARCH_CENTER",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RuinsOfAlphHoOhItemRoom": {
+      "constant": "RUINS_OF_ALPH_HO_OH_ITEM_ROOM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RuinsOfAlphKabutoItemRoom": {
+      "constant": "RUINS_OF_ALPH_KABUTO_ITEM_ROOM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RuinsOfAlphOmanyteItemRoom": {
+      "constant": "RUINS_OF_ALPH_OMANYTE_ITEM_ROOM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RuinsOfAlphAerodactylItemRoom": {
+      "constant": "RUINS_OF_ALPH_AERODACTYL_ITEM_ROOM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RuinsOfAlphHoOhWordRoom": {
+      "constant": "RUINS_OF_ALPH_HO_OH_WORD_ROOM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RuinsOfAlphKabutoWordRoom": {
+      "constant": "RUINS_OF_ALPH_KABUTO_WORD_ROOM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RuinsOfAlphOmanyteWordRoom": {
+      "constant": "RUINS_OF_ALPH_OMANYTE_WORD_ROOM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RuinsOfAlphAerodactylWordRoom": {
+      "constant": "RUINS_OF_ALPH_AERODACTYL_WORD_ROOM",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RuinsOfAlphSinjohChamber": {
+      "constant": "RUINS_OF_ALPH_SINJOH_CHAMBER",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route22Past": {
+      "constant": "ROUTE_22_PAST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ShamoutiIsland": {
+      "constant": "SHAMOUTI_ISLAND",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BeautifulBeach": {
+      "constant": "BEAUTIFUL_BEACH",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "WarmBeach": {
+      "constant": "WARM_BEACH",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ShamoutiCoast": {
+      "constant": "SHAMOUTI_COAST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RockyBeach": {
+      "constant": "ROCKY_BEACH",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ShamoutiTunnel": {
+      "constant": "SHAMOUTI_TUNNEL",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "NoisyForest": {
+      "constant": "NOISY_FOREST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ShamoutiPokeCenter1F": {
+      "constant": "SHAMOUTI_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ShamoutiHotel1F": {
+      "constant": "SHAMOUTI_HOTEL_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ShamoutiHotel2F": {
+      "constant": "SHAMOUTI_HOTEL_2F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ShamoutiHotel3F": {
+      "constant": "SHAMOUTI_HOTEL_3F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ShamoutiHotelRoom2A": {
+      "constant": "SHAMOUTI_HOTEL_ROOM_2A",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ShamoutiHotelRoom2B": {
+      "constant": "SHAMOUTI_HOTEL_ROOM_2B",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ShamoutiHotelRoom3B": {
+      "constant": "SHAMOUTI_HOTEL_ROOM_3B",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ShamoutiHotelRoom3C": {
+      "constant": "SHAMOUTI_HOTEL_ROOM_3C",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ShamoutiHotelRestaurant": {
+      "constant": "SHAMOUTI_HOTEL_RESTAURANT",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ShamoutiTouristCenter": {
+      "constant": "SHAMOUTI_TOURIST_CENTER",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ShamoutiMerchant": {
+      "constant": "SHAMOUTI_MERCHANT",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ShamoutiHouse": {
+      "constant": "SHAMOUTI_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "BeautifulBeachVilla": {
+      "constant": "BEAUTIFUL_BEACH_VILLA",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "WarmBeachShack": {
+      "constant": "WARM_BEACH_SHACK",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "WarmBeachHouse": {
+      "constant": "WARM_BEACH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RockyBeachHouse": {
+      "constant": "ROCKY_BEACH_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "FireIsland": {
+      "constant": "FIRE_ISLAND",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "FireIslandRoof": {
+      "constant": "FIRE_ISLAND_ROOF",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "IceIsland": {
+      "constant": "ICE_ISLAND",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "IceIslandRoof": {
+      "constant": "ICE_ISLAND_ROOF",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "LightningIsland": {
+      "constant": "LIGHTNING_ISLAND",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "LightningIslandRoof": {
+      "constant": "LIGHTNING_ISLAND_ROOF",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SafariZoneHub": {
+      "constant": "SAFARI_ZONE_HUB",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SafariZoneEast": {
+      "constant": "SAFARI_ZONE_EAST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SafariZoneNorth": {
+      "constant": "SAFARI_ZONE_NORTH",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SafariZoneWest": {
+      "constant": "SAFARI_ZONE_WEST",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SafariZoneHubRestHouse": {
+      "constant": "SAFARI_ZONE_HUB_REST_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SafariZoneEastRestHouse": {
+      "constant": "SAFARI_ZONE_EAST_REST_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SafariZoneNorthRestHouse": {
+      "constant": "SAFARI_ZONE_NORTH_REST_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SafariZoneWestRestHouse1": {
+      "constant": "SAFARI_ZONE_WEST_REST_HOUSE_1",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SafariZoneWestRestHouse2": {
+      "constant": "SAFARI_ZONE_WEST_REST_HOUSE_2",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ValenciaIsland": {
+      "constant": "VALENCIA_ISLAND",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route49": {
+      "constant": "ROUTE_49",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "IvysLab": {
+      "constant": "IVYS_LAB",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "IvysHouse": {
+      "constant": "IVYS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ValenciaHouse": {
+      "constant": "VALENCIA_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ValenciaPort": {
+      "constant": "VALENCIA_PORT",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SinjohRuins": {
+      "constant": "SINJOH_RUINS",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SinjohRuinsHouse": {
+      "constant": "SINJOH_RUINS_HOUSE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "MystriStage": {
+      "constant": "MYSTRI_STAGE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "EmbeddedTower": {
+      "constant": "EMBEDDED_TOWER",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "SaffronCity": {
+      "constant": "SAFFRON_CITY",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "ShamoutiShrineRuins": {
+      "constant": "SHAMOUTI_SHRINE_RUINS",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "RuggedRoadNorth": {
+      "constant": "RUGGED_ROAD_NORTH",
+      "overcast_index": null,
+      "weather": "sandstorm"
+    },
+    "RuggedRoadSouth": {
+      "constant": "RUGGED_ROAD_SOUTH",
+      "overcast_index": null,
+      "weather": "sandstorm"
+    },
+    "SnowtopMountainInside": {
+      "constant": "SNOWTOP_MOUNTAIN_INSIDE",
+      "overcast_index": null,
+      "weather": "snow"
+    },
+    "SnowtopMountainOutside": {
+      "constant": "SNOWTOP_MOUNTAIN_OUTSIDE",
+      "overcast_index": null,
+      "weather": "snow"
+    },
+    "SnowtopPokeCenter1F": {
+      "constant": "SNOWTOP_POKECENTER_1F",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "Route39RuggedRoadGate": {
+      "constant": "ROUTE_39_RUGGED_ROAD_GATE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "EcruteakShrineOutside": {
+      "constant": "ECRUTEAK_SHRINE_OUTSIDE",
+      "overcast_index": null,
+      "weather": "none"
+    },
+    "EcruteakShrineInside": {
+      "constant": "ECRUTEAK_SHRINE_INSIDE",
+      "overcast_index": null,
+      "weather": "none"
+    }
+  }
+}

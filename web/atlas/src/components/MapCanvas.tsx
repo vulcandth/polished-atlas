@@ -13,6 +13,7 @@ import {
   ObjectSpriteDefinition,
   WarpMetadata,
   MovementSummary,
+  BgPalettesMetadata,
 } from "@/types";
 import { registerPixiExtensions } from "@/pixi/registerExtensions";
 import { loadMapAnimation, type MapAnimationResource } from "@/lib/loadMapAnimation";
@@ -133,6 +134,7 @@ interface MapCanvasProps {
   loading: boolean;
   editing?: boolean;
   warpMetadata?: WarpMetadata | null;
+  bgPalettes?: BgPalettesMetadata | null;
   resolveAssetHref?: (mapLabel: string) => string;
   baseOffsets?: Record<string, OffsetTuple> | null;
   offsetOverrides?: Record<string, OffsetTuple> | null;
@@ -1535,6 +1537,7 @@ export default function MapCanvas({
   loading,
   editing = false,
   warpMetadata = null,
+  bgPalettes = null,
   resolveAssetHref,
   baseOffsets = null,
   offsetOverrides = null,
@@ -2394,6 +2397,14 @@ export default function MapCanvas({
       return;
     }
 
+    // Provide BG palettes for this overlay map to the cache (if available)
+    try {
+      const bg = bgPalettes?.maps?.[state.mapLabel]?.palettes?.[timeOfDay] ?? null;
+      cache.setBgPalettes(bg ?? null);
+    } catch {
+      cache.setBgPalettes(null);
+    }
+
     const metadataBlockSize = Number.isFinite(metadata.blockPixelSize) && metadata.blockPixelSize > 0
       ? Math.abs(metadata.blockPixelSize)
       : 32;
@@ -2565,7 +2576,7 @@ export default function MapCanvas({
     sprite.sortChildren();
     // Render on demand to apply overlay object changes in static mode
     maybeRender();
-  }, [atlas, timeOfDay, getCollisionMetadata, maybeRender]);
+  }, [atlas, timeOfDay, bgPalettes, getCollisionMetadata, maybeRender]);
 
   const openOverlay = useCallback(
     async (
@@ -3105,6 +3116,14 @@ export default function MapCanvas({
         continue;
       }
 
+      // Provide BG palettes for this world map to the cache (if available) before building sprite textures
+      try {
+        const bg = bgPalettes?.maps?.[entry.placement.label]?.palettes?.[timeOfDay] ?? null;
+        cache.setBgPalettes(bg ?? null);
+      } catch {
+        cache.setBgPalettes(null);
+      }
+
   for (const objectEntry of mapData.objects) {
         if (!isObjectVisibleAtTime(objectEntry, timeOfDay)) {
           continue;
@@ -3217,7 +3236,7 @@ export default function MapCanvas({
     }
     // Render on demand to apply world object changes in static mode
     maybeRender();
-  }, [atlas, timeOfDay, getCollisionMetadata, maybeRender]);
+  }, [atlas, timeOfDay, bgPalettes, getCollisionMetadata, maybeRender]);
 
   useEffect(() => {
     const metadata = objectMetadata ?? null;

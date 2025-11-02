@@ -127,6 +127,12 @@ run_generators() {
     --weekday "${WEEKDAY}" \
     --time-of-day "${canonical_slugs[0]}" \
     --event-overrides "${ROOT_DIR}/scripts/event_overrides.json"
+
+  log "Exporting per-map background palettes"
+  "${PYTHON_BIN}" "${ROOT_DIR}/scripts/generate_bg_palette_metadata.py" \
+    --polishedcrystal "${POLISHED_DIR}" \
+    --weekday "${WEEKDAY}" \
+    --event-overrides "${ROOT_DIR}/scripts/event_overrides.json"
 }
 
 build_web_bundle() {

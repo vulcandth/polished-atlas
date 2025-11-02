@@ -414,3 +414,24 @@ export interface ObjectMetadata {
   maps: Record<string, MapObjectMetadataEntry>;
   pokemonIcons: PokemonIconMetadata | null;
 }
+
+export interface BgPalettesMapEntry {
+  label: string;
+  map_constant?: string | null;
+  map_type?: string | null;
+  palettes: Record<string, RgbTuple[][]>; // timeOfDay -> 8 palettes of 4 RGB tuples
+}
+
+export interface BgPalettesPayloadDTO {
+  version: number;
+  generated_at: string;
+  weekday?: number | null;
+  maps: Record<string, BgPalettesMapEntry>;
+}
+
+export interface BgPalettesMetadata {
+  version: number;
+  generatedAt: string;
+  weekday: number | null;
+  maps: Record<string, BgPalettesMapEntry>;
+}

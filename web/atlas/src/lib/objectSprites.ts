@@ -74,6 +74,8 @@ export class ObjectSpriteCache {
   private readonly pokemonIconTileCache = new Map<string, Uint8Array[]>();
   private readonly pokemonIconTextureCache = new Map<string, FacingTextureRecord[]>();
   private timeOfDay: string;
+  private bgPalettes: RgbTuple[][] | null = null; // Current map's 8 background palettes
+  private bgSignature: string | null = null;
 
   constructor(metadata: ObjectMetadata, timeOfDay: string) {
     this.metadata = metadata;
@@ -93,6 +95,32 @@ export class ObjectSpriteCache {
     this.clearTextures();
   }
 
+  // Provide the current map's background palettes (slots 0-7), or null to clear.
+  setBgPalettes(next: RgbTuple[][] | null): void {
+    const toSig = (rows: RgbTuple[][] | null): string | null => {
+      if (!rows) return null;
+      try {
+        // Compact signature: join all numbers with commas
+        const parts: number[] = [];
+        for (const row of rows) {
+          for (const [r, g, b] of row) {
+            parts.push(r | 0, g | 0, b | 0);
+          }
+        }
+        return parts.join(",");
+      } catch {
+        return null;
+      }
+    };
+    const normalized = next ? next.map((row) => clampPalette(row)) : null;
+    const sig = toSig(normalized);
+    if (sig === this.bgSignature) {
+      return;
+    }
+    this.bgPalettes = normalized;
+    this.bgSignature = sig;
+  }
+
   destroy(): void {
     this.clearTextures();
     this.tileCache.clear();
@@ -107,7 +135,9 @@ export class ObjectSpriteCache {
     if (!spriteName || !facingKey) {
       return null;
     }
-    const cacheKey = `${spriteName}|${facingKey}|${paletteName ?? ""}|${this.timeOfDay}`;
+  // Include bgSignature for copy-from-BG palettes so textures are unique per map palette
+  const isCopy = paletteName ? this.resolveCopyBgIndex(paletteName) !== null : false;
+  const cacheKey = `${spriteName}|${facingKey}|${paletteName ?? ""}|${this.timeOfDay}${isCopy ? `|bg=${this.bgSignature ?? ""}` : ""}`;
     const cached = this.textureCache.get(cacheKey);
     if (cached) {
       return cached;
@@ -335,6 +365,15 @@ export class ObjectSpriteCache {
     if (!name) {
       return DEFAULT_PALETTE;
     }
+    // Copy-from-background palettes map to BG slots 0-7 in order
+    const copyIndex = this.resolveCopyBgIndex(name);
+    if (copyIndex !== null) {
+      const rows = this.bgPalettes;
+      if (rows && rows[copyIndex]) {
+        return clampPalette(rows[copyIndex]!);
+      }
+      // Fallback to existing palette definitions if BG palettes aren't available
+    }
     const entry = this.metadata.palettes[name];
     if (!entry) {
       return DEFAULT_PALETTE;
@@ -354,6 +393,29 @@ export class ObjectSpriteCache {
       return clampPalette(entry.static);
     }
     return DEFAULT_PALETTE;
+  }
+
+  private resolveCopyBgIndex(name: string): number | null {
+    switch (name) {
+      case "PAL_OW_COPY_BG_GRAY":
+        return 0;
+      case "PAL_OW_COPY_BG_RED":
+        return 1;
+      case "PAL_OW_COPY_BG_GREEN":
+        return 2;
+      case "PAL_OW_COPY_BG_WATER":
+        return 3;
+      case "PAL_OW_COPY_BG_YELLOW":
+        return 4;
+      case "PAL_OW_COPY_BG_BROWN":
+        return 5;
+      case "PAL_OW_COPY_BG_ROOF":
+        return 6;
+      case "PAL_OW_COPY_BG_TEXT":
+        return 7;
+      default:
+        return null;
+    }
   }
 
   private buildTexture(

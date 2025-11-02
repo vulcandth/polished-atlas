@@ -3,6 +3,7 @@ import MapCanvas from "@/components/MapCanvas";
 import { useAtlasData } from "@/hooks/useAtlasData";
 import { useObjectMetadata } from "@/hooks/useObjectMetadata";
 import { useWarpMetadata } from "@/hooks/useWarpMetadata";
+import { useBgPalettes } from "@/hooks/useBgPalettes";
 import { joinBasePath, withBasePath } from "@/lib/basePath";
 import type { NeighborhoodSummary } from "@/types";
 
@@ -184,13 +185,14 @@ export default function App() {
     rootLabel,
   });
   const { metadata: warpMetadata, loading: warpLoading, error: warpError, reload: warpReload } = useWarpMetadata();
+  const { metadata: bgPalettes, loading: bgLoading, error: bgError, reload: bgReload } = useBgPalettes();
   const {
     metadata: objectMetadata,
     loading: objectLoading,
     error: objectError,
     reload: objectReload,
   } = useObjectMetadata();
-  const isLoading = loading || warpLoading || objectLoading;
+  const isLoading = loading || warpLoading || objectLoading || bgLoading;
   const neighborhoods: NeighborhoodSummary[] = layout?.metadata?.neighborhoods ?? [];
   const assetResolver = useMemo(() => {
     const fallback = (rawLabel: string): string => {
@@ -327,8 +329,9 @@ export default function App() {
   const handleReloadClick = useCallback(() => {
     reload();
     warpReload();
+    bgReload();
     objectReload();
-  }, [reload, warpReload, objectReload]);
+  }, [reload, warpReload, bgReload, objectReload]);
 
   const handleOffsetChange = useCallback((id: string, next: OffsetTuple) => {
     setOffsetOverrides((current) => {
@@ -691,6 +694,7 @@ export default function App() {
           atlas={layout}
           loading={isLoading}
           editing={editing}
+          bgPalettes={bgPalettes}
           baseOffsets={baseOffsetsRef.current}
           offsetOverrides={editing ? offsetOverrides : null}
           zOverrides={editing ? zOverrides : null}
@@ -706,6 +710,7 @@ export default function App() {
         />
         {error && <div className="status-banner error">{error}</div>}
   {!error && warpError && <div className="status-banner error">{warpError}</div>}
+  {!error && bgError && <div className="status-banner error">{bgError}</div>}
   {!error && objectError && <div className="status-banner error">{objectError}</div>}
         {saveStatus === "error" && saveError && !editing && <div className="status-banner error">{saveError}</div>}
         {saveStatus === "success" && !editing && <div className="status-banner info">Neighborhood layout saved.</div>}

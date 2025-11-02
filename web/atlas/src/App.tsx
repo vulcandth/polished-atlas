@@ -20,6 +20,32 @@ const TIME_OF_DAY_OPTIONS = [
 type TimeOfDayOption = (typeof TIME_OF_DAY_OPTIONS)[number];
 type TimeOfDaySlug = TimeOfDayOption["value"];
 
+// Persisted performance settings (shared with MapCanvas)
+const PERF_SETTINGS_STORAGE_KEY = "polished-atlas:perf-settings";
+type PerfSettingsState = { disableMapAnimations: boolean; disableObjectAnimations: boolean };
+function readPerfSettings(): PerfSettingsState {
+  if (typeof window === "undefined") return { disableMapAnimations: false, disableObjectAnimations: false };
+  try {
+    const raw = window.localStorage.getItem(PERF_SETTINGS_STORAGE_KEY);
+    if (!raw) return { disableMapAnimations: false, disableObjectAnimations: false };
+    const parsed = JSON.parse(raw) as Partial<PerfSettingsState> | undefined;
+    return {
+      disableMapAnimations: Boolean(parsed?.disableMapAnimations),
+      disableObjectAnimations: Boolean(parsed?.disableObjectAnimations),
+    };
+  } catch {
+    return { disableMapAnimations: false, disableObjectAnimations: false };
+  }
+}
+function writePerfSettings(next: PerfSettingsState): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(PERF_SETTINGS_STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    /* ignore */
+  }
+}
+
 const POLISHED_VERSION = (() => {
   const raw = import.meta.env.VITE_POLISHED_VERSION;
   if (typeof raw === "string") {
@@ -556,6 +582,14 @@ export default function App() {
   }
   const subtitle = subtitleParts.length > 0 ? subtitleParts.join(" • ") : "Loading atlas…";
 
+  // Performance toggles (lifted to header)
+  const initialPerf = readPerfSettings();
+  const [disableMapAnimations, setDisableMapAnimations] = useState<boolean>(initialPerf.disableMapAnimations);
+  const [disableObjectAnimations, setDisableObjectAnimations] = useState<boolean>(initialPerf.disableObjectAnimations);
+  useEffect(() => {
+    writePerfSettings({ disableMapAnimations, disableObjectAnimations });
+  }, [disableMapAnimations, disableObjectAnimations]);
+
   return (
     <main className="app-shell">
       <header className="app-header">
@@ -580,6 +614,24 @@ export default function App() {
                 </option>
               ))}
             </select>
+          </div>
+          <div className="perf-toggles" title="Rendering performance options">
+            <label>
+              <input
+                type="checkbox"
+                checked={disableMapAnimations}
+                onChange={(e) => setDisableMapAnimations(e.target.checked)}
+              />
+              <span>Disable map animations</span>
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={disableObjectAnimations}
+                onChange={(e) => setDisableObjectAnimations(e.target.checked)}
+              />
+              <span>Disable NPC animations</span>
+            </label>
           </div>
           <button type="button" onClick={handleReloadClick} disabled={isLoading}>
             {isLoading ? "Loading…" : "Reload"}
@@ -649,6 +701,8 @@ export default function App() {
           resolveAssetHref={assetResolver}
           objectMetadata={objectMetadata}
           timeOfDay={timeOfDay}
+          disableMapAnimations={disableMapAnimations}
+          disableObjectAnimations={disableObjectAnimations}
         />
         {error && <div className="status-banner error">{error}</div>}
   {!error && warpError && <div className="status-banner error">{warpError}</div>}

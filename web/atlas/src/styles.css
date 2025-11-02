@@ -64,6 +64,7 @@ main {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .actions .time-picker {
@@ -88,6 +89,24 @@ main {
 .actions .time-picker select:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.actions .perf-toggles {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+}
+.actions .perf-toggles label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+.actions .perf-toggles input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
 }
 
 .actions button {

@@ -401,6 +401,7 @@ _SCRIPT_CMD_RE = re.compile(
     r"moveobject|writeobjectxy|appear|disappear|warpfacing|warp|faceobject|turnobject|"
     r"follow|stopfollow|follownotexact|setlasttalked|"
     r"setevent|clearevent|checkevent|"
+    r"readvar|"
     r"opentext|closetext|showtext|"
     r"sjumpfwd|sjump|farsjump|memjump|jump|priorityjump|jumpstd|stopandsjump|"
     r"scallfwd|scall|farscall|memcall|call|callasm|callstd|"
@@ -863,24 +864,30 @@ def follower_collision_during_path(
     of the player's adjacent cells at the time the script starts. If the NPC path
     intersects any of those plausible cells, report a collision.
     """
-    plausible: List[Tuple[int, int]] = []
-    if warp_meta.collision:
-        for dx, dy in ((0, -1), (0, 1), (-1, 0), (1, 0)):
-            cx, cy = player_xy[0] + dx, player_xy[1] + dy
-            if 0 <= cx < warp_meta.collision.width_cells and 0 <= cy < warp_meta.collision.height_cells:
-                plausible.append((cx, cy))
-    else:
-        plausible = [
-            (player_xy[0], player_xy[1] - 1),
-            (player_xy[0], player_xy[1] + 1),
-            (player_xy[0] - 1, player_xy[1]),
-            (player_xy[0] + 1, player_xy[1]),
-        ]
+    plausible: List[Tuple[int, int]] = plausible_follower_cells(player_xy, warp_meta)
     plausible_set = set(plausible)
     for step_xy in npc_path:
         if step_xy in plausible_set:
             return True
     return False
+
+
+def plausible_follower_cells(player_xy: Tuple[int, int], warp_meta: WarpMeta) -> List[Tuple[int, int]]:
+    """Return plausible follower positions adjacent to player_xy, constrained by collision grid when available."""
+    out: List[Tuple[int, int]] = []
+    if warp_meta.collision:
+        for dx, dy in ((0, -1), (0, 1), (-1, 0), (1, 0)):
+            cx, cy = player_xy[0] + dx, player_xy[1] + dy
+            if 0 <= cx < warp_meta.collision.width_cells and 0 <= cy < warp_meta.collision.height_cells:
+                out.append((cx, cy))
+    else:
+        out = [
+            (player_xy[0], player_xy[1] - 1),
+            (player_xy[0], player_xy[1] + 1),
+            (player_xy[0] - 1, player_xy[1]),
+            (player_xy[0] + 1, player_xy[1]),
+        ]
+    return out
 
 
 # ---------------------------- Trigger modeling and control flow ----------------------------
@@ -1288,6 +1295,7 @@ def analyze_scripts(
                                                     "line": cmd2.line_no,
                                                     "object": fobj,
                                                     "player_cell": list(pstart2),
+                                                    "follower_cell": list(follower_cell),
                                                     "trigger": trig_kind2,
                                                     "reason": "npc-following-player conflicts with pokemon follower during player movement",
                                                 },
@@ -1313,6 +1321,7 @@ def analyze_scripts(
                                                 "op": op2,
                                                 "move": mov_label,
                                                 "phase": "arrival",
+                                                "follower_cell": list(follower_cell),
                                             },
                                         )
                                     for _it in _tmp_issues:
@@ -1472,6 +1481,7 @@ def analyze_scripts(
                                             "line": cmd2.line_no,
                                             "object": obj,
                                             "player_cell": list(pstart2),
+                                            "follower_candidates": [list(t) for t in plausible_follower_cells(pstart2, dest_warp_meta)],
                                             "trigger": trig_kind2,
                                         },
                                     )
@@ -1492,6 +1502,7 @@ def analyze_scripts(
                                                     "line": cmd2.line_no,
                                                     "object": fobj,
                                                     "player_cell": list(pstart2),
+                                                    "follower_cell": list(pstart2),
                                                     "trigger": trig_kind2,
                                                     "reason": "npc-following-player conflicts with pokemon follower during player movement",
                                                 },
@@ -1503,7 +1514,7 @@ def analyze_scripts(
                                         player_cell=pstart2,
                                         moving_npc_cell=step_xy2,
                                         static_npcs=static_npcs_snapshot2(obj),
-                                        follower_cell_override=None,
+                                        follower_cell_override=(pstart2 if obj == "PLAYER" else None),
                                         object_meta=object_meta,
                                         warp_meta=dest_warp_meta,
                                         include_follower=include_follower,
@@ -1518,13 +1529,17 @@ def analyze_scripts(
                                             "token": token,
                                             "object": obj,
                                             "phase": "arrival",
+                                            **({"follower_cell": list(pstart2)} if obj == "PLAYER" else {}),
                                         },
                                     )
                                 for _it in _tmp_issues:
                                     _it.file = str(dest_asm.relative_to(atlas_common.ROOT_DIR))
                                 issues.extend(_tmp_issues)
                         if path2:
-                            temp_pos2[obj] = path2[-1]
+                            if obj == "PLAYER":
+                                current_player_cells2 = [path2[-1]]
+                            else:
+                                temp_pos2[obj] = path2[-1]
                     elif op2 in {"appear", "disappear"} and len(args2) >= 1:
                         obj = args2[0]
                         if op2 == "disappear":
@@ -1537,24 +1552,7 @@ def analyze_scripts(
                         leader_obj2 = args2[1]
                         follows2[follower_obj2] = leader_obj2
                         follow_stack2.append((follower_obj2, leader_obj2))
-                        if leader_obj2 == "PLAYER" and include_follower:
-                            for pstart2 in (current_player_cells2 or [(0, 0)]):
-                                issues.append(
-                                    AuditIssue(
-                                        map_label=dest_map_label,
-                                        file=str(dest_asm.relative_to(atlas_common.ROOT_DIR)),
-                                        kind="follower-collision",
-                                        severity="warn",
-                                        details={
-                                            "script_label": start_label2,
-                                            "line": cmd2.line_no,
-                                            "object": follower_obj2,
-                                            "player_cell": list(pstart2),
-                                            "trigger": trig_kind2,
-                                            "reason": "npc-following-player while pokemon follower active",
-                                        },
-                                    )
-                                )
+                        # In arrival flows, defer warnings until we actually detect the player moving with an NPC following
                     elif op2 == "stopfollow":
                         if follow_stack2:
                             last_follower2, _ = follow_stack2.pop()
@@ -1598,6 +1596,8 @@ def analyze_scripts(
                 follows: Dict[str, str] = field(default_factory=dict)
                 # Stack of follow pairs to support conservative stopfollow behavior
                 follow_stack: List[Tuple[str, str]] = field(default_factory=list)
+                # Last variable read via readvar (e.g., VAR_FACING)
+                last_var_name: Optional[str] = None
 
             def static_npcs_snapshot_local(visible: Dict[str, bool], temp_pos: Dict[str, Tuple[int, int]], exclude: Optional[str] = None) -> List[Tuple[int, int]]:
                 out_list: List[Tuple[int, int]] = []
@@ -1721,6 +1721,14 @@ def analyze_scripts(
                         work.append(ctx)
                     continue
 
+                # Variable ops
+                if op == "readvar" and len(args) >= 1:
+                    # Track last variable read so we can interpret equality branches that rely on VAR_RESULT.
+                    ctx.last_var_name = args[0]
+                    ctx.pc += 1
+                    work.append(ctx)
+                    continue
+
                 # Event state ops
                 if op == "setevent" and len(args) >= 1:
                     ev = args[0]
@@ -1759,6 +1767,102 @@ def analyze_scripts(
                             cand = m.group(1)
                             if _looks_like_label(cand) and cand in parsed.script_labels:
                                 target = cand
+                    # Special handling: ifequal*/ifnotequal* immediately after readvar VAR_FACING
+                    if target and ctx.last_var_name == "VAR_FACING" and (op.lower().startswith("ifequal") or op.lower().startswith("ifnotequal")):
+                        # Determine comparison token (e.g., DOWN) if present as first arg
+                        comp_tok = args[0] if args else None
+                        # Helper to compute mapping from facing -> subset of player_cells consistent with talking to trig_obj
+                        def cells_by_facing() -> Dict[str, List[Tuple[int, int]]]:
+                            mapping: Dict[str, List[Tuple[int, int]]] = {"UP": [], "DOWN": [], "LEFT": [], "RIGHT": []}
+                            npc_pos: Optional[Tuple[int, int]] = None
+                            if trig_kind == "talk" and trig_obj:
+                                npc_pos = ctx.temp_pos.get(trig_obj) or object_pos.get(trig_obj)
+                            # If we can't resolve NPC position (non-talk or missing), consider all facings possible
+                            if not npc_pos:
+                                # Treat all current player cells as eligible for all facings
+                                for f in mapping.keys():
+                                    mapping[f] = list(ctx.player_cells or [])
+                                return mapping
+                            nx, ny = npc_pos
+                            for px, py in (ctx.player_cells or []):
+                                dx = nx - px
+                                dy = ny - py
+                                if dx == 0 and dy == 1:
+                                    mapping["DOWN"].append((px, py))
+                                elif dx == 0 and dy == -1:
+                                    mapping["UP"].append((px, py))
+                                elif dx == 1 and dy == 0:
+                                    mapping["RIGHT"].append((px, py))
+                                elif dx == -1 and dy == 0:
+                                    mapping["LEFT"].append((px, py))
+                                else:
+                                    # Not adjacent; ignore
+                                    pass
+                            # If no adjacency matched (e.g., coord/callback), allow all
+                            if not any(mapping.values()):
+                                for f in mapping.keys():
+                                    mapping[f] = list(ctx.player_cells or [])
+                            return mapping
+                        if comp_tok:
+                            comp_val = comp_tok.strip().upper()
+                            by_face = cells_by_facing()
+                            matching = by_face.get(comp_val, [])
+                            # For notequal, invert match set
+                            is_noteq = op.lower().startswith("ifnotequal")
+                            if is_noteq:
+                                # Jump when VAR_FACING != comp_val -> matching is all cells NOT in comp_val
+                                all_cells = list(ctx.player_cells or [])
+                                nonmatch = [c for c in all_cells if c not in matching]
+                                # Deterministic outcomes
+                                if nonmatch and not matching:
+                                    # Always jump
+                                    ctx.player_cells = nonmatch
+                                    ctx.label, ctx.pc = target, 0
+                                    work.append(ctx)
+                                elif matching and not nonmatch:
+                                    # Never jump; just fall through with (empty) nonmatch? That means no path; drop.
+                                    # If all cells match comp, notequal can't be taken -> fallthrough with same cells
+                                    ctx.pc += 1
+                                    work.append(ctx)
+                                else:
+                                    # Fork both branches with filtered cells
+                                    if branches < max_branches:
+                                        branches += 1
+                                        # Jump branch with non-matching cells
+                                        ctx_jump = Ctx(label=target, pc=0, ret=list(ctx.ret), temp_pos=dict(ctx.temp_pos), visible=dict(ctx.visible), player_cells=list(nonmatch), last_talked=ctx.last_talked, ev=dict(ctx.ev), last_var_name=ctx.last_var_name, follows=dict(ctx.follows), follow_stack=list(ctx.follow_stack))
+                                        # Fallthrough branch with matching cells
+                                        ctx_fall = Ctx(label=ctx.label, pc=ctx.pc + 1, ret=list(ctx.ret), temp_pos=dict(ctx.temp_pos), visible=dict(ctx.visible), player_cells=list(matching), last_talked=ctx.last_talked, ev=dict(ctx.ev), last_var_name=ctx.last_var_name, follows=dict(ctx.follows), follow_stack=list(ctx.follow_stack))
+                                        # Only enqueue non-empty branches
+                                        if ctx_jump.player_cells:
+                                            work.append(ctx_jump)
+                                        if ctx_fall.player_cells:
+                                            work.append(ctx_fall)
+                                continue
+                            else:
+                                # Equality: jump when facing equals comp_val
+                                nonmatch = [c for c in (ctx.player_cells or []) if c not in (by_face.get(comp_val, []))]
+                                matching = by_face.get(comp_val, [])
+                                if matching and not nonmatch:
+                                    # Always jump
+                                    ctx.player_cells = matching
+                                    ctx.label, ctx.pc = target, 0
+                                    work.append(ctx)
+                                elif nonmatch and not matching:
+                                    # Never jump; just fall through with remaining cells
+                                    ctx.player_cells = nonmatch
+                                    ctx.pc += 1
+                                    work.append(ctx)
+                                else:
+                                    # Fork both branches with filtered cells
+                                    if branches < max_branches:
+                                        branches += 1
+                                        ctx_jump = Ctx(label=target, pc=0, ret=list(ctx.ret), temp_pos=dict(ctx.temp_pos), visible=dict(ctx.visible), player_cells=list(matching), last_talked=ctx.last_talked, ev=dict(ctx.ev), last_var_name=ctx.last_var_name, follows=dict(ctx.follows), follow_stack=list(ctx.follow_stack))
+                                        ctx_fall = Ctx(label=ctx.label, pc=ctx.pc + 1, ret=list(ctx.ret), temp_pos=dict(ctx.temp_pos), visible=dict(ctx.visible), player_cells=list(nonmatch), last_talked=ctx.last_talked, ev=dict(ctx.ev), last_var_name=ctx.last_var_name, follows=dict(ctx.follows), follow_stack=list(ctx.follow_stack))
+                                        if ctx_jump.player_cells:
+                                            work.append(ctx_jump)
+                                        if ctx_fall.player_cells:
+                                            work.append(ctx_fall)
+                                continue
                     if target:
                         cond = ctx.last_check
                         ctx.last_check = None
@@ -1839,26 +1943,42 @@ def analyze_scripts(
                     # Record the relationship
                     ctx.follows[follower_obj] = leader_obj
                     ctx.follow_stack.append((follower_obj, leader_obj))
-                    # If an NPC begins following the player while Pokémon follower is active, warn immediately
+                    # Only warn if the player will imminently move after setting an NPC to follow them
                     if leader_obj == "PLAYER" and include_follower:
-                        # Use each plausible player cell to annotate risk locations
-                        for pstart in (ctx.player_cells or [(0, 0)]):
-                            issues.append(
-                                AuditIssue(
-                                    map_label=map_label,
-                                    file=str(asm_path.relative_to(atlas_common.ROOT_DIR)),
-                                    kind="follower-collision",
-                                    severity="warn",
-                                    details={
-                                        "script_label": start_label,
-                                        "line": cmd.line_no,
-                                        "object": follower_obj,
-                                        "player_cell": list(pstart),
-                                        "trigger": trig_kind,
-                                        "reason": "npc-following-player while pokemon follower active",
-                                    },
+                        def _player_moves_soon(block: ScriptLabel, start_index: int, limit: int = 12) -> bool:
+                            end = min(len(block.commands), start_index + limit)
+                            for j in range(start_index, end):
+                                c = block.commands[j]
+                                if c.opcode == "applymovement" and len(c.args) >= 1 and c.args[0] == "PLAYER":
+                                    return True
+                                if c.opcode == "applyonemovement" and len(c.args) >= 1 and c.args[0] == "PLAYER":
+                                    return True
+                                if c.opcode in {"moveobject", "writeobjectxy"} and len(c.args) >= 1 and c.args[0] == "PLAYER":
+                                    return True
+                                if c.opcode in {"warp", "warpfacing", "newloadmap", "warpcheck"}:
+                                    # Crossing maps ends the immediate context
+                                    return False
+                                if c.opcode in {"end", "endall", "reloadend", "endcallback", "endtext", "done"}:
+                                    return False
+                            return False
+                        if _player_moves_soon(block, ctx.pc + 1):
+                            for pstart in (ctx.player_cells or [(0, 0)]):
+                                issues.append(
+                                    AuditIssue(
+                                        map_label=map_label,
+                                        file=str(asm_path.relative_to(atlas_common.ROOT_DIR)),
+                                        kind="follower-collision",
+                                        severity="warn",
+                                        details={
+                                            "script_label": start_label,
+                                            "line": cmd.line_no,
+                                            "object": follower_obj,
+                                            "player_cell": list(pstart),
+                                            "trigger": trig_kind,
+                                            "reason": "npc-following-player while pokemon follower active",
+                                        },
+                                    )
                                 )
-                            )
                     ctx.pc += 1
                     work.append(ctx)
                     continue
@@ -1902,6 +2022,7 @@ def analyze_scripts(
                                                     "line": cmd.line_no,
                                                     "object": fobj,
                                                     "player_cell": list(pstart),
+                                                    "follower_cell": list(follower_cell),
                                                     "trigger": trig_kind,
                                                     "reason": "npc-following-player conflicts with pokemon follower during player movement",
                                                 },
@@ -1927,6 +2048,7 @@ def analyze_scripts(
                                                 "op": op,
                                                 "move": mov_label,
                                                 "phase": "main",
+                                                "follower_cell": list(follower_cell),
                                             },
                                         )
                                     for _it in _tmp_issues:
@@ -1984,6 +2106,7 @@ def analyze_scripts(
                                                     "object": obj,
                                                     "move": mov_label,
                                                     "player_cell": list(pstart),
+                                                    "follower_candidates": [list(t) for t in plausible_follower_cells(pstart, warp_meta)],
                                                     "trigger": trig_kind,
                                                 },
                                             )
@@ -2049,6 +2172,7 @@ def analyze_scripts(
                                                 "object": target,
                                                 "move": mov_label,
                                                 "player_cell": list(pstart),
+                                                "follower_candidates": [list(t) for t in plausible_follower_cells(pstart, warp_meta)],
                                                 "trigger": trig_kind,
                                             },
                                         )
@@ -2111,6 +2235,7 @@ def analyze_scripts(
                                             "line": cmd.line_no,
                                             "object": obj,
                                             "player_cell": list(pstart),
+                                            "follower_candidates": [list(t) for t in plausible_follower_cells(pstart, warp_meta)],
                                             "trigger": trig_kind,
                                         },
                                     )
@@ -2131,6 +2256,7 @@ def analyze_scripts(
                                                     "line": cmd.line_no,
                                                     "object": fobj,
                                                     "player_cell": list(pstart),
+                                                    "follower_cell": list(pstart),
                                                     "trigger": trig_kind,
                                                     "reason": "npc-following-player conflicts with pokemon follower during player movement",
                                                 },
@@ -2142,7 +2268,7 @@ def analyze_scripts(
                                         player_cell=pstart,
                                         moving_npc_cell=step_xy,
                                         static_npcs=static_npcs_snapshot_local(ctx.visible, ctx.temp_pos, obj),
-                                        follower_cell_override=None,
+                                        follower_cell_override=(pstart if obj == "PLAYER" else None),
                                         object_meta=object_meta,
                                         warp_meta=warp_meta,
                                         include_follower=include_follower,
@@ -2157,13 +2283,17 @@ def analyze_scripts(
                                             "token": token,
                                             "object": obj,
                                             "phase": "main",
+                                            **({"follower_cell": list(pstart)} if obj == "PLAYER" else {}),
                                         },
                                     )
                                 for _it in _tmp_issues:
                                     _it.file = str(asm_path.relative_to(atlas_common.ROOT_DIR))
                                 issues.extend(_tmp_issues)
                         if path:
-                            ctx.temp_pos[obj] = path[-1]
+                            if obj == "PLAYER":
+                                ctx.player_cells = [path[-1]]
+                            else:
+                                ctx.temp_pos[obj] = path[-1]
                     ctx.pc += 1
                     work.append(ctx)
                     continue
@@ -2290,6 +2420,8 @@ def main() -> None:
                     base += f" count={d.get('count')} limit={d.get('limit')}"
                 if d.get("player_cell") is not None:
                     base += f" player={tuple(d['player_cell'])}"
+                if d.get("follower_cell") is not None:
+                    base += f" follower={tuple(d['follower_cell'])}"
                 if d.get("script_label"):
                     base += f" script={d['script_label']}"
                 if d.get("object"):
@@ -2337,6 +2469,10 @@ def main() -> None:
                 details += f" -> {dm}"
                 if dxy:
                     details += f" at={tuple(dxy)}"
+            if d.get("follower_cell") is not None:
+                details += f" follower={tuple(d['follower_cell'])}"
+            if d.get("follower_candidates"):
+                details += f" follower_candidates={[tuple(t) for t in d['follower_candidates']]}"
             if file_line:
                 details += f"  [{file_line}]"
             print(details)

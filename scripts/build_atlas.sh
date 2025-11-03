@@ -93,11 +93,22 @@ run_generators() {
 
   for time_slug in "${canonical_slugs[@]}"; do
     log "Rendering polishedcrystal maps (${time_slug})"
-  "${PYTHON_BIN}" "${ROOT_DIR}/scripts/render_maps.py" \
-      --polishedcrystal "${POLISHED_DIR}" \
-      --time-of-day "${time_slug}" \
-      --weekday "${WEEKDAY}" \
-      --format sheet
+    # Render common assets once (first pass), then skip invariant maps for subsequent passes
+    if [[ -z "${__PA_FIRST_TIME_SLUG_DONE:-}" ]]; then
+      "${PYTHON_BIN}" "${ROOT_DIR}/scripts/render_maps.py" \
+        --polishedcrystal "${POLISHED_DIR}" \
+        --time-of-day "${time_slug}" \
+        --weekday "${WEEKDAY}" \
+        --format sheet
+      __PA_FIRST_TIME_SLUG_DONE=1
+    else
+      "${PYTHON_BIN}" "${ROOT_DIR}/scripts/render_maps.py" \
+        --polishedcrystal "${POLISHED_DIR}" \
+        --time-of-day "${time_slug}" \
+        --weekday "${WEEKDAY}" \
+        --format sheet \
+        --skip-invariant
+    fi
 
     log "Generating atlas connection layouts (${time_slug})"
   "${PYTHON_BIN}" "${ROOT_DIR}/scripts/generate_map_neighborhoods.py" \

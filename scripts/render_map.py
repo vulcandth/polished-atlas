@@ -2020,6 +2020,40 @@ def _write_gif(path: Path, frames: Sequence[Tuple[int, int, List[List[int]]]], d
     first.save(path, format="GIF", save_all=True, append_images=rest, duration=duration_ms, loop=0, disposal=2)
 
 
+def _frames_equal(
+    a: Tuple[int, int, List[List[int]]], b: Tuple[int, int, List[List[int]]]
+) -> bool:
+    if a[0] != b[0] or a[1] != b[1]:
+        return False
+    # Compare row data; assume identical structure when equal
+    return a[2] == b[2]
+
+
+def _dedupe_animation_frames(
+    frames: Sequence[Tuple[int, int, List[List[int]]]],
+    base_duration_ms: int,
+) -> Tuple[List[Tuple[int, int, List[List[int]]]], List[int]]:
+    """Collapse consecutive identical frames, accumulating durations.
+
+    Returns a tuple of (deduped_frames, frame_durations_ms).
+    If the input is empty, returns ([], []). If all frames are identical,
+    returns a single frame with duration = base_duration_ms * len(frames).
+    """
+    if not frames:
+        return [], []
+    out_frames: List[Tuple[int, int, List[List[int]]]] = []
+    out_durations: List[int] = []
+    last: Tuple[int, int, List[List[int]]] | None = None
+    for frame in frames:
+        if last is not None and _frames_equal(last, frame):
+            out_durations[-1] = out_durations[-1] + base_duration_ms
+        else:
+            out_frames.append(frame)
+            out_durations.append(base_duration_ms)
+            last = frame
+    return out_frames, out_durations
+
+
 def _compose_sprite_sheet(
     frames: Sequence[Tuple[int, int, List[List[int]]]],
     max_sheet_dimension: Optional[int] = None,
@@ -2371,6 +2405,9 @@ def main() -> None:
         for timer in range(period):
             animated_tiles = _apply_tile_animations(renderer.bank0_tiles, animations, timer)
             frames.append(_render_with_tiles(renderer, animated_tiles, renderer.bank1_tiles))
+        # Deduplicate consecutive identical frames for smaller GIFs
+        if frames:
+            frames, _durations = _dedupe_animation_frames(frames, _GIF_FRAME_DURATION_MS)
         _write_gif(output_target, frames, _GIF_FRAME_DURATION_MS)
         print(f"Wrote {output_target}")
         return
@@ -2402,7 +2439,8 @@ def main() -> None:
     if not frames:
         width, height, rows = _render_with_tiles(renderer, renderer.bank0_tiles, renderer.bank1_tiles)
         frames.append((width, height, rows))
-    frame_durations = [_ANIMATION_FRAME_DURATION_MS for _ in frames]
+    # Deduplicate consecutive identical frames and combine durations
+    frames, frame_durations = _dedupe_animation_frames(frames, _ANIMATION_FRAME_DURATION_MS)
     _write_animation_sheet(metadata_path, image_path, frames, frame_durations, png)
     print(f"Wrote {metadata_path} and {image_path}")
 

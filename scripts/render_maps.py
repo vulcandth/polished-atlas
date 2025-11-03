@@ -87,6 +87,14 @@ def parse_args() -> argparse.Namespace:
         default="process",
         help="Parallelism model to use (process for CPU-bound workloads, thread for legacy behaviour).",
     )
+    parser.add_argument(
+        "--skip-invariant",
+        action="store_true",
+        help=(
+            "Skip rendering time-invariant maps (useful when running multiple times for different time-of-day "
+            "so that common assets are only generated once)."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -143,6 +151,9 @@ def _render_single(
         for timer in range(period):
             animated_tiles = render_map._apply_tile_animations(renderer.bank0_tiles, animations, timer)
             frames.append(render_map._render_with_tiles(renderer, animated_tiles, renderer.bank1_tiles))
+        # Deduplicate consecutive identical frames to reduce output size
+        if frames:
+            frames, _ = render_map._dedupe_animation_frames(frames, render_map._GIF_FRAME_DURATION_MS)
         destination = output_dir / f"{renderer.map_label}.gif"
         render_map._write_gif(destination, frames, render_map._GIF_FRAME_DURATION_MS)
         return map_label, destination
@@ -161,7 +172,10 @@ def _render_single(
         frames.append(render_map._render_with_tiles(renderer, animated_tiles, renderer.bank1_tiles))
     if not frames:
         frames.append(render_map._render_with_tiles(renderer, renderer.bank0_tiles, renderer.bank1_tiles))
-    frame_durations = [render_map._ANIMATION_FRAME_DURATION_MS for _ in frames]
+    # Merge consecutive identical frames and carry their durations forward
+    frames, frame_durations = render_map._dedupe_animation_frames(
+        frames, render_map._ANIMATION_FRAME_DURATION_MS
+    )
     metadata_path = output_dir / f"{renderer.map_label}.animation.json"
     image_path = metadata_path.with_suffix(".png")
     render_map._write_animation_sheet(metadata_path, image_path, frames, frame_durations, png_module)
@@ -277,13 +291,19 @@ def main() -> None:
     repo_index = atlas_common.repository(polished_path)
     invariant_labels = atlas_common.time_invariant_maps(repo_index)
     labels = sorted(repo_index.maps.keys())
+    if args.skip_invariant:
+        labels = [label for label in labels if label not in invariant_labels]
     label_output_dirs: Dict[str, Path] = {
         label: (common_output_dir if label in invariant_labels else output_dir)
         for label in labels
     }
     total = len(labels)
-    invariant_count = sum(1 for label in labels if label in invariant_labels)
-    variant_count = total - invariant_count
+    if args.skip_invariant:
+        invariant_count = 0
+        variant_count = total
+    else:
+        invariant_count = sum(1 for label in labels if label in invariant_labels)
+        variant_count = total - invariant_count
     mode = {
         "gif": "animated GIFs",
         "png": "PNGs",

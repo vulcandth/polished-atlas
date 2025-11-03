@@ -83,3 +83,15 @@ Repository variables can tweak CI without altering the workflow:
   Pillow (`pip install pillow`) and re-run `render_maps.py --format gif`.
 - If Vite build failures mention missing JSON, ensure the Python scripts ran to
   completion and check the timestamps under `maps/`.
+
+### Palette data correctness
+
+- Object/NPC palette values are parsed directly from polishedcrystal `.pal` files
+  (e.g. `gfx/overworld/npc_sprites.pal`). These files express RGB channels on
+  a 0–31 scale and sometimes include leading zeros (e.g. `09`).
+- As of this repo, the generator normalizes these numbers robustly, so `09` is
+  interpreted as decimal 9 (not octal), ensuring accurate conversion to 8-bit
+  RGB using `round(value / 31 * 255)`.
+- If you update upstream palettes, re-run:
+  - `python3 scripts/generate_object_metadata.py` to refresh `maps/object_metadata.json`.
+  - Optionally `./scripts/build_atlas.sh` to rebuild everything end-to-end.

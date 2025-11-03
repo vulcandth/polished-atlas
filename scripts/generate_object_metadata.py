@@ -466,6 +466,32 @@ def convert_gb_rgb(value: int) -> int:
     return max(0, min(255, round((value / 31) * 255)))
 
 
+def _parse_asm_number(text: str) -> int:
+    """Parse a number from ASM palette files robustly.
+
+    Supports the following forms:
+    - Decimal (including leading zeros), e.g. "09", "31"
+    - Hex with $ prefix, e.g. "$1F"
+    - Hex with 0x prefix, e.g. "0x1F"
+    - Binary with % prefix, e.g. "%1010"
+    Falls back to 0 on any error.
+    """
+    s = text.strip()
+    if not s:
+        return 0
+    try:
+        if s.startswith("$"):
+            return int(s[1:], 16)
+        if s.lower().startswith("0x"):
+            return int(s, 16)
+        if s.startswith("%"):
+            return int(s[1:], 2)
+        # Default to base-10 to avoid Python's base-0 octal pitfalls for values like "09".
+        return int(s, 10)
+    except Exception:
+        return 0
+
+
 def _resolve_palette_file(root: Path, relative: str) -> Path:
     candidate = root / relative
     if candidate.exists():
@@ -514,10 +540,7 @@ def parse_time_of_day_palettes(root: Path, names: Sequence[str]) -> Dict[str, Di
             value = part.strip()
             if not value:
                 continue
-            try:
-                numbers.append(int(value, 0))
-            except ValueError:
-                numbers.append(0)
+            numbers.append(_parse_asm_number(value))
         colors: List[List[int]] = []
         for idx in range(0, len(numbers), 3):
             r = convert_gb_rgb(numbers[idx])
@@ -551,10 +574,7 @@ def parse_single_object_palettes(root: Path, names: Sequence[str]) -> Dict[str, 
             value = part.strip()
             if not value:
                 continue
-            try:
-                numbers.append(int(value, 0))
-            except ValueError:
-                numbers.append(0)
+            numbers.append(_parse_asm_number(value))
         colors: List[List[int]] = []
         for idx in range(0, len(numbers), 3):
             colors.append([convert_gb_rgb(numbers[idx]), convert_gb_rgb(numbers[idx + 1]), convert_gb_rgb(numbers[idx + 2])])
@@ -591,10 +611,7 @@ def parse_special_overcast_palettes(root: Path, names: Sequence[str]) -> Dict[st
             value = part.strip()
             if not value:
                 continue
-            try:
-                numbers.append(int(value, 0))
-            except ValueError:
-                numbers.append(0)
+            numbers.append(_parse_asm_number(value))
         colors: List[List[int]] = []
         for idx in range(0, len(numbers), 3):
             colors.append([convert_gb_rgb(numbers[idx]), convert_gb_rgb(numbers[idx + 1]), convert_gb_rgb(numbers[idx + 2])])
@@ -624,10 +641,7 @@ def parse_darkness_palettes(root: Path, names: Sequence[str]) -> Dict[str, List[
             value = part.strip()
             if not value:
                 continue
-            try:
-                numbers.append(int(value, 0))
-            except ValueError:
-                numbers.append(0)
+            numbers.append(_parse_asm_number(value))
         colors: List[List[int]] = []
         for idx in range(0, len(numbers), 3):
             colors.append([convert_gb_rgb(numbers[idx]), convert_gb_rgb(numbers[idx + 1]), convert_gb_rgb(numbers[idx + 2])])

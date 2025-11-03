@@ -32,6 +32,8 @@ Environment variables (prefixed with `VITE_`) can be provided via `.env` files o
 - `VITE_CONNECTION_GRAPH_URL`: Path or URL to the JSON produced by `generate_map_connections.py`. Defaults to `/maps/day/animated/NewBarkTown_connections.json`.
 - `VITE_ROOT_MAP`: Override the root label used when building the atlas layout. Defaults to `NewBarkTown`.
 - `VITE_NEIGHBORHOOD_MANIFEST_URL`: Override the manifest URL. When provided, time-of-day selection in the UI is disabled and the supplied manifest is used as-is.
+- `VITE_POLISHED_CRYSTAL_VERSION`: Upstream Polished Crystal version string displayed in the UI (e.g., `v3.2.0`).
+- `VITE_POLISHED_ATLAS_VERSION`: Atlas build/version identifier appended as a cache-busting query parameter to JSON and image asset URLs. When this changes, browsers will fetch fresh assets.
 
 ## Notes
 

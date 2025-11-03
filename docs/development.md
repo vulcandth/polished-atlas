@@ -13,7 +13,8 @@
      `day,morn,nite,eve`). The legacy `TIME_OF_DAY` variable remains supported
      for single entries.
    - `WEEKDAY` – game weekday (0–6) for weather-dependent renders.
-   - `VITE_POLISHED_VERSION` – string surfaced in the UI (default `v3.2.0`).
+  - `VITE_POLISHED_CRYSTAL_VERSION` – upstream version string shown in the UI (default `v3.2.0`).
+  - `VITE_POLISHED_ATLAS_VERSION` – atlas build identifier used for cache-busting asset URLs.
 3. Execute `./scripts/build_atlas.sh`.
    - Renders sprite sheets for every map across the requested time-of-day
      palettes.
@@ -70,7 +71,8 @@ Repository variables can tweak CI without altering the workflow:
 - `TIME_OF_DAY_SET`
 - `TIME_OF_DAY`
 - `WEEKDAY`
-- `VITE_POLISHED_VERSION`
+- `VITE_POLISHED_CRYSTAL_VERSION`
+- `VITE_POLISHED_ATLAS_VERSION`
 
 ## Troubleshooting
 

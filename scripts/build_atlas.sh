@@ -14,7 +14,17 @@ TIME_OF_DAY_LIST="${TIME_OF_DAY_LIST_ENV:-day,morn,nite,eve}"
 WEEKDAY="${WEEKDAY:-1}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 NODE_BIN="${NODE_BIN:-npm}"
-VITE_POLISHED_VERSION="${VITE_POLISHED_VERSION:-v3.2.0}"
+# Web app versioning
+# Upstream polishedcrystal version (for UI display only)
+VITE_POLISHED_CRYSTAL_VERSION="${VITE_POLISHED_CRYSTAL_VERSION:-${VITE_POLISHED_VERSION:-v3.2.0}}"
+# Polished Atlas app version (for cache-busting). Use provided value, else git describe/commit, else timestamp.
+if [[ -z "${VITE_POLISHED_ATLAS_VERSION:-}" ]]; then
+  if command -v git >/dev/null 2>&1; then
+    VITE_POLISHED_ATLAS_VERSION=$(git -C "${ROOT_DIR}" describe --tags --always 2>/dev/null || git -C "${ROOT_DIR}" rev-parse --short HEAD 2>/dev/null || date +%Y%m%d%H%M%S)
+  else
+    VITE_POLISHED_ATLAS_VERSION=$(date +%Y%m%d%H%M%S)
+  fi
+fi
 
 log() {
   printf '[build-atlas] %s\n' "$1"
@@ -147,10 +157,11 @@ run_generators() {
 }
 
 build_web_bundle() {
-  export VITE_POLISHED_VERSION
+  export VITE_POLISHED_CRYSTAL_VERSION
+  export VITE_POLISHED_ATLAS_VERSION
   log "Installing web dependencies"
   "${NODE_BIN}" --prefix "${ROOT_DIR}/web/atlas" ci
-  log "Building web bundle (polishedcrystal ${VITE_POLISHED_VERSION})"
+  log "Building web bundle (polishedcrystal ${VITE_POLISHED_CRYSTAL_VERSION}, atlas ${VITE_POLISHED_ATLAS_VERSION})"
   "${NODE_BIN}" --prefix "${ROOT_DIR}/web/atlas" run build
 
   local dist_dir="${ROOT_DIR}/web/atlas/dist"

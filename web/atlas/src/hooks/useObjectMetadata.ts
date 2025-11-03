@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { joinBasePath, withBasePath } from "@/lib/basePath";
+import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
 import type {
   MapObjectMetadataEntry,
   ObjectEventEntry,
@@ -475,17 +475,17 @@ function resolveObjectMetadataUrl(): string {
     ? import.meta.env.VITE_OBJECT_METADATA_URL.trim()
     : "";
   if (override) {
-    return withBasePath(override);
+    return withVersion(withBasePath(override));
   }
   if (import.meta.env.DEV) {
     const repoRoot = typeof __REPO_ROOT__ === "string" ? __REPO_ROOT__ : "";
     if (repoRoot && typeof window !== "undefined" && window.location?.origin) {
       const raw = `${repoRoot}/maps/object_metadata.json`.replace(/\\/g, "/");
       const withSlash = raw.startsWith("/") ? raw : `/${raw}`;
-      return `${window.location.origin}/@fs${encodeURI(withSlash)}`;
+      return withVersion(`${window.location.origin}/@fs${encodeURI(withSlash)}`);
     }
   }
-  return joinBasePath("maps", "object_metadata.json");
+  return withVersion(joinBasePath("maps", "object_metadata.json"));
 }
 
 interface UseObjectMetadataResult {
@@ -504,7 +504,7 @@ export function useObjectMetadata(url?: string): UseObjectMetadataResult {
   const resolvedUrl = useMemo(() => {
     const provided = typeof url === "string" && url.trim().length > 0 ? url.trim() : null;
     if (provided) {
-      return withBasePath(provided);
+      return withVersion(withBasePath(provided));
     }
     return resolveObjectMetadataUrl();
   }, [url]);

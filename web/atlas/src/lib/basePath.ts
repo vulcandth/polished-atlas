@@ -88,3 +88,23 @@ export function joinBasePath(...segments: PathInput[]): string {
   }
   return `${PUBLIC_BASE_PATH}${joined}`;
 }
+
+// Append cache-busting version query parameter to a URL if configured.
+// If a query parameter named "v" already exists, it will be replaced.
+export function withVersion(url: string): string {
+  const version = (import.meta as any)?.env?.VITE_POLISHED_ATLAS_VERSION as string | undefined;
+  const trimmed = typeof version === "string" ? version.trim() : "";
+  if (!trimmed) {
+    return url;
+  }
+  try {
+    const base = typeof window !== "undefined" && window.location?.href ? window.location.href : "http://local/";
+    const u = new URL(url, base);
+    u.searchParams.set("v", trimmed);
+    return u.toString();
+  } catch {
+    const sep = url.includes("?") ? "&" : "?";
+    const encoded = encodeURIComponent(trimmed);
+    return `${url}${sep}v=${encoded}`;
+  }
+}

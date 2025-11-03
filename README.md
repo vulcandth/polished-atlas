@@ -44,7 +44,8 @@ Environment overrides:
 	Defaults to `day,morn,nite,eve` (all palettes). The legacy `TIME_OF_DAY`
 	variable remains supported as a shorthand for single entries.
 - `WEEKDAY` – game weekday (0–6) used for weather-dependent renders.
-- `VITE_POLISHED_VERSION` – string exposed in the web UI (defaults to `v3.2.0`).
+- `VITE_POLISHED_CRYSTAL_VERSION` – upstream polishedcrystal version string shown in the UI (defaults to `v3.2.0`).
+- `VITE_POLISHED_ATLAS_VERSION` – atlas build/version identifier used for cache-busting asset URLs (optional).
 
 The script performs the following steps:
 
@@ -53,7 +54,7 @@ The script performs the following steps:
 2. Generate neighborhood connection manifests for each rendered palette.
 3. Extract warp metadata for every map.
 4. Run `npm ci` and `npm run build` inside `web/atlas/` to produce `dist/` with
-	the upstream version injected into the UI.
+	the upstream polishedcrystal version injected into the UI and an atlas version used for cache-busting.
 
 See `docs/development.md` for deeper operational guidance and troubleshooting
 tips.

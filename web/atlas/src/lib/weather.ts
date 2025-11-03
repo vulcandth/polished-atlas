@@ -1,6 +1,6 @@
 import { Container, Graphics, Sprite, Texture, Application, BaseTexture, SCALE_MODES } from "pixi.js";
 import { decodeBase64 } from "@/lib/base64";
-import { joinBasePath, withBasePath } from "@/lib/basePath";
+import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
 
 export type WeatherType = "none" | "rain" | "thunderstorm" | "snow" | "sandstorm";
 
@@ -69,24 +69,24 @@ export class WeatherSystem {
       ? ((import.meta as any).env.VITE_WEATHER_METADATA_URL as string).trim()
       : "";
     if (override) {
-      return withBasePath(override);
+      return withVersion(withBasePath(override));
     }
     if (import.meta && (import.meta as any).env?.DEV) {
       const repoRoot = typeof (globalThis as any).__REPO_ROOT__ === "string" ? (globalThis as any).__REPO_ROOT__ : (typeof __REPO_ROOT__ === "string" ? __REPO_ROOT__ : "");
       if (repoRoot && typeof window !== "undefined" && window.location?.origin) {
         const raw = `${repoRoot}/maps/weather_metadata.json`.replace(/\\/g, "/");
         const withSlash = raw.startsWith("/") ? raw : `/${raw}`;
-        return `${window.location.origin}/@fs${encodeURI(withSlash)}`;
+        return withVersion(`${window.location.origin}/@fs${encodeURI(withSlash)}`);
       }
     }
-    return joinBasePath("maps", "weather_metadata.json");
+    return withVersion(joinBasePath("maps", "weather_metadata.json"));
   }
 
   private static async ensureAssets(): Promise<void> {
     if (this._assetLoad) return this._assetLoad;
     this._assetLoad = (async () => {
       // Load generated weather metadata (tiles + palettes)
-      const url = this.resolveWeatherMetadataUrl();
+  const url = this.resolveWeatherMetadataUrl();
       const res = await fetch(url, { cache: "no-cache" });
       if (!res.ok) throw new Error(`Failed to load weather_metadata.json: ${res.status}`);
       const json = await res.json();

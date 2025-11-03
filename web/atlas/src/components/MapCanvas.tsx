@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type React from "react";
 import { Application, Container, AnimatedSprite, FederatedPointerEvent, Assets, Graphics, Sprite, Texture } from "pixi.js";
 import { WeatherSystem } from "@/lib/weather";
-import { joinBasePath, withBasePath } from "@/lib/basePath";
+import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
 import {
   AtlasLayout,
   MapPlacement,
@@ -2259,17 +2259,17 @@ export default function MapCanvas({
       ? import.meta.env.VITE_WEATHER_STATE_URL.trim()
       : "";
     if (override) {
-      return withBasePath(override);
+      return withVersion(withBasePath(override));
     }
     if (import.meta.env.DEV) {
       const repoRoot = typeof __REPO_ROOT__ === "string" ? __REPO_ROOT__ : "";
       if (repoRoot && typeof window !== "undefined" && window.location?.origin) {
         const raw = `${repoRoot}/maps/weather_state.json`.replace(/\\/g, "/");
         const withSlash = raw.startsWith("/") ? raw : `/${raw}`;
-        return `${window.location.origin}/@fs${encodeURI(withSlash)}`;
+        return withVersion(`${window.location.origin}/@fs${encodeURI(withSlash)}`);
       }
     }
-    return joinBasePath("maps", "weather_state.json");
+    return withVersion(joinBasePath("maps", "weather_state.json"));
   }, []);
 
   useEffect(() => {

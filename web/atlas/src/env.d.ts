@@ -4,15 +4,15 @@ declare interface ImportMetaEnv {
   readonly VITE_CONNECTION_GRAPH_URL?: string;
   readonly VITE_ROOT_MAP?: string;
   readonly VITE_NEIGHBORHOOD_MANIFEST_URL?: string;
+  readonly VITE_POLISHED_CRYSTAL_VERSION?: string;
+  readonly VITE_POLISHED_ATLAS_VERSION?: string;
   readonly VITE_ATLAS_TIME?: string;
   readonly VITE_WARP_METADATA_URL?: string;
   readonly VITE_PUBLIC_BASE?: string;
-  readonly VITE_POLISHED_VERSION?: string;
 }
 
 declare interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
-
-declare const __REPO_ROOT__: string;
 declare const __PUBLIC_BASE__: string;
+declare const __REPO_ROOT__: string;

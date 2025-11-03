@@ -1,5 +1,6 @@
 import { Assets, BaseTexture, Rectangle, Texture } from "pixi.js";
 import type { MapAnimationMetadata } from "@/types";
+import { withVersion } from "@/lib/basePath";
 
 export interface MapAnimationResource {
   textures: Texture[];
@@ -38,8 +39,8 @@ export async function loadMapAnimation(assetUrl: string): Promise<MapAnimationRe
     attemptedUrls.push(candidate);
     try {
       const { metadata, responseUrl } = await fetchAnimationMetadata(candidate);
-      const baseHref = new URL(responseUrl, window.location.href);
-      const resolvedImageUrl = new URL(metadata.image, baseHref).toString();
+  const baseHref = new URL(responseUrl, window.location.href);
+  const resolvedImageUrl = withVersion(new URL(metadata.image, baseHref).toString());
       await Assets.load(resolvedImageUrl);
       const baseTexture = BaseTexture.from(resolvedImageUrl);
       const textures: Texture[] = [];

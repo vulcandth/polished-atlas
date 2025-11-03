@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { joinBasePath, withBasePath } from "@/lib/basePath";
+import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
 import type { BgPalettesMapEntry, BgPalettesMetadata, BgPalettesPayloadDTO, RgbTuple } from "@/types";
 
 interface UseBgPalettesOptions {
@@ -66,17 +66,17 @@ function convertPayload(dto: BgPalettesPayloadDTO): BgPalettesMetadata {
 export function resolveBgPalettesUrl(): string {
   const override = toStringOrNull(import.meta.env.VITE_BG_PALETTE_METADATA_URL);
   if (override) {
-    return withBasePath(override);
+    return withVersion(withBasePath(override));
   }
   if (import.meta.env.DEV) {
     const repoRoot = typeof __REPO_ROOT__ === "string" ? __REPO_ROOT__ : "";
     if (repoRoot && typeof window !== "undefined" && window.location?.origin) {
       const raw = `${repoRoot}/maps/bg_palette_metadata.json`.replace(/\\/g, "/");
       const withSlash = raw.startsWith("/") ? raw : `/${raw}`;
-      return `${window.location.origin}/@fs${encodeURI(withSlash)}`;
+      return withVersion(`${window.location.origin}/@fs${encodeURI(withSlash)}`);
     }
   }
-  return joinBasePath("maps", "bg_palette_metadata.json");
+  return withVersion(joinBasePath("maps", "bg_palette_metadata.json"));
 }
 
 export function useBgPalettes(options: UseBgPalettesOptions = {}): UseBgPalettesResult {

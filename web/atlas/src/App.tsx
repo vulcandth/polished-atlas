@@ -4,7 +4,7 @@ import { useAtlasData } from "@/hooks/useAtlasData";
 import { useObjectMetadata } from "@/hooks/useObjectMetadata";
 import { useWarpMetadata } from "@/hooks/useWarpMetadata";
 import { useBgPalettes } from "@/hooks/useBgPalettes";
-import { joinBasePath, withBasePath } from "@/lib/basePath";
+import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
 import type { NeighborhoodSummary } from "@/types";
 
 const DEFAULT_ROOT = import.meta.env.VITE_ROOT_MAP ?? "NewBarkTown";
@@ -48,7 +48,7 @@ function writePerfSettings(next: PerfSettingsState): void {
 }
 
 const POLISHED_VERSION = (() => {
-  const raw = import.meta.env.VITE_POLISHED_VERSION;
+  const raw = import.meta.env.VITE_POLISHED_CRYSTAL_VERSION;
   if (typeof raw === "string") {
     const trimmed = raw.trim();
     if (trimmed.length > 0) {
@@ -127,17 +127,17 @@ function isInteractiveTarget(target: EventTarget | null): boolean {
 
 function manifestUrlForSlug(timeSlug: TimeOfDaySlug): string {
   if (MANIFEST_OVERRIDE) {
-    return withBasePath(MANIFEST_OVERRIDE);
+    return withVersion(withBasePath(MANIFEST_OVERRIDE));
   }
   if (import.meta.env.DEV) {
     const repoRoot = typeof __REPO_ROOT__ === "string" ? __REPO_ROOT__ : "";
     if (repoRoot && typeof window !== "undefined" && window.location?.origin) {
       const rawPath = `${repoRoot}/maps/${timeSlug}/animated/map_neighborhoods.json`.replace(/\\/g, "/");
       const withLeadingSlash = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
-      return `${window.location.origin}/@fs${encodeURI(withLeadingSlash)}`;
+      return withVersion(`${window.location.origin}/@fs${encodeURI(withLeadingSlash)}`);
     }
   }
-  return joinBasePath("maps", timeSlug, "animated", "map_neighborhoods.json");
+  return withVersion(joinBasePath("maps", timeSlug, "animated", "map_neighborhoods.json"));
 }
 
 function deriveDataSources(timeSlug: TimeOfDaySlug): {
@@ -197,7 +197,7 @@ export default function App() {
   const assetResolver = useMemo(() => {
     const fallback = (rawLabel: string): string => {
       const trimmed = rawLabel.trim();
-      return joinBasePath("maps", timeOfDay, "animated", `${trimmed}.animation.json`);
+      return withVersion(joinBasePath("maps", timeOfDay, "animated", `${trimmed}.animation.json`));
     };
     if (!layout?.placements?.length) {
       return fallback;
@@ -245,13 +245,13 @@ export default function App() {
     const resolveAsset = (rawAsset: string): string => {
       const normalised = rawAsset.replace(/\\/g, "/");
       if (/\/maps\/common\/animated\//.test(normalised)) {
-        return withBasePath(normalised);
+        return withVersion(withBasePath(normalised));
       }
       const rewritten = rewriteWithSlug(normalised, timeOfDay);
       if (rewritten) {
-        return withBasePath(rewritten);
+        return withVersion(withBasePath(rewritten));
       }
-      return withBasePath(normalised);
+      return withVersion(withBasePath(normalised));
     };
 
     return (mapLabel: string): string => {
@@ -262,7 +262,7 @@ export default function App() {
       if (templateAsset && trimmedLabel.length > 0) {
         const rewritten = rewriteWithLabel(templateAsset, timeOfDay, trimmedLabel);
         if (rewritten) {
-          return withBasePath(rewritten);
+          return withVersion(withBasePath(rewritten));
         }
       }
       return fallback(trimmedLabel);

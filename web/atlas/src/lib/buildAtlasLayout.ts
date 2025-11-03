@@ -1,4 +1,5 @@
 import { AtlasLayout, ConnectionDTO, ConnectionDirection, ConnectionGraphDTO, MapPlacement } from "@/types";
+import { withVersion } from "@/lib/basePath";
 
 const DEFAULT_BLOCK_PIXEL_SIZE = 32;
 
@@ -205,15 +206,15 @@ function resolveAssetHref(asset: string, baseHref?: string): string {
       const prefixLength = timeSpecificMatch[0].length;
       if (normalizedBase.includes(`/maps/${slug}/animated/`)) {
         const relativePath = trimmed.slice(prefixLength);
-        return new URL(relativePath, normalizedBase).toString();
+        return withVersion(new URL(relativePath, normalizedBase).toString());
       }
       if (typeof window !== "undefined" && window.location?.origin) {
-        return new URL(trimmed, window.location.origin).toString();
+        return withVersion(new URL(trimmed, window.location.origin).toString());
       }
-      return trimmed;
+      return withVersion(trimmed);
     }
-    return new URL(trimmed, normalizedBase).toString();
+    return withVersion(new URL(trimmed, normalizedBase).toString());
   } catch {
-    return trimmed;
+    return withVersion(trimmed);
   }
 }

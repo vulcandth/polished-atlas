@@ -268,7 +268,7 @@ function clampScale(value: number): number {
 
 registerPixiExtensions();
 
-function disposeAnimationResource(resource: MapAnimationResource | null | undefined): void {
+function disposeAnimationResource(resource: MapAnimationResource | null | undefined, options?: { unload?: boolean }): void {
   if (!resource) {
     return;
   }
@@ -283,8 +283,13 @@ function disposeAnimationResource(resource: MapAnimationResource | null | undefi
       /* ignore individual texture destroy issues */
     }
   }
-  // Then, unload via Assets which will properly destroy the BaseTexture it manages.
-  void Assets.unload(resource.imageUrl);
+  // Optionally unload via Assets which will destroy the BaseTexture it manages.
+  // NOTE: Only use unload for short-lived overlay assets; for world map sprites, multiple
+  // instances share the same BaseTexture by URL and unloading can de-texture currently
+  // visible sprites.
+  if (options?.unload) {
+    void Assets.unload(resource.imageUrl);
+  }
 }
 
 function rendererOn(app: Application | null, event: string, handler: (...args: any[]) => void): void {
@@ -1583,6 +1588,41 @@ export default function MapCanvas({
   const objectCacheSourceRef = useRef<ObjectMetadata | null>(null);
   const [ready, setReady] = useState(false);
 
+  // Tooltip DOM element for item/key/TM/HM balls
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const tooltipPinnedRef = useRef(false);
+
+  useEffect(() => {
+    const el = document.createElement("div");
+    el.className = "pa-item-tooltip";
+    el.style.display = "none";
+    el.setAttribute("role", "tooltip");
+    document.body.appendChild(el);
+    tooltipRef.current = el;
+    return () => {
+      try { if (el.parentNode) el.parentNode.removeChild(el); } catch { /* ignore */ }
+      tooltipRef.current = null;
+    };
+  }, []);
+
+  const showTooltip = (html: string, clientX: number, clientY: number, pinned = false) => {
+    const el = tooltipRef.current;
+    if (!el) return;
+    el.innerHTML = html;
+    el.style.display = "block";
+    el.style.left = `${Math.max(8, clientX + 12)}px`;
+    el.style.top = `${Math.max(8, clientY + 12)}px`;
+    tooltipPinnedRef.current = Boolean(pinned);
+  };
+
+  const hideTooltip = (force = false) => {
+    const el = tooltipRef.current;
+    if (!el) return;
+    if (tooltipPinnedRef.current && !force) return;
+    el.style.display = "none";
+    tooltipPinnedRef.current = false;
+  };
+
   // Performance toggles
   const initialPerf = readPerfSettings();
   const [disableMapAnimations, setDisableMapAnimations] = useState<boolean>(initialPerf.disableMapAnimations);
@@ -1672,7 +1712,6 @@ export default function MapCanvas({
   useEffect(() => {
     offsetOverridesRef.current = offsetOverrides ?? {};
   }, [offsetOverrides]);
-
   useEffect(() => {
     zOverridesRef.current = zOverrides ?? {};
   }, [zOverrides]);
@@ -2512,9 +2551,10 @@ export default function MapCanvas({
       if (!baseFrame || !frameSet) {
         continue;
       }
-      const spriteInstance = new Sprite(baseFrame.texture);
-      spriteInstance.eventMode = "none";
-      spriteInstance.cursor = "auto";
+  const spriteInstance = new Sprite(baseFrame.texture);
+  // Default to not interactive unless it's a clickable object
+  spriteInstance.eventMode = "none";
+  spriteInstance.cursor = "auto";
       const { x: baseX, y: baseY } = computeObjectPosition(objectEntry, placementContext);
       const offsetX = baseFrame.offsetX * pixelScale;
       const offsetY = baseFrame.offsetY * pixelScale;
@@ -2522,6 +2562,45 @@ export default function MapCanvas({
       spriteInstance.y = baseY + offsetY;
       spriteInstance.scale.set(pixelScale);
       container.addChild(spriteInstance);
+      // If this object is an item/key/TM/HM ball, enable pointer interactions and show tooltip
+      try {
+        const macro = objectEntry.macro ?? "";
+        const isBall = macro === "itemball_event" || macro === "keyitemball_event" || macro === "tmhmball_event";
+        if (isBall) {
+          spriteInstance.eventMode = "static";
+          spriteInstance.cursor = editing ? "not-allowed" : "pointer";
+          const label = (objectEntry.extra && (objectEntry.extra["item"] as string)) || objectEntry.script?.argument || "Item";
+          spriteInstance.on("pointerover", (ev: FederatedPointerEvent) => {
+            if (editing) return;
+            const x = (ev as any).clientX ?? window.innerWidth / 2;
+            const y = (ev as any).clientY ?? window.innerHeight / 2;
+            showTooltip(`<strong>${String(label)}</strong>`, x, y, false);
+          });
+          spriteInstance.on("pointermove", (ev: FederatedPointerEvent) => {
+            if (editing) return;
+            const x = (ev as any).clientX;
+            const y = (ev as any).clientY;
+            if (typeof x !== "number" || typeof y !== "number") return;
+            showTooltip(`<strong>${String(label)}</strong>`, x, y, tooltipPinnedRef.current);
+          });
+          spriteInstance.on("pointerout", () => {
+            hideTooltip();
+          });
+          spriteInstance.on("pointertap", (ev: FederatedPointerEvent) => {
+            ev.stopPropagation();
+            const x = (ev as any).clientX ?? window.innerWidth / 2;
+            const y = (ev as any).clientY ?? window.innerHeight / 2;
+            // Toggle pinned state
+            if (tooltipPinnedRef.current) {
+              hideTooltip(true);
+            } else {
+              showTooltip(`<strong>${String(label)}</strong><div style="margin-top:6px;font-size:12px;opacity:0.85;">Tap again to close</div>`, x, y, true);
+            }
+          });
+        }
+      } catch {
+        /* ignore tooltip wiring failures */
+      }
       const movementSummary = disableObjectAnimations ? null : computeMovementSummaryForObject(objectEntry, state.collisionHelper);
       let animator = disableObjectAnimations ? null : createMovementAnimator(movementSummary, objectEntry, frameSet);
       if (!disableObjectAnimations && !animator && spriteKey === "SPRITE_MON_ICON" && iconFrameDurationMs) {
@@ -2596,7 +2675,7 @@ export default function MapCanvas({
       }
       // Fast path: if the requested overlay is already open for this map, reuse it
       const existing = overlayStateRef.current;
-      if (existing && existing.mapLabel === mapLabel) {
+    if (existing && existing.mapLabel === mapLabel) {
         overlay.visible = true;
         const world = worldRef.current;
         if (world) world.visible = false;
@@ -2634,12 +2713,12 @@ export default function MapCanvas({
       try {
         const resource = await loadMapAnimation(assetUrl);
         if (overlayTokenRef.current !== token) {
-          disposeAnimationResource(resource);
+          disposeAnimationResource(resource, { unload: true });
           return;
         }
         closeOverlay();
         if (!overlayRef.current) {
-          disposeAnimationResource(resource);
+          disposeAnimationResource(resource, { unload: true });
           return;
         }
         const background = new Graphics();
@@ -2664,9 +2743,10 @@ export default function MapCanvas({
         overlay.addChild(background);
         overlay.addChild(sprite);
 
-        const objectContainer = new Container();
-        objectContainer.eventMode = "none";
-        objectContainer.interactiveChildren = false;
+  const objectContainer = new Container();
+  // Make container interactive so children can receive pointer events
+  objectContainer.eventMode = "static";
+  objectContainer.interactiveChildren = true;
         objectContainer.zIndex = 5;
         sprite.addChild(objectContainer);
 
@@ -3091,9 +3171,10 @@ export default function MapCanvas({
 
       let container = entry.objectContainer;
       if (!container) {
-        container = new Container();
-        container.eventMode = "none";
-        container.interactiveChildren = false;
+  container = new Container();
+  // Make container participate in hit testing so children can receive pointer events
+  container.eventMode = "static";
+  container.interactiveChildren = true;
         container.zIndex = 5;
         entry.sprite.addChild(container);
         entry.objectContainer = container;
@@ -3186,6 +3267,44 @@ export default function MapCanvas({
         sprite.y = baseY + offsetY;
         sprite.scale.set(pixelScale);
         container.addChild(sprite);
+        // If this object is an item/key/TM/HM ball, enable pointer interactions and show tooltip
+        try {
+          const macro = objectEntry.macro ?? "";
+          const isBall = macro === "itemball_event" || macro === "keyitemball_event" || macro === "tmhmball_event";
+          if (isBall) {
+            sprite.eventMode = "static";
+            sprite.cursor = editing ? "not-allowed" : "pointer";
+            const label = (objectEntry.extra && (objectEntry.extra["item"] as string)) || objectEntry.script?.argument || "Item";
+            sprite.on("pointerover", (ev: FederatedPointerEvent) => {
+              if (editing) return;
+              const x = (ev as any).clientX ?? window.innerWidth / 2;
+              const y = (ev as any).clientY ?? window.innerHeight / 2;
+              showTooltip(`<strong>${String(label)}</strong>`, x, y, false);
+            });
+            sprite.on("pointermove", (ev: FederatedPointerEvent) => {
+              if (editing) return;
+              const x = (ev as any).clientX;
+              const y = (ev as any).clientY;
+              if (typeof x !== "number" || typeof y !== "number") return;
+              showTooltip(`<strong>${String(label)}</strong>`, x, y, tooltipPinnedRef.current);
+            });
+            sprite.on("pointerout", () => {
+              hideTooltip();
+            });
+            sprite.on("pointertap", (ev: FederatedPointerEvent) => {
+              ev.stopPropagation();
+              const x = (ev as any).clientX ?? window.innerWidth / 2;
+              const y = (ev as any).clientY ?? window.innerHeight / 2;
+              if (tooltipPinnedRef.current) {
+                hideTooltip(true);
+              } else {
+                showTooltip(`<strong>${String(label)}</strong><div style="margin-top:6px;font-size:12px;opacity:0.85;">Tap again to close</div>`, x, y, true);
+              }
+            });
+          }
+        } catch {
+          /* ignore tooltip wiring failures */
+        }
         const movementSummary = disableObjectAnimations ? null : computeMovementSummaryForObject(objectEntry, entry.collisionHelper);
         let animator = disableObjectAnimations ? null : createMovementAnimator(movementSummary, objectEntry, frameSet);
         if (!disableObjectAnimations && !animator && spriteKey === "SPRITE_MON_ICON" && iconFrameDurationMs) {
@@ -3487,7 +3606,9 @@ export default function MapCanvas({
           marker.graphic.destroy();
         }
         entry.warpMarkers = [];
-        disposeAnimationResource(entry.resource);
+        // Do NOT unload via Assets here; multiple entries share the same BaseTexture by URL
+        // and unloading can nuke textures still in use.
+        disposeAnimationResource(entry.resource, { unload: false });
       }
     };
 
@@ -3560,10 +3681,11 @@ export default function MapCanvas({
       try {
         const resource = await loadMapAnimation(placement.asset);
         if (cancelled) {
-          disposeAnimationResource(resource);
+          // Cancelled world load: do not unload, just discard wrapper textures
+          disposeAnimationResource(resource, { unload: false });
           return null;
         }
-        const sprite = new AnimatedSprite(resource.textures);
+  const sprite = new AnimatedSprite(resource.textures);
         sprite.loop = true;
         sprite.autoUpdate = false;
         sprite.animationSpeed = 0;
@@ -3571,7 +3693,8 @@ export default function MapCanvas({
         sprite.x = placement.x;
         sprite.y = placement.y;
         sprite.eventMode = "static";
-        sprite.cursor = "pointer";
+  // Only show pointer on truly clickable UI (e.g., warps, items). Default to auto for maps.
+  sprite.cursor = "auto";
         sprite.sortableChildren = true;
         const neighborhoodId = typeof placement.metadata?.neighborhoodId === "string" ? placement.metadata.neighborhoodId : null;
         const neighborhoodZ = placement.metadata?.neighborhoodZ ?? 0;
@@ -3581,6 +3704,8 @@ export default function MapCanvas({
         sprite.zIndex = neighborhoodZ * 1_000_000 + localMapZ * 1_000 + index;
         world.addChild(sprite);
         world.sortChildren();
+  // In static mode, force a render after adding each map sprite so cached textures appear immediately
+  maybeRender();
         const collisionMeta = getCollisionMetadata(placement.label);
         const permissions = warpMetadataRef.current?.collisionPermissions ?? null;
         const collisionHelper = createCollisionHelper(collisionMeta, permissions);
@@ -3648,6 +3773,20 @@ export default function MapCanvas({
           // Ensure ticker mode matches current settings and render once in static mode
           updateTickerMode();
           maybeRender();
+          // Fallback: when in full static mode, request one more render on the next frame to
+          // cover cases where textures were ready from cache but not uploaded before the first draw.
+          if (disableMapAnimations && disableObjectAnimations) {
+            try {
+              if (typeof window !== "undefined") {
+                window.requestAnimationFrame(() => {
+                  const inst = appRef.current;
+                  if (inst) {
+                    try { inst.render(); } catch { /* ignore */ }
+                  }
+                });
+              }
+            } catch { /* ignore */ }
+          }
         }
       });
 
@@ -3918,10 +4057,13 @@ export default function MapCanvas({
 
     for (const entry of entries) {
       const sprite = entry.sprite;
-      sprite.off("pointerdown", handlePointerDown);
+      if (sprite && typeof (sprite as any).off === "function") {
+        try { sprite.off("pointerdown", handlePointerDown); } catch { /* ignore */ }
+      }
       if (!editingEnabled || !entry.neighborhoodId) {
         sprite.eventMode = "static";
-        sprite.cursor = "pointer";
+        // Default to auto cursor on maps when not actively draggable
+        sprite.cursor = "auto";
         continue;
       }
       sprite.eventMode = "static";
@@ -3932,33 +4074,39 @@ export default function MapCanvas({
       });
     }
 
-    const stage = app.stage;
-    stage.off("pointermove", handleStagePointerMove);
-    stage.off("pointerup", handleStagePointerUp);
-    stage.off("pointerupoutside", handleStagePointerUp);
-    stage.off("pointercancel", handleStagePointerUp);
+    const stage = app.stage as any;
+    if (stage && typeof stage.off === "function") {
+      try { stage.off("pointermove", handleStagePointerMove); } catch { /* ignore */ }
+      try { stage.off("pointerup", handleStagePointerUp); } catch { /* ignore */ }
+      try { stage.off("pointerupoutside", handleStagePointerUp); } catch { /* ignore */ }
+      try { stage.off("pointercancel", handleStagePointerUp); } catch { /* ignore */ }
+    }
 
     if (editingEnabled) {
-      stage.on("pointermove", handleStagePointerMove);
-      stage.on("pointerup", handleStagePointerUp);
-      stage.on("pointerupoutside", handleStagePointerUp);
-      stage.on("pointercancel", handleStagePointerUp);
+      if (stage && typeof stage.on === "function") {
+        try { stage.on("pointermove", handleStagePointerMove); } catch { /* ignore */ }
+        try { stage.on("pointerup", handleStagePointerUp); } catch { /* ignore */ }
+        try { stage.on("pointerupoutside", handleStagePointerUp); } catch { /* ignore */ }
+        try { stage.on("pointercancel", handleStagePointerUp); } catch { /* ignore */ }
+      }
       detach.push(() => {
-        stage.off("pointermove", handleStagePointerMove);
-        stage.off("pointerup", handleStagePointerUp);
-        stage.off("pointerupoutside", handleStagePointerUp);
-        stage.off("pointercancel", handleStagePointerUp);
+        if (stage && typeof stage.off === "function") {
+          try { stage.off("pointermove", handleStagePointerMove); } catch { /* ignore */ }
+          try { stage.off("pointerup", handleStagePointerUp); } catch { /* ignore */ }
+          try { stage.off("pointerupoutside", handleStagePointerUp); } catch { /* ignore */ }
+          try { stage.off("pointercancel", handleStagePointerUp); } catch { /* ignore */ }
+        }
       });
     }
 
     return () => {
       for (const entry of entries) {
-        entry.sprite.cursor = "pointer";
+        entry.sprite.cursor = "auto";
       }
       detach.forEach((fn) => fn());
       const state = editDragStateRef.current;
       if (state) {
-        state.sprite.cursor = "pointer";
+        state.sprite.cursor = "auto";
         editDragStateRef.current = null;
         if (canvas && typeof canvas.releasePointerCapture === "function" && Number.isFinite(state.pointerId) && canvas.hasPointerCapture(state.pointerId)) {
           try {

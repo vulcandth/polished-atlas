@@ -98,7 +98,10 @@ export function withVersion(url: string): string {
     return url;
   }
   try {
-    const base = typeof window !== "undefined" && window.location?.href ? window.location.href : "http://local/";
+    const base =
+      typeof window !== "undefined" && window.location?.href
+        ? window.location.href
+        : "http://local/";
     const u = new URL(url, base);
     u.searchParams.set("v", trimmed);
     return u.toString();

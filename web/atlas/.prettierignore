@@ -1,0 +1,10 @@
+dist/
+node_modules/
+coverage/
+*.png
+*.jpg
+*.gif
+*.webp
+*.svg
+*.json
+package-lock.json

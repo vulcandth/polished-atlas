@@ -1,4 +1,10 @@
-import { AtlasLayout, ConnectionDTO, ConnectionDirection, ConnectionGraphDTO, MapPlacement } from "@/types";
+import {
+  AtlasLayout,
+  ConnectionDTO,
+  ConnectionDirection,
+  ConnectionGraphDTO,
+  MapPlacement,
+} from "@/types";
 import { withVersion } from "@/lib/basePath";
 
 const DEFAULT_BLOCK_PIXEL_SIZE = 32;
@@ -18,7 +24,10 @@ interface BuildAtlasLayoutOptions {
   assetBaseUrl?: string;
 }
 
-export function buildAtlasLayout(graph: ConnectionGraphDTO, options: BuildAtlasLayoutOptions = {}): AtlasLayout {
+export function buildAtlasLayout(
+  graph: ConnectionGraphDTO,
+  options: BuildAtlasLayoutOptions = {},
+): AtlasLayout {
   const blockPixelSize = graph.block_pixel_size ?? DEFAULT_BLOCK_PIXEL_SIZE;
   const rootLabel = options.rootOverride ?? graph.root;
   const rootMap = graph.maps[rootLabel];
@@ -72,13 +81,13 @@ export function buildAtlasLayout(graph: ConnectionGraphDTO, options: BuildAtlasL
         currentPlacement,
         neighbourWidth,
         neighbourHeight,
-        connection
+        connection,
       );
       const existing = placements.get(neighbour.label);
       if (existing) {
         if (existing.xBlocks !== xBlocks || existing.yBlocks !== yBlocks) {
           console.warn(
-            `Conflicting placement for map ${neighbour.label}: existing (${existing.xBlocks}, ${existing.yBlocks}) vs new (${xBlocks}, ${yBlocks}).`
+            `Conflicting placement for map ${neighbour.label}: existing (${existing.xBlocks}, ${existing.yBlocks}) vs new (${xBlocks}, ${yBlocks}).`,
           );
         }
         continue;
@@ -122,7 +131,9 @@ export function buildAtlasLayout(graph: ConnectionGraphDTO, options: BuildAtlasL
       metadata: {
         mapType: dto?.map_type ?? null,
         tileset: dto?.tileset ?? null,
-        mapZ: Number.isFinite((dto as any)?.z_index) ? Math.trunc(((dto as any)?.z_index as number)) : null,
+        mapZ: Number.isFinite((dto as any)?.z_index)
+          ? Math.trunc((dto as any)?.z_index as number)
+          : null,
       },
     };
   });
@@ -152,7 +163,7 @@ function projectNeighbour(
   sourcePlacement: PlacementSeed,
   targetWidth: number,
   targetHeight: number,
-  connection: ConnectionDTO
+  connection: ConnectionDTO,
 ): { xBlocks: number; yBlocks: number } {
   const offset = Math.trunc(connection.offset);
   const direction = connection.direction as ConnectionDirection;

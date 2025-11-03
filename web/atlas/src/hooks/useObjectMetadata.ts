@@ -157,9 +157,15 @@ const OBJECT_METADATA_VERSION = 1;
 const EVENT_CELLS_PER_BLOCK_DEFAULT = 2;
 
 function sanitizeRgb(tuple: RawRgbTuple | null | undefined): RgbTuple {
-  const r = Number.isFinite(tuple?.[0]) ? Math.max(0, Math.min(255, Math.trunc(tuple?.[0] as number))) : 0;
-  const g = Number.isFinite(tuple?.[1]) ? Math.max(0, Math.min(255, Math.trunc(tuple?.[1] as number))) : 0;
-  const b = Number.isFinite(tuple?.[2]) ? Math.max(0, Math.min(255, Math.trunc(tuple?.[2] as number))) : 0;
+  const r = Number.isFinite(tuple?.[0])
+    ? Math.max(0, Math.min(255, Math.trunc(tuple?.[0] as number)))
+    : 0;
+  const g = Number.isFinite(tuple?.[1])
+    ? Math.max(0, Math.min(255, Math.trunc(tuple?.[1] as number)))
+    : 0;
+  const b = Number.isFinite(tuple?.[2])
+    ? Math.max(0, Math.min(255, Math.trunc(tuple?.[2] as number)))
+    : 0;
   return [r, g, b];
 }
 
@@ -222,19 +228,26 @@ function sanitizePokemonIconVariant(
   if (!tiles2bppBase64) {
     return null;
   }
-  const tileCount = Number.isFinite(raw?.tile_count) ? Math.max(0, Math.trunc(raw!.tile_count as number)) : 0;
+  const tileCount = Number.isFinite(raw?.tile_count)
+    ? Math.max(0, Math.trunc(raw!.tile_count as number))
+    : 0;
   const frameTileStride = Number.isFinite(raw?.frame_tile_stride)
     ? Math.max(1, Math.trunc(raw!.frame_tile_stride as number))
     : defaults.frameTileStride;
-  const inferredFrameCount = frameTileStride > 0 ? Math.max(1, Math.trunc(tileCount / frameTileStride)) : 1;
+  const inferredFrameCount =
+    frameTileStride > 0 ? Math.max(1, Math.trunc(tileCount / frameTileStride)) : 1;
   const frameCount = Number.isFinite(raw?.frame_count)
     ? Math.max(1, Math.trunc(raw!.frame_count as number))
     : inferredFrameCount;
   const frameDurationFrames = Number.isFinite(raw?.frame_duration_frames)
     ? Math.max(1, Math.trunc(raw!.frame_duration_frames as number))
     : defaults.frameDurationFrames;
-  const width = Number.isFinite(raw?.width) ? Math.max(1, Math.trunc(raw!.width as number)) : defaults.width;
-  const height = Number.isFinite(raw?.height) ? Math.max(1, Math.trunc(raw!.height as number)) : defaults.height;
+  const width = Number.isFinite(raw?.width)
+    ? Math.max(1, Math.trunc(raw!.width as number))
+    : defaults.width;
+  const height = Number.isFinite(raw?.height)
+    ? Math.max(1, Math.trunc(raw!.height as number))
+    : defaults.height;
   const tilePath = typeof raw?.tile_path === "string" ? raw.tile_path : "";
   const paletteNormal =
     typeof raw?.palette?.normal === "string"
@@ -265,7 +278,9 @@ function sanitizePokemonIconVariant(
   };
 }
 
-function sanitizePokemonIconMetadata(raw: RawPokemonIconMetadata | undefined): PokemonIconMetadata | null {
+function sanitizePokemonIconMetadata(
+  raw: RawPokemonIconMetadata | undefined,
+): PokemonIconMetadata | null {
   if (!raw) {
     return null;
   }
@@ -312,7 +327,10 @@ function sanitizePokemonIconMetadata(raw: RawPokemonIconMetadata | undefined): P
   };
 }
 
-function sanitizeMovementDefinition(raw: RawMovementDefinition | undefined, fallbackId: number): ObjectMovementDefinition {
+function sanitizeMovementDefinition(
+  raw: RawMovementDefinition | undefined,
+  fallbackId: number,
+): ObjectMovementDefinition {
   return {
     id: Number.isFinite(raw?.id) ? Math.trunc(raw?.id as number) : fallbackId,
     function: typeof raw?.function === "string" ? raw!.function : "",
@@ -320,7 +338,9 @@ function sanitizeMovementDefinition(raw: RawMovementDefinition | undefined, fall
     action: typeof raw?.action === "string" ? raw!.action : "",
     flags1: Number.isFinite(raw?.flags1) ? Math.trunc(raw?.flags1 as number) : 0,
     flags2: Number.isFinite(raw?.flags2) ? Math.trunc(raw?.flags2 as number) : 0,
-    paletteFlags: Number.isFinite(raw?.palette_flags) ? Math.trunc(raw?.palette_flags as number) : 0,
+    paletteFlags: Number.isFinite(raw?.palette_flags)
+      ? Math.trunc(raw?.palette_flags as number)
+      : 0,
   };
 }
 
@@ -366,7 +386,9 @@ function sanitizeObjectEvent(raw: RawObjectEventEntry | undefined): ObjectEventE
       y: Number.isFinite(raw?.range?.y) ? Math.trunc(raw!.range!.y as number) : null,
     },
     timeOfDay: {
-      mask: Number.isFinite(raw?.time_of_day?.mask) ? Math.trunc(raw!.time_of_day!.mask as number) : null,
+      mask: Number.isFinite(raw?.time_of_day?.mask)
+        ? Math.trunc(raw!.time_of_day!.mask as number)
+        : null,
       slots: timeSlots,
     },
     paletteOverride: {
@@ -375,7 +397,10 @@ function sanitizeObjectEvent(raw: RawObjectEventEntry | undefined): ObjectEventE
         : raw?.palette_override?.value === 0
           ? 0
           : null,
-      constant: typeof raw?.palette_override?.constant === "string" ? raw!.palette_override!.constant : null,
+      constant:
+        typeof raw?.palette_override?.constant === "string"
+          ? raw!.palette_override!.constant
+          : null,
     },
     objectType: {
       constant: typeof raw?.object_type?.constant === "string" ? raw!.object_type!.constant : null,
@@ -386,7 +411,7 @@ function sanitizeObjectEvent(raw: RawObjectEventEntry | undefined): ObjectEventE
       argument: typeof raw?.script?.argument === "string" ? raw!.script!.argument : null,
     },
     eventFlag: typeof raw?.event_flag === "string" ? raw!.event_flag : null,
-  eventFlagSet: raw?.event_flag_set === true,
+    eventFlagSet: raw?.event_flag_set === true,
     species:
       raw?.species && (typeof raw.species.constant === "string" || Number.isFinite(raw.species.id))
         ? {
@@ -398,7 +423,10 @@ function sanitizeObjectEvent(raw: RawObjectEventEntry | undefined): ObjectEventE
   };
 }
 
-function sanitizeMapEntry(raw: RawMapObjectEntry | undefined, label: string): MapObjectMetadataEntry {
+function sanitizeMapEntry(
+  raw: RawMapObjectEntry | undefined,
+  label: string,
+): MapObjectMetadataEntry {
   const objects: ObjectEventEntry[] = Array.isArray(raw?.objects)
     ? raw!.objects!.map((entry) => sanitizeObjectEvent(entry))
     : [];
@@ -406,8 +434,12 @@ function sanitizeMapEntry(raw: RawMapObjectEntry | undefined, label: string): Ma
     label: typeof raw?.label === "string" && raw!.label.trim().length > 0 ? raw!.label : label,
     mapConstant: typeof raw?.map_constant === "string" ? raw!.map_constant : null,
     mapType: typeof raw?.map_type === "string" ? raw!.map_type : null,
-    widthBlocks: Number.isFinite(raw?.width_blocks) ? Math.trunc(raw!.width_blocks as number) : null,
-    heightBlocks: Number.isFinite(raw?.height_blocks) ? Math.trunc(raw!.height_blocks as number) : null,
+    widthBlocks: Number.isFinite(raw?.width_blocks)
+      ? Math.trunc(raw!.width_blocks as number)
+      : null,
+    heightBlocks: Number.isFinite(raw?.height_blocks)
+      ? Math.trunc(raw!.height_blocks as number)
+      : null,
     objects,
   };
 }
@@ -422,11 +454,15 @@ function convertObjectMetadata(payload: RawObjectMetadata): ObjectMetadata {
   const baseCellPixelSize = Number.isFinite(payload.event_cell_pixel_size)
     ? Math.max(1, Math.trunc(payload.event_cell_pixel_size as number))
     : Math.max(1, Math.trunc(blockPixelSize / cellsPerBlock));
-  const paletteNames = Array.isArray(payload.palette_names) ? payload.palette_names.filter(Boolean) : [];
+  const paletteNames = Array.isArray(payload.palette_names)
+    ? payload.palette_names.filter(Boolean)
+    : [];
   const timeOfDaySlots = Array.isArray(payload.time_of_day_slots)
     ? payload.time_of_day_slots.filter((slot) => typeof slot === "string")
     : [];
-  const defaultFacing = payload.default_facing_for_direction ? { ...payload.default_facing_for_direction } : {};
+  const defaultFacing = payload.default_facing_for_direction
+    ? { ...payload.default_facing_for_direction }
+    : {};
 
   const palettes: Record<string, ObjectPaletteEntry> = {};
   for (const [name, rawEntry] of Object.entries(payload.palettes ?? {})) {
@@ -453,11 +489,14 @@ function convertObjectMetadata(payload: RawObjectMetadata): ObjectMetadata {
   }
 
   return {
-    version: Number.isFinite(payload.version) ? Math.trunc(payload.version as number) : OBJECT_METADATA_VERSION,
-    generatedAt: typeof payload.generated_at === "string" ? payload.generated_at : new Date().toISOString(),
+    version: Number.isFinite(payload.version)
+      ? Math.trunc(payload.version as number)
+      : OBJECT_METADATA_VERSION,
+    generatedAt:
+      typeof payload.generated_at === "string" ? payload.generated_at : new Date().toISOString(),
     blockPixelSize,
-  cellsPerBlock,
-  eventCellPixelSize: baseCellPixelSize,
+    cellsPerBlock,
+    eventCellPixelSize: baseCellPixelSize,
     paletteNames,
     timeOfDaySlots,
     defaultFacingForDirection: defaultFacing,
@@ -471,9 +510,10 @@ function convertObjectMetadata(payload: RawObjectMetadata): ObjectMetadata {
 }
 
 function resolveObjectMetadataUrl(): string {
-  const override = typeof import.meta.env.VITE_OBJECT_METADATA_URL === "string"
-    ? import.meta.env.VITE_OBJECT_METADATA_URL.trim()
-    : "";
+  const override =
+    typeof import.meta.env.VITE_OBJECT_METADATA_URL === "string"
+      ? import.meta.env.VITE_OBJECT_METADATA_URL.trim()
+      : "";
   if (override) {
     return withVersion(withBasePath(override));
   }
@@ -547,8 +587,5 @@ export function useObjectMetadata(url?: string): UseObjectMetadataResult {
     setNonce((value) => value + 1);
   }, []);
 
-  return useMemo(
-    () => ({ metadata, loading, error, reload }),
-    [metadata, loading, error, reload]
-  );
+  return useMemo(() => ({ metadata, loading, error, reload }), [metadata, loading, error, reload]);
 }

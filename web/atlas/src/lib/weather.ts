@@ -1,4 +1,12 @@
-import { Container, Graphics, Sprite, Texture, Application, BaseTexture, SCALE_MODES } from "pixi.js";
+import {
+  Container,
+  Graphics,
+  Sprite,
+  Texture,
+  Application,
+  BaseTexture,
+  SCALE_MODES,
+} from "pixi.js";
 import { decodeBase64 } from "@/lib/base64";
 import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
 
@@ -27,20 +35,7 @@ type Particle = {
   ttlFrames: number;
 };
 
-// Utility to create small shared textures cheaply using the renderer
-function makeRectTextureWithRenderer(app: Application, width: number, height: number, color = 0xffffff, alpha = 1): Texture {
-  const g = new Graphics();
-  g.beginFill(color, alpha);
-  g.drawRect(0, 0, Math.max(1, Math.round(width)), Math.max(1, Math.round(height)));
-  g.endFill();
-  const tex = app.renderer.generateTexture(g);
-  try { g.destroy(true); } catch { /* ignore */ }
-  return tex;
-}
-
-function clamp(val: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, val));
-}
+// removed unused helpers makeRectTextureWithRenderer and clamp
 
 export class WeatherSystem {
   private app: Application;
@@ -65,14 +60,20 @@ export class WeatherSystem {
   private static _weatherMeta: any = null;
 
   private static resolveWeatherMetadataUrl(): string {
-    const override = typeof (import.meta as any).env?.VITE_WEATHER_METADATA_URL === "string"
-      ? ((import.meta as any).env.VITE_WEATHER_METADATA_URL as string).trim()
-      : "";
+    const override =
+      typeof (import.meta as any).env?.VITE_WEATHER_METADATA_URL === "string"
+        ? ((import.meta as any).env.VITE_WEATHER_METADATA_URL as string).trim()
+        : "";
     if (override) {
       return withVersion(withBasePath(override));
     }
     if (import.meta && (import.meta as any).env?.DEV) {
-      const repoRoot = typeof (globalThis as any).__REPO_ROOT__ === "string" ? (globalThis as any).__REPO_ROOT__ : (typeof __REPO_ROOT__ === "string" ? __REPO_ROOT__ : "");
+      const repoRoot =
+        typeof (globalThis as any).__REPO_ROOT__ === "string"
+          ? (globalThis as any).__REPO_ROOT__
+          : typeof __REPO_ROOT__ === "string"
+            ? __REPO_ROOT__
+            : "";
       if (repoRoot && typeof window !== "undefined" && window.location?.origin) {
         const raw = `${repoRoot}/maps/weather_metadata.json`.replace(/\\/g, "/");
         const withSlash = raw.startsWith("/") ? raw : `/${raw}`;
@@ -86,7 +87,7 @@ export class WeatherSystem {
     if (this._assetLoad) return this._assetLoad;
     this._assetLoad = (async () => {
       // Load generated weather metadata (tiles + palettes)
-  const url = this.resolveWeatherMetadataUrl();
+      const url = this.resolveWeatherMetadataUrl();
       const res = await fetch(url, { cache: "no-cache" });
       if (!res.ok) throw new Error(`Failed to load weather_metadata.json: ${res.status}`);
       const json = await res.json();
@@ -98,11 +99,21 @@ export class WeatherSystem {
   // --- Palettes ---
   // Four colors, ordered light -> dark. Values from maps/object_metadata.json.
   // Palettes now come from generated metadata; keep local fallback just in case (not expected to use)
-  private static SNOW_WHITE: [number, number, number][]= [ [255,255,255], [255,255,255], [255,255,255], [0,0,0] ];
+  private static SNOW_WHITE: [number, number, number][] = [
+    [255, 255, 255],
+    [255, 255, 255],
+    [255, 255, 255],
+    [0, 0, 0],
+  ];
 
   // Palettize a frame of a source texture using a 4-color palette (light->dark)
   // Decode 2bpp tiles from base64, build a Pixi Texture with palette mapping.
-  private static buildTextureFrom2bpp(base64: string, width = 8, height = 8, palette: [number,number,number][]): Texture | null {
+  private static buildTextureFrom2bpp(
+    base64: string,
+    width = 8,
+    height = 8,
+    palette: [number, number, number][],
+  ): Texture | null {
     if (!base64) return null;
     const bytes = decodeBase64(base64);
     if (!bytes || bytes.length % 16 !== 0) return null;
@@ -129,23 +140,25 @@ export class WeatherSystem {
     const stride = tilesPerRow * tilesPerCol;
     const used = Math.min(tileCount, stride);
     const buffer = new Uint8Array(width * height * 4);
-    const colors = palette.slice(0, 4) as [number,number,number][];
+    const colors = palette.slice(0, 4) as [number, number, number][];
     for (let idx = 0; idx < used; idx++) {
       const tile = tiles[idx];
       const tileRow = Math.floor(idx / tilesPerRow);
       const tileCol = idx % tilesPerRow;
       for (let r = 0; r < 8; r++) {
-        const destY = tileRow * 8 + r; if (destY >= height) continue;
+        const destY = tileRow * 8 + r;
+        if (destY >= height) continue;
         for (let c = 0; c < 8; c++) {
-          const destX = tileCol * 8 + c; if (destX >= width) continue;
+          const destX = tileCol * 8 + c;
+          if (destX >= width) continue;
           const v = tile[r * 8 + c];
           if (v === 0) continue; // transparent
-          const color = colors[v] ?? colors[Math.min(v, colors.length - 1)] ?? [0,0,0];
+          const color = colors[v] ?? colors[Math.min(v, colors.length - 1)] ?? [0, 0, 0];
           const off = (destY * width + destX) * 4;
           buffer[off] = color[0];
-          buffer[off+1] = color[1];
-          buffer[off+2] = color[2];
-          buffer[off+3] = 255;
+          buffer[off + 1] = color[1];
+          buffer[off + 2] = color[2];
+          buffer[off + 3] = 255;
         }
       }
     }
@@ -171,7 +184,9 @@ export class WeatherSystem {
     void this.prepareTextures();
   }
 
-  public get container(): Container { return this.layer; }
+  public get container(): Container {
+    return this.layer;
+  }
 
   public setEnabled(next: boolean): void {
     this.enabled = !!next;
@@ -187,7 +202,7 @@ export class WeatherSystem {
     void this.prepareTextures();
   }
 
-  public setTimeOfDay(tod: "day"|"morn"|"eve"|"nite"): void {
+  public setTimeOfDay(tod: "day" | "morn" | "eve" | "nite"): void {
     if (this.timeOfDay === tod) return;
     this.timeOfDay = tod;
     void this.prepareTextures();
@@ -205,11 +220,19 @@ export class WeatherSystem {
 
   public clear(): void {
     for (const p of this.particles) {
-      try { p.sprite.destroy(); } catch { /* noop */ }
+      try {
+        p.sprite.destroy();
+      } catch {
+        /* noop */
+      }
     }
     this.particles = [];
     for (const p of this.pool) {
-      try { p.sprite.destroy(); } catch { /* noop */ }
+      try {
+        p.sprite.destroy();
+      } catch {
+        /* noop */
+      }
     }
     this.pool = [];
   }
@@ -220,9 +243,19 @@ export class WeatherSystem {
       if (this.layer.mask === this.clip) {
         this.layer.mask = null as any;
       }
-    } catch { /* ignore */ }
-    try { this.clip.destroy(true); } catch { /* ignore */ }
-    try { this.layer.destroy({ children: true }); } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
+    try {
+      this.clip.destroy(true);
+    } catch {
+      /* ignore */
+    }
+    try {
+      this.layer.destroy({ children: true });
+    } catch {
+      /* ignore */
+    }
   }
 
   // Optional resize hook for host; current implementation doesn't need viewport size,
@@ -238,23 +271,59 @@ export class WeatherSystem {
     const gfx = meta.graphics || {};
     const pals = meta.palettes || {};
     const tod = this.timeOfDay;
-    const rainOvercast = (pals["PAL_OW_RAIN"]?.overcast?.[tod]) || WeatherSystem.SNOW_WHITE;
-    const sandTod = (pals["PAL_OW_SAND"]?.time_variants?.[tod]) || WeatherSystem.SNOW_WHITE;
-    const snowPal = (pals["PAL_OW_SNOW"]?.static) || WeatherSystem.SNOW_WHITE;
+    const rainOvercast = pals["PAL_OW_RAIN"]?.overcast?.[tod] || WeatherSystem.SNOW_WHITE;
+    const sandTod = pals["PAL_OW_SAND"]?.time_variants?.[tod] || WeatherSystem.SNOW_WHITE;
+    const snowPal = pals["PAL_OW_SNOW"]?.static || WeatherSystem.SNOW_WHITE;
 
-    this.rainTex = WeatherSystem.buildTextureFrom2bpp(gfx.rain?.tiles_2bpp_base64 || "", gfx.rain?.width || 8, gfx.rain?.height || 8, rainOvercast) as Texture;
-    this.splashTex = WeatherSystem.buildTextureFrom2bpp(gfx.splash?.tiles_2bpp_base64 || "", gfx.splash?.width || 8, gfx.splash?.height || 8, rainOvercast) as Texture;
-    this.snowTex = WeatherSystem.buildTextureFrom2bpp(gfx.snow?.tiles_2bpp_base64 || "", gfx.snow?.width || 8, gfx.snow?.height || 8, snowPal) as Texture;
-    this.sandTex = WeatherSystem.buildTextureFrom2bpp(gfx.sand?.tiles_2bpp_base64 || "", gfx.sand?.width || 8, gfx.sand?.height || 8, sandTod) as Texture;
+    this.rainTex = WeatherSystem.buildTextureFrom2bpp(
+      gfx.rain?.tiles_2bpp_base64 || "",
+      gfx.rain?.width || 8,
+      gfx.rain?.height || 8,
+      rainOvercast,
+    ) as Texture;
+    this.splashTex = WeatherSystem.buildTextureFrom2bpp(
+      gfx.splash?.tiles_2bpp_base64 || "",
+      gfx.splash?.width || 8,
+      gfx.splash?.height || 8,
+      rainOvercast,
+    ) as Texture;
+    this.snowTex = WeatherSystem.buildTextureFrom2bpp(
+      gfx.snow?.tiles_2bpp_base64 || "",
+      gfx.snow?.width || 8,
+      gfx.snow?.height || 8,
+      snowPal,
+    ) as Texture;
+    this.sandTex = WeatherSystem.buildTextureFrom2bpp(
+      gfx.sand?.tiles_2bpp_base64 || "",
+      gfx.sand?.width || 8,
+      gfx.sand?.height || 8,
+      sandTod,
+    ) as Texture;
     this.ready = true;
   }
 
   private alloc(kind: Particle["kind"]): Particle {
-  const tex = (kind === RAINDROP ? this.rainTex : kind === RAINSPLASH ? this.splashTex : kind === SNOWFLAKE ? this.snowTex : this.sandTex) as Texture;
+    const tex = (
+      kind === RAINDROP
+        ? this.rainTex
+        : kind === RAINSPLASH
+          ? this.splashTex
+          : kind === SNOWFLAKE
+            ? this.snowTex
+            : this.sandTex
+    ) as Texture;
     const sprite = new Sprite(tex);
     sprite.anchor.set(0.5, 0.5);
     sprite.alpha = 1;
-    const p: Particle = { kind, sprite, alive: true, x: 0, y: 0, evenBias: Math.random() < 0.5, ttlFrames: 0 };
+    const p: Particle = {
+      kind,
+      sprite,
+      alive: true,
+      x: 0,
+      y: 0,
+      evenBias: Math.random() < 0.5,
+      ttlFrames: 0,
+    };
     this.layer.addChild(sprite);
     return p;
   }
@@ -268,7 +337,15 @@ export class WeatherSystem {
     p.ttlFrames = kind === RAINSPLASH ? 4 : 0; // ~3.75 frames in GB; 4 is fine
     p.x = x;
     p.y = y;
-  p.sprite.texture = (kind === RAINDROP ? this.rainTex : kind === RAINSPLASH ? this.splashTex : kind === SNOWFLAKE ? this.snowTex : this.sandTex) as Texture;
+    p.sprite.texture = (
+      kind === RAINDROP
+        ? this.rainTex
+        : kind === RAINSPLASH
+          ? this.splashTex
+          : kind === SNOWFLAKE
+            ? this.snowTex
+            : this.sandTex
+    ) as Texture;
     p.sprite.visible = true;
     p.sprite.x = x;
     p.sprite.y = y;
@@ -302,7 +379,7 @@ export class WeatherSystem {
     if (!this.enabled || this.weather === "none") return;
 
     // Spawning based on weather kind
-  if (this.weather === "rain" || this.weather === "thunderstorm") {
+    if (this.weather === "rain" || this.weather === "thunderstorm") {
       // 3 spawn attempts per weather frame
       for (let i = 0; i < 3; i++) this.trySpawnRain();
       // Occasional lightning flash for thunderstorms
@@ -319,10 +396,10 @@ export class WeatherSystem {
     }
 
     // Update particles
-  const stepX4 = cameraStepX * 4;
-  const stepY4 = cameraStepY * 4;
-  const stepX2 = cameraStepX * 2;
-  const stepY2 = cameraStepY * 2;
+    const stepX4 = cameraStepX * 4;
+    const stepY4 = cameraStepY * 4;
+    const stepX2 = cameraStepX * 2;
+    const stepY2 = cameraStepY * 2;
 
     for (let i = 0; i < this.particles.length; i++) {
       const p = this.particles[i];
@@ -334,13 +411,13 @@ export class WeatherSystem {
           // convert to splash in-place
           p.kind = RAINSPLASH;
           p.ttlFrames = 4;
-          p.sprite.texture = (this.splashTex as Texture);
+          p.sprite.texture = this.splashTex as Texture;
           p.sprite.rotation = 0;
         } else {
           // y: min 8 + (even?2:0) - 4*stepY
-          let y = p.y - stepY4 + (p.evenBias ? 2 : 0) + 8;
+          const y = p.y - stepY4 + (p.evenBias ? 2 : 0) + 8;
           // x: base -4 - 4*stepX - (even?2:0)
-          let x = p.x - stepX4 - 4 - (p.evenBias ? 2 : 0);
+          const x = p.x - stepX4 - 4 - (p.evenBias ? 2 : 0);
           p.x = x;
           p.y = y;
           p.sprite.x = x;
@@ -361,7 +438,13 @@ export class WeatherSystem {
         p.y = y;
         p.sprite.x = x;
         p.sprite.y = y;
-        if (p.ttlFrames <= 0 || y >= this.height + TILE_WIDTH || y < -TILE_WIDTH || x < -TILE_WIDTH || x > this.width + TILE_WIDTH) {
+        if (
+          p.ttlFrames <= 0 ||
+          y >= this.height + TILE_WIDTH ||
+          y < -TILE_WIDTH ||
+          x < -TILE_WIDTH ||
+          x > this.width + TILE_WIDTH
+        ) {
           this.despawn(i--);
         }
         continue;
@@ -369,10 +452,10 @@ export class WeatherSystem {
 
       if (p.kind === SNOWFLAKE) {
         // y: min 2 + (even?1:0) - 2*stepY
-        let y = p.y - stepY2 + (p.evenBias ? 1 : 0) + 2;
+        const y = p.y - stepY2 + (p.evenBias ? 1 : 0) + 2;
         // x wiggle: 50% chance to add 1 to the step; x -= (2*stepX + wiggle)
         const wiggle = Math.random() < 0.5 ? 1 : 0;
-        let x = p.x - (stepX2 + wiggle);
+        const x = p.x - (stepX2 + wiggle);
         p.x = x;
         p.y = y;
         p.sprite.x = x;
@@ -385,9 +468,9 @@ export class WeatherSystem {
 
       if (p.kind === SAND) {
         // y rises: -4 + (even?2:0) - 4*stepY
-        let y = p.y - stepY4 - 4 + (p.evenBias ? 2 : 0);
+        const y = p.y - stepY4 - 4 + (p.evenBias ? 2 : 0);
         // x drifts left strongly: -12 - 4*stepX - (even?2:0)
-        let x = p.x - stepX4 - 12 - (p.evenBias ? 2 : 0);
+        const x = p.x - stepX4 - 12 - (p.evenBias ? 2 : 0);
         p.x = x;
         p.y = y;
         p.sprite.x = x;
@@ -415,7 +498,7 @@ export class WeatherSystem {
 
   private trySpawnSnow(): void {
     // 25% chance to spawn on right; else top
-    if ((Math.random() * 4) < 1) {
+    if (Math.random() * 4 < 1) {
       const y = Math.floor(Math.random() * (this.height + TILE_WIDTH));
       const x = this.width + TILE_WIDTH;
       this.spawn(SNOWFLAKE, x, y);
@@ -443,7 +526,7 @@ export class WeatherSystem {
     // Simple white flash overlay that decays quickly
     const g = new Graphics();
     g.beginFill(0xffffff, 0.85);
-  g.drawRect(0, 0, this.width, this.height);
+    g.drawRect(0, 0, this.width, this.height);
     g.endFill();
     g.zIndex = 100000;
     this.layer.addChild(g);
@@ -452,7 +535,11 @@ export class WeatherSystem {
       ttl -= 1;
       g.alpha *= 0.25;
       if (ttl <= 0) {
-        try { g.destroy(true); } catch { /* noop */ }
+        try {
+          g.destroy(true);
+        } catch {
+          /* noop */
+        }
       } else {
         // schedule next after a short delay (next RAF)
         if (typeof window !== "undefined") {

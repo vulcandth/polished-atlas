@@ -47,15 +47,24 @@ type LoadedMetadata = {
 };
 
 function loadMetadataSubset(): LoadedMetadata {
-  const metadataPath = resolve(dirname(fileURLToPath(import.meta.url)), "../../../../maps/object_metadata.json");
+  const metadataPath = resolve(
+    dirname(fileURLToPath(import.meta.url)),
+    "../../../../maps/object_metadata.json",
+  );
   const raw = JSON.parse(readFileSync(metadataPath, "utf8")) as RawMetadata;
 
   const metadata: ObjectMetadata = {
     version: Number.isFinite(raw.version) ? Math.trunc(raw.version as number) : 1,
     generatedAt: typeof raw.generated_at === "string" ? raw.generated_at : "",
-    blockPixelSize: Number.isFinite(raw.block_pixel_size) ? Math.trunc(raw.block_pixel_size as number) : 32,
-    cellsPerBlock: Number.isFinite(raw.cells_per_block) ? Math.trunc(raw.cells_per_block as number) : 2,
-    eventCellPixelSize: Number.isFinite(raw.event_cell_pixel_size) ? Math.trunc(raw.event_cell_pixel_size as number) : 16,
+    blockPixelSize: Number.isFinite(raw.block_pixel_size)
+      ? Math.trunc(raw.block_pixel_size as number)
+      : 32,
+    cellsPerBlock: Number.isFinite(raw.cells_per_block)
+      ? Math.trunc(raw.cells_per_block as number)
+      : 2,
+    eventCellPixelSize: Number.isFinite(raw.event_cell_pixel_size)
+      ? Math.trunc(raw.event_cell_pixel_size as number)
+      : 16,
     paletteNames: [],
     timeOfDaySlots: [],
     defaultFacingForDirection: {
@@ -130,7 +139,7 @@ describe("ObjectSpriteCache normalization for large sprites", () => {
       spriteDef: ObjectSpriteDefinition,
       tileCount: number,
       rawIndex: number,
-      attributes: number
+      attributes: number,
     ): number | null;
   };
 
@@ -143,7 +152,7 @@ describe("ObjectSpriteCache normalization for large sprites", () => {
         spriteDef,
         tileCounts[sprite],
         tile.tile,
-        tile.attributes
+        tile.attributes,
       );
       if (result === null) {
         throw new Error(`Failed to normalize tile ${index} for ${sprite}/${facing}`);
@@ -154,7 +163,9 @@ describe("ObjectSpriteCache normalization for large sprites", () => {
 
   it("remaps the sailboat bow and stern tiles", () => {
     expect(indicesFor("SPRITE_SAILBOAT", "FACING_SAILBOAT_TOP")).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
-    expect(indicesFor("SPRITE_SAILBOAT", "FACING_SAILBOAT_BOTTOM")).toEqual([8, 9, 10, 11, 12, 13, 14, 15]);
+    expect(indicesFor("SPRITE_SAILBOAT", "FACING_SAILBOAT_BOTTOM")).toEqual([
+      8, 9, 10, 11, 12, 13, 14, 15,
+    ]);
   });
 
   it("stitches both banks for big Gyarados", () => {
@@ -181,10 +192,10 @@ describe("ObjectSpriteCache normalization for large sprites", () => {
     const facingEntry = metadata.facings["FACING_BIG_DOLL_SYM"];
     const attributes = facingEntry.tiles[0]?.attributes ?? 0;
     expect(
-      normalizer.normalizeTileIndex("SPRITE_BIG_SNORLAX", sprite, tileCount, 0x80, attributes)
+      normalizer.normalizeTileIndex("SPRITE_BIG_SNORLAX", sprite, tileCount, 0x80, attributes),
     ).toBe(0);
     expect(
-      normalizer.normalizeTileIndex("SPRITE_BIG_SNORLAX", sprite, tileCount, 0x8b, attributes)
+      normalizer.normalizeTileIndex("SPRITE_BIG_SNORLAX", sprite, tileCount, 0x8b, attributes),
     ).toBe(11);
   });
 

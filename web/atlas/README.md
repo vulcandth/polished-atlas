@@ -5,12 +5,15 @@ This package hosts the React + PixiJS client used to render stitched map atlases
 ## Development Workflow
 
 1. Generate a connection graph (only once per source change):
+
    ```bash
    python scripts/generate_map_connections.py NewBarkTown
    ```
+
    The file will be written to `maps/<time>/animated/NewBarkTown_connections.json` by default (e.g., `maps/day/animated/…`).
 
 2. Install dependencies:
+
    ```bash
    cd web/atlas
    npm install
@@ -40,7 +43,7 @@ Environment variables (prefixed with `VITE_`) can be provided via `.env` files o
 - The current layout focuses on the New Bark Town graph. Additional root graphs can be produced and loaded without code changes.
 - PixiJS renders sprite-sheet animations using the shared ticker for consistent timing. Pan with drag, zoom with mouse wheel, and pinch on touch devices.
 - Keyboard shortcuts (when not editing layout):
-   - Pan: Arrow keys, WASD, or IJKL (hold Shift for larger steps)
-   - Zoom: + / = to zoom in, - to zoom out
-   - Double-click anywhere to zoom in on that point
+  - Pan: Arrow keys, WASD, or IJKL (hold Shift for larger steps)
+  - Zoom: + / = to zoom in, - to zoom out
+  - Double-click anywhere to zoom in on that point
 - The layout engine works in metatile (block) units derived from connection offsets. If new metadata fields are required (e.g., warp links) extend `generate_map_connections.py` accordingly.

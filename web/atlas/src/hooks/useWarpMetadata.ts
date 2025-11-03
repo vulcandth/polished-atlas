@@ -93,8 +93,8 @@ function normaliseCollision(dto: MapCollisionDTO | null | undefined): MapCollisi
   let cellBytes: Uint8Array<ArrayBufferLike> = new Uint8Array();
   if (encoding === "base64" && rawCells) {
     try {
-  const decoded = decodeBase64(rawCells);
-  cellBytes = decoded.length > 0 ? Uint8Array.from(decoded) : new Uint8Array();
+      const decoded = decodeBase64(rawCells);
+      cellBytes = decoded.length > 0 ? Uint8Array.from(decoded) : new Uint8Array();
     } catch (error) {
       console.warn("Failed to decode collision payload", error);
       cellBytes = new Uint8Array();
@@ -103,7 +103,7 @@ function normaliseCollision(dto: MapCollisionDTO | null | undefined): MapCollisi
   const expectedLength = widthCells * heightCells;
   if (cellBytes.length !== 0 && cellBytes.length !== expectedLength) {
     console.warn(
-      `Collision payload length mismatch (expected ${expectedLength}, got ${cellBytes.length}).`
+      `Collision payload length mismatch (expected ${expectedLength}, got ${cellBytes.length}).`,
     );
   }
   return {
@@ -119,8 +119,12 @@ function normaliseCollision(dto: MapCollisionDTO | null | undefined): MapCollisi
 }
 
 function normaliseMapEntry(label: string, dto: MapMetadataDTO | undefined): MapMetadataEntry {
-  const warpSource: WarpEntryDTO[] = Array.isArray(dto?.warps) ? (dto?.warps as WarpEntryDTO[]) : [];
-  const warps: MapWarp[] = warpSource.map((entry) => normaliseWarp(entry, normaliseEndpoint(entry.target)));
+  const warpSource: WarpEntryDTO[] = Array.isArray(dto?.warps)
+    ? (dto?.warps as WarpEntryDTO[])
+    : [];
+  const warps: MapWarp[] = warpSource.map((entry) =>
+    normaliseWarp(entry, normaliseEndpoint(entry.target)),
+  );
   return {
     label,
     mapConstant: toStringOrNull(dto?.map_constant),
@@ -145,7 +149,9 @@ function convertPayload(payload: WarpMetadataPayload): WarpMetadata {
         .map((value) => toNumberOrNull(value))
         .filter((value): value is number => value !== null)
     : [];
-  const collisionConstantsEntries: Array<[string, number]> = Object.entries(payload.collision_constants ?? {})
+  const collisionConstantsEntries: Array<[string, number]> = Object.entries(
+    payload.collision_constants ?? {},
+  )
     .map(([key, value]) => [key, toNumberOrNull(value)] as const)
     .filter((entry): entry is [string, number] => entry[1] !== null);
   const collisionConstants: Record<string, number> = Object.fromEntries(collisionConstantsEntries);
@@ -226,8 +232,5 @@ export function useWarpMetadata(options: UseWarpMetadataOptions = {}): UseWarpMe
     setNonce((value) => value + 1);
   }, []);
 
-  return useMemo(
-    () => ({ metadata, loading, error, reload }),
-    [metadata, loading, error, reload]
-  );
+  return useMemo(() => ({ metadata, loading, error, reload }), [metadata, loading, error, reload]);
 }

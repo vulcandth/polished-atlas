@@ -98,7 +98,10 @@ function resolveDefaultFacing(metadata: ObjectMetadata): ObjectFacingEntry | nul
   return first ?? null;
 }
 
-function resolveFacingConstantForEntry(entry: ObjectEventEntry, metadata: ObjectMetadata): string | null {
+function resolveFacingConstantForEntry(
+  entry: ObjectEventEntry,
+  metadata: ObjectMetadata,
+): string | null {
   const movementKey = entry.movement?.constant ?? "";
   const movement = movementKey ? metadata.movements[movementKey] : undefined;
   const movementAction = movement?.action ?? "";
@@ -132,7 +135,10 @@ function resolveFacingConstantForEntry(entry: ObjectEventEntry, metadata: Object
   if (movementAction === "OBJECT_ACTION_SAILBOAT_TOP" && metadata.facings["FACING_SAILBOAT_TOP"]) {
     return "FACING_SAILBOAT_TOP";
   }
-  if (movementAction === "OBJECT_ACTION_SAILBOAT_BOTTOM" && metadata.facings["FACING_SAILBOAT_BOTTOM"]) {
+  if (
+    movementAction === "OBJECT_ACTION_SAILBOAT_BOTTOM" &&
+    metadata.facings["FACING_SAILBOAT_BOTTOM"]
+  ) {
     return "FACING_SAILBOAT_BOTTOM";
   }
   const facingValue = movement?.facing ?? "";
@@ -161,7 +167,10 @@ function resolveFacingConstantForEntry(entry: ObjectEventEntry, metadata: Object
   return firstKey ?? null;
 }
 
-function getObjectFacingForAnalysis(entry: ObjectEventEntry, metadata: ObjectMetadata): ObjectFacingEntry | null {
+function getObjectFacingForAnalysis(
+  entry: ObjectEventEntry,
+  metadata: ObjectMetadata,
+): ObjectFacingEntry | null {
   const key = resolveFacingConstantForEntry(entry, metadata);
   if (key && metadata.facings[key]) {
     return metadata.facings[key] ?? null;
@@ -220,8 +229,14 @@ type AnalysisContext = {
   includeWeather: boolean;
 };
 
-function computeViewportForPlayer(cell: MapCellCoordinate, ctx: AnalysisContext): {
-  x: number; y: number; width: number; height: number;
+function computeViewportForPlayer(
+  cell: MapCellCoordinate,
+  ctx: AnalysisContext,
+): {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 } {
   const pxX = cell.x * ctx.cellPixelSize;
   const pxY = cell.y * ctx.cellPixelSize;
@@ -235,7 +250,16 @@ function computeViewportForPlayer(cell: MapCellCoordinate, ctx: AnalysisContext)
   };
 }
 
-function rectsIntersect(ax: number, ay: number, aw: number, ah: number, bx: number, by: number, bw: number, bh: number): boolean {
+function rectsIntersect(
+  ax: number,
+  ay: number,
+  aw: number,
+  ah: number,
+  bx: number,
+  by: number,
+  bw: number,
+  bh: number,
+): boolean {
   return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
 }
 function clampToViewportY(y: number): number {
@@ -246,7 +270,11 @@ function clampToViewportY(y: number): number {
 
 function analyzeForPlayerCell(
   playerCell: MapCellCoordinate,
-  npcs: Array<{ entry: ObjectEventEntry; cells: MapCellCoordinate[]; profile: FacingProfile | null }>,
+  npcs: Array<{
+    entry: ObjectEventEntry;
+    cells: MapCellCoordinate[];
+    profile: FacingProfile | null;
+  }>,
   ctx: AnalysisContext,
 ): SpriteLimitIssue[] {
   const issues: SpriteLimitIssue[] = [];
@@ -260,7 +288,10 @@ function analyzeForPlayerCell(
     height: viewport.height + ctx.cellPixelSize * 2,
   };
   const scanlineCounts = new Uint16Array(SCREEN_HEIGHT_PX);
-  const scanlineContrib: Array<Array<SpriteLimitEntityRef>> = Array.from({ length: SCREEN_HEIGHT_PX }, () => []);
+  const scanlineContrib: Array<Array<SpriteLimitEntityRef>> = Array.from(
+    { length: SCREEN_HEIGHT_PX },
+    () => [],
+  );
   const totalContrib = new Map<string, { ref: SpriteLimitEntityRef; count: number }>();
   let totalSprites = 0;
 
@@ -281,7 +312,8 @@ function analyzeForPlayerCell(
       totalSprites += 1;
       const key = `p|${playerCell.x},${playerCell.y}`;
       const agg = totalContrib.get(key);
-      if (agg) agg.count += 1; else totalContrib.set(key, { ref, count: 1 });
+      if (agg) agg.count += 1;
+      else totalContrib.set(key, { ref, count: 1 });
       const startY = clampToViewportY(ty - viewport.y);
       const endY = clampToViewportY(ty + 7 - viewport.y);
       for (let y = startY; y <= endY; y += 1) {
@@ -295,7 +327,10 @@ function analyzeForPlayerCell(
   const tallGrassId = ctx.warpMetadata?.collisionConstants?.["COLL_TALL_GRASS"];
   const longGrassId = ctx.warpMetadata?.collisionConstants?.["COLL_LONG_GRASS"];
   const puddleId = ctx.warpMetadata?.collisionConstants?.["COLL_PUDDLE"];
-  if (ctx.collision && (Number.isFinite(tallGrassId) || Number.isFinite(longGrassId) || Number.isFinite(puddleId))) {
+  if (
+    ctx.collision &&
+    (Number.isFinite(tallGrassId) || Number.isFinite(longGrassId) || Number.isFinite(puddleId))
+  ) {
     const cellValue = ctx.collision.getValue(playerCell.x, playerCell.y);
     let effectLabel: string | null = null;
     if (Number.isFinite(tallGrassId) && cellValue === tallGrassId) {
@@ -306,7 +341,11 @@ function analyzeForPlayerCell(
       effectLabel = "puddle-effect";
     }
     if (effectLabel) {
-      const ref: SpriteLimitEntityRef = { kind: "player", cell: { ...playerCell }, label: effectLabel };
+      const ref: SpriteLimitEntityRef = {
+        kind: "player",
+        cell: { ...playerCell },
+        label: effectLabel,
+      };
       // Two 8x8 tiles relative to player world position: bottom-left and bottom-right of feet
       const tiles = [
         { dx: -8, dy: 8 },
@@ -317,13 +356,16 @@ function analyzeForPlayerCell(
       for (const t of tiles) {
         const tx = playerWorldX + t.dx;
         const ty = playerWorldY + t.dy;
-        if (!rectsIntersect(viewport.x, viewport.y, viewport.width, viewport.height, tx, ty, 8, 8)) {
+        if (
+          !rectsIntersect(viewport.x, viewport.y, viewport.width, viewport.height, tx, ty, 8, 8)
+        ) {
           continue;
         }
         totalSprites += 1;
         const key = `pg|${playerCell.x},${playerCell.y}`;
         const agg = totalContrib.get(key);
-        if (agg) agg.count += 1; else totalContrib.set(key, { ref, count: 1 });
+        if (agg) agg.count += 1;
+        else totalContrib.set(key, { ref, count: 1 });
         const startY = clampToViewportY(ty - viewport.y);
         const endY = clampToViewportY(ty + 7 - viewport.y);
         for (let y = startY; y <= endY; y += 1) {
@@ -338,7 +380,11 @@ function analyzeForPlayerCell(
   const currentMapLabel: string = (ctx as any).currentMapLabel ?? "";
   const isOverworld = Boolean(ctx.warpMetadata?.maps?.[currentMapLabel]?.isOverworld);
   if (ctx.includeWeather && isOverworld) {
-    const ref: SpriteLimitEntityRef = { kind: "weather", cell: { ...playerCell }, label: "weather" };
+    const ref: SpriteLimitEntityRef = {
+      kind: "weather",
+      cell: { ...playerCell },
+      label: "weather",
+    };
     totalSprites += 1;
     totalContrib.set("w|weather", { ref, count: 1 });
     for (let y = 0; y < SCREEN_HEIGHT_PX; y += 1) {
@@ -357,14 +403,18 @@ function analyzeForPlayerCell(
       { x: playerCell.x + 1, y: playerCell.y },
     ];
     const isCellValid = (c: MapCellCoordinate): boolean => {
-      if (c.x < 0 || c.y < 0 || c.x >= ctx.collision!.width || c.y >= ctx.collision!.height) return false;
+      if (c.x < 0 || c.y < 0 || c.x >= ctx.collision!.width || c.y >= ctx.collision!.height)
+        return false;
       // Follower must stand on a walkable cell (assume land movement)
       return ctx.collision!.isPassable(c.x, c.y, "land");
     };
 
     // Per-scanline maxima across valid follower positions
     const folScanlineMax = new Uint16Array(SCREEN_HEIGHT_PX);
-    const folScanlineCell: Array<MapCellCoordinate | null> = Array.from({ length: SCREEN_HEIGHT_PX }, () => null);
+    const folScanlineCell: Array<MapCellCoordinate | null> = Array.from(
+      { length: SCREEN_HEIGHT_PX },
+      () => null,
+    );
     // Totals: best single position
     let folTotalMax = 0;
     let folTotalCell: MapCellCoordinate | null = null;
@@ -388,11 +438,14 @@ function analyzeForPlayerCell(
       }
       // Per-scanline contribution for this cell
       const cellScan = new Uint16Array(SCREEN_HEIGHT_PX);
-      let seenMinY = SCREEN_HEIGHT_PX, seenMaxY = -1;
+      let seenMinY = SCREEN_HEIGHT_PX,
+        seenMaxY = -1;
       for (const { dx, dy } of playerProfile.tiles) {
         const tx = anchorX + dx;
         const ty = anchorY + dy;
-        if (!rectsIntersect(viewport.x, viewport.y, viewport.width, viewport.height, tx, ty, 8, 8)) {
+        if (
+          !rectsIntersect(viewport.x, viewport.y, viewport.width, viewport.height, tx, ty, 8, 8)
+        ) {
           continue;
         }
         const startY = clampToViewportY(ty - viewport.y);
@@ -417,7 +470,11 @@ function analyzeForPlayerCell(
     // Apply follower totals to global totals
     if (folTotalMax > 0 && folTotalCell) {
       totalSprites += folTotalMax;
-      const ref: SpriteLimitEntityRef = { kind: "follower", cell: { ...folTotalCell }, label: "follower" };
+      const ref: SpriteLimitEntityRef = {
+        kind: "follower",
+        cell: { ...folTotalCell },
+        label: "follower",
+      };
       const key = `f|${folTotalCell.x},${folTotalCell.y}`;
       totalContrib.set(key, { ref, count: folTotalMax });
     }
@@ -427,7 +484,11 @@ function analyzeForPlayerCell(
       if (c > 0) {
         scanlineCounts[y] += c;
         const cell = folScanlineCell[y];
-        const ref: SpriteLimitEntityRef = { kind: "follower", cell: cell ? { ...cell } : { ...playerCell }, label: "follower" };
+        const ref: SpriteLimitEntityRef = {
+          kind: "follower",
+          cell: cell ? { ...cell } : { ...playerCell },
+          label: "follower",
+        };
         scanlineContrib[y].push(ref);
       }
     }
@@ -442,15 +503,18 @@ function analyzeForPlayerCell(
       continue;
     }
 
-  // Per-scanline maxima (across positions) and the chosen cell that achieves it
-  const npcScanlineMax = new Uint16Array(SCREEN_HEIGHT_PX);
-  const npcScanlineCell: Array<MapCellCoordinate | null> = Array.from({ length: SCREEN_HEIGHT_PX }, () => null);
+    // Per-scanline maxima (across positions) and the chosen cell that achieves it
+    const npcScanlineMax = new Uint16Array(SCREEN_HEIGHT_PX);
+    const npcScanlineCell: Array<MapCellCoordinate | null> = Array.from(
+      { length: SCREEN_HEIGHT_PX },
+      () => null,
+    );
 
     // Total maximum and chosen cell
     let npcTotalMax = 0;
     let npcTotalCell: MapCellCoordinate | null = null;
 
-  for (const cell of npc.cells) {
+    for (const cell of npc.cells) {
       if (cell.x === playerCell.x && cell.y === playerCell.y) {
         continue;
       }
@@ -462,7 +526,18 @@ function analyzeForPlayerCell(
       for (const { dx, dy } of profile.tiles) {
         const tx = anchorX + dx;
         const ty = anchorY + dy;
-        if (rectsIntersect(totalViewport.x, totalViewport.y, totalViewport.width, totalViewport.height, tx, ty, 8, 8)) {
+        if (
+          rectsIntersect(
+            totalViewport.x,
+            totalViewport.y,
+            totalViewport.width,
+            totalViewport.height,
+            tx,
+            ty,
+            8,
+            8,
+          )
+        ) {
           visibleTiles += 1;
         }
       }
@@ -474,11 +549,14 @@ function analyzeForPlayerCell(
       // Update per-scanline maxima: compute this cell's contribution per scanline,
       // then compare with the current max and take the larger.
       const cellScan = new Uint16Array(SCREEN_HEIGHT_PX);
-      let seenMinY = SCREEN_HEIGHT_PX, seenMaxY = -1;
+      let seenMinY = SCREEN_HEIGHT_PX,
+        seenMaxY = -1;
       for (const { dx, dy } of profile.tiles) {
         const tx = anchorX + dx;
         const ty = anchorY + dy;
-        if (!rectsIntersect(viewport.x, viewport.y, viewport.width, viewport.height, tx, ty, 8, 8)) {
+        if (
+          !rectsIntersect(viewport.x, viewport.y, viewport.width, viewport.height, tx, ty, 8, 8)
+        ) {
           continue;
         }
         const startY = clampToViewportY(ty - viewport.y);
@@ -503,7 +581,12 @@ function analyzeForPlayerCell(
     // Apply per-NPC totals to the global total
     if (npcTotalMax > 0 && npcTotalCell) {
       totalSprites += npcTotalMax;
-      const ref: SpriteLimitEntityRef = { kind: "npc", index: npc.entry.index, cell: { ...npcTotalCell }, label: npc.entry.macro };
+      const ref: SpriteLimitEntityRef = {
+        kind: "npc",
+        index: npc.entry.index,
+        cell: { ...npcTotalCell },
+        label: npc.entry.macro,
+      };
       const key = `n|${npc.entry.index}|${npcTotalCell.x},${npcTotalCell.y}`;
       totalContrib.set(key, { ref, count: npcTotalMax });
     }
@@ -602,7 +685,10 @@ export function analyzeMapSpriteLimits(
   options: AnalyzeOptions,
 ): SpriteLimitIssue[] {
   const issues: SpriteLimitIssue[] = [];
-  const collision = createCollisionHelper(warp?.maps?.[map.label]?.collision ?? null, warp?.collisionPermissions ?? null);
+  const collision = createCollisionHelper(
+    warp?.maps?.[map.label]?.collision ?? null,
+    warp?.collisionPermissions ?? null,
+  );
   const cellPixelSize = Math.max(1, Math.trunc(warp?.cellPixelSize ?? 16));
   const ctx: AnalysisContext = {
     objectMetadata,
@@ -619,8 +705,14 @@ export function analyzeMapSpriteLimits(
   (ctx as any).currentMapLabel = map.label;
 
   // Prepare NPC movement summaries and facing profiles
-  const npcEntries = (map.objects ?? []).filter((obj) => isObjectVisibleAtTime(obj, options.timeOfDay));
-  const npcRecords: Array<{ entry: ObjectEventEntry; cells: MapCellCoordinate[]; profile: FacingProfile | null }> = [];
+  const npcEntries = (map.objects ?? []).filter((obj) =>
+    isObjectVisibleAtTime(obj, options.timeOfDay),
+  );
+  const npcRecords: Array<{
+    entry: ObjectEventEntry;
+    cells: MapCellCoordinate[];
+    profile: FacingProfile | null;
+  }> = [];
   for (const entry of npcEntries) {
     const model = getMovementModel(entry.movement?.constant ?? null);
     let summary: MovementSummary | null = null;

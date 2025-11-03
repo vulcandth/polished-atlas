@@ -10,7 +10,9 @@ export function decodeBase64(data: string): Uint8Array {
     }
     return buffer;
   }
-  const globalBuffer = (globalThis as unknown as { Buffer?: { from(data: string, encoding: string): Uint8Array } }).Buffer;
+  const globalBuffer = (
+    globalThis as unknown as { Buffer?: { from(data: string, encoding: string): Uint8Array } }
+  ).Buffer;
   if (globalBuffer) {
     const decoded = globalBuffer.from(data, "base64");
     if (decoded instanceof Uint8Array) {

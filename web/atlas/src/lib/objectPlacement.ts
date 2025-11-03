@@ -19,17 +19,17 @@ function normalisePositive(value: number, fallback: number): number {
 
 export function computeObjectPosition(
   entry: Pick<ObjectEventEntry, "xTiles" | "yTiles" | "xPixels" | "yPixels">,
-  context: PlacementContext
+  context: PlacementContext,
 ): { x: number; y: number } {
   const atlasBlock = normalisePositive(context.atlasBlockPixelSize, DEFAULT_ATLAS_BLOCK);
   const metadataBlock = normalisePositive(context.metadataBlockPixelSize, atlasBlock);
   const cellsPerBlock = Math.max(
     1,
-    Math.trunc(normalisePositive(context.cellsPerBlock, DEFAULT_CELLS_PER_BLOCK))
+    Math.trunc(normalisePositive(context.cellsPerBlock, DEFAULT_CELLS_PER_BLOCK)),
   );
   const baseCellPixelSize = normalisePositive(
     context.eventCellPixelSize,
-    metadataBlock / cellsPerBlock
+    metadataBlock / cellsPerBlock,
   );
   const pixelScale = metadataBlock !== 0 ? atlasBlock / metadataBlock : 1;
   const atlasCellPixelSize = baseCellPixelSize * pixelScale;

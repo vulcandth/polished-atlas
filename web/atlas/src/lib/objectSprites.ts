@@ -23,11 +23,7 @@ const DEFAULT_PALETTE: RgbTuple[] = [
   [0, 0, 0],
 ];
 
-const DEBUG_SPRITES = new Set([
-  "SPRITE_SAILBOAT",
-  "SPRITE_BIG_GYARADOS",
-  "SPRITE_BIG_SNORLAX",
-]);
+const DEBUG_SPRITES = new Set(["SPRITE_SAILBOAT", "SPRITE_BIG_GYARADOS", "SPRITE_BIG_SNORLAX"]);
 
 function decodeTilePixels(tileBytes: Uint8Array): Uint8Array[] {
   if (tileBytes.length % 16 !== 0) {
@@ -130,14 +126,14 @@ export class ObjectSpriteCache {
   getFacingTexture(
     spriteName: string,
     facingKey: string,
-    paletteName: string | null | undefined
+    paletteName: string | null | undefined,
   ): FacingTextureRecord | null {
     if (!spriteName || !facingKey) {
       return null;
     }
-  // Include bgSignature for copy-from-BG palettes so textures are unique per map palette
-  const isCopy = paletteName ? this.resolveCopyBgIndex(paletteName) !== null : false;
-  const cacheKey = `${spriteName}|${facingKey}|${paletteName ?? ""}|${this.timeOfDay}${isCopy ? `|bg=${this.bgSignature ?? ""}` : ""}`;
+    // Include bgSignature for copy-from-BG palettes so textures are unique per map palette
+    const isCopy = paletteName ? this.resolveCopyBgIndex(paletteName) !== null : false;
+    const cacheKey = `${spriteName}|${facingKey}|${paletteName ?? ""}|${this.timeOfDay}${isCopy ? `|bg=${this.bgSignature ?? ""}` : ""}`;
     const cached = this.textureCache.get(cacheKey);
     if (cached) {
       return cached;
@@ -150,7 +146,9 @@ export class ObjectSpriteCache {
     const buildFallback = (): FacingTextureRecord | null => {
       const fallback = this.buildGeneratedTexture(spriteName, palette);
       if (fallback && import.meta.env?.DEV && DEBUG_SPRITES.has(spriteName)) {
-        console.info(`[SpriteCache] Generated fallback texture for ${spriteName} (${facingKey}) at ${fallback.width}x${fallback.height}`);
+        console.info(
+          `[SpriteCache] Generated fallback texture for ${spriteName} (${facingKey}) at ${fallback.width}x${fallback.height}`,
+        );
       }
       return fallback;
     };
@@ -236,7 +234,12 @@ export class ObjectSpriteCache {
       return null;
     }
     const forms = speciesEntry.forms ?? {};
-    const normalizedForm = formConstant && forms[formConstant] ? formConstant : forms["NO_FORM"] ? "NO_FORM" : Object.keys(forms)[0];
+    const normalizedForm =
+      formConstant && forms[formConstant]
+        ? formConstant
+        : forms["NO_FORM"]
+          ? "NO_FORM"
+          : Object.keys(forms)[0];
     if (!normalizedForm) {
       return null;
     }
@@ -248,7 +251,12 @@ export class ObjectSpriteCache {
     const cacheKey = `icon|${speciesConstant}|${normalizedForm}|${paletteKey ?? ""}|${this.timeOfDay}`;
     const cachedFrames = this.pokemonIconTextureCache.get(cacheKey);
     if (cachedFrames) {
-      const durationFrames = Math.max(1, Math.trunc(variant.frameDurationFrames || this.pokemonIcons.defaultFrameDurationFrames || 8));
+      const durationFrames = Math.max(
+        1,
+        Math.trunc(
+          variant.frameDurationFrames || this.pokemonIcons.defaultFrameDurationFrames || 8,
+        ),
+      );
       return { frames: cachedFrames, frameDurationFrames: durationFrames };
     }
 
@@ -267,9 +275,15 @@ export class ObjectSpriteCache {
       return null;
     }
 
-    const frameTileStride = Math.max(1, Math.trunc(variant.frameTileStride || this.pokemonIcons.frameTileStride || 4));
+    const frameTileStride = Math.max(
+      1,
+      Math.trunc(variant.frameTileStride || this.pokemonIcons.frameTileStride || 4),
+    );
     const width = Math.max(8, Math.trunc(variant.width || this.pokemonIcons.framePixelWidth || 16));
-    const height = Math.max(8, Math.trunc(variant.height || this.pokemonIcons.framePixelHeight || width));
+    const height = Math.max(
+      8,
+      Math.trunc(variant.height || this.pokemonIcons.framePixelHeight || width),
+    );
     const inferredFrameCount = Math.max(1, Math.trunc(tiles.length / frameTileStride));
     const frameCount = Math.max(1, Math.trunc(variant.frameCount || inferredFrameCount));
     if (tiles.length < frameTileStride) {
@@ -316,7 +330,9 @@ export class ObjectSpriteCache {
               if (pixelValue === 0) {
                 continue;
               }
-              const color = colors[pixelValue] ?? DEFAULT_PALETTE[Math.min(pixelValue, DEFAULT_PALETTE.length - 1)];
+              const color =
+                colors[pixelValue] ??
+                DEFAULT_PALETTE[Math.min(pixelValue, DEFAULT_PALETTE.length - 1)];
               const offset = (destY * width + destX) * 4;
               buffer[offset] = color[0];
               buffer[offset + 1] = color[1];
@@ -342,7 +358,10 @@ export class ObjectSpriteCache {
     }
 
     this.pokemonIconTextureCache.set(cacheKey, frames);
-    const durationFrames = Math.max(1, Math.trunc(variant.frameDurationFrames || this.pokemonIcons.defaultFrameDurationFrames || 8));
+    const durationFrames = Math.max(
+      1,
+      Math.trunc(variant.frameDurationFrames || this.pokemonIcons.defaultFrameDurationFrames || 8),
+    );
     return { frames, frameDurationFrames: durationFrames };
   }
 
@@ -423,7 +442,7 @@ export class ObjectSpriteCache {
     spriteDef: ObjectSpriteDefinition,
     facing: ObjectFacingEntry,
     tiles: Uint8Array[],
-    palette: RgbTuple[]
+    palette: RgbTuple[],
   ): FacingTextureRecord | null {
     const shouldDebug = import.meta.env?.DEV && DEBUG_SPRITES.has(spriteName);
     let minX = 0;
@@ -454,7 +473,7 @@ export class ObjectSpriteCache {
         spriteDef,
         tiles.length,
         tileEntry.tile ?? 0,
-        tileEntry.attributes ?? 0
+        tileEntry.attributes ?? 0,
       );
       if (normalizedIndex === null) {
         continue;
@@ -479,7 +498,8 @@ export class ObjectSpriteCache {
           if (pixelValue === 0) {
             continue;
           }
-          const color = colors[pixelValue] ?? DEFAULT_PALETTE[Math.min(pixelValue, DEFAULT_PALETTE.length - 1)];
+          const color =
+            colors[pixelValue] ?? DEFAULT_PALETTE[Math.min(pixelValue, DEFAULT_PALETTE.length - 1)];
           const offset = (destY * width + destX) * 4;
           buffer[offset] = color[0];
           buffer[offset + 1] = color[1];
@@ -493,7 +513,7 @@ export class ObjectSpriteCache {
     const texture = new Texture(baseTexture);
     if (shouldDebug) {
       console.info(
-        `[SpriteCache] ${spriteName} built facing ${facing.label} at ${width}x${height} (min=${minX},${minY}) using ${facing.tiles.length} tiles`
+        `[SpriteCache] ${spriteName} built facing ${facing.label} at ${width}x${height} (min=${minX},${minY}) using ${facing.tiles.length} tiles`,
       );
     }
     return {
@@ -510,13 +530,13 @@ export class ObjectSpriteCache {
     spriteDef: ObjectSpriteDefinition,
     tileCount: number,
     rawIndex: number,
-    attributes: number
+    attributes: number,
   ): number | null {
     const shouldDebug = import.meta.env?.DEV && DEBUG_SPRITES.has(spriteName);
     if (!Number.isFinite(rawIndex)) {
       if (shouldDebug) {
         console.info(
-          `[SpriteCache] ${spriteName} received NaN tile index (facing attr=${attributes.toString(16)})`
+          `[SpriteCache] ${spriteName} received NaN tile index (facing attr=${attributes.toString(16)})`,
         );
       }
       return null;
@@ -536,7 +556,7 @@ export class ObjectSpriteCache {
       if (adjustedBankIndex !== null) {
         if (shouldDebug) {
           console.info(
-            `[SpriteCache] ${spriteName} mapped 0x${rawIndex.toString(16)} -> ${adjustedBankIndex} (limit=${limit})`
+            `[SpriteCache] ${spriteName} mapped 0x${rawIndex.toString(16)} -> ${adjustedBankIndex} (limit=${limit})`,
           );
         }
         return adjustedBankIndex;
@@ -544,7 +564,7 @@ export class ObjectSpriteCache {
     }
     if (shouldDebug) {
       console.info(
-        `[SpriteCache] ${spriteName} failed to map tile 0x${rawIndex.toString(16)} (limit=${limit}, attr=0x${attributes.toString(16)})`
+        `[SpriteCache] ${spriteName} failed to map tile 0x${rawIndex.toString(16)} (limit=${limit}, attr=0x${attributes.toString(16)})`,
       );
     }
     return null;
@@ -554,7 +574,7 @@ export class ObjectSpriteCache {
     spriteName: string,
     spriteDef: ObjectSpriteDefinition,
     limit: number,
-    rawIndex: number
+    rawIndex: number,
   ): number | null {
     if (!(limit > 0) || rawIndex < 0x80) {
       return null;
@@ -609,7 +629,7 @@ export class ObjectSpriteCache {
   private inferPerBankSpan(
     spriteName: string,
     spriteDef: ObjectSpriteDefinition,
-    limit: number
+    limit: number,
   ): number {
     if (!(limit > 0)) {
       return 0;
@@ -623,7 +643,10 @@ export class ObjectSpriteCache {
     return 0;
   }
 
-  private buildGeneratedTexture(spriteName: string, palette: RgbTuple[]): FacingTextureRecord | null {
+  private buildGeneratedTexture(
+    spriteName: string,
+    palette: RgbTuple[],
+  ): FacingTextureRecord | null {
     if (spriteName !== "SPRITE_MON_ICON") {
       return null;
     }

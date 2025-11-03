@@ -19,7 +19,7 @@ function clampToInt(value: number): number {
 
 export function createCollisionHelper(
   metadata: MapCollisionMetadata | null | undefined,
-  permissions: number[] | null | undefined
+  permissions: number[] | null | undefined,
 ): CollisionHelper | null {
   if (!metadata || metadata.cellBytes.length === 0) {
     return null;
@@ -31,7 +31,8 @@ export function createCollisionHelper(
   }
 
   const cells = metadata.cellBytes;
-  const permissionTable = permissions && permissions.length > 0 ? permissions.slice(0, 0x100) : DEFAULT_PERMISSION_TABLE;
+  const permissionTable =
+    permissions && permissions.length > 0 ? permissions.slice(0, 0x100) : DEFAULT_PERMISSION_TABLE;
 
   const getIndex = (x: number, y: number): number | null => {
     if (!Number.isFinite(x) || !Number.isFinite(y)) {

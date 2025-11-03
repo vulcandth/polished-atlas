@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
-import type { BgPalettesMapEntry, BgPalettesMetadata, BgPalettesPayloadDTO, RgbTuple } from "@/types";
+import type {
+  BgPalettesMapEntry,
+  BgPalettesMetadata,
+  BgPalettesPayloadDTO,
+  RgbTuple,
+} from "@/types";
 
 interface UseBgPalettesOptions {
   url?: string;
@@ -24,7 +29,10 @@ function toNumberOrNull(value: unknown): number | null {
   return Math.trunc(value);
 }
 
-function normalizeMapEntry(label: string, entry: BgPalettesMapEntry | undefined): BgPalettesMapEntry {
+function normalizeMapEntry(
+  label: string,
+  entry: BgPalettesMapEntry | undefined,
+): BgPalettesMapEntry {
   const normalized: BgPalettesMapEntry = {
     label,
     map_constant: entry?.map_constant ?? null,
@@ -36,14 +44,21 @@ function normalizeMapEntry(label: string, entry: BgPalettesMapEntry | undefined)
     if (!Array.isArray(rows)) continue;
     const clamped: RgbTuple[][] = [];
     for (const row of rows as unknown as RgbTuple[][]) {
-      const colors = Array.isArray(row) ? row.slice(0, 4) as RgbTuple[] : [];
+      const colors = Array.isArray(row) ? (row.slice(0, 4) as RgbTuple[]) : [];
       while (colors.length < 4) {
         colors.push(colors[colors.length - 1] ?? [0, 0, 0]);
       }
       clamped.push(colors.slice(0, 4));
     }
     while (clamped.length < 8) {
-      clamped.push(clamped[clamped.length - 1] ?? [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]);
+      clamped.push(
+        clamped[clamped.length - 1] ?? [
+          [0, 0, 0],
+          [0, 0, 0],
+          [0, 0, 0],
+          [0, 0, 0],
+        ],
+      );
     }
     normalized.palettes[time] = clamped.slice(0, 8);
   }

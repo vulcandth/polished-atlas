@@ -39,8 +39,8 @@ export async function loadMapAnimation(assetUrl: string): Promise<MapAnimationRe
     attemptedUrls.push(candidate);
     try {
       const { metadata, responseUrl } = await fetchAnimationMetadata(candidate);
-  const baseHref = new URL(responseUrl, window.location.href);
-  const resolvedImageUrl = withVersion(new URL(metadata.image, baseHref).toString());
+      const baseHref = new URL(responseUrl, window.location.href);
+      const resolvedImageUrl = withVersion(new URL(metadata.image, baseHref).toString());
       await Assets.load(resolvedImageUrl);
       const baseTexture = BaseTexture.from(resolvedImageUrl);
       const textures: Texture[] = [];
@@ -72,7 +72,9 @@ export async function loadMapAnimation(assetUrl: string): Promise<MapAnimationRe
           sheetRows = Math.max(1, Math.ceil(metadata.frameCount / sheetColumns));
         }
         if (sheetRows > textureRows) {
-          throw new Error(`Animation sheet at ${responseUrl} does not fit inside the base texture bounds.`);
+          throw new Error(
+            `Animation sheet at ${responseUrl} does not fit inside the base texture bounds.`,
+          );
         }
       }
       for (let index = 0; index < metadata.frameCount; index += 1) {
@@ -82,12 +84,15 @@ export async function loadMapAnimation(assetUrl: string): Promise<MapAnimationRe
           columnIndex * metadata.frameWidth,
           rowIndex * metadata.frameHeight,
           metadata.frameWidth,
-          metadata.frameHeight
+          metadata.frameHeight,
         );
         textures.push(new Texture(baseTexture, frameRect));
       }
       const durations = [...metadata.frameDurationsMs];
-      const loopDuration = metadata.loopDurationMs > 0 ? metadata.loopDurationMs : durations.reduce((a, b) => a + b, 0);
+      const loopDuration =
+        metadata.loopDurationMs > 0
+          ? metadata.loopDurationMs
+          : durations.reduce((a, b) => a + b, 0);
       if (candidate !== assetUrl) {
         resolvedUrlCache.set(assetUrl, candidate);
       }
@@ -112,14 +117,18 @@ export async function loadMapAnimation(assetUrl: string): Promise<MapAnimationRe
   throw new Error(errorMessage);
 }
 
-async function fetchAnimationMetadata(url: string): Promise<{ metadata: MapAnimationMetadata; responseUrl: string }> {
+async function fetchAnimationMetadata(
+  url: string,
+): Promise<{ metadata: MapAnimationMetadata; responseUrl: string }> {
   const response = await fetch(url, { cache: "force-cache" });
   if (!response.ok) {
     throw new Error(`Failed to load animation metadata from ${url} (status ${response.status})`);
   }
   const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
   if (!contentType.includes("json")) {
-    throw new Error(`Unexpected content type for animation metadata at ${url}: ${contentType || "unknown"}`);
+    throw new Error(
+      `Unexpected content type for animation metadata at ${url}: ${contentType || "unknown"}`,
+    );
   }
   let metadata: MapAnimationMetadata;
   try {
@@ -164,7 +173,10 @@ function validateMetadata(metadata: MapAnimationMetadata, assetUrl: string): voi
   if (metadata.version !== 1) {
     console.warn(`Unsupported animation metadata version ${metadata.version} for ${assetUrl}.`);
   }
-  if (!Array.isArray(metadata.frameDurationsMs) || metadata.frameDurationsMs.length !== metadata.frameCount) {
+  if (
+    !Array.isArray(metadata.frameDurationsMs) ||
+    metadata.frameDurationsMs.length !== metadata.frameCount
+  ) {
     throw new Error(`Animation metadata at ${assetUrl} has inconsistent frame durations.`);
   }
   if (metadata.frameWidth <= 0 || metadata.frameHeight <= 0) {

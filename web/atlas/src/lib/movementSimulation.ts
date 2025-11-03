@@ -16,7 +16,10 @@ export interface SimulateNpcMovementOptions {
   collisionHelper: CollisionHelper | null;
 }
 
-const AXIS_DIRECTIONS: Record<Exclude<MovementAxes, "xy">, { positive: string; negative: string }> = {
+const AXIS_DIRECTIONS: Record<
+  Exclude<MovementAxes, "xy">,
+  { positive: string; negative: string }
+> = {
   x: { positive: "east", negative: "west" },
   y: { positive: "south", negative: "north" },
 };
@@ -59,8 +62,12 @@ function toInt(value: number | null | undefined): number {
 }
 
 function resolveStartCell(object: ObjectEventEntry): MapCellCoordinate {
-  const x = Number.isFinite(object.xTiles) ? Math.trunc(object.xTiles) : Math.trunc((object.xPixels ?? 0) / 16);
-  const y = Number.isFinite(object.yTiles) ? Math.trunc(object.yTiles) : Math.trunc((object.yPixels ?? 0) / 16);
+  const x = Number.isFinite(object.xTiles)
+    ? Math.trunc(object.xTiles)
+    : Math.trunc((object.xPixels ?? 0) / 16);
+  const y = Number.isFinite(object.yTiles)
+    ? Math.trunc(object.yTiles)
+    : Math.trunc((object.yPixels ?? 0) / 16);
   return { x, y };
 }
 
@@ -71,7 +78,7 @@ function cloneMapCell(cell: MapCellCoordinate): MapCellCoordinate {
 function ensurePassable(
   helper: CollisionHelper | null,
   cell: MapCellCoordinate,
-  medium: MovementMedium
+  medium: MovementMedium,
 ): { passable: boolean; reason?: string } {
   if (!helper) {
     return { passable: true };
@@ -93,11 +100,12 @@ function describeNotes(notes: string[]): string | null {
 function simulateAxisWalk(
   options: SimulateNpcMovementOptions,
   start: MapCellCoordinate,
-  medium: MovementMedium
+  medium: MovementMedium,
 ): MovementSummary {
   const { object, model, collisionHelper } = options;
   const axis: Exclude<MovementAxes, "xy"> = model.axes === "y" ? "y" : "x";
-  const range = axis === "x" ? Math.max(0, toInt(object.range?.x)) : Math.max(0, toInt(object.range?.y));
+  const range =
+    axis === "x" ? Math.max(0, toInt(object.range?.x)) : Math.max(0, toInt(object.range?.y));
   const directions = AXIS_DIRECTIONS[axis];
   const deltaPositive = axis === "x" ? { dx: 1, dy: 0 } : { dx: 0, dy: 1 };
   const deltaNegative = axis === "x" ? { dx: -1, dy: 0 } : { dx: 0, dy: -1 };
@@ -114,7 +122,7 @@ function simulateAxisWalk(
     delta: { dx: number; dy: number },
     maxRange: number,
     collector: MapCellCoordinate[],
-    label: string
+    label: string,
   ): void => {
     for (let step = 1; step <= maxRange; step += 1) {
       const cell = {
@@ -127,7 +135,7 @@ function simulateAxisWalk(
         blockedNotes.push(
           reached > 0
             ? `Blocked ${label} after ${reached} step${reached === 1 ? "" : "s"}.`
-            : `Blocked immediately when attempting to move ${label}.`
+            : `Blocked immediately when attempting to move ${label}.`,
         );
         break;
       }
@@ -172,7 +180,10 @@ function simulateAxisWalk(
 
   const walkTo = (targets: MapCellCoordinate[]): void => {
     for (const target of targets) {
-      const direction = deltaToDirection(target.x - currentPosition.x, target.y - currentPosition.y);
+      const direction = deltaToDirection(
+        target.x - currentPosition.x,
+        target.y - currentPosition.y,
+      );
       if (!direction) {
         continue;
       }
@@ -227,7 +238,7 @@ function boundsContains(bounds: MovementBounds, cell: MapCellCoordinate): boolea
 function simulateRandomWalk(
   options: SimulateNpcMovementOptions,
   start: MapCellCoordinate,
-  medium: MovementMedium
+  medium: MovementMedium,
 ): MovementSummary {
   const { object, model, collisionHelper } = options;
   const rangeX = Math.max(0, toInt(object.range?.x));
@@ -273,7 +284,7 @@ function simulateRandomWalk(
     }
   }
 
-  reachable.sort((a, b) => (a.y - b.y) || (a.x - b.x));
+  reachable.sort((a, b) => a.y - b.y || a.x - b.x);
 
   const reachableCount = reachable.length > 0 ? reachable.length : startPassable.passable ? 1 : 0;
   const blockedCells = Math.max(0, totalCells - reachableCount);
@@ -304,7 +315,11 @@ function simulateRandomWalk(
   return summary;
 }
 
-function fallbackSummary(options: SimulateNpcMovementOptions, start: MapCellCoordinate, medium: MovementMedium): MovementSummary {
+function fallbackSummary(
+  options: SimulateNpcMovementOptions,
+  start: MapCellCoordinate,
+  medium: MovementMedium,
+): MovementSummary {
   const { model } = options;
   const notes: string[] = [];
   let description: string;

@@ -190,9 +190,7 @@ export const MOVEMENT_MODEL_BY_CONSTANT = {
 
 const MOVEMENT_MODEL_LOOKUP: Record<string, MovementModel> = MOVEMENT_MODEL_BY_CONSTANT;
 
-export function getMovementModel(
-  movementConstant: string | null | undefined,
-): MovementModel {
+export function getMovementModel(movementConstant: string | null | undefined): MovementModel {
   if (!movementConstant) {
     return DEFAULT_MOVEMENT_MODEL;
   }

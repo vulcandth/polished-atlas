@@ -25,7 +25,8 @@ type TimeOfDaySlug = TimeOfDayOption["value"];
 const PERF_SETTINGS_STORAGE_KEY = "polished-atlas:perf-settings";
 type PerfSettingsState = { disableMapAnimations: boolean; disableObjectAnimations: boolean };
 function readPerfSettings(): PerfSettingsState {
-  if (typeof window === "undefined") return { disableMapAnimations: false, disableObjectAnimations: false };
+  if (typeof window === "undefined")
+    return { disableMapAnimations: false, disableObjectAnimations: false };
   try {
     const raw = window.localStorage.getItem(PERF_SETTINGS_STORAGE_KEY);
     if (!raw) return { disableMapAnimations: false, disableObjectAnimations: false };
@@ -65,7 +66,9 @@ function sanitizeTimeOfDay(value: unknown): TimeOfDaySlug {
   return match ? match.value : "day";
 }
 
-const DEFAULT_TIME_OF_DAY: TimeOfDaySlug = sanitizeTimeOfDay(import.meta.env.VITE_ATLAS_TIME ?? "day");
+const DEFAULT_TIME_OF_DAY: TimeOfDaySlug = sanitizeTimeOfDay(
+  import.meta.env.VITE_ATLAS_TIME ?? "day",
+);
 
 type OffsetTuple = [number, number];
 
@@ -77,7 +80,10 @@ function snapToHalf(value: number): number {
 }
 
 function cloneOffsetMap(source: Record<string, OffsetTuple>): Record<string, OffsetTuple> {
-  const entries = Object.entries(source).map(([key, value]) => [key, [value[0], value[1]] as OffsetTuple]);
+  const entries = Object.entries(source).map(([key, value]) => [
+    key,
+    [value[0], value[1]] as OffsetTuple,
+  ]);
   return Object.fromEntries(entries);
 }
 
@@ -132,7 +138,10 @@ function manifestUrlForSlug(timeSlug: TimeOfDaySlug): string {
   if (import.meta.env.DEV) {
     const repoRoot = typeof __REPO_ROOT__ === "string" ? __REPO_ROOT__ : "";
     if (repoRoot && typeof window !== "undefined" && window.location?.origin) {
-      const rawPath = `${repoRoot}/maps/${timeSlug}/animated/map_neighborhoods.json`.replace(/\\/g, "/");
+      const rawPath = `${repoRoot}/maps/${timeSlug}/animated/map_neighborhoods.json`.replace(
+        /\\/g,
+        "/",
+      );
       const withLeadingSlash = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
       return withVersion(`${window.location.origin}/@fs${encodeURI(withLeadingSlash)}`);
     }
@@ -184,8 +193,18 @@ export default function App() {
     manifestUrl,
     rootLabel,
   });
-  const { metadata: warpMetadata, loading: warpLoading, error: warpError, reload: warpReload } = useWarpMetadata();
-  const { metadata: bgPalettes, loading: bgLoading, error: bgError, reload: bgReload } = useBgPalettes();
+  const {
+    metadata: warpMetadata,
+    loading: warpLoading,
+    error: warpError,
+    reload: warpReload,
+  } = useWarpMetadata();
+  const {
+    metadata: bgPalettes,
+    loading: bgLoading,
+    error: bgError,
+    reload: bgReload,
+  } = useBgPalettes();
   const {
     metadata: objectMetadata,
     loading: objectLoading,
@@ -193,7 +212,10 @@ export default function App() {
     reload: objectReload,
   } = useObjectMetadata();
   const isLoading = loading || warpLoading || objectLoading || bgLoading;
-  const neighborhoods: NeighborhoodSummary[] = layout?.metadata?.neighborhoods ?? [];
+  const neighborhoods: NeighborhoodSummary[] = useMemo(
+    () => layout?.metadata?.neighborhoods ?? [],
+    [layout],
+  );
   const assetResolver = useMemo(() => {
     const fallback = (rawLabel: string): string => {
       const trimmed = rawLabel.trim();
@@ -294,7 +316,10 @@ export default function App() {
     const nextBaseOffsets: Record<string, OffsetTuple> = {};
     const nextBaseZ: Record<string, number> = {};
     for (const neighborhood of neighborhoods) {
-      const offset: OffsetTuple = [snapToHalf(neighborhood.offsetBlocks[0]), snapToHalf(neighborhood.offsetBlocks[1])];
+      const offset: OffsetTuple = [
+        snapToHalf(neighborhood.offsetBlocks[0]),
+        snapToHalf(neighborhood.offsetBlocks[1]),
+      ];
       const z = Number.isFinite(neighborhood.zOffset) ? Math.trunc(neighborhood.zOffset ?? 0) : 0;
       nextBaseOffsets[neighborhood.id] = offset;
       nextBaseZ[neighborhood.id] = z;
@@ -311,7 +336,10 @@ export default function App() {
         setZOverrides({ ...nextBaseZ });
       }
       const preferredId = neighborhoods[0]?.id ?? null;
-      if ((!selectedNeighborhoodId || !nextBaseOffsets[selectedNeighborhoodId]) && selectedNeighborhoodId !== preferredId) {
+      if (
+        (!selectedNeighborhoodId || !nextBaseOffsets[selectedNeighborhoodId]) &&
+        selectedNeighborhoodId !== preferredId
+      ) {
         setSelectedNeighborhoodId(preferredId ?? null);
       }
     } else if (selectedNeighborhoodId && !nextBaseOffsets[selectedNeighborhoodId]) {
@@ -344,19 +372,16 @@ export default function App() {
     });
   }, []);
 
-  const nudgeOffset = useCallback(
-    (id: string, deltaX: number, deltaY: number) => {
-      setOffsetOverrides((current) => {
-        const base = current[id] ?? baseOffsetsRef.current[id] ?? [0, 0];
-        const next: OffsetTuple = [snapToHalf(base[0] + deltaX), snapToHalf(base[1] + deltaY)];
-        if (base[0] === next[0] && base[1] === next[1]) {
-          return current;
-        }
-        return { ...current, [id]: next };
-      });
-    },
-    []
-  );
+  const nudgeOffset = useCallback((id: string, deltaX: number, deltaY: number) => {
+    setOffsetOverrides((current) => {
+      const base = current[id] ?? baseOffsetsRef.current[id] ?? [0, 0];
+      const next: OffsetTuple = [snapToHalf(base[0] + deltaX), snapToHalf(base[1] + deltaY)];
+      if (base[0] === next[0] && base[1] === next[1]) {
+        return current;
+      }
+      return { ...current, [id]: next };
+    });
+  }, []);
 
   const handleZChange = useCallback((id: string, value: number) => {
     setZOverrides((current) => {
@@ -378,7 +403,7 @@ export default function App() {
       setSaveStatus("idle");
       setSaveError(null);
     },
-    [timeOfDay]
+    [timeOfDay],
   );
 
   const hasPendingChanges = useMemo(() => {
@@ -444,7 +469,11 @@ export default function App() {
   }, [layout, offsetOverrides, zOverrides]);
 
   const canEdit =
-    import.meta.env.DEV && Boolean(manifestUrl) && neighborhoods.length > 0 && !graphUrl && timeOfDay === "day";
+    import.meta.env.DEV &&
+    Boolean(manifestUrl) &&
+    neighborhoods.length > 0 &&
+    !graphUrl &&
+    timeOfDay === "day";
 
   useEffect(() => {
     if (editing && !canEdit) {
@@ -496,7 +525,15 @@ export default function App() {
       setSaveStatus("error");
       setSaveError(err instanceof Error ? err.message : "Failed to update neighborhoods");
     }
-  }, [canEdit, editing, hasPendingChanges, neighborhoods, persistOverrides, reload, selectedNeighborhoodId]);
+  }, [
+    canEdit,
+    editing,
+    hasPendingChanges,
+    neighborhoods,
+    persistOverrides,
+    reload,
+    selectedNeighborhoodId,
+  ]);
 
   useEffect(() => {
     if (!editing || !selectedNeighborhoodId) {
@@ -544,10 +581,10 @@ export default function App() {
   }, [editing, selectedNeighborhoodId, nudgeOffset]);
 
   const selectedOffset = selectedNeighborhoodId
-    ? offsetOverrides[selectedNeighborhoodId] ?? baseOffsetsRef.current[selectedNeighborhoodId]
+    ? (offsetOverrides[selectedNeighborhoodId] ?? baseOffsetsRef.current[selectedNeighborhoodId])
     : undefined;
   const selectedZ = selectedNeighborhoodId
-    ? zOverrides[selectedNeighborhoodId] ?? baseZRef.current[selectedNeighborhoodId] ?? 0
+    ? (zOverrides[selectedNeighborhoodId] ?? baseZRef.current[selectedNeighborhoodId] ?? 0)
     : 0;
 
   const timeSelectDisabled =
@@ -587,8 +624,12 @@ export default function App() {
 
   // Performance toggles (lifted to header)
   const initialPerf = readPerfSettings();
-  const [disableMapAnimations, setDisableMapAnimations] = useState<boolean>(initialPerf.disableMapAnimations);
-  const [disableObjectAnimations, setDisableObjectAnimations] = useState<boolean>(initialPerf.disableObjectAnimations);
+  const [disableMapAnimations, setDisableMapAnimations] = useState<boolean>(
+    initialPerf.disableMapAnimations,
+  );
+  const [disableObjectAnimations, setDisableObjectAnimations] = useState<boolean>(
+    initialPerf.disableObjectAnimations,
+  );
   useEffect(() => {
     writePerfSettings({ disableMapAnimations, disableObjectAnimations });
   }, [disableMapAnimations, disableObjectAnimations]);
@@ -640,7 +681,11 @@ export default function App() {
             {isLoading ? "Loading…" : "Reload"}
           </button>
           {canEdit && (
-            <button type="button" onClick={handleToggleEditing} disabled={isLoading || saveStatus === "saving"}>
+            <button
+              type="button"
+              onClick={handleToggleEditing}
+              disabled={isLoading || saveStatus === "saving"}
+            >
               {!editing ? "Edit Layout" : saveStatus === "saving" ? "Saving…" : "Finish Editing"}
             </button>
           )}
@@ -663,7 +708,10 @@ export default function App() {
             </select>
           </div>
           <div className="dev-row">
-            <span>Offset (blocks): {selectedOffset ? `${selectedOffset[0]} , ${selectedOffset[1]}` : "--"}</span>
+            <span>
+              Offset (blocks):{" "}
+              {selectedOffset ? `${selectedOffset[0]} , ${selectedOffset[1]}` : "--"}
+            </span>
           </div>
           <div className="dev-row">
             <label htmlFor="neighborhood-z">Z Offset</label>
@@ -709,11 +757,15 @@ export default function App() {
           disableObjectAnimations={disableObjectAnimations}
         />
         {error && <div className="status-banner error">{error}</div>}
-  {!error && warpError && <div className="status-banner error">{warpError}</div>}
-  {!error && bgError && <div className="status-banner error">{bgError}</div>}
-  {!error && objectError && <div className="status-banner error">{objectError}</div>}
-        {saveStatus === "error" && saveError && !editing && <div className="status-banner error">{saveError}</div>}
-        {saveStatus === "success" && !editing && <div className="status-banner info">Neighborhood layout saved.</div>}
+        {!error && warpError && <div className="status-banner error">{warpError}</div>}
+        {!error && bgError && <div className="status-banner error">{bgError}</div>}
+        {!error && objectError && <div className="status-banner error">{objectError}</div>}
+        {saveStatus === "error" && saveError && !editing && (
+          <div className="status-banner error">{saveError}</div>
+        )}
+        {saveStatus === "success" && !editing && (
+          <div className="status-banner info">Neighborhood layout saved.</div>
+        )}
       </section>
     </main>
   );

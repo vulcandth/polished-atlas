@@ -56,7 +56,7 @@ function parseOffsetBlocks(raw: NeighborhoodManifestEntry["offset_blocks"]): Off
 function resolveBoundsBlocks(
   entry: NeighborhoodManifestEntry,
   layout: AtlasLayout,
-  blockPixelSize: number
+  blockPixelSize: number,
 ): { width: number; height: number } {
   const source = entry.bounds_blocks;
   const fallbackWidth = normalizeBlocks(layout.bounds.width / blockPixelSize);
@@ -73,7 +73,7 @@ function resolveBoundsBlocks(
 function combineNeighborhoodLayouts(
   records: NeighborhoodLayoutRecord[],
   marginBlocks: number = DEFAULT_MARGIN_BLOCKS,
-  manifestVersion?: number
+  manifestVersion?: number,
 ): AtlasLayout {
   if (records.length === 0) {
     return {
@@ -91,7 +91,9 @@ function combineNeighborhoodLayouts(
   const blockSizes = new Set(records.map((item) => item.layout.blockPixelSize));
   const blockPixelSize = records[0]?.layout.blockPixelSize || DEFAULT_BLOCK_PIXEL_SIZE;
   if (blockSizes.size > 1) {
-    console.warn("Neighborhood manifests contain inconsistent block pixel sizes; using the first value.");
+    console.warn(
+      "Neighborhood manifests contain inconsistent block pixel sizes; using the first value.",
+    );
   }
 
   const sanitizedMargin = Math.max(0, Math.trunc(marginBlocks));
@@ -138,7 +140,10 @@ function combineNeighborhoodLayouts(
       zOffset = fallbackZ;
       fallbackZ += 1;
     }
-    const offsetPixels: OffsetTuple = [offsetBlocks[0] * blockPixelSize, offsetBlocks[1] * blockPixelSize];
+    const offsetPixels: OffsetTuple = [
+      offsetBlocks[0] * blockPixelSize,
+      offsetBlocks[1] * blockPixelSize,
+    ];
 
     summaries.push({
       id: entry.id,
@@ -262,13 +267,19 @@ export function useAtlasData(options: UseAtlasDataOptions): UseAtlasDataResult {
         throw new Error(`Failed to fetch neighborhood manifest (${manifestResponse.status}).`);
       }
       const manifestPayload = (await manifestResponse.json()) as NeighborhoodManifest;
-      const entries = Array.isArray(manifestPayload.neighborhoods) ? manifestPayload.neighborhoods : [];
+      const entries = Array.isArray(manifestPayload.neighborhoods)
+        ? manifestPayload.neighborhoods
+        : [];
       const baseHref = new URL("./", manifestResponse.url).toString();
       const sortedEntries = entries
         .map((entry, index) => ({ entry, index }))
         .sort((a, b) => {
-          const aZ = isFiniteNumber(a.entry.z_offset) ? Math.trunc(a.entry.z_offset as number) : Number.MAX_SAFE_INTEGER;
-          const bZ = isFiniteNumber(b.entry.z_offset) ? Math.trunc(b.entry.z_offset as number) : Number.MAX_SAFE_INTEGER;
+          const aZ = isFiniteNumber(a.entry.z_offset)
+            ? Math.trunc(a.entry.z_offset as number)
+            : Number.MAX_SAFE_INTEGER;
+          const bZ = isFiniteNumber(b.entry.z_offset)
+            ? Math.trunc(b.entry.z_offset as number)
+            : Number.MAX_SAFE_INTEGER;
           if (aZ !== bZ) {
             return aZ - bZ;
           }
@@ -289,7 +300,7 @@ export function useAtlasData(options: UseAtlasDataOptions): UseAtlasDataResult {
             assetBaseUrl: graphBaseHref,
           });
           return { entry, layout: layoutForEntry };
-        })
+        }),
       );
       return combineNeighborhoodLayouts(layouts, DEFAULT_MARGIN_BLOCKS, manifestPayload.version);
     };
@@ -333,9 +344,5 @@ export function useAtlasData(options: UseAtlasDataOptions): UseAtlasDataResult {
     setNonce((value: number) => value + 1);
   }, []);
 
-  return useMemo(
-    () => ({ layout, loading, error, reload }),
-    [layout, loading, error, reload]
-  );
+  return useMemo(() => ({ layout, loading, error, reload }), [layout, loading, error, reload]);
 }
-

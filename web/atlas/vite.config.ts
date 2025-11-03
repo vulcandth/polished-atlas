@@ -72,9 +72,7 @@ function atlasDevToolsPlugin(repoRoot: string): Plugin {
             throw new Error("Manifest missing neighborhoods array");
           }
 
-          const updates = new Map(
-            payload.neighborhoods.map((entry) => [entry.id, entry] as const)
-          );
+          const updates = new Map(payload.neighborhoods.map((entry) => [entry.id, entry] as const));
 
           let updatedCount = 0;
           for (const neighborhood of manifest.neighborhoods) {
@@ -112,7 +110,11 @@ function atlasDevToolsPlugin(repoRoot: string): Plugin {
           res.statusCode = 200;
           res.setHeader("Content-Type", "application/json");
           res.end(
-            JSON.stringify({ ok: true, updated: updatedCount, generated_at: manifest.generated_at })
+            JSON.stringify({
+              ok: true,
+              updated: updatedCount,
+              generated_at: manifest.generated_at,
+            }),
           );
         } catch (error) {
           const message = error instanceof Error ? error.message : "Unknown error";

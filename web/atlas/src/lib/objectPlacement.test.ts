@@ -11,7 +11,7 @@ describe("computeObjectPosition", () => {
     };
     const position = computeObjectPosition(
       { xTiles: 3, yTiles: 2, xPixels: 0, yPixels: 0 },
-      context
+      context,
     );
     expect(position.x).toBe(48);
     // With quarter-cell upward offset applied: 2 * 16 - 4 = 28
@@ -27,7 +27,7 @@ describe("computeObjectPosition", () => {
     };
     const position = computeObjectPosition(
       { xTiles: Number.NaN, yTiles: Number.NaN, xPixels: 160, yPixels: 96 },
-      context
+      context,
     );
     expect(position.x).toBeCloseTo(160, 6);
     // No offset when using pixel fallback
@@ -43,7 +43,7 @@ describe("computeObjectPosition", () => {
     };
     const position = computeObjectPosition(
       { xTiles: 1, yTiles: 1, xPixels: 0, yPixels: 0 },
-      context
+      context,
     );
     expect(position.x).toBe(32);
     // atlasCellPixelSize = 32 here, so 1 * 32 - 8 = 24

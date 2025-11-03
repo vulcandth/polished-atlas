@@ -293,7 +293,14 @@ function disposeAnimationResource(
   // so that the asset system can own the BaseTexture lifecycle.
   for (const texture of resource.textures) {
     try {
+      // In some teardown orders, PIXI may already have nulled the baseTexture
+      // on a Texture without marking it destroyed. Guard for that to avoid
+      // internal refCount access on a null baseTexture.
       if (texture && !texture.destroyed) {
+        const bt = (texture as any).baseTexture ?? (texture as any)._baseTexture;
+        if (!bt) {
+          continue;
+        }
         texture.destroy(false);
       }
     } catch {
@@ -2252,7 +2259,9 @@ export default function MapCanvas({
         (child as { destroy: () => void }).destroy();
       }
     }
-    disposeAnimationResource(state.resource);
+  // Overlay assets are short-lived; fully unload their BaseTexture via Assets
+  // after destroying display objects to free GPU/CPU memory.
+  disposeAnimationResource(state.resource, { unload: true });
     overlay.visible = false;
     overlayStateRef.current = null;
     const world = worldRef.current;
@@ -3968,15 +3977,35 @@ export default function MapCanvas({
         }
         entry.objectMarkers = [];
         spriteEntryMapRef.current.delete(entry.sprite);
-        entry.sprite.destroy();
+        // Do not destroy the map sprite here. We'll remove and destroy all remaining
+        // world children in disposeChildren() to avoid double-destroy on the same
+        // DisplayObject (which can crash PIXI internals in some versions).
         for (const marker of entry.warpMarkers ?? []) {
-          marker.graphic.removeAllListeners();
-          marker.graphic.destroy();
+          // Detach listeners but defer actual destruction to the parent container
+          // teardown in disposeChildren() to avoid double-destroy ordering issues.
+          try {
+            marker.graphic.removeAllListeners();
+          } catch {
+            /* ignore */
+          }
+          // Optionally detach from parent; it will be destroyed below anyway.
+          const parent = (marker.graphic as any).parent as Container | null;
+          if (parent) {
+            try {
+              parent.removeChild(marker.graphic);
+            } catch {
+              /* ignore */
+            }
+          }
         }
         entry.warpMarkers = [];
         // Do NOT unload via Assets here; multiple entries share the same BaseTexture by URL
         // and unloading can nuke textures still in use.
-        disposeAnimationResource(entry.resource, { unload: false });
+        // Important: do not dispose textures for world entries here. The associated
+        // AnimatedSprite will be destroyed in disposeChildren() below, and destroying
+        // the Texture wrappers first can lead to PIXI internals touching a null
+        // baseTexture during sprite destruction. We rely on sprite.destroy() to
+        // release its resources safely.
       }
     };
 
@@ -3985,8 +4014,18 @@ export default function MapCanvas({
       disposeAnimations();
       const removed = world.removeChildren();
       for (const child of removed) {
-        if (typeof (child as { destroy?: () => void }).destroy === "function") {
-          child.destroy();
+        const anyChild: any = child as any;
+        if (typeof anyChild.destroy === "function") {
+          try {
+            // Ensure we destroy container subtrees to clean up Graphics/Sprites safely.
+            if (child instanceof Container) {
+              anyChild.destroy({ children: true });
+            } else {
+              anyChild.destroy();
+            }
+          } catch {
+            /* ignore destroy issues */
+          }
         }
       }
       // Recreate the global warps layer after clearing the world so future markers have a visible parent
@@ -4381,7 +4420,11 @@ export default function MapCanvas({
     };
     ticker.add(updateAnimations);
     return () => {
-      ticker.remove(updateAnimations);
+      try {
+        ticker.remove(updateAnimations);
+      } catch {
+        /* ticker may already be torn down if app was destroyed earlier */
+      }
     };
   }, [
     ready,

@@ -486,6 +486,23 @@ function resolveFacingConstant(entry: ObjectEventEntry, metadata: ObjectMetadata
   ) {
     return "FACING_SAILBOAT_BOTTOM";
   }
+  // Tiny windows use a custom facing series FACING_TINY_WINDOWS_0..6 and the variant
+  // is selected by the object's X range field in map data (args[5] in object_event).
+  // Examples: SnowtopMountainOutside places SPRITE_SAILBOAT with SPRITEMOVEDATA_TINY_WINDOWS
+  // using range.x values 0, 1, 3. Clamp to the defined [0..6] constants and fall back to 0.
+  if (movementAction === "OBJECT_ACTION_TINY_WINDOWS") {
+    const raw = entry.range?.x;
+    const variant = Number.isFinite(raw as number)
+      ? Math.max(0, Math.min(6, Math.trunc(raw as number)))
+      : 0;
+    const key = `FACING_TINY_WINDOWS_${variant}` as const;
+    if (metadata.facings[key]) {
+      return key;
+    }
+    if (metadata.facings["FACING_TINY_WINDOWS_0"]) {
+      return "FACING_TINY_WINDOWS_0";
+    }
+  }
   const facingValue = movement?.facing ?? "";
   if (facingValue) {
     if (metadata.facings[facingValue]) {

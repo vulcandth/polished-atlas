@@ -2644,6 +2644,25 @@ export default function MapCanvas({
       cache.setBgPalettes(null);
     }
 
+    // Set palette selection context for overlay map
+    try {
+      const mapMeta = getMapMetadata(state.mapLabel);
+      const isOverworld = Boolean(mapMeta?.isOverworld);
+      const isIndoor = !isOverworld;
+      const weatherType = computeMapWeather(state.mapLabel);
+      const isOvercast = weatherType === "rain" || weatherType === "thunderstorm";
+      const constant = (mapMeta?.mapConstant || "").toUpperCase();
+      const label = (mapMeta?.label || state.mapLabel || "").toUpperCase();
+      const isDarkness =
+        constant.includes("DARK_CAVE") ||
+        label.includes("DARKCAVE") ||
+        constant.includes("WHIRL_ISLANDS") ||
+        label.includes("WHIRLISLANDS");
+      cache.setPaletteContext({ indoor: isIndoor, overcast: isOvercast && isOverworld, darkness: isDarkness });
+    } catch {
+      cache.setPaletteContext({ indoor: false, overcast: false, darkness: false });
+    }
+
     const metadataBlockSize =
       Number.isFinite(metadata.blockPixelSize) && metadata.blockPixelSize > 0
         ? Math.abs(metadata.blockPixelSize)
@@ -3519,6 +3538,28 @@ export default function MapCanvas({
         cache.setBgPalettes(null);
       }
 
+      // Compute and set palette selection context per map
+      try {
+        const mapMeta = getMapMetadata(entry.placement.label);
+        const isOverworld = Boolean(mapMeta?.isOverworld);
+        const isIndoor = !isOverworld;
+        const weatherType = computeMapWeather(entry.placement.label);
+        const isOvercast = weatherType === "rain" || weatherType === "thunderstorm";
+        // Heuristic for darkness: prefer explicit Dark Cave variants; extendable later
+        const constant = (mapMeta?.mapConstant || "").toUpperCase();
+        const label = (mapMeta?.label || entry.placement.label || "").toUpperCase();
+        const isDarkness =
+          // Known darkness maps
+          constant.includes("DARK_CAVE") ||
+          label.includes("DARKCAVE") ||
+          // Some multi-map areas that are dark in-game; broaden gently
+          constant.includes("WHIRL_ISLANDS") ||
+          label.includes("WHIRLISLANDS");
+        cache.setPaletteContext({ indoor: isIndoor, overcast: isOvercast && isOverworld, darkness: isDarkness });
+      } catch {
+        cache.setPaletteContext({ indoor: false, overcast: false, darkness: false });
+      }
+
       for (const objectEntry of mapData.objects) {
         if (!isObjectVisibleAtTime(objectEntry, timeOfDay)) {
           continue;
@@ -3709,6 +3750,8 @@ export default function MapCanvas({
     timeOfDay,
     bgPalettes,
     getCollisionMetadata,
+    getMapMetadata,
+    computeMapWeather,
     maybeRender,
     editing,
     disableObjectAnimations,

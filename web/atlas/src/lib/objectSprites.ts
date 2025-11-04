@@ -72,6 +72,10 @@ export class ObjectSpriteCache {
   private timeOfDay: string;
   private bgPalettes: RgbTuple[][] | null = null; // Current map's 8 background palettes
   private bgSignature: string | null = null;
+  // Palette selection environment flags
+  private isIndoor = false;
+  private isOvercast = false;
+  private isDarkness = false;
 
   constructor(metadata: ObjectMetadata, timeOfDay: string) {
     this.metadata = metadata;
@@ -117,6 +121,26 @@ export class ObjectSpriteCache {
     this.bgSignature = sig;
   }
 
+  // Provide palette selection context for current map rendering. Textures are keyed by
+  // these flags, so we do not clear the cache here; switching maps will naturally generate
+  // distinct textures as needed.
+  setPaletteContext(options: { indoor?: boolean; overcast?: boolean; darkness?: boolean }): void {
+    const nextIndoor = Boolean(options.indoor);
+    const nextOvercast = Boolean(options.overcast);
+    const nextDarkness = Boolean(options.darkness);
+    if (
+      this.isIndoor === nextIndoor &&
+      this.isOvercast === nextOvercast &&
+      this.isDarkness === nextDarkness
+    ) {
+      return;
+    }
+    this.isIndoor = nextIndoor;
+    this.isOvercast = nextOvercast;
+    this.isDarkness = nextDarkness;
+    // No texture clear; cacheKey includes these flags
+  }
+
   destroy(): void {
     this.clearTextures();
     this.tileCache.clear();
@@ -133,7 +157,9 @@ export class ObjectSpriteCache {
     }
     // Include bgSignature for copy-from-BG palettes so textures are unique per map palette
     const isCopy = paletteName ? this.resolveCopyBgIndex(paletteName) !== null : false;
-    const cacheKey = `${spriteName}|${facingKey}|${paletteName ?? ""}|${this.timeOfDay}${isCopy ? `|bg=${this.bgSignature ?? ""}` : ""}`;
+    const cacheKey = `${spriteName}|${facingKey}|${paletteName ?? ""}|${this.timeOfDay}` +
+      `${this.isIndoor ? "|indoor" : ""}${this.isOvercast ? "|overcast" : ""}${this.isDarkness ? "|dark" : ""}` +
+      `${isCopy ? `|bg=${this.bgSignature ?? ""}` : ""}`;
     const cached = this.textureCache.get(cacheKey);
     if (cached) {
       return cached;
@@ -248,7 +274,9 @@ export class ObjectSpriteCache {
       return null;
     }
     const paletteKey = overridePalette ?? variant.palette?.normal ?? null;
-    const cacheKey = `icon|${speciesConstant}|${normalizedForm}|${paletteKey ?? ""}|${this.timeOfDay}`;
+    const cacheKey =
+      `icon|${speciesConstant}|${normalizedForm}|${paletteKey ?? ""}|${this.timeOfDay}` +
+      `${this.isIndoor ? "|indoor" : ""}${this.isOvercast ? "|overcast" : ""}${this.isDarkness ? "|dark" : ""}`;
     const cachedFrames = this.pokemonIconTextureCache.get(cacheKey);
     if (cachedFrames) {
       const durationFrames = Math.max(
@@ -397,7 +425,19 @@ export class ObjectSpriteCache {
     if (!entry) {
       return DEFAULT_PALETTE;
     }
+    // Darkness takes precedence over time-of-day/overcast/indoor.
+    if (this.isDarkness && Array.isArray(entry.darkness) && entry.darkness.length) {
+      return clampPalette(entry.darkness as RgbTuple[]);
+    }
+    // Overcast palettes override regular time-of-day when active (overworld only).
+    if (this.isOvercast && entry.overcast && entry.overcast[this.timeOfDay]?.length) {
+      return clampPalette(entry.overcast[this.timeOfDay]!);
+    }
     const variants = entry.timeVariants ?? {};
+    // Indoors force day palettes unless in darkness (handled above).
+    if (this.isIndoor && variants.day?.length) {
+      return clampPalette(variants.day);
+    }
     if (variants[this.timeOfDay]?.length) {
       return clampPalette(variants[this.timeOfDay]!);
     }

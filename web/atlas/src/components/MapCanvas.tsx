@@ -486,6 +486,16 @@ function resolveFacingConstant(entry: ObjectEventEntry, metadata: ObjectMetadata
   ) {
     return "FACING_SAILBOAT_BOTTOM";
   }
+  // Standing flip variants: choose flip facings instead of default.
+  if (movementAction === "OBJECT_ACTION_STAND_FLIP") {
+    const face = (movement?.facing ?? "").toUpperCase();
+    if (face === "DOWN" && metadata.facings["FACING_STEP_DOWN_FLIP"]) {
+      return "FACING_STEP_DOWN_FLIP";
+    }
+    if (face === "UP" && metadata.facings["FACING_STEP_UP_FLIP"]) {
+      return "FACING_STEP_UP_FLIP";
+    }
+  }
   // Tiny windows use a custom facing series FACING_TINY_WINDOWS_0..6 and the variant
   // is selected by the object's X range field in map data (args[5] in object_event).
   // Examples: SnowtopMountainOutside places SPRITE_SAILBOAT with SPRITEMOVEDATA_TINY_WINDOWS

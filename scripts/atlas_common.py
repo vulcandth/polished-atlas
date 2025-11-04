@@ -78,15 +78,32 @@ def _palette_signature(
     weekday: int,
     events: Set[str],
 ) -> Tuple[Optional[int], Tuple[Tuple[Tuple[int, int, int], ...], ...]]:
+    # Honor per-map palette overrides from data/maps/maps.asm (e.g., PALETTE_DAY).
+    effective_time = time_of_day & 0x03
+    try:
+        flags = set(map_info.palette_flags)
+    except Exception:
+        flags = set()
+    forced_time_map = {
+        "PALETTE_MORN": 0,
+        "PALETTE_DAY": 1,
+        "PALETTE_NITE": 2,
+        "PALETTE_EVE": 3,
+    }
+    for flag, forced in forced_time_map.items():
+        if flag in flags:
+            effective_time = forced
+            break
+
     overcast_index = repo_index.get_overcast_index(map_info, weekday=weekday, events=events)
     palette = repo_index.special_background_palette(
         map_info,
-        time_of_day,
+        effective_time,
         weekday=weekday,
         events=events,
     )
     if palette is None:
-        palette = repo_index.environment_palette(map_info, time_of_day)
+        palette = repo_index.environment_palette(map_info, effective_time)
     palette_copy = [list(row) for row in palette]
     render_map._ensure_palette_rows(palette_copy)
     allows_roof_palette = map_info.map_type in {"TOWN", "ROUTE", "ISOLATED"}

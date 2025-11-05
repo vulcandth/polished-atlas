@@ -3,7 +3,7 @@
 Interactive web atlas for the [polishedcrystal](https://github.com/Rangi42/polishedcrystal)
 ROM hack. The project stitches overworld maps into a zoomable canvas and exposes
 warp metadata so players can jump between interior and exterior locations. The
-tooling targets polishedcrystal release **v3.2.0** and displays the upstream
+tooling targets polishedcrystal release **v3.2.1** and displays the upstream
 version in the UI so visitors know which ROM build is represented.
 
 ## Project layout
@@ -25,7 +25,7 @@ version in the UI so visitors know which ROM build is represented.
 ## Local build pipeline
 
 Run the orchestration script to fetch assets, generate metadata, and build the
-web bundle. The script clones polishedcrystal v3.2.0 if it is missing and reuses
+web bundle. The script clones polishedcrystal v3.2.1 if it is missing and reuses
 any existing checkout by default.
 
 ```bash
@@ -36,7 +36,7 @@ Environment overrides:
 
 - `POLISHED_REPO_URL` – source repository (default:
 	`https://github.com/Rangi42/polishedcrystal.git`).
-- `POLISHED_REF` – branch or tag to checkout (default: `v3.2.0`).
+- `POLISHED_REF` – branch or tag to checkout (default: `v3.2.1`).
 - `POLISHED_DIR` – destination for the checkout (default:
 	`external/polishedcrystal`).
 - `POLISHED_UPDATE` – set to `true` to force-fetch the requested ref.
@@ -44,7 +44,7 @@ Environment overrides:
 	Defaults to `day,morn,nite,eve` (all palettes). The legacy `TIME_OF_DAY`
 	variable remains supported as a shorthand for single entries.
 - `WEEKDAY` – game weekday (0–6) used for weather-dependent renders.
-- `VITE_POLISHED_CRYSTAL_VERSION` – upstream polishedcrystal version string shown in the UI (defaults to `v3.2.0`).
+- `VITE_POLISHED_CRYSTAL_VERSION` – upstream polishedcrystal version string shown in the UI (defaults to `v1`).
 - `VITE_POLISHED_ATLAS_VERSION` – atlas build/version identifier used for cache-busting asset URLs (optional).
 
 The script performs the following steps:

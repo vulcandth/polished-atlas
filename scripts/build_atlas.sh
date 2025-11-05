@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 POLISHED_REPO_URL="${POLISHED_REPO_URL:-https://github.com/Rangi42/polishedcrystal.git}"
-POLISHED_REF="${POLISHED_REF:-v3.2.0}"
+POLISHED_REF="${POLISHED_REF:-v3.2.1}"
 POLISHED_DIR="${POLISHED_DIR:-${ROOT_DIR}/external/polishedcrystal}"
 POLISHED_UPDATE="${POLISHED_UPDATE:-false}"
 TIME_OF_DAY_LIST_ENV="${TIME_OF_DAY_SET:-}"
@@ -16,7 +16,7 @@ PYTHON_BIN="${PYTHON_BIN:-python3}"
 NODE_BIN="${NODE_BIN:-npm}"
 # Web app versioning
 # Upstream polishedcrystal version (for UI display only)
-VITE_POLISHED_CRYSTAL_VERSION="${VITE_POLISHED_CRYSTAL_VERSION:-${VITE_POLISHED_VERSION:-v3.2.0}}"
+VITE_POLISHED_CRYSTAL_VERSION="${VITE_POLISHED_CRYSTAL_VERSION:-${VITE_POLISHED_VERSION:-v3.2.1}}"
 # Polished Atlas app version (for cache-busting). Use provided value, else git describe/commit, else timestamp.
 if [[ -z "${VITE_POLISHED_ATLAS_VERSION:-}" ]]; then
   if command -v git >/dev/null 2>&1; then

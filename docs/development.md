@@ -6,14 +6,14 @@
 2. Clone the repository and optionally export any overrides for polishedcrystal:
    - `POLISHED_REPO_URL` – upstream repository URL (default
      `https://github.com/Rangi42/polishedcrystal.git`).
-   - `POLISHED_REF` – branch or tag to checkout (default `v3.2.1`).
+   - `POLISHED_REF` – branch or tag to checkout (default `v3.2.2`).
    - `POLISHED_DIR` – checkout destination (default `external/polishedcrystal`).
    - `POLISHED_UPDATE` – set to `true` to force-fetch the specified ref.
    - `TIME_OF_DAY_SET` – comma-delimited palette list (default
      `day,morn,nite,eve`). The legacy `TIME_OF_DAY` variable remains supported
      for single entries.
    - `WEEKDAY` – game weekday (0–6) for weather-dependent renders.
-  - `VITE_POLISHED_CRYSTAL_VERSION` – upstream version string shown in the UI (default `v3.2.1`).
+  - `VITE_POLISHED_CRYSTAL_VERSION` – upstream version string shown in the UI (default `v3.2.2`).
   - `VITE_POLISHED_ATLAS_VERSION` – atlas build identifier used for cache-busting asset URLs.
 3. Execute `./scripts/build_atlas.sh`.
    - Renders sprite sheets for every map across the requested time-of-day
@@ -58,7 +58,7 @@ GitHub Actions (`.github/workflows/ci.yml`) mirrors the local pipeline on every
 push, with Pages deployment available via manual dispatch:
 
 1. Sets up Python 3.11 and Node.js 20.
-2. Runs `scripts/build_atlas.sh` (which clones polishedcrystal v3.2.1,
+2. Runs `scripts/build_atlas.sh` (which clones polishedcrystal v3.2.2,
    regenerates assets, and builds the web client).
 3. Uploads `web/atlas/dist` as a workflow artifact for inspection.
 4. Deploys to GitHub Pages only when triggered via the manual

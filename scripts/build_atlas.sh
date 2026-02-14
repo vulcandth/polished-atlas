@@ -3,7 +3,23 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 POLISHED_REPO_URL="${POLISHED_REPO_URL:-https://github.com/Rangi42/polishedcrystal.git}"
-POLISHED_REF="${POLISHED_REF:-v3.2.2}"
+
+# Auto-detect latest stable version from upstream (filters out beta/alpha tags)
+get_latest_stable_tag() {
+  git ls-remote --tags --sort=-version:refname "${POLISHED_REPO_URL}" 2>/dev/null \
+    | grep -oE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' \
+    | head -n1 \
+    | sed 's|refs/tags/||' \
+    || echo "v3.2.2"
+}
+
+POLISHED_REF_AUTO="${POLISHED_REF_AUTO:-true}"
+if [[ -z "${POLISHED_REF:-}" && "${POLISHED_REF_AUTO}" == "true" ]]; then
+  POLISHED_REF=$(get_latest_stable_tag)
+else
+  POLISHED_REF="${POLISHED_REF:-v3.2.2}"
+fi
+
 POLISHED_DIR="${POLISHED_DIR:-${ROOT_DIR}/external/polishedcrystal}"
 POLISHED_UPDATE="${POLISHED_UPDATE:-false}"
 TIME_OF_DAY_LIST_ENV="${TIME_OF_DAY_SET:-}"
@@ -14,9 +30,9 @@ TIME_OF_DAY_LIST="${TIME_OF_DAY_LIST_ENV:-day,morn,nite,eve}"
 WEEKDAY="${WEEKDAY:-1}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 NODE_BIN="${NODE_BIN:-npm}"
-# Web app versioning
-# Upstream polishedcrystal version (for UI display only)
-VITE_POLISHED_CRYSTAL_VERSION="${VITE_POLISHED_CRYSTAL_VERSION:-${VITE_POLISHED_VERSION:-v3.2.2}}"
+
+# Web app versioning - derive from resolved POLISHED_REF
+VITE_POLISHED_CRYSTAL_VERSION="${VITE_POLISHED_CRYSTAL_VERSION:-${POLISHED_REF}}"
 # Polished Atlas app version (for cache-busting). Use provided value, else git describe/commit, else timestamp.
 if [[ -z "${VITE_POLISHED_ATLAS_VERSION:-}" ]]; then
   if command -v git >/dev/null 2>&1; then

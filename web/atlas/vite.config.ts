@@ -1,5 +1,6 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import path from "node:path";
 import fs from "node:fs/promises";
 
@@ -149,7 +150,7 @@ const publicBase = normaliseBasePath(process.env.VITE_PUBLIC_BASE);
 
 export default defineConfig({
   base: publicBase,
-  plugins: [react(), atlasDevToolsPlugin(repoRoot)],
+  plugins: [react(), tailwindcss(), atlasDevToolsPlugin(repoRoot)],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),

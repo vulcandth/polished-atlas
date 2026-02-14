@@ -15,6 +15,7 @@ import {
   ObjectMetadata,
   WarpMetadata,
   BgPalettesMetadata,
+  MapPlacement,
 } from "@/types";
 import { registerPixiExtensions } from "@/pixi/registerExtensions";
 import { loadMapAnimation } from "@/lib/loadMapAnimation";
@@ -35,6 +36,13 @@ import {
   isFiniteNumber,
   VIEW_STATE_VERSION
 } from "@/lib/storage";
+import { cn } from "@/lib/utils";
+
+// Tooltip state type
+interface TooltipData {
+  title: string;
+  subtitle?: string;
+}
 
 // Extracted types
 import type {
@@ -77,6 +85,7 @@ import {
   createPokemonIconAnimator,
 } from "@/lib/map-canvas/movement-animators";
 import {
+  applySpriteFrame,
   updateMarkerAnimation,
 } from "@/lib/map-canvas/sprite-animation";
 
@@ -201,44 +210,27 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
     onViewStateChangeRef.current = onViewStateChange;
   }, [onViewStateChange]);
 
-  // Tooltip DOM element for item/key/TM/HM balls
-  const tooltipRef = useRef<HTMLDivElement | null>(null);
-  const tooltipPinnedRef = useRef(false);
+  // Tooltip state (React-based instead of DOM manipulation)
+  const [tooltipState, setTooltipState] = useState<{
+    data: TooltipData | null;
+    x: number;
+    y: number;
+  }>({ data: null, x: 0, y: 0 });
 
-  useEffect(() => {
-    const el = document.createElement("div");
-    el.className = "pa-item-tooltip";
-    el.style.display = "none";
-    el.setAttribute("role", "tooltip");
-    document.body.appendChild(el);
-    tooltipRef.current = el;
-    return () => {
-      try {
-        if (el.parentNode) el.parentNode.removeChild(el);
-      } catch {
-        /* ignore */
-      }
-      tooltipRef.current = null;
-    };
+  const showTooltip = useCallback(
+    (data: TooltipData, clientX: number, clientY: number) => {
+      setTooltipState({
+        data,
+        x: Math.max(8, clientX + 12),
+        y: Math.max(8, clientY + 12),
+      });
+    },
+    []
+  );
+
+  const hideTooltip = useCallback(() => {
+    setTooltipState((prev) => ({ ...prev, data: null }));
   }, []);
-
-  const showTooltip = (html: string, clientX: number, clientY: number, pinned = false) => {
-    const el = tooltipRef.current;
-    if (!el) return;
-    el.innerHTML = html;
-    el.style.display = "block";
-    el.style.left = `${Math.max(8, clientX + 12)}px`;
-    el.style.top = `${Math.max(8, clientY + 12)}px`;
-    tooltipPinnedRef.current = Boolean(pinned);
-  };
-
-  const hideTooltip = (force = false) => {
-    const el = tooltipRef.current;
-    if (!el) return;
-    if (tooltipPinnedRef.current && !force) return;
-    el.style.display = "none";
-    tooltipPinnedRef.current = false;
-  };
 
   // Performance toggles
   const initialPerf = readPerfSettings();
@@ -1383,33 +1375,10 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
             if (editing) return;
             const x = (ev as any).clientX ?? window.innerWidth / 2;
             const y = (ev as any).clientY ?? window.innerHeight / 2;
-            showTooltip(`<strong>${String(label)}</strong>`, x, y, false);
-          });
-          spriteInstance.on("pointermove", (ev: FederatedPointerEvent) => {
-            if (editing) return;
-            const x = (ev as any).clientX;
-            const y = (ev as any).clientY;
-            if (typeof x !== "number" || typeof y !== "number") return;
-            showTooltip(`<strong>${String(label)}</strong>`, x, y, tooltipPinnedRef.current);
+            showTooltip({ title: String(label) }, x, y);
           });
           spriteInstance.on("pointerout", () => {
             hideTooltip();
-          });
-          spriteInstance.on("pointertap", (ev: FederatedPointerEvent) => {
-            ev.stopPropagation();
-            const x = (ev as any).clientX ?? window.innerWidth / 2;
-            const y = (ev as any).clientY ?? window.innerHeight / 2;
-            // Toggle pinned state
-            if (tooltipPinnedRef.current) {
-              hideTooltip(true);
-            } else {
-              showTooltip(
-                `<strong>${String(label)}</strong><div style="margin-top:6px;font-size:12px;opacity:0.85;">Tap again to close</div>`,
-                x,
-                y,
-                true,
-              );
-            }
           });
         }
       } catch {
@@ -1436,21 +1405,9 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
               const x = (ev as any).clientX ?? window.innerWidth / 2;
               const y = (ev as any).clientY ?? window.innerHeight / 2;
               showTooltip(
-                `<strong>${displayName}</strong><div style="margin-top:4px;font-size:11px;opacity:0.7;">Click to view on Polisheddex</div>`,
+                { title: displayName, subtitle: "Click to view team" },
                 x,
                 y,
-                false,
-              );
-            });
-            spriteInstance.on("pointermove", (ev: FederatedPointerEvent) => {
-              const x = (ev as any).clientX;
-              const y = (ev as any).clientY;
-              if (typeof x !== "number" || typeof y !== "number") return;
-              showTooltip(
-                `<strong>${displayName}</strong><div style="margin-top:4px;font-size:11px;opacity:0.7;">Click to view on Polisheddex</div>`,
-                x,
-                y,
-                tooltipPinnedRef.current,
               );
             });
             spriteInstance.on("pointerout", () => {
@@ -1458,7 +1415,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
             });
             spriteInstance.on("pointertap", (ev: FederatedPointerEvent) => {
               ev.stopPropagation();
-              hideTooltip(true);
+              hideTooltip();
               window.open(url, "_blank", "noopener,noreferrer");
             });
           }
@@ -1533,15 +1490,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
     sprite.sortChildren();
     // Render on demand to apply overlay object changes in static mode
     maybeRender();
-  }, [
-    atlas,
-    timeOfDay,
-    bgPalettes,
-    getCollisionMetadata,
-    maybeRender,
-    editing,
-    disableObjectAnimations,
-  ]);
+  }, [atlas, maybeRender, getCollisionMetadata, bgPalettes?.maps, timeOfDay, getMapMetadata, computeMapWeather, disableObjectAnimations, editing, showTooltip, hideTooltip]);
 
   const openOverlay = useCallback(
     async (
@@ -2058,24 +2007,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
               .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2");
             const x = (ev as any).clientX ?? window.innerWidth / 2;
             const y = (ev as any).clientY ?? window.innerHeight / 2;
-            showTooltip(`<strong>To: ${displayLabel}</strong>`, x, y, false);
-          }
-        });
-        graphic.on("pointermove", (ev: FederatedPointerEvent) => {
-          if (editing) {
-            return;
-          }
-          const targetLabel = warp.target?.mapLabel;
-          if (targetLabel) {
-            const displayLabel = targetLabel
-              .replace(/_/g, " ")
-              .replace(/([a-z])([A-Z])/g, "$1 $2")
-              .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2");
-            const x = (ev as any).clientX;
-            const y = (ev as any).clientY;
-            if (typeof x === "number" && typeof y === "number") {
-              showTooltip(`<strong>To: ${displayLabel}</strong>`, x, y, tooltipPinnedRef.current);
-            }
+            showTooltip({ title: `To: ${displayLabel}` }, x, y);
           }
         });
         graphic.on("pointerout", () => {
@@ -2101,7 +2033,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
     }
     // Reflect marker changes in static mode
     maybeRender();
-  }, [computeCellSize, editing, handleWarpMarkerTap, maybeRender, clearHighlightTimers]);
+  }, [computeCellSize, editing, handleWarpMarkerTap, maybeRender, clearHighlightTimers, showTooltip, hideTooltip]);
 
   const refreshObjectSprites = useCallback((): void => {
     const metadata = objectMetadataRef.current;
@@ -2302,32 +2234,10 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
               if (editing) return;
               const x = (ev as any).clientX ?? window.innerWidth / 2;
               const y = (ev as any).clientY ?? window.innerHeight / 2;
-              showTooltip(`<strong>${String(label)}</strong>`, x, y, false);
-            });
-            sprite.on("pointermove", (ev: FederatedPointerEvent) => {
-              if (editing) return;
-              const x = (ev as any).clientX;
-              const y = (ev as any).clientY;
-              if (typeof x !== "number" || typeof y !== "number") return;
-              showTooltip(`<strong>${String(label)}</strong>`, x, y, tooltipPinnedRef.current);
+              showTooltip({ title: String(label) }, x, y);
             });
             sprite.on("pointerout", () => {
               hideTooltip();
-            });
-            sprite.on("pointertap", (ev: FederatedPointerEvent) => {
-              ev.stopPropagation();
-              const x = (ev as any).clientX ?? window.innerWidth / 2;
-              const y = (ev as any).clientY ?? window.innerHeight / 2;
-              if (tooltipPinnedRef.current) {
-                hideTooltip(true);
-              } else {
-                showTooltip(
-                  `<strong>${String(label)}</strong><div style="margin-top:6px;font-size:12px;opacity:0.85;">Tap again to close</div>`,
-                  x,
-                  y,
-                  true,
-                );
-              }
             });
           }
         } catch {
@@ -2344,7 +2254,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
               sprite.eventMode = "static";
               sprite.cursor = "pointer";
               const mapSlug = mapLabel.toLowerCase().replace(/_/g, "");
-              const url = `https://polisheddex.app/location/${mapSlug}/#${trainerName}`;
+              const url = `https://polisheddex.app/locations/${mapSlug}/#${trainerName}`;
               // Format trainer name for display (remove "Trainer" prefix and add spaces before capitals)
               const displayName = trainerName
                 .replace(/^Trainer/, "")
@@ -2354,21 +2264,9 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
                 const x = (ev as any).clientX ?? window.innerWidth / 2;
                 const y = (ev as any).clientY ?? window.innerHeight / 2;
                 showTooltip(
-                  `<strong>${displayName}</strong><div style="margin-top:4px;font-size:11px;opacity:0.7;">Click to view on Polisheddex</div>`,
+                  { title: displayName, subtitle: "Click to view team" },
                   x,
                   y,
-                  false,
-                );
-              });
-              sprite.on("pointermove", (ev: FederatedPointerEvent) => {
-                const x = (ev as any).clientX;
-                const y = (ev as any).clientY;
-                if (typeof x !== "number" || typeof y !== "number") return;
-                showTooltip(
-                  `<strong>${displayName}</strong><div style="margin-top:4px;font-size:11px;opacity:0.7;">Click to view on Polisheddex</div>`,
-                  x,
-                  y,
-                  tooltipPinnedRef.current,
                 );
               });
               sprite.on("pointerout", () => {
@@ -2376,7 +2274,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
               });
               sprite.on("pointertap", (ev: FederatedPointerEvent) => {
                 ev.stopPropagation();
-                hideTooltip(true);
+                hideTooltip();
                 window.open(url, "_blank", "noopener,noreferrer");
               });
             }
@@ -2461,6 +2359,8 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
     maybeRender,
     editing,
     disableObjectAnimations,
+    showTooltip,
+    hideTooltip,
   ]);
 
   useEffect(() => {
@@ -4389,6 +4289,23 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
             )}
           </div>
         ))}
+      {/* Canvas tooltip (React-rendered, styled like shadcn) */}
+      {tooltipState.data && (
+        <div
+          role="tooltip"
+          className={cn(
+            "fixed z-[9999] pointer-events-none",
+            "rounded-md bg-neutral-900 px-3 py-1.5 text-xs text-neutral-50",
+            "shadow-md animate-in fade-in-0 zoom-in-95"
+          )}
+          style={{ left: tooltipState.x, top: tooltipState.y }}
+        >
+          <span className="font-medium">{tooltipState.data.title}</span>
+          {tooltipState.data.subtitle && (
+            <div className="mt-1 text-[11px] opacity-70">{tooltipState.data.subtitle}</div>
+          )}
+        </div>
+      )}
     </div>
   );
 });

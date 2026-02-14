@@ -3,6 +3,7 @@ import MapCanvas, { type MapCanvasHandle, type MapViewState } from "@/components
 import MapSearch, { type SearchResult } from "@/components/MapSearch";
 import ZoomControls from "@/components/ZoomControls";
 import HelpPanel from "@/components/HelpPanel";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useAtlasData } from "@/hooks/useAtlasData";
 import { useObjectMetadata } from "@/hooks/useObjectMetadata";
 import { useWarpMetadata } from "@/hooks/useWarpMetadata";
@@ -749,7 +750,8 @@ export default function App() {
   }, [disableMapAnimations, disableObjectAnimations]);
 
   return (
-    <main className="app-shell">
+    <TooltipProvider>
+      <main className="app-shell">
       <header className="app-header">
         <div className="brand">
           <h1>Polished Atlas</h1>
@@ -887,48 +889,56 @@ export default function App() {
           disabled={isLoading}
         />
         <div className="controls-overlay">
-          <button
-            className="control-btn"
-            onClick={handleScreenshot}
-            disabled={isLoading}
-            title="Take screenshot"
-            aria-label="Take screenshot"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-              <circle cx="12" cy="13" r="4" />
-            </svg>
-          </button>
-          <button
-            className="control-btn"
-            onClick={() => setHelpPanelOpen(true)}
-            title="Help & keyboard shortcuts"
-            aria-label="Help"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                className="control-btn"
+                onClick={handleScreenshot}
+                disabled={isLoading}
+                aria-label="Take screenshot"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Take screenshot</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                className="control-btn"
+                onClick={() => setHelpPanelOpen(true)}
+                aria-label="Help"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Help &amp; keyboard shortcuts</TooltipContent>
+          </Tooltip>
         </div>
         {error && <div className="status-banner error">{error}</div>}
         {!error && warpError && <div className="status-banner error">{warpError}</div>}
@@ -942,6 +952,7 @@ export default function App() {
         )}
       </section>
       <HelpPanel isOpen={helpPanelOpen} onClose={() => setHelpPanelOpen(false)} />
-    </main>
+      </main>
+    </TooltipProvider>
   );
 }

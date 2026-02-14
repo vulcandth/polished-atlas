@@ -64,7 +64,7 @@ export default function ZoomControls({
           <line x1="8" y1="12" x2="16" y2="12" />
         </svg>
       </button>
-      
+
       <button
         className="zoom-level"
         onClick={resetZoom}
@@ -74,7 +74,7 @@ export default function ZoomControls({
       >
         {zoomPercent}%
       </button>
-      
+
       <button
         className="zoom-btn zoom-out"
         onClick={zoomOut}
@@ -96,7 +96,7 @@ export default function ZoomControls({
           <line x1="8" y1="12" x2="16" y2="12" />
         </svg>
       </button>
-      
+
       {onResetView && (
         <button
           className="zoom-btn zoom-reset"

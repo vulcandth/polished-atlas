@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 :root {
   color-scheme: dark;
   font-family:
@@ -150,22 +152,6 @@ main {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
-
-/* Tooltip for item/key/TM/HM balls */
-.pa-item-tooltip {
-  position: fixed;
-  z-index: 9999;
-  background: rgba(24, 26, 32, 0.95);
-  color: #e6edf3;
-  padding: 8px 10px;
-  border-radius: 6px;
-  border: 1px solid rgba(240, 246, 252, 0.08);
-  font-size: 13px;
-  pointer-events: none; /* interactions are handled via pinning */
-  max-width: 320px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
-}
-/* Keep tooltip non-interactive to avoid interfering with hover/out of sprites */
 
 .status-banner {
   position: absolute;
@@ -596,12 +582,12 @@ main {
   .map-search {
     flex: 1 1 100%;
   }
-  
+
   .zoom-controls {
     bottom: 1rem;
     right: 1rem;
   }
-  
+
   .controls-overlay {
     bottom: 1rem;
     left: 1rem;

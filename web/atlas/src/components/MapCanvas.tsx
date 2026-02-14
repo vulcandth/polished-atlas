@@ -1281,8 +1281,9 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
     let container = state.objectContainer;
     if (!container) {
       container = new Container();
-      container.eventMode = "none";
-      container.interactiveChildren = false;
+      // Make container participate in hit testing so children can receive pointer events
+      container.eventMode = "static";
+      container.interactiveChildren = true;
       container.zIndex = 5;
       sprite.addChild(container);
       state.objectContainer = container;
@@ -1413,6 +1414,57 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
         }
       } catch {
         /* ignore tooltip wiring failures */
+      }
+      // Enable click-to-link for trainers
+      try {
+        const trainerConstant = objectEntry.objectType?.constant;
+        const isTrainer = trainerConstant === "OBJECTTYPE_TRAINER" || trainerConstant === "OBJECTTYPE_GENERICTRAINER";
+        if (isTrainer && !editing) {
+          const trainerName = objectEntry.script?.argument ?? "";
+          const mapLabel = state.mapLabel ?? "";
+          if (trainerName && mapLabel) {
+            spriteInstance.eventMode = "static";
+            spriteInstance.cursor = "pointer";
+            const mapSlug = mapLabel.toLowerCase().replace(/_/g, "");
+            const url = `https://polisheddex.app/locations/${mapSlug}/#${trainerName}`;
+            // Format trainer name for display (remove "Trainer" prefix and add spaces before capitals)
+            const displayName = trainerName
+              .replace(/^Trainer/, "")
+              .replace(/([A-Z])/g, " $1")
+              .trim();
+            spriteInstance.on("pointerover", (ev: FederatedPointerEvent) => {
+              const x = (ev as any).clientX ?? window.innerWidth / 2;
+              const y = (ev as any).clientY ?? window.innerHeight / 2;
+              showTooltip(
+                `<strong>${displayName}</strong><div style="margin-top:4px;font-size:11px;opacity:0.7;">Click to view on Polisheddex</div>`,
+                x,
+                y,
+                false,
+              );
+            });
+            spriteInstance.on("pointermove", (ev: FederatedPointerEvent) => {
+              const x = (ev as any).clientX;
+              const y = (ev as any).clientY;
+              if (typeof x !== "number" || typeof y !== "number") return;
+              showTooltip(
+                `<strong>${displayName}</strong><div style="margin-top:4px;font-size:11px;opacity:0.7;">Click to view on Polisheddex</div>`,
+                x,
+                y,
+                tooltipPinnedRef.current,
+              );
+            });
+            spriteInstance.on("pointerout", () => {
+              hideTooltip();
+            });
+            spriteInstance.on("pointertap", (ev: FederatedPointerEvent) => {
+              ev.stopPropagation();
+              hideTooltip(true);
+              window.open(url, "_blank", "noopener,noreferrer");
+            });
+          }
+        }
+      } catch {
+        /* ignore trainer link wiring failures */
       }
       const movementSummary = disableObjectAnimations
         ? null
@@ -1991,17 +2043,47 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
           }
           handleWarpMarkerTap(entry, warp);
         });
-        graphic.on("pointerover", () => {
+        graphic.on("pointerover", (ev: FederatedPointerEvent) => {
           if (editing) {
             return;
           }
           graphic.alpha = 1;
+          // Show tooltip with destination
+          const targetLabel = warp.target?.mapLabel;
+          if (targetLabel) {
+            // Format map label for display (add spaces before capitals, handle underscores)
+            const displayLabel = targetLabel
+              .replace(/_/g, " ")
+              .replace(/([a-z])([A-Z])/g, "$1 $2")
+              .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2");
+            const x = (ev as any).clientX ?? window.innerWidth / 2;
+            const y = (ev as any).clientY ?? window.innerHeight / 2;
+            showTooltip(`<strong>To: ${displayLabel}</strong>`, x, y, false);
+          }
+        });
+        graphic.on("pointermove", (ev: FederatedPointerEvent) => {
+          if (editing) {
+            return;
+          }
+          const targetLabel = warp.target?.mapLabel;
+          if (targetLabel) {
+            const displayLabel = targetLabel
+              .replace(/_/g, " ")
+              .replace(/([a-z])([A-Z])/g, "$1 $2")
+              .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2");
+            const x = (ev as any).clientX;
+            const y = (ev as any).clientY;
+            if (typeof x === "number" && typeof y === "number") {
+              showTooltip(`<strong>To: ${displayLabel}</strong>`, x, y, tooltipPinnedRef.current);
+            }
+          }
         });
         graphic.on("pointerout", () => {
           if (editing) {
             return;
           }
           graphic.alpha = baseAlpha;
+          hideTooltip();
         });
         graphic.zIndex = 10;
         if (hasWarpsLayer && warpsLayer) {
@@ -2250,6 +2332,57 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
           }
         } catch {
           /* ignore tooltip wiring failures */
+        }
+        // Enable click-to-link for trainers
+        try {
+          const trainerConstant = objectEntry.objectType?.constant;
+          const isTrainer = trainerConstant === "OBJECTTYPE_TRAINER" || trainerConstant === "OBJECTTYPE_GENERICTRAINER";
+          if (isTrainer && !editing) {
+            const trainerName = objectEntry.script?.argument ?? "";
+            const mapLabel = entry.placement.label ?? "";
+            if (trainerName && mapLabel) {
+              sprite.eventMode = "static";
+              sprite.cursor = "pointer";
+              const mapSlug = mapLabel.toLowerCase().replace(/_/g, "");
+              const url = `https://polisheddex.app/location/${mapSlug}/#${trainerName}`;
+              // Format trainer name for display (remove "Trainer" prefix and add spaces before capitals)
+              const displayName = trainerName
+                .replace(/^Trainer/, "")
+                .replace(/([A-Z])/g, " $1")
+                .trim();
+              sprite.on("pointerover", (ev: FederatedPointerEvent) => {
+                const x = (ev as any).clientX ?? window.innerWidth / 2;
+                const y = (ev as any).clientY ?? window.innerHeight / 2;
+                showTooltip(
+                  `<strong>${displayName}</strong><div style="margin-top:4px;font-size:11px;opacity:0.7;">Click to view on Polisheddex</div>`,
+                  x,
+                  y,
+                  false,
+                );
+              });
+              sprite.on("pointermove", (ev: FederatedPointerEvent) => {
+                const x = (ev as any).clientX;
+                const y = (ev as any).clientY;
+                if (typeof x !== "number" || typeof y !== "number") return;
+                showTooltip(
+                  `<strong>${displayName}</strong><div style="margin-top:4px;font-size:11px;opacity:0.7;">Click to view on Polisheddex</div>`,
+                  x,
+                  y,
+                  tooltipPinnedRef.current,
+                );
+              });
+              sprite.on("pointerout", () => {
+                hideTooltip();
+              });
+              sprite.on("pointertap", (ev: FederatedPointerEvent) => {
+                ev.stopPropagation();
+                hideTooltip(true);
+                window.open(url, "_blank", "noopener,noreferrer");
+              });
+            }
+          }
+        } catch {
+          /* ignore trainer link wiring failures */
         }
         const movementSummary = disableObjectAnimations
           ? null

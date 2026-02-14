@@ -139,6 +139,11 @@ interface MapCanvasProps {
   // Optional controlled perf toggles passed from parent header
   disableMapAnimations?: boolean;
   disableObjectAnimations?: boolean;
+  // Optional controlled weather/sprite-limit toggles
+  weatherEnabled?: boolean;
+  onWeatherEnabledChange?: (enabled: boolean) => void;
+  spriteLimitEnabled?: boolean;
+  onSpriteLimitEnabledChange?: (enabled: boolean) => void;
   // View state callbacks
   onViewStateChange?: (state: MapViewState) => void;
   // Initial view state (from URL params)
@@ -166,6 +171,11 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
     // Optional controlled perf toggles (when provided by parent header)
     disableMapAnimations: controlledDisableMapAnimations,
     disableObjectAnimations: controlledDisableObjectAnimations,
+    // Optional controlled weather/sprite-limit toggles
+    weatherEnabled: controlledWeatherEnabled,
+    onWeatherEnabledChange,
+    spriteLimitEnabled: controlledSpriteLimitEnabled,
+    onSpriteLimitEnabledChange,
     // View state callbacks
     onViewStateChange,
     initialViewState: _initialViewState,
@@ -271,7 +281,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
   }, [disableMapAnimations, disableObjectAnimations, perfControlled]);
 
   // Sprite limits UI state
-  const [spriteLimitEnabled, setSpriteLimitEnabled] = useState(false);
+  const [spriteLimitEnabled, setSpriteLimitEnabledInternal] = useState(false);
   const [spriteIssues, setSpriteIssues] = useState<SpriteLimitIssue[] | null>(null);
   const [spriteIssuesAll, setSpriteIssuesAll] = useState<SpriteLimitIssue[] | null>(null);
   const [spriteIssueIndex, setSpriteIssueIndex] = useState<number>(0);
@@ -282,10 +292,40 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
   const [spriteIncludeWeather, setSpriteIncludeWeather] = useState<boolean>(false);
   const [spriteOnlyErrors, setSpriteOnlyErrors] = useState<boolean>(false);
   // Weather UI state
-  const [weatherEnabled, setWeatherEnabled] = useState<boolean>(true);
+  const [weatherEnabled, setWeatherEnabledInternal] = useState<boolean>(true);
   const [spriteAnalyzing, setSpriteAnalyzing] = useState<boolean>(false);
   const worldIssueHighlightRef = useRef<Graphics | null>(null);
   const [resultsCollapsed, setResultsCollapsed] = useState<boolean>(false);
+
+  // Controlled weather/sprite-limit sync
+  const weatherControlled = typeof controlledWeatherEnabled === "boolean";
+  const spriteLimitControlled = typeof controlledSpriteLimitEnabled === "boolean";
+
+  useEffect(() => {
+    if (typeof controlledWeatherEnabled === "boolean" && controlledWeatherEnabled !== weatherEnabled) {
+      setWeatherEnabledInternal(controlledWeatherEnabled);
+    }
+  }, [controlledWeatherEnabled, weatherEnabled]);
+
+  useEffect(() => {
+    if (typeof controlledSpriteLimitEnabled === "boolean" && controlledSpriteLimitEnabled !== spriteLimitEnabled) {
+      setSpriteLimitEnabledInternal(controlledSpriteLimitEnabled);
+    }
+  }, [controlledSpriteLimitEnabled, spriteLimitEnabled]);
+
+  const setWeatherEnabled = useCallback((enabled: boolean) => {
+    setWeatherEnabledInternal(enabled);
+    if (weatherControlled && onWeatherEnabledChange) {
+      onWeatherEnabledChange(enabled);
+    }
+  }, [weatherControlled, onWeatherEnabledChange]);
+
+  const setSpriteLimitEnabled = useCallback((enabled: boolean) => {
+    setSpriteLimitEnabledInternal(enabled);
+    if (spriteLimitControlled && onSpriteLimitEnabledChange) {
+      onSpriteLimitEnabledChange(enabled);
+    }
+  }, [spriteLimitControlled, onSpriteLimitEnabledChange]);
 
   const baseOffsetsRef = useRef<Record<string, OffsetTuple>>({});
   const offsetOverridesRef = useRef<Record<string, OffsetTuple>>({});

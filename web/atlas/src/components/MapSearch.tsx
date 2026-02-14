@@ -1,4 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { MapIcon, MapPinIcon, SearchIcon } from "lucide-react";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Button } from "@/components/ui/button";
 import type { MapPlacement, NeighborhoodSummary } from "@/types";
 
 export interface SearchResult {
@@ -17,6 +27,10 @@ interface MapSearchProps {
   neighborhoods: NeighborhoodSummary[];
   onSelect: (result: SearchResult) => void;
   disabled?: boolean;
+  /** Controlled open state */
+  open?: boolean;
+  /** Callback when open state changes */
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -58,12 +72,12 @@ function buildSearchIndex(
     const key = `neighborhood:${neighborhood.id}`;
     if (!seen.has(key)) {
       seen.add(key);
-      
+
       // Calculate center from all maps in this neighborhood
       const mapsInNeighborhood = neighborhoodMaps.get(neighborhood.id) ?? [];
       let x: number | undefined;
       let y: number | undefined;
-      
+
       if (mapsInNeighborhood.length > 0) {
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
         for (const p of mapsInNeighborhood) {
@@ -75,7 +89,7 @@ function buildSearchIndex(
         x = (minX + maxX) / 2;
         y = (minY + maxY) / 2;
       }
-      
+
       results.push({
         type: "neighborhood",
         label: neighborhood.id,
@@ -110,158 +124,125 @@ function buildSearchIndex(
   return results;
 }
 
-/**
- * Simple fuzzy match - checks if query words appear in target
- */
-function fuzzyMatch(query: string, target: string): boolean {
-  const q = query.toLowerCase().trim();
-  const t = target.toLowerCase();
-
-  if (t.includes(q)) return true;
-
-  // Check if all words in query appear in target
-  const queryWords = q.split(/\s+/);
-  return queryWords.every((word) => t.includes(word));
-}
-
 export default function MapSearch({
   placements,
   neighborhoods,
   onSelect,
   disabled = false,
+  open: controlledOpen,
+  onOpenChange,
 }: MapSearchProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
-  const [highlightIndex, setHighlightIndex] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
+
+  // Support both controlled and uncontrolled modes
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = useCallback(
+    (value: boolean) => {
+      if (!isControlled) {
+        setInternalOpen(value);
+      }
+      onOpenChange?.(value);
+    },
+    [isControlled, onOpenChange],
+  );
 
   const searchIndex = useMemo(
     () => buildSearchIndex(placements, neighborhoods),
     [placements, neighborhoods],
   );
 
-  const filteredResults = useMemo(() => {
-    if (!query.trim()) return [];
-    return searchIndex.filter((result) => fuzzyMatch(query, result.displayName)).slice(0, 20);
-  }, [query, searchIndex]);
-
+  // Reset query when dialog closes
   useEffect(() => {
-    setHighlightIndex(0);
-  }, [filteredResults]);
+    if (!open) {
+      setQuery("");
+    }
+  }, [open]);
 
   const handleSelect = useCallback(
     (result: SearchResult) => {
       onSelect(result);
-      setQuery("");
-      setIsOpen(false);
-      inputRef.current?.blur();
+      setOpen(false);
     },
-    [onSelect],
+    [onSelect, setOpen],
   );
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (!isOpen || filteredResults.length === 0) {
-        if (e.key === "Escape") {
-          setQuery("");
-          setIsOpen(false);
-        }
-        return;
-      }
-
-      switch (e.key) {
-        case "ArrowDown":
-          e.preventDefault();
-          setHighlightIndex((i) => Math.min(i + 1, filteredResults.length - 1));
-          break;
-        case "ArrowUp":
-          e.preventDefault();
-          setHighlightIndex((i) => Math.max(i - 1, 0));
-          break;
-        case "Enter":
-          e.preventDefault();
-          if (filteredResults[highlightIndex]) {
-            handleSelect(filteredResults[highlightIndex]);
-          }
-          break;
-        case "Escape":
-          e.preventDefault();
-          setQuery("");
-          setIsOpen(false);
-          break;
-      }
-    },
-    [isOpen, filteredResults, highlightIndex, handleSelect],
+  // Group results by type
+  const neighborhoodResults = useMemo(
+    () => searchIndex.filter((r) => r.type === "neighborhood"),
+    [searchIndex],
   );
-
-  // Scroll highlighted item into view
-  useEffect(() => {
-    if (!listRef.current) return;
-    const item = listRef.current.children[highlightIndex] as HTMLElement | undefined;
-    if (item) {
-      item.scrollIntoView({ block: "nearest" });
-    }
-  }, [highlightIndex]);
-
-  // Close on outside click
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest(".map-search")) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
-  }, []);
+  const mapResults = useMemo(
+    () => searchIndex.filter((r) => r.type === "map"),
+    [searchIndex],
+  );
 
   return (
-    <div className="map-search">
-      <input
-        ref={inputRef}
-        type="text"
-        placeholder="Search maps..."
-        value={query}
-        onChange={(e) => {
-          setQuery(e.target.value);
-          setIsOpen(true);
-        }}
-        onFocus={() => setIsOpen(true)}
-        onKeyDown={handleKeyDown}
-        disabled={disabled}
-        aria-label="Search for maps and locations"
-        aria-expanded={isOpen && filteredResults.length > 0}
-        aria-controls="map-search-results"
-        aria-autocomplete="list"
-      />
-      {isOpen && filteredResults.length > 0 && (
-        <ul
-          ref={listRef}
-          id="map-search-results"
-          className="map-search-results"
-          role="listbox"
+    <>
+      {/* Only show button trigger in uncontrolled mode */}
+      {!isControlled && (
+        <Button
+          variant="outline"
+          onClick={() => setOpen(true)}
+          disabled={disabled}
+          className="w-[200px] justify-start gap-2 text-muted-foreground sm:w-[280px]"
         >
-          {filteredResults.map((result, index) => (
-            <li
-              key={`${result.type}:${result.label}`}
-              role="option"
-              aria-selected={index === highlightIndex}
-              className={index === highlightIndex ? "highlighted" : ""}
-              onClick={() => handleSelect(result)}
-              onMouseEnter={() => setHighlightIndex(index)}
-            >
-              <span className="result-name">{result.displayName}</span>
-              <span className="result-type">
-                {result.type === "neighborhood" ? "Region" : "Map"}
-              </span>
-            </li>
-          ))}
-        </ul>
+          <SearchIcon className="size-4" />
+          <span className="truncate">Search maps...</span>
+        </Button>
       )}
-      {isOpen && query.trim() && filteredResults.length === 0 && (
-        <div className="map-search-empty">No results found</div>
-      )}
-    </div>
+      <CommandDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Search Atlas"
+        description="Search for maps and regions"
+      >
+        <CommandInput
+          placeholder="Search maps..."
+          value={query}
+          onValueChange={setQuery}
+        />
+        <CommandList>
+          <CommandEmpty>No results found</CommandEmpty>
+          {neighborhoodResults.length > 0 && (
+            <CommandGroup heading="Regions">
+              {neighborhoodResults.map((result) => (
+                <CommandItem
+                  key={`neighborhood:${result.label}`}
+                  value={`neighborhood-${result.label}-${result.displayName}`}
+                  onSelect={() => handleSelect(result)}
+                  className="flex items-center gap-2"
+                >
+                  <MapPinIcon className="size-4 text-muted-foreground" />
+                  <span>{result.displayName}</span>
+                  <span className="ml-auto text-xs text-muted-foreground uppercase tracking-wide">
+                    Region
+                  </span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+          {mapResults.length > 0 && (
+            <CommandGroup heading="Maps">
+              {mapResults.map((result) => (
+                <CommandItem
+                  key={`map:${result.label}`}
+                  value={`map-${result.label}-${result.displayName}`}
+                  onSelect={() => handleSelect(result)}
+                  className="flex items-center gap-2"
+                >
+                  <MapIcon className="size-4 text-muted-foreground" />
+                  <span>{result.displayName}</span>
+                  <span className="ml-auto text-xs text-muted-foreground uppercase tracking-wide">
+                    Map
+                  </span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+        </CommandList>
+      </CommandDialog>
+    </>
   );
 }

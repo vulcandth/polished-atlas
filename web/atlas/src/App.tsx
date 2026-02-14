@@ -54,7 +54,7 @@ const POLISHED_VERSION = (() => {
       return trimmed;
     }
   }
-  return "v3.2.0";
+  return "v3.2.3";
 })();
 
 function sanitizeTimeOfDay(value: unknown): TimeOfDaySlug {
@@ -740,9 +740,13 @@ export default function App() {
     writePerfSettings({ disableMapAnimations, disableObjectAnimations });
   }, [disableMapAnimations, disableObjectAnimations]);
 
+  // Weather and sprite limit toggles (controlled from header)
+  const [weatherEnabled, setWeatherEnabled] = useState<boolean>(true);
+  const [spriteLimitEnabled, setSpriteLimitEnabled] = useState<boolean>(false);
+
   return (
     <TooltipProvider>
-      <main className="app-shell">
+      <main className="app-shell dark">
       <HeaderNav
         subtitle={subtitle}
         version={POLISHED_VERSION}
@@ -758,7 +762,14 @@ export default function App() {
         onDisableMapAnimationsChange={setDisableMapAnimations}
         disableObjectAnimations={disableObjectAnimations}
         onDisableObjectAnimationsChange={setDisableObjectAnimations}
+        weatherEnabled={weatherEnabled}
+        onWeatherEnabledChange={setWeatherEnabled}
+        spriteLimitEnabled={spriteLimitEnabled}
+        onSpriteLimitEnabledChange={setSpriteLimitEnabled}
         onReload={handleReloadClick}
+        onResetView={handleResetView}
+        onScreenshot={handleScreenshot}
+        onOpenHelp={() => setHelpPanelOpen(true)}
         canEdit={canEdit}
         editing={editing}
         onToggleEditing={handleToggleEditing}
@@ -829,6 +840,10 @@ export default function App() {
           timeOfDay={timeOfDay}
           disableMapAnimations={disableMapAnimations}
           disableObjectAnimations={disableObjectAnimations}
+          weatherEnabled={weatherEnabled}
+          onWeatherEnabledChange={setWeatherEnabled}
+          spriteLimitEnabled={spriteLimitEnabled}
+          onSpriteLimitEnabledChange={setSpriteLimitEnabled}
           onViewStateChange={handleViewStateChange}
         />
         <ZoomControls

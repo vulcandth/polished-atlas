@@ -1,0 +1,37 @@
+{
+  "name": "polished-atlas-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Interactive atlas for Polished Crystal ROM hack",
+  "scripts": {
+    "build": "./scripts/build_atlas.sh",
+    "build:quick": "TIME_OF_DAY=day ./scripts/build_atlas.sh",
+    "update-rom": "cd external/polishedcrystal && git fetch --tags --force && git checkout $(git tag --sort=-version:refname | grep -E '^v[0-9]+\\.[0-9]+\\.[0-9]+$' | head -n1)",
+    "update-rom:force": "POLISHED_UPDATE=true ./scripts/build_atlas.sh",
+    "dev": "npm --prefix web/atlas run dev",
+    "preview": "npm --prefix web/atlas run preview",
+    "test": "npm --prefix web/atlas run test",
+    "lint": "npm --prefix web/atlas run lint",
+    "lint:fix": "npm --prefix web/atlas run lint:fix",
+    "format": "npm --prefix web/atlas run format",
+    "format:check": "npm --prefix web/atlas run format:check",
+    "render:maps": "python3 scripts/render_maps.py --polishedcrystal external/polishedcrystal --format sheet",
+    "generate:warps": "python3 scripts/generate_warp_metadata.py --polishedcrystal external/polishedcrystal",
+    "generate:objects": "python3 scripts/generate_object_metadata.py --polishedcrystal external/polishedcrystal",
+    "generate:weather": "python3 scripts/generate_weather_metadata.py --polishedcrystal external/polishedcrystal",
+    "generate:neighborhoods": "python3 scripts/generate_map_neighborhoods.py --polishedcrystal external/polishedcrystal"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rangi42/polished-atlas.git"
+  },
+  "keywords": [
+    "pokemon",
+    "polished-crystal",
+    "rom-hack",
+    "atlas",
+    "map"
+  ],
+  "author": "Vulcandth",
+  "license": "MIT"
+}

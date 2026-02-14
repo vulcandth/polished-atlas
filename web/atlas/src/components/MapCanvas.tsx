@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type React from "react";
 import {
   Application,
   Container,
@@ -36,6 +35,15 @@ import {
   type SpriteLimitIssue,
   type MapScope,
 } from "@/lib/spriteLimitAnalysis";
+import {
+  readStoredViewState,
+  writeStoredViewState,
+  readPerfSettings,
+  writePerfSettings,
+  clampUnit,
+  isFiniteNumber,
+  VIEW_STATE_VERSION
+} from "@/lib/storage";
 
 type OffsetTuple = [number, number];
 
@@ -180,98 +188,7 @@ function computeBottomExtraPx(viewH: number): number {
   const base = computeOverscrollPx(viewH, viewH);
   return Math.max(32, Math.floor(base * 0.5));
 }
-const VIEW_STATE_STORAGE_KEY = "polished-atlas:view-state";
-const VIEW_STATE_VERSION = 1;
 
-// Persisted performance settings
-const PERF_SETTINGS_STORAGE_KEY = "polished-atlas:perf-settings";
-
-interface PerfSettingsState {
-  disableMapAnimations: boolean;
-  disableObjectAnimations: boolean;
-}
-
-interface StoredViewState {
-  version: number;
-  scale: number;
-  center: {
-    x: number;
-    y: number;
-  };
-}
-
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
-}
-
-function readStoredViewState(): StoredViewState | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  try {
-    const raw = window.localStorage.getItem(VIEW_STATE_STORAGE_KEY);
-    if (!raw) {
-      return null;
-    }
-    const parsed = JSON.parse(raw) as StoredViewState | undefined;
-    if (!parsed || parsed.version !== VIEW_STATE_VERSION) {
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function writeStoredViewState(state: StoredViewState): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-  try {
-    window.localStorage.setItem(VIEW_STATE_STORAGE_KEY, JSON.stringify(state));
-  } catch (err) {
-    console.warn("Failed to persist atlas view state", err);
-  }
-}
-
-function readPerfSettings(): PerfSettingsState {
-  if (typeof window === "undefined") {
-    return { disableMapAnimations: false, disableObjectAnimations: false };
-  }
-  try {
-    const raw = window.localStorage.getItem(PERF_SETTINGS_STORAGE_KEY);
-    if (!raw) return { disableMapAnimations: false, disableObjectAnimations: false };
-    const parsed = JSON.parse(raw) as Partial<PerfSettingsState> | undefined;
-    return {
-      disableMapAnimations: Boolean(parsed?.disableMapAnimations),
-      disableObjectAnimations: Boolean(parsed?.disableObjectAnimations),
-    };
-  } catch {
-    return { disableMapAnimations: false, disableObjectAnimations: false };
-  }
-}
-
-function writePerfSettings(next: PerfSettingsState): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(PERF_SETTINGS_STORAGE_KEY, JSON.stringify(next));
-  } catch {
-    /* ignore */
-  }
-}
-
-function clampUnit(value: unknown, fallback = 0.5): number {
-  if (!isFiniteNumber(value)) {
-    return fallback;
-  }
-  if (value < 0) {
-    return 0;
-  }
-  if (value > 1) {
-    return 1;
-  }
-  return value;
-}
 
 function clampScale(value: number): number {
   if (!Number.isFinite(value)) {

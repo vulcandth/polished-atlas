@@ -55,6 +55,8 @@ import type {
   OverlayState,
 } from "./MapCanvas/MapCanvas.types";
 
+export type { WarpBacklink };
+
 // Extracted constants
 import { MIN_SCALE, MAX_SCALE } from "./MapCanvas/constants";
 
@@ -119,6 +121,8 @@ export interface MapCanvasHandle {
   getApp: () => Application | null;
   /** Reset view to fit the entire atlas */
   resetView: () => void;
+  /** Close the current overlay and return to the atlas view */
+  closeOverlay: () => void;
 }
 
 interface MapCanvasProps {
@@ -146,6 +150,8 @@ interface MapCanvasProps {
   onSpriteLimitEnabledChange?: (enabled: boolean) => void;
   // View state callbacks
   onViewStateChange?: (state: MapViewState) => void;
+  // Overlay navigation callback
+  onOverlayChange?: (state: { mapLabel: string | null; backlink: WarpBacklink | null }) => void;
   // Initial view state (from URL params)
   initialViewState?: Partial<MapViewState>;
 }
@@ -178,6 +184,8 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
     onSpriteLimitEnabledChange,
     // View state callbacks
     onViewStateChange,
+    // Overlay navigation callback
+    onOverlayChange,
     initialViewState: _initialViewState,
   },
   ref,
@@ -213,12 +221,18 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
   const objectSpriteCacheRef = useRef<ObjectSpriteCache | null>(null);
   const objectCacheSourceRef = useRef<ObjectMetadata | null>(null);
   const onViewStateChangeRef = useRef(onViewStateChange);
+  const onOverlayChangeRef = useRef(onOverlayChange);
   const [ready, setReady] = useState(false);
 
   // Keep onViewStateChange ref up to date
   useEffect(() => {
     onViewStateChangeRef.current = onViewStateChange;
   }, [onViewStateChange]);
+
+  // Keep onOverlayChange ref up to date
+  useEffect(() => {
+    onOverlayChangeRef.current = onOverlayChange;
+  }, [onOverlayChange]);
 
   // Tooltip state (React-based instead of DOM manipulation)
   const [tooltipState, setTooltipState] = useState<{
@@ -738,8 +752,17 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
       return Math.min(max, Math.max(min, value));
     };
 
-    const nextX = state.positioned ? sprite.x - padding : 0;
-    const nextY = state.positioned ? sprite.y - padding : 0;
+    // On first position, center the content regardless of size
+    let nextX: number;
+    let nextY: number;
+    if (state.positioned) {
+      nextX = sprite.x - padding;
+      nextY = sprite.y - padding;
+    } else {
+      // Center initially
+      nextX = (availableWidth - scaledWidth) / 2;
+      nextY = (availableHeight - scaledHeight) / 2;
+    }
 
     sprite.x = clampAxis(nextX, scaledWidth, availableWidth) + padding;
     sprite.y = clampAxis(nextY, scaledHeight, availableHeight) + padding;
@@ -802,6 +825,10 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
   disposeAnimationResource(state.resource, { unload: true });
     overlay.visible = false;
     overlayStateRef.current = null;
+    // Notify parent of overlay close
+    if (onOverlayChangeRef.current) {
+      onOverlayChangeRef.current({ mapLabel: null, backlink: backlinkRef.current });
+    }
     const world = worldRef.current;
     if (world) {
       world.visible = true;
@@ -991,8 +1018,9 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
       getViewState,
       getApp: () => appRef.current,
       resetView: () => resetViewRef.current?.(),
+      closeOverlay,
     }),
-    [focusWorldOn, setScaleAt, getViewState],
+    [focusWorldOn, setScaleAt, getViewState, closeOverlay],
   );
 
   const resolveTargetLabel = useCallback(
@@ -1780,6 +1808,10 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
         rendererOn(app, "resize", positionOverlayContents);
         positionOverlayContents();
         maybeRender();
+        // Notify parent of overlay open
+        if (onOverlayChangeRef.current) {
+          onOverlayChangeRef.current({ mapLabel, backlink: backlinkRef.current });
+        }
       } catch (err) {
         if (overlayTokenRef.current === token) {
           console.error(`Failed to open overlay for ${mapLabel}`, err);
@@ -3949,128 +3981,110 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
     <div className="canvas-stage" ref={containerRef}>
       {loading && <div className="status-banner info">Loading atlas…</div>}
       {!loading && !atlas && <div className="status-banner warning">No map data available.</div>}
-      {/* Sprite Limits Panel */}
-      <div
-        style={{
-          position: "absolute",
-          right: 12,
-          top: 12,
-          padding: 8,
-          background: "rgba(0,0,0,0.5)",
-          color: "#fff",
-          borderRadius: 6,
-          display: "flex",
-          gap: 8,
-          alignItems: "center",
-          flexWrap: "wrap",
-          maxWidth: "calc(100% - 24px)",
-          overflow: "hidden",
-          zIndex: 1000,
-        }}
-      >
-        {/* Weather toggle (auto per-map) */}
-        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-          <input
-            type="checkbox"
-            checked={weatherEnabled}
-            onChange={(e: CheckboxChangeEvent) => setWeatherEnabled(e.target.checked)}
-          />
-          <span>Weather</span>
-        </label>
-        {/* Sprite Limits toggle */}
-        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-          <input
-            type="checkbox"
-            checked={spriteLimitEnabled}
-            onChange={(e: CheckboxChangeEvent) => setSpriteLimitEnabled(e.target.checked)}
-          />
-          <span>Sprite Limits</span>
-        </label>
-        {spriteLimitEnabled && (
-          <>
-            {/* Severity filter */}
-            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-              <input
-                type="checkbox"
-                checked={spriteOnlyErrors}
-                onChange={(e: CheckboxChangeEvent) => setSpriteOnlyErrors(e.target.checked)}
-              />
-              <span>Only errors (&gt; limit)</span>
-            </label>
-            {/* Follower toggle */}
-            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-              <input
-                type="checkbox"
-                checked={spriteIncludeFollower}
-                onChange={(e: CheckboxChangeEvent) => setSpriteIncludeFollower(e.target.checked)}
-              />
-              <span>Follower Pokémon</span>
-            </label>
-            {/* Weather toggle (overworld only when applied in analysis) */}
-            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-              <input
-                type="checkbox"
-                checked={spriteIncludeWeather}
-                onChange={(e: CheckboxChangeEvent) => setSpriteIncludeWeather(e.target.checked)}
-              />
-              <span>Weather (reserve 1)</span>
-            </label>
-            {/* Scope selector */}
-            <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
-              <span>Scope</span>
-              <select
-                value={spriteScope}
-                onChange={(e: SelectChangeEvent) =>
-                  setSpriteScope((e.target.value as MapScope) ?? "all")
-                }
-                style={{ fontSize: 12, maxWidth: 140 }}
-              >
-                <option value="all">All</option>
-                <option value="overworld">Overworld</option>
-                <option value="indoor">Indoor</option>
-              </select>
-            </label>
-            {/* Limits */}
-            <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
-              <span>Scanline</span>
-              <input
-                type="number"
-                value={spriteScanlineLimit}
-                onChange={(e: InputNumberChangeEvent) =>
-                  setSpriteScanlineLimit(
-                    Number.isFinite(parseInt(e.target.value)) ? parseInt(e.target.value) : 10,
-                  )
-                }
-                min={0}
-                step={1}
-                style={{ width: 64, fontSize: 12 }}
-              />
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
-              <span>Total</span>
-              <input
-                type="number"
-                value={spriteTotalLimit}
-                onChange={(e: InputNumberChangeEvent) =>
-                  setSpriteTotalLimit(
-                    Number.isFinite(parseInt(e.target.value)) ? parseInt(e.target.value) : 40,
-                  )
-                }
-                min={0}
-                step={1}
-                style={{ width: 64, fontSize: 12 }}
-              />
-            </label>
-            <button
-              type="button"
-              onClick={() => runSpriteLimitAnalysis()}
-              disabled={spriteAnalyzing}
+      {/* Sprite Limits Analysis Panel - only shown when enabled */}
+      {spriteLimitEnabled && (
+        <div
+          style={{
+            position: "absolute",
+            right: 12,
+            top: 12,
+            padding: 8,
+            background: "rgba(0,0,0,0.7)",
+            color: "#fff",
+            borderRadius: 6,
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+            flexWrap: "wrap",
+            maxWidth: "calc(100% - 24px)",
+            overflow: "hidden",
+            zIndex: 40,
+            fontSize: 12,
+          }}
+        >
+          {/* Severity filter */}
+          <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <input
+              type="checkbox"
+              checked={spriteOnlyErrors}
+              onChange={(e: CheckboxChangeEvent) => setSpriteOnlyErrors(e.target.checked)}
+            />
+            <span>Errors only</span>
+          </label>
+          {/* Follower toggle */}
+          <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <input
+              type="checkbox"
+              checked={spriteIncludeFollower}
+              onChange={(e: CheckboxChangeEvent) => setSpriteIncludeFollower(e.target.checked)}
+            />
+            <span>+Follower</span>
+          </label>
+          {/* Weather toggle (overworld only when applied in analysis) */}
+          <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <input
+              type="checkbox"
+              checked={spriteIncludeWeather}
+              onChange={(e: CheckboxChangeEvent) => setSpriteIncludeWeather(e.target.checked)}
+            />
+            <span>+Weather</span>
+          </label>
+          {/* Scope selector */}
+          <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span>Scope</span>
+            <select
+              value={spriteScope}
+              onChange={(e: SelectChangeEvent) =>
+                setSpriteScope((e.target.value as MapScope) ?? "all")
+              }
+              style={{ fontSize: 12, maxWidth: 100 }}
             >
-              {spriteAnalyzing ? "Analyzing…" : "Analyze"}
-            </button>
-          </>
-        )}
-      </div>
+              <option value="all">All</option>
+              <option value="overworld">Overworld</option>
+              <option value="indoor">Indoor</option>
+            </select>
+          </label>
+          {/* Limits */}
+          <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span>Line</span>
+            <input
+              type="number"
+              value={spriteScanlineLimit}
+              onChange={(e: InputNumberChangeEvent) =>
+                setSpriteScanlineLimit(
+                  Number.isFinite(parseInt(e.target.value)) ? parseInt(e.target.value) : 10,
+                )
+              }
+              min={0}
+              step={1}
+              style={{ width: 48, fontSize: 12 }}
+            />
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span>Total</span>
+            <input
+              type="number"
+              value={spriteTotalLimit}
+              onChange={(e: InputNumberChangeEvent) =>
+                setSpriteTotalLimit(
+                  Number.isFinite(parseInt(e.target.value)) ? parseInt(e.target.value) : 40,
+                )
+              }
+              min={0}
+              step={1}
+              style={{ width: 48, fontSize: 12 }}
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => runSpriteLimitAnalysis()}
+            disabled={spriteAnalyzing}
+            style={{ fontSize: 12, padding: "2px 8px" }}
+          >
+            {spriteAnalyzing ? "Analyzing…" : "Analyze"}
+          </button>
+        </div>
+      )}
       {/* When no overlay is open, Analyze scans the entire overworld. */}
       {spriteLimitEnabled &&
         spriteIssues &&
@@ -4086,7 +4100,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
               background: "rgba(0,0,0,0.6)",
               color: "#fff",
               borderRadius: 16,
-              zIndex: 1000,
+              zIndex: 40,
               cursor: "pointer",
               userSelect: "none",
             }}
@@ -4120,7 +4134,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
               background: "rgba(0,0,0,0.6)",
               color: "#fff",
               borderRadius: 6,
-              zIndex: 1000,
+              zIndex: 40,
             }}
           >
             <div

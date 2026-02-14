@@ -4,31 +4,48 @@ import {
   HelpCircleIcon,
   RefreshCwIcon,
   SearchIcon,
+  SettingsIcon,
+  SunIcon,
+  MoonIcon,
+  SunriseIcon,
+  SunsetIcon,
+  MonitorIcon,
+  WrenchIcon,
+  CloudIcon,
+  ActivityIcon,
+  EyeIcon,
+  RotateCcwIcon,
   PencilIcon,
   CheckIcon,
 } from "lucide-react";
 import MapSearch, { type SearchResult } from "@/components/MapSearch";
 import {
-  Menubar,
-  MenubarCheckboxItem,
-  MenubarContent,
-  MenubarItem,
-  MenubarMenu,
-  MenubarRadioGroup,
-  MenubarRadioItem,
-  MenubarSeparator,
-  MenubarShortcut,
-  MenubarTrigger,
-} from "@/components/ui/menubar";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { MapPlacement, NeighborhoodSummary } from "@/types";
 import { Badge } from "./ui/badge";
 
 const TIME_OF_DAY_OPTIONS = [
-  { value: "morn", label: "Morning" },
-  { value: "day", label: "Day" },
-  { value: "nite", label: "Night" },
-  { value: "eve", label: "Evening" },
+  { value: "morn", label: "Morning", icon: SunriseIcon },
+  { value: "day", label: "Day", icon: SunIcon },
+  { value: "eve", label: "Evening", icon: SunsetIcon },
+  { value: "nite", label: "Night", icon: MoonIcon },
 ] as const;
 
 export type TimeOfDaySlug = (typeof TIME_OF_DAY_OPTIONS)[number]["value"];
@@ -93,7 +110,6 @@ export default function HeaderNav({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if user is typing in an input/textarea
       const target = e.target as HTMLElement;
       if (
         target.tagName === "INPUT" ||
@@ -113,147 +129,180 @@ export default function HeaderNav({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  const currentTimeOption = TIME_OF_DAY_OPTIONS.find((opt) => opt.value === timeOfDay);
+  const TimeIcon = currentTimeOption?.icon ?? SunIcon;
+
   return (
-    <header className="flex flex-col sm:flex-row items-start sm:items-center justify-end gap-4 py-2 px-4 sm:px-6 lg:px-8 border-b-1">
-      <div className="brand flex flex-col items-start gap-0 mr-auto">
-       <div className="flex flex-row items-center gap-2">
-         <h1>Polished Atlas</h1>
-         <Badge>{version}</Badge>
-       </div>
-        <span className="text-xs font-bold">{subtitle}</span>
+    <header className="flex items-center justify-between gap-3 py-2 px-4 sm:px-6 border-b bg-background z-50">
+      {/* Brand */}
+      <div className="flex flex-col gap-0 min-w-0">
+        <div className="flex items-center gap-2">
+          <h1 className="text-base font-semibold tracking-tight whitespace-nowrap">Polished Atlas</h1>
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{version}</Badge>
+        </div>
+        <span className="text-xs text-muted-foreground truncate">{subtitle}</span>
       </div>
 
-      <button
-        onClick={() => setSearchOpen(true)}
-        disabled={isLoading}
-        type="button"
-        className={cn(
-          "inline-flex items-center gap-2 whitespace-nowrap justify-start",
-          "h-9 w-[180px] sm:w-[240px]",
-          "rounded-md text-sm transition-all px-3 py-2",
-          "border bg-background text-muted-foreground",
-          "hover:border-accent hover:bg-accent/5",
-          "disabled:opacity-50 disabled:cursor-not-allowed",
-        )}
-      >
-        <SearchIcon className="size-4 shrink-0" />
-        <span className="truncate flex-1 text-left">Search maps...</span>
-        <div className="hidden gap-0.5 sm:flex ml-auto shrink-0">
+      {/* Actions */}
+      <div className="flex items-center gap-2">
+        {/* Search */}
+        <button
+          onClick={() => setSearchOpen(true)}
+          disabled={isLoading}
+          type="button"
+          className={cn(
+            "inline-flex items-center gap-2 whitespace-nowrap justify-start",
+            "h-8 w-[140px] sm:w-[200px]",
+            "rounded-md text-sm transition-all px-2.5 py-1.5",
+            "border bg-muted/50 text-muted-foreground",
+            "hover:bg-muted hover:text-foreground",
+            "disabled:opacity-50 disabled:cursor-not-allowed",
+          )}
+        >
+          <SearchIcon className="size-3.5 shrink-0" />
+          <span className="truncate flex-1 text-left text-xs">Search...</span>
           <kbd
             className={cn(
-              "bg-muted text-muted-foreground",
-              "pointer-events-none inline-flex h-5 min-w-5 items-center justify-center",
-              "rounded-sm px-1 font-sans text-[10px] font-medium select-none border",
+              "hidden sm:inline-flex",
+              "bg-background text-muted-foreground",
+              "h-4 min-w-4 items-center justify-center",
+              "rounded px-1 font-mono text-[10px] border",
             )}
           >
             /
           </kbd>
-        </div>
-      </button>
-      <MapSearch
-        placements={placements}
-        neighborhoods={neighborhoods}
-        onSelect={onSearchSelect}
-        disabled={isLoading}
-        open={searchOpen}
-        onOpenChange={setSearchOpen}
-      />
-        <Menubar>
-        <MenubarMenu>
-          <MenubarTrigger>View</MenubarTrigger>
-          <MenubarContent>
-            <MenubarItem onClick={onResetView}>
-              Reset View
-              <MenubarShortcut>R</MenubarShortcut>
-            </MenubarItem>
-            <MenubarSeparator />
-            <MenubarRadioGroup value={timeOfDay} onValueChange={onTimeOfDayChange}>
+        </button>
+
+        <MapSearch
+          placements={placements}
+          neighborhoods={neighborhoods}
+          onSelect={onSearchSelect}
+          disabled={isLoading}
+          open={searchOpen}
+          onOpenChange={setSearchOpen}
+        />
+
+       <div className='[&_[data-radix-popper-content-wrapper]]:bg-red-300'>
+   {/* Settings Dropdown */}
+          <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="size-8">
+              <SettingsIcon className="size-4" />
+              <span className="sr-only">Settings</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[var(--radix-popper-anchor-width)]">
+            {/* Time of Day */}
+            <DropdownMenuLabel className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
+              <TimeIcon className="size-3.5" />
+              Time of Day
+            </DropdownMenuLabel>
+            <DropdownMenuRadioGroup value={timeOfDay} onValueChange={onTimeOfDayChange}>
               {TIME_OF_DAY_OPTIONS.map((option) => (
-                <MenubarRadioItem
+                <DropdownMenuRadioItem
                   key={option.value}
                   value={option.value}
                   disabled={timeSelectDisabled}
+                  className="text-sm"
                 >
+                  <option.icon className="size-3.5 mr-2" />
                   {option.label}
-                </MenubarRadioItem>
+                </DropdownMenuRadioItem>
               ))}
-            </MenubarRadioGroup>
-            <MenubarSeparator />
-            <MenubarItem onClick={onReload} disabled={isLoading}>
-              <RefreshCwIcon className="size-4" />
-              {isLoading ? "Loading…" : "Reload Data"}
-            </MenubarItem>
-          </MenubarContent>
-        </MenubarMenu>
-        <MenubarMenu>
-          <MenubarTrigger>Performance</MenubarTrigger>
-          <MenubarContent>
-            <MenubarCheckboxItem
-              checked={disableMapAnimations}
-              onCheckedChange={(checked) => onDisableMapAnimationsChange(checked === true)}
+            </DropdownMenuRadioGroup>
+
+            <DropdownMenuSeparator />
+
+            {/* Display Options */}
+            <DropdownMenuLabel className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
+              <MonitorIcon className="size-3.5" />
+              Display
+            </DropdownMenuLabel>
+            <DropdownMenuCheckboxItem
+              checked={!disableMapAnimations}
+              onCheckedChange={(checked) => onDisableMapAnimationsChange(!checked)}
             >
-              Disable Map Animations
-            </MenubarCheckboxItem>
-            <MenubarCheckboxItem
-              checked={disableObjectAnimations}
-              onCheckedChange={(checked) => onDisableObjectAnimationsChange(checked === true)}
+              Map Animations
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={!disableObjectAnimations}
+              onCheckedChange={(checked) => onDisableObjectAnimationsChange(!checked)}
             >
-              Disable NPC Animations
-            </MenubarCheckboxItem>
-            <MenubarSeparator />
-            <MenubarCheckboxItem
+              NPC Animations
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
               checked={weatherEnabled}
               onCheckedChange={(checked) => onWeatherEnabledChange(checked === true)}
             >
+              <CloudIcon className="size-3.5 mr-2" />
               Weather Effects
-            </MenubarCheckboxItem>
-            <MenubarCheckboxItem
+            </DropdownMenuCheckboxItem>
+
+            <DropdownMenuSeparator />
+
+            {/* View Actions */}
+            <DropdownMenuLabel className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
+              <EyeIcon className="size-3.5" />
+              View
+            </DropdownMenuLabel>
+            <DropdownMenuItem onClick={onResetView}>
+              <RotateCcwIcon className="size-3.5" />
+              Reset View
+              <DropdownMenuShortcut>R</DropdownMenuShortcut>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onScreenshot}>
+              <CameraIcon className="size-3.5" />
+              Screenshot
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onReload} disabled={isLoading}>
+              <RefreshCwIcon className="size-3.5" />
+              {isLoading ? "Loading…" : "Reload Data"}
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+
+            {/* Developer Tools */}
+            <DropdownMenuLabel className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
+              <WrenchIcon className="size-3.5" />
+              Developer
+            </DropdownMenuLabel>
+            <DropdownMenuCheckboxItem
               checked={spriteLimitEnabled}
               onCheckedChange={(checked) => onSpriteLimitEnabledChange(checked === true)}
             >
+              <ActivityIcon className="size-3.5 mr-2" />
               Sprite Limit Analysis
-            </MenubarCheckboxItem>
-          </MenubarContent>
-        </MenubarMenu>
-        <MenubarMenu>
-          <MenubarTrigger>Tools</MenubarTrigger>
-          <MenubarContent>
-            <MenubarItem onClick={() => setSearchOpen(true)}>
-              <SearchIcon className="size-4" />
-              Search Maps
-              <MenubarShortcut>/</MenubarShortcut>
-            </MenubarItem>
-            <MenubarItem onClick={onScreenshot}>
-              <CameraIcon className="size-4" />
-              Take Screenshot
-            </MenubarItem>
-            <MenubarSeparator />
+            </DropdownMenuCheckboxItem>
             {canEdit && (
-              <MenubarItem
+              <DropdownMenuItem
                 onClick={onToggleEditing}
                 disabled={isLoading || saveStatus === "saving"}
               >
-                {editing ? <CheckIcon className="size-4" /> : <PencilIcon className="size-4" />}
+                {editing ? <CheckIcon className="size-3.5" /> : <PencilIcon className="size-3.5" />}
                 {!editing
                   ? "Edit Layout"
                   : saveStatus === "saving"
                     ? "Saving…"
                     : "Finish Editing"}
-              </MenubarItem>
+              </DropdownMenuItem>
             )}
-          </MenubarContent>
-        </MenubarMenu>
-        <MenubarMenu>
-          <MenubarTrigger>Help</MenubarTrigger>
-          <MenubarContent>
-            <MenubarItem onClick={onOpenHelp}>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        </div>
+        {/* Help Button */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="size-8" onClick={onOpenHelp}>
               <HelpCircleIcon className="size-4" />
-              Keyboard Shortcuts
-              <MenubarShortcut>?</MenubarShortcut>
-            </MenubarItem>
-          </MenubarContent>
-        </MenubarMenu>
-      </Menubar>
+              <span className="sr-only">Help</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Keyboard Shortcuts</p>
+            <kbd className="text-[10px] text-muted-foreground">?</kbd>
+          </TooltipContent>
+        </Tooltip>
+      </div>
     </header>
   );
 }

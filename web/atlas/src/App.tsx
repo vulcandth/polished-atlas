@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import MapCanvas, { type MapCanvasHandle, type MapViewState } from "@/components/MapCanvas";
+import MapCanvas, { type MapCanvasHandle, type MapViewState, type WarpBacklink } from "@/components/MapCanvas";
 import type { SearchResult } from "@/components/MapSearch";
 import ZoomControls from "@/components/ZoomControls";
 import HelpPanel from "@/components/HelpPanel";
-import HeaderNav, { TIME_OF_DAY_OPTIONS, type TimeOfDaySlug } from "@/components/HeaderNav";
+import OverlayBreadcrumb from "@/components/OverlayBreadcrumb";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useAtlasData } from "@/hooks/useAtlasData";
 import { useObjectMetadata } from "@/hooks/useObjectMetadata";
@@ -14,6 +14,7 @@ import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
 import { takeScreenshot } from "@/lib/screenshot";
 import type { NeighborhoodSummary } from "@/types";
 import { MIN_SCALE, MAX_SCALE } from "@/components/MapCanvas/constants";
+import HeaderNav, { TIME_OF_DAY_OPTIONS, TimeOfDaySlug } from "./components/HeaderNav";
 
 const DEFAULT_ROOT = import.meta.env.VITE_ROOT_MAP ?? "NewBarkTown";
 const MANIFEST_OVERRIDE = import.meta.env.VITE_NEIGHBORHOOD_MANIFEST_URL?.trim() || "";
@@ -744,6 +745,23 @@ export default function App() {
   const [weatherEnabled, setWeatherEnabled] = useState<boolean>(true);
   const [spriteLimitEnabled, setSpriteLimitEnabled] = useState<boolean>(false);
 
+  // Overlay navigation state
+  const [overlayState, setOverlayState] = useState<{
+    mapLabel: string | null;
+    backlink: WarpBacklink | null;
+  }>({ mapLabel: null, backlink: null });
+
+  const handleOverlayChange = useCallback(
+    (state: { mapLabel: string | null; backlink: WarpBacklink | null }) => {
+      setOverlayState(state);
+    },
+    []
+  );
+
+  const handleCloseOverlay = useCallback(() => {
+    mapCanvasRef.current?.closeOverlay();
+  }, []);
+
   return (
     <TooltipProvider>
       <main className="app-shell dark">
@@ -774,6 +792,11 @@ export default function App() {
         editing={editing}
         onToggleEditing={handleToggleEditing}
         saveStatus={saveStatus}
+      />
+      <OverlayBreadcrumb
+        mapLabel={overlayState.mapLabel}
+        backlink={overlayState.backlink}
+        onClose={handleCloseOverlay}
       />
       {editing && canEdit && (
         <section className="dev-toolbar">
@@ -845,6 +868,7 @@ export default function App() {
           spriteLimitEnabled={spriteLimitEnabled}
           onSpriteLimitEnabledChange={setSpriteLimitEnabled}
           onViewStateChange={handleViewStateChange}
+          onOverlayChange={handleOverlayChange}
         />
         <ZoomControls
           scale={currentScale}

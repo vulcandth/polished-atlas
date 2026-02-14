@@ -2060,7 +2060,7 @@
       "label": "Facings"
     }
   },
-  "generated_at": "2025-11-04T02:37:51.647523Z",
+  "generated_at": "2026-02-14T17:22:41.822730Z",
   "maps": {
     "AzaleaGym": {
       "height_blocks": 8,
@@ -26951,7 +26951,7 @@
       "width_blocks": 4
     },
     "DanceTheatre": {
-      "height_blocks": 7,
+      "height_blocks": 8,
       "label": "DanceTheatre",
       "map_constant": "DANCE_THEATRE",
       "map_type": "INDOOR",
@@ -27009,8 +27009,8 @@
             "id": 10
           },
           "object_type": {
-            "constant": "OBJECTTYPE_GENERICTRAINER",
-            "id": 3
+            "constant": "OBJECTTYPE_TRAINER",
+            "id": 2
           },
           "palette_override": {
             "constant": "PAL_OW_PURPLE",
@@ -27052,8 +27052,8 @@
             "id": 3
           },
           "object_type": {
-            "constant": "OBJECTTYPE_GENERICTRAINER",
-            "id": 3
+            "constant": "OBJECTTYPE_TRAINER",
+            "id": 2
           },
           "palette_override": {
             "constant": "PAL_OW_GRAY",
@@ -27095,8 +27095,8 @@
             "id": 10
           },
           "object_type": {
-            "constant": "OBJECTTYPE_GENERICTRAINER",
-            "id": 3
+            "constant": "OBJECTTYPE_TRAINER",
+            "id": 2
           },
           "palette_override": {
             "constant": "PAL_OW_BLUE",
@@ -27138,8 +27138,8 @@
             "id": 25
           },
           "object_type": {
-            "constant": "OBJECTTYPE_GENERICTRAINER",
-            "id": 3
+            "constant": "OBJECTTYPE_TRAINER",
+            "id": 2
           },
           "palette_override": {
             "constant": "PAL_OW_BROWN",
@@ -27211,8 +27211,8 @@
           },
           "x_pixels": 112,
           "x_tiles": 7,
-          "y_pixels": 160,
-          "y_tiles": 10
+          "y_pixels": 192,
+          "y_tiles": 12
         },
         {
           "event_flag": null,
@@ -27262,8 +27262,8 @@
           },
           "x_pixels": 96,
           "x_tiles": 6,
-          "y_pixels": 128,
-          "y_tiles": 8
+          "y_pixels": 160,
+          "y_tiles": 10
         },
         {
           "event_flag": null,
@@ -27305,8 +27305,8 @@
           },
           "x_pixels": 160,
           "x_tiles": 10,
-          "y_pixels": 160,
-          "y_tiles": 10
+          "y_pixels": 192,
+          "y_tiles": 12
         },
         {
           "event_flag": null,
@@ -144068,7 +144068,7 @@
       "sprite_type": "WALKING_SPRITE",
       "tile_count": 24,
       "tile_path": "gfx/sprites/scientist.2bpp.lz",
-      "tiles_2bpp_base64": "AwMPDx8eHxg/MH9Wf0lvWcDA8PD4ePgY/Az+av6S9po/Nj45e09/ST8wHhEXHw4O/Gx8nN7y/pL8DHiI6PhwcAMDDw8fHx8fPz9/X39ff1/AwPDw+Pj4+Pz8/vr++v76Pzc/OHtff1A/MB8RHx8ODvzs/Bze+v4K/Az4iPj4cHAHBw8PHx8fEx8RHxgfFB8U4ODw8Pj4+Pj8/Pz8/Pz4mB8YCwwHBwcFBwUFBgcHAwPwEOBg8NDwMPAw8NDw8MDAAAADAw8PHx4fGD8wf1Z/SQAAwMDw8Ph4+Bj8DP5q/pJvWX92flk/Px8bDwwPDwcH9pr8bHyc/PT8zPhIsLAAAAAAAwMPDx8fHx8/P39ff18AAMDA8PD4+Pj4/Pz++v76f1t/cX9cPzsfGA8MDw8HB/7a/Iz8PP7S/hL8PMDAAAAAAAcHDw8fHx8THxEfGB8XAADg4PDw+Pj4+Pz8/Pz8/B8UHxgLDAcHHxw7PB8fDg74mPAQ+Gj46PiY/Jz8/BgY"
+      "tiles_2bpp_base64": "AwMPDx8eHxg/MH9Wf0lvWcDA8PD4ePgY/Az+av6S9po/Nj45e09/ST8wHhEXHw4O/Gx8nN7y/pL8DHiI6PhwcAMDDw8fHx8fPz9/X39ff1/AwPDw+Pj4+Pz8/vr++v76Pzc/OHtff1A/MB8RHx8ODvzs/Bze+v4K/Az4iPj4cHAHBw8PHx8fEx8RHxgfFx8U4ODw8Pj4+Pj8/Pz8/Pz4mB8YCwwHBwcFBwUFBgcHAwPwEOBg8NDwMPAw8NDw8MDAAAADAw8PHx4fGD8wf1Z/SQAAwMDw8Ph4+Bj8DP5q/pJvWX92flk/Px8bDwwPDwcH9pr8bHyc/PT8zPhIsLAAAAAAAwMPDx8fHx8/P39ff18AAMDA8PD4+Pj4/Pz++v76f1t/cX9cPzsfGA8MDw8HB/7a/Iz8PP7S/hL8PMDAAAAAAAcHDw8fHx8THxEfGB8XAADg4PDw+Pj4+Pz8/Pz8/B8UHxgLDAcHHxw7PB8fDg74mPAQ+Gj46PiY/Jz8/BgY"
     },
     "SPRITE_SCIENTIST_F": {
       "default_palette": "PAL_OW_BLUE",

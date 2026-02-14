@@ -6,6 +6,7 @@
   "scripts": {
     "build": "./scripts/build_atlas.sh",
     "build:quick": "TIME_OF_DAY=day ./scripts/build_atlas.sh",
+    "build:web": "npm --prefix web/atlas run build",
     "update-rom": "cd external/polishedcrystal && git fetch --tags --force && git checkout $(git tag --sort=-version:refname | grep -E '^v[0-9]+\\.[0-9]+\\.[0-9]+$' | head -n1)",
     "update-rom:force": "POLISHED_UPDATE=true ./scripts/build_atlas.sh",
     "dev": "npm --prefix web/atlas run dev",
@@ -23,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Rangi42/polished-atlas.git"
+    "url": "git+https://github.com/vulcandth/polished-atlas.git"
   },
   "keywords": [
     "pokemon",

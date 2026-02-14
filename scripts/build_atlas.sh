@@ -74,7 +74,7 @@ ensure_polished_repo() {
 run_generators() {
   local raw_time_slugs=()
   IFS=',' read -r -a raw_time_slugs <<< "${TIME_OF_DAY_LIST}"
-  declare -A seen_slugs=()
+  local seen_slugs=""
   local canonical_slugs=()
   for raw_slug in "${raw_time_slugs[@]}"; do
     local trimmed
@@ -82,8 +82,9 @@ run_generators() {
     if [[ -z "${trimmed}" ]]; then
       continue
     fi
+    # Convert to lowercase (bash 3.2 compatible)
     local lower
-    lower="${trimmed,,}"
+    lower="$(echo "${trimmed}" | tr '[:upper:]' '[:lower:]')"
     local canonical
     case "${lower}" in
       0|morn|morning) canonical="morn" ;;
@@ -95,9 +96,10 @@ run_generators() {
         exit 1
         ;;
     esac
-    if [[ -z "${seen_slugs[${canonical}]:-}" ]]; then
+    # Deduplicate using string matching (bash 3.2 compatible)
+    if [[ ! " ${seen_slugs} " =~ " ${canonical} " ]]; then
       canonical_slugs+=("${canonical}")
-      seen_slugs["${canonical}"]=1
+      seen_slugs="${seen_slugs} ${canonical}"
     fi
   done
 
@@ -107,7 +109,7 @@ run_generators() {
   fi
 
   # Prefer to render the day palette first so manifests exist for other palettes.
-  if [[ -n "${seen_slugs[day]:-}" ]]; then
+  if [[ " ${seen_slugs} " =~ " day " ]]; then
     local reordered=("day")
     for slug in "${canonical_slugs[@]}"; do
       if [[ "${slug}" != "day" ]]; then

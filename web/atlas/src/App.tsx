@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import MapCanvas, { type MapCanvasHandle, type MapViewState } from "@/components/MapCanvas";
-import MapSearch, { type SearchResult } from "@/components/MapSearch";
+import type { SearchResult } from "@/components/MapSearch";
 import ZoomControls from "@/components/ZoomControls";
 import HelpPanel from "@/components/HelpPanel";
+import HeaderNav, { TIME_OF_DAY_OPTIONS, type TimeOfDaySlug } from "@/components/HeaderNav";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useAtlasData } from "@/hooks/useAtlasData";
 import { useObjectMetadata } from "@/hooks/useObjectMetadata";
@@ -17,16 +18,6 @@ import { MIN_SCALE, MAX_SCALE } from "@/components/MapCanvas/constants";
 const DEFAULT_ROOT = import.meta.env.VITE_ROOT_MAP ?? "NewBarkTown";
 const MANIFEST_OVERRIDE = import.meta.env.VITE_NEIGHBORHOOD_MANIFEST_URL?.trim() || "";
 const TIME_STORAGE_KEY = "polished-atlas/time-of-day";
-
-const TIME_OF_DAY_OPTIONS = [
-  { value: "morn", label: "Morning" },
-  { value: "day", label: "Day" },
-  { value: "nite", label: "Night" },
-  { value: "eve", label: "Evening" },
-] as const;
-
-type TimeOfDayOption = (typeof TIME_OF_DAY_OPTIONS)[number];
-type TimeOfDaySlug = TimeOfDayOption["value"];
 
 // Persisted performance settings (shared with MapCanvas)
 const PERF_SETTINGS_STORAGE_KEY = "polished-atlas:perf-settings";
@@ -752,67 +743,27 @@ export default function App() {
   return (
     <TooltipProvider>
       <main className="app-shell">
-      <header className="app-header">
-        <div className="brand">
-          <h1>Polished Atlas</h1>
-          <span className="subtitle">{subtitle}</span>
-          <span className="version">polishedcrystal {POLISHED_VERSION}</span>
-        </div>
-        <MapSearch
-          placements={layout?.placements ?? []}
-          neighborhoods={neighborhoods}
-          onSelect={handleSearchSelect}
-          disabled={isLoading}
-        />
-        <div className="actions">
-          <div className="time-picker">
-            <label htmlFor="time-of-day-select">Time</label>
-            <select
-              id="time-of-day-select"
-              value={timeOfDay}
-              onChange={(event) => handleTimeOfDayChange(event.target.value)}
-              disabled={timeSelectDisabled}
-              title={timeSelectTitle}
-            >
-              {TIME_OF_DAY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="perf-toggles" title="Rendering performance options">
-            <label>
-              <input
-                type="checkbox"
-                checked={disableMapAnimations}
-                onChange={(e) => setDisableMapAnimations(e.target.checked)}
-              />
-              <span>Disable map animations</span>
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={disableObjectAnimations}
-                onChange={(e) => setDisableObjectAnimations(e.target.checked)}
-              />
-              <span>Disable NPC animations</span>
-            </label>
-          </div>
-          <button type="button" onClick={handleReloadClick} disabled={isLoading}>
-            {isLoading ? "Loading…" : "Reload"}
-          </button>
-          {canEdit && (
-            <button
-              type="button"
-              onClick={handleToggleEditing}
-              disabled={isLoading || saveStatus === "saving"}
-            >
-              {!editing ? "Edit Layout" : saveStatus === "saving" ? "Saving…" : "Finish Editing"}
-            </button>
-          )}
-        </div>
-      </header>
+      <HeaderNav
+        subtitle={subtitle}
+        version={POLISHED_VERSION}
+        placements={layout?.placements ?? []}
+        neighborhoods={neighborhoods}
+        onSearchSelect={handleSearchSelect}
+        isLoading={isLoading}
+        timeOfDay={timeOfDay}
+        onTimeOfDayChange={handleTimeOfDayChange}
+        timeSelectDisabled={timeSelectDisabled}
+        timeSelectTitle={timeSelectTitle}
+        disableMapAnimations={disableMapAnimations}
+        onDisableMapAnimationsChange={setDisableMapAnimations}
+        disableObjectAnimations={disableObjectAnimations}
+        onDisableObjectAnimationsChange={setDisableObjectAnimations}
+        onReload={handleReloadClick}
+        canEdit={canEdit}
+        editing={editing}
+        onToggleEditing={handleToggleEditing}
+        saveStatus={saveStatus}
+      />
       {editing && canEdit && (
         <section className="dev-toolbar">
           <div className="dev-row">

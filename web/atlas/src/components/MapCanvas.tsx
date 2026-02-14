@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import {
   Application,
   Container,
@@ -70,6 +70,7 @@ import {
   resolveDirectionFromFacingKey,
   buildMovementFrameSet,
   buildPokemonIconFrameSet,
+  createSpriteFrameRef,
 } from "@/lib/map-canvas/animation-frames";
 import {
   createMovementAnimator,
@@ -83,6 +84,33 @@ import {
 type CheckboxChangeEvent = { target: { checked: boolean } };
 type InputNumberChangeEvent = { target: { value: string } };
 type SelectChangeEvent = { target: { value: string } };
+
+/**
+ * View state exposed via callbacks and imperative handle
+ */
+export interface MapViewState {
+  x: number;
+  y: number;
+  scale: number;
+  centerWorldX: number;
+  centerWorldY: number;
+}
+
+/**
+ * Imperative handle for MapCanvas component
+ */
+export interface MapCanvasHandle {
+  /** Navigate to a specific world coordinate */
+  focusWorldOn: (worldX: number, worldY: number) => void;
+  /** Set the zoom scale */
+  setScale: (scale: number) => void;
+  /** Get the current view state */
+  getViewState: () => MapViewState | null;
+  /** Get the Pixi Application (for screenshots) */
+  getApp: () => Application | null;
+  /** Reset view to fit the entire atlas */
+  resetView: () => void;
+}
 
 interface MapCanvasProps {
   atlas: AtlasLayout | null;
@@ -102,29 +130,39 @@ interface MapCanvasProps {
   // Optional controlled perf toggles passed from parent header
   disableMapAnimations?: boolean;
   disableObjectAnimations?: boolean;
+  // View state callbacks
+  onViewStateChange?: (state: MapViewState) => void;
+  // Initial view state (from URL params)
+  initialViewState?: Partial<MapViewState>;
 }
 
 registerPixiExtensions();
 
-export default function MapCanvas({
-  atlas,
-  loading,
-  editing = false,
-  warpMetadata = null,
-  bgPalettes = null,
-  resolveAssetHref,
-  baseOffsets = null,
-  offsetOverrides = null,
-  zOverrides = null,
-  selectedNeighborhoodId = null,
-  onSelectNeighborhood,
-  onOffsetChange,
-  objectMetadata = null,
-  timeOfDay = "day",
-  // Optional controlled perf toggles (when provided by parent header)
-  disableMapAnimations: controlledDisableMapAnimations,
-  disableObjectAnimations: controlledDisableObjectAnimations,
-}: MapCanvasProps) {
+const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas(
+  {
+    atlas,
+    loading,
+    editing = false,
+    warpMetadata = null,
+    bgPalettes = null,
+    resolveAssetHref,
+    baseOffsets = null,
+    offsetOverrides = null,
+    zOverrides = null,
+    selectedNeighborhoodId = null,
+    onSelectNeighborhood,
+    onOffsetChange,
+    objectMetadata = null,
+    timeOfDay = "day",
+    // Optional controlled perf toggles (when provided by parent header)
+    disableMapAnimations: controlledDisableMapAnimations,
+    disableObjectAnimations: controlledDisableObjectAnimations,
+    // View state callbacks
+    onViewStateChange,
+    initialViewState: _initialViewState,
+  },
+  ref,
+) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const appRef = useRef<Application | null>(null);
   const worldRef = useRef<Container | null>(null);
@@ -155,7 +193,13 @@ export default function MapCanvas({
   const objectMetadataRef = useRef<ObjectMetadata | null>(null);
   const objectSpriteCacheRef = useRef<ObjectSpriteCache | null>(null);
   const objectCacheSourceRef = useRef<ObjectMetadata | null>(null);
+  const onViewStateChangeRef = useRef(onViewStateChange);
   const [ready, setReady] = useState(false);
+
+  // Keep onViewStateChange ref up to date
+  useEffect(() => {
+    onViewStateChangeRef.current = onViewStateChange;
+  }, [onViewStateChange]);
 
   // Tooltip DOM element for item/key/TM/HM balls
   const tooltipRef = useRef<HTMLDivElement | null>(null);
@@ -821,6 +865,25 @@ export default function MapCanvas({
     });
   }, []);
 
+  const getViewState = useCallback((): MapViewState | null => {
+    const app = appRef.current;
+    const world = worldRef.current;
+    const scale = scaleRef.current;
+    if (!app || !world || !isFiniteNumber(scale) || scale <= 0) {
+      return null;
+    }
+    const renderer = app.renderer;
+    const centerWorldX = (-world.x + renderer.width / 2) / scale;
+    const centerWorldY = (-world.y + renderer.height / 2) / scale;
+    return {
+      x: world.x,
+      y: world.y,
+      scale,
+      centerWorldX,
+      centerWorldY,
+    };
+  }, []);
+
   const schedulePersistViewState = useCallback((): void => {
     if (typeof window === "undefined") {
       return;
@@ -831,8 +894,13 @@ export default function MapCanvas({
     persistTimerRef.current = window.setTimeout(() => {
       persistTimerRef.current = null;
       persistViewState();
+      // Notify parent of view state change via ref to avoid dependency cycle
+      const viewState = getViewState();
+      if (viewState && onViewStateChangeRef.current) {
+        onViewStateChangeRef.current(viewState);
+      }
     }, 120);
-  }, [persistViewState]);
+  }, [persistViewState, getViewState]);
 
   const focusWorldOn = useCallback(
     (worldX: number, worldY: number): void => {
@@ -850,6 +918,49 @@ export default function MapCanvas({
       maybeRender();
     },
     [clampWorldToBounds, schedulePersistViewState, maybeRender],
+  );
+
+  const setScaleAt = useCallback(
+    (newScale: number, pivotX?: number, pivotY?: number): void => {
+      const app = appRef.current;
+      const world = worldRef.current;
+      const bounds = boundsRef.current;
+      if (!app || !world || !bounds) {
+        return;
+      }
+      const { width: viewW, height: viewH } = getEffectiveViewSize(app);
+      const oldScale = scaleRef.current;
+      const clampedScale = clampScale(newScale);
+      scaleRef.current = clampedScale;
+
+      // Pivot defaults to center of view
+      const px = pivotX !== undefined ? pivotX : viewW / 2;
+      const py = pivotY !== undefined ? pivotY : viewH / 2;
+
+      // Zoom towards the pivot point
+      const worldPx = (px - world.x) / oldScale;
+      const worldPy = (py - world.y) / oldScale;
+      world.x = px - worldPx * clampedScale;
+      world.y = py - worldPy * clampedScale;
+
+      clampWorldToBounds();
+      schedulePersistViewState();
+      maybeRender();
+    },
+    [clampWorldToBounds, schedulePersistViewState, maybeRender],
+  );
+
+  // Expose imperative handle for parent components
+  useImperativeHandle(
+    ref,
+    () => ({
+      focusWorldOn,
+      setScale: (scale: number) => setScaleAt(scale),
+      getViewState,
+      getApp: () => appRef.current,
+      resetView: () => resetViewRef.current?.(),
+    }),
+    [focusWorldOn, setScaleAt, getViewState],
   );
 
   const resolveTargetLabel = useCallback(
@@ -3424,7 +3535,9 @@ export default function MapCanvas({
             x: (first.clientX + second.clientX) / 2,
             y: (first.clientY + second.clientY) / 2,
           };
-          const scaleFactor = distance / pinchStartDistance;
+          // Apply sensitivity multiplier for overlay pinch-to-zoom
+          const rawFactor = distance / pinchStartDistance;
+          const scaleFactor = 1 + (rawFactor - 1) * 1.8;
           applyOverlayScale(pinchStartScale * scaleFactor, center);
         }
         return;
@@ -3453,7 +3566,9 @@ export default function MapCanvas({
           x: (first.clientX + second.clientX) / 2,
           y: (first.clientY + second.clientY) / 2,
         };
-        const scaleFactor = distance / pinchStartDistance;
+        // Apply a sensitivity multiplier to make pinch-to-zoom faster
+        const rawFactor = distance / pinchStartDistance;
+        const scaleFactor = 1 + (rawFactor - 1) * 1.8;
         applyScale(pinchStartScale * scaleFactor, center);
       }
     };
@@ -4143,4 +4258,6 @@ export default function MapCanvas({
         ))}
     </div>
   );
-}
+});
+
+export default MapCanvas;

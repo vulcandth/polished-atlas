@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import MapCanvas from "@/components/MapCanvas";
+import MapCanvas, { type MapCanvasHandle, type MapViewState } from "@/components/MapCanvas";
+import MapSearch, { type SearchResult } from "@/components/MapSearch";
+import ZoomControls from "@/components/ZoomControls";
+import HelpPanel from "@/components/HelpPanel";
 import { useAtlasData } from "@/hooks/useAtlasData";
 import { useObjectMetadata } from "@/hooks/useObjectMetadata";
 import { useWarpMetadata } from "@/hooks/useWarpMetadata";
 import { useBgPalettes } from "@/hooks/useBgPalettes";
+import { useUrlState, type UrlViewState } from "@/hooks/useUrlState";
 import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
+import { takeScreenshot } from "@/lib/screenshot";
 import type { NeighborhoodSummary } from "@/types";
+import { MIN_SCALE, MAX_SCALE } from "@/components/MapCanvas/constants";
 
 const DEFAULT_ROOT = import.meta.env.VITE_ROOT_MAP ?? "NewBarkTown";
 const MANIFEST_OVERRIDE = import.meta.env.VITE_NEIGHBORHOOD_MANIFEST_URL?.trim() || "";
@@ -212,6 +218,114 @@ export default function App() {
     reload: objectReload,
   } = useObjectMetadata();
   const isLoading = loading || warpLoading || objectLoading || bgLoading;
+
+  // New UI state
+  const mapCanvasRef = useRef<MapCanvasHandle>(null);
+  const [currentScale, setCurrentScale] = useState(1);
+  const [helpPanelOpen, setHelpPanelOpen] = useState(false);
+
+  // URL deep-linking
+  const handleUrlStateChange = useCallback((state: UrlViewState) => {
+    if (mapCanvasRef.current) {
+      if (state.x !== undefined && state.y !== undefined) {
+        mapCanvasRef.current.focusWorldOn(state.x, state.y);
+      }
+      if (state.zoom !== undefined) {
+        mapCanvasRef.current.setScale(state.zoom);
+      }
+    }
+  }, []);
+
+  const { getInitialState, updateUrl } = useUrlState({
+    onStateChange: handleUrlStateChange,
+  });
+
+  // Apply initial URL state on mount
+  useEffect(() => {
+    const initialState = getInitialState();
+    if (initialState.zoom !== undefined || initialState.x !== undefined) {
+      handleUrlStateChange(initialState);
+    }
+  }, [getInitialState, handleUrlStateChange]);
+
+  // Handle view state changes from MapCanvas
+  const handleViewStateChange = useCallback(
+    (viewState: MapViewState) => {
+      setCurrentScale(viewState.scale);
+      updateUrl(
+        {
+          x: Math.round(viewState.centerWorldX),
+          y: Math.round(viewState.centerWorldY),
+          zoom: viewState.scale,
+        },
+        true, // replace instead of push to avoid polluting history
+      );
+    },
+    [updateUrl],
+  );
+
+  // Search navigation
+  const handleSearchSelect = useCallback((result: SearchResult) => {
+    if (result.x !== undefined && result.y !== undefined && mapCanvasRef.current) {
+      mapCanvasRef.current.focusWorldOn(result.x, result.y);
+    }
+  }, []);
+
+  // Zoom controls
+  const handleZoom = useCallback((newScale: number) => {
+    if (mapCanvasRef.current) {
+      mapCanvasRef.current.setScale(newScale);
+    }
+  }, []);
+
+  // Reset view to fit entire atlas
+  const handleResetView = useCallback(() => {
+    mapCanvasRef.current?.resetView();
+  }, []);
+
+  // Screenshot
+  const handleScreenshot = useCallback(async () => {
+    const app = mapCanvasRef.current?.getApp();
+    if (app) {
+      try {
+        await takeScreenshot(app, { filename: `polished-atlas-${Date.now()}` });
+      } catch (err) {
+        console.error("Screenshot failed:", err);
+      }
+    }
+  }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip if typing in an input
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target instanceof HTMLSelectElement
+      ) {
+        return;
+      }
+
+      switch (e.key) {
+        case "?":
+          e.preventDefault();
+          setHelpPanelOpen(true);
+          break;
+        case "/":
+          e.preventDefault();
+          document.querySelector<HTMLInputElement>(".map-search input")?.focus();
+          break;
+        case "Escape":
+          setHelpPanelOpen(false);
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const neighborhoods: NeighborhoodSummary[] = useMemo(
     () => layout?.metadata?.neighborhoods ?? [],
     [layout],
@@ -642,6 +756,12 @@ export default function App() {
           <span className="subtitle">{subtitle}</span>
           <span className="version">polishedcrystal {POLISHED_VERSION}</span>
         </div>
+        <MapSearch
+          placements={layout?.placements ?? []}
+          neighborhoods={neighborhoods}
+          onSelect={handleSearchSelect}
+          disabled={isLoading}
+        />
         <div className="actions">
           <div className="time-picker">
             <label htmlFor="time-of-day-select">Time</label>
@@ -739,6 +859,7 @@ export default function App() {
       )}
       <section className="canvas-container">
         <MapCanvas
+          ref={mapCanvasRef}
           atlas={layout}
           loading={isLoading}
           editing={editing}
@@ -755,7 +876,60 @@ export default function App() {
           timeOfDay={timeOfDay}
           disableMapAnimations={disableMapAnimations}
           disableObjectAnimations={disableObjectAnimations}
+          onViewStateChange={handleViewStateChange}
         />
+        <ZoomControls
+          scale={currentScale}
+          minScale={MIN_SCALE}
+          maxScale={MAX_SCALE}
+          onZoom={handleZoom}
+          onResetView={handleResetView}
+          disabled={isLoading}
+        />
+        <div className="controls-overlay">
+          <button
+            className="control-btn"
+            onClick={handleScreenshot}
+            disabled={isLoading}
+            title="Take screenshot"
+            aria-label="Take screenshot"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+          </button>
+          <button
+            className="control-btn"
+            onClick={() => setHelpPanelOpen(true)}
+            title="Help & keyboard shortcuts"
+            aria-label="Help"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </button>
+        </div>
         {error && <div className="status-banner error">{error}</div>}
         {!error && warpError && <div className="status-banner error">{warpError}</div>}
         {!error && bgError && <div className="status-banner error">{bgError}</div>}
@@ -767,6 +941,7 @@ export default function App() {
           <div className="status-banner info">Neighborhood layout saved.</div>
         )}
       </section>
+      <HelpPanel isOpen={helpPanelOpen} onClose={() => setHelpPanelOpen(false)} />
     </main>
   );
 }

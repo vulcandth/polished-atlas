@@ -17,6 +17,7 @@ import {
   RotateCcwIcon,
   PencilIcon,
   CheckIcon,
+  SquareIcon,
 } from "lucide-react";
 import MapSearch, { type SearchResult } from "@/components/MapSearch";
 import {
@@ -69,6 +70,8 @@ interface HeaderNavProps {
   onWeatherEnabledChange: (value: boolean) => void;
   spriteLimitEnabled: boolean;
   onSpriteLimitEnabledChange: (value: boolean) => void;
+  mapBordersEnabled: boolean;
+  onMapBordersEnabledChange: (value: boolean) => void;
   onReload: () => void;
   onResetView: () => void;
   onScreenshot: () => void;
@@ -97,6 +100,8 @@ export default function HeaderNav({
   onWeatherEnabledChange,
   spriteLimitEnabled,
   onSpriteLimitEnabledChange,
+  mapBordersEnabled,
+  onMapBordersEnabledChange,
   onReload,
   onResetView,
   onScreenshot,
@@ -236,6 +241,13 @@ export default function HeaderNav({
             >
               <CloudIcon className="size-3.5 mr-2" />
               Weather Effects
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={mapBordersEnabled}
+              onCheckedChange={(checked) => onMapBordersEnabledChange(checked === true)}
+            >
+              <SquareIcon className="size-3.5 mr-2" />
+              Map Borders
             </DropdownMenuCheckboxItem>
 
             <DropdownMenuSeparator />

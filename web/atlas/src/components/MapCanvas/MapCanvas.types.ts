@@ -148,7 +148,7 @@ export type OverlayState = {
   fitScale: number;
   minScale: number;
   maxScale: number;
-  positioned: boolean;
+  userPanned: boolean;
   // Sprite limit analysis
   spriteLimitEnabled?: boolean;
   spriteIssues?: SpriteLimitIssue[];

@@ -148,6 +148,8 @@ interface MapCanvasProps {
   onWeatherEnabledChange?: (enabled: boolean) => void;
   spriteLimitEnabled?: boolean;
   onSpriteLimitEnabledChange?: (enabled: boolean) => void;
+  // Optional map borders toggle
+  mapBordersEnabled?: boolean;
   // View state callbacks
   onViewStateChange?: (state: MapViewState) => void;
   // Overlay navigation callback
@@ -182,6 +184,8 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
     onWeatherEnabledChange,
     spriteLimitEnabled: controlledSpriteLimitEnabled,
     onSpriteLimitEnabledChange,
+    // Optional map borders toggle
+    mapBordersEnabled = false,
     // View state callbacks
     onViewStateChange,
     // Overlay navigation callback
@@ -309,6 +313,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
   const [weatherEnabled, setWeatherEnabledInternal] = useState<boolean>(true);
   const [spriteAnalyzing, setSpriteAnalyzing] = useState<boolean>(false);
   const worldIssueHighlightRef = useRef<Graphics | null>(null);
+  const mapBordersContainerRef = useRef<Container | null>(null);
   const [resultsCollapsed, setResultsCollapsed] = useState<boolean>(false);
 
   // Controlled weather/sprite-limit sync
@@ -628,6 +633,62 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
     [atlas, clearWorldIssueHighlight, maybeRender],
   );
 
+  // Map borders functions
+  const clearMapBorders = useCallback((): void => {
+    const container = mapBordersContainerRef.current;
+    if (container) {
+      try {
+        container.destroy({ children: true });
+      } catch {
+        /* ignore */
+      }
+      mapBordersContainerRef.current = null;
+    }
+  }, []);
+
+  const drawMapBorders = useCallback((): void => {
+    clearMapBorders();
+    const world = worldRef.current;
+    if (!world || !mapBordersEnabled || animationsRef.current.length === 0) return;
+
+    const container = new Container();
+    container.zIndex = 10_000_001; // Just above warps layer
+    container.eventMode = "none";
+
+    const blockPx =
+      atlas && Number.isFinite(atlas.blockPixelSize) && (atlas.blockPixelSize as number) > 0
+        ? Math.abs(atlas.blockPixelSize as number)
+        : 16;
+
+    for (const entry of animationsRef.current) {
+      const g = new Graphics();
+      g.lineStyle(Math.max(1, blockPx * 0.15), 0x00ffff, 0.85); // Cyan border
+      g.drawRect(
+        entry.placement.x,
+        entry.placement.y,
+        entry.placement.widthPx,
+        entry.placement.heightPx
+      );
+      container.addChild(g);
+    }
+
+    world.addChild(container);
+    world.sortChildren();
+    mapBordersContainerRef.current = container;
+    maybeRender();
+  }, [atlas, clearMapBorders, mapBordersEnabled, maybeRender]);
+
+  // Update map borders when toggle changes
+  useEffect(() => {
+    if (!ready) return;
+    if (mapBordersEnabled) {
+      drawMapBorders();
+    } else {
+      clearMapBorders();
+      maybeRender();
+    }
+  }, [ready, mapBordersEnabled, drawMapBorders, clearMapBorders, maybeRender]);
+
   const computeSpriteLimitAnalysis = useCallback(() => {
     const warp = warpMetadataRef.current;
     const objects = objectMetadataRef.current;
@@ -698,18 +759,25 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
     const renderer = app.renderer;
     const sprite = state.sprite;
     const background = state.background;
-    const rendererWidth = Math.max(1, renderer.width ?? renderer.screen?.width ?? 0);
-    const rendererHeight = Math.max(1, renderer.height ?? renderer.screen?.height ?? 0);
+    const resolution = renderer.resolution || 1;
+    // Divide by resolution to get CSS pixels (PixiJS positions in CSS coords, not device pixels)
+    const rendererWidth = Math.max(1, (renderer.width ?? renderer.screen?.width ?? 0) / resolution);
+    const rendererHeight = Math.max(1, (renderer.height ?? renderer.screen?.height ?? 0) / resolution);
+
+    console.log('[positionOverlay] renderer:', rendererWidth, 'x', rendererHeight, 'resolution:', resolution, 'userPanned:', state.userPanned);
+    console.log('[positionOverlay] called from:', new Error().stack?.split('\n').slice(1, 4).join(' <- '));
 
     if (background) {
       background.clear();
       background.beginFill(0x000000, Math.max(0, Math.min(1, state.baseAlpha ?? 0.9)));
-      background.drawRect(0, 0, rendererWidth, rendererHeight);
+      // Background needs to cover the full device pixel area
+      background.drawRect(0, 0, rendererWidth * resolution, rendererHeight * resolution);
       background.endFill();
     }
 
     const baseWidth = state.baseWidth || sprite.width || 1;
     const baseHeight = state.baseHeight || sprite.height || 1;
+    console.log('[positionOverlay] baseSize:', baseWidth, 'x', baseHeight);
     const padding = Math.max(12, Math.min(rendererWidth, rendererHeight) * 0.05);
     const availableWidth = Math.max(1, rendererWidth - padding * 2);
     const availableHeight = Math.max(1, rendererHeight - padding * 2);
@@ -739,43 +807,56 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
     const scaledWidth = baseWidth * scale;
     const scaledHeight = baseHeight * scale;
 
+    // Helper to clamp position within bounds (with overscroll allowance)
     const clampAxis = (value: number, total: number, viewport: number): number => {
       if (!(total > 0) || !(viewport > 0)) {
         return value;
       }
       if (total <= viewport) {
-        return Math.max(0, (viewport - total) / 2);
+        // Content fits - center it
+        return (viewport - total) / 2;
       }
+      // Content larger than viewport - allow some overscroll
       const overscroll = computeOverscrollPx(viewport, viewport);
       const min = viewport - total - overscroll;
       const max = 0 + overscroll;
       return Math.min(max, Math.max(min, value));
     };
 
-    // On first position, center the content regardless of size
+    // Calculate centered position (works for both small and large content)
+    const centeredX = (availableWidth - scaledWidth) / 2;
+    const centeredY = (availableHeight - scaledHeight) / 2;
+
     let nextX: number;
     let nextY: number;
-    if (state.positioned) {
-      nextX = sprite.x - padding;
-      nextY = sprite.y - padding;
+
+    if (state.userPanned) {
+      // User has interacted - preserve their position but apply bounds
+      nextX = clampAxis(sprite.x - padding, scaledWidth, availableWidth);
+      nextY = clampAxis(sprite.y - padding, scaledHeight, availableHeight);
     } else {
-      // Center initially
-      nextX = (availableWidth - scaledWidth) / 2;
-      nextY = (availableHeight - scaledHeight) / 2;
+      // No user interaction yet - always center the content
+      nextX = centeredX;
+      nextY = centeredY;
     }
 
-    sprite.x = clampAxis(nextX, scaledWidth, availableWidth) + padding;
-    sprite.y = clampAxis(nextY, scaledHeight, availableHeight) + padding;
-    state.positioned = true;
+    sprite.x = nextX + padding;
+    sprite.y = nextY + padding;
+    console.log('[positionOverlay] final sprite pos:', sprite.x, sprite.y, 'centered:', centeredX, centeredY, 'scale:', scale);
+    console.log('[positionOverlay] overlay pos:', overlay.x, overlay.y, 'visible:', overlay.visible, 'children:', overlay.children.length);
+    console.log('[positionOverlay] sprite identity check:', sprite === overlay.children[1], 'sprite parent:', sprite.parent === overlay);
+    console.log('[positionOverlay] renderer resolution:', renderer.resolution, 'screen:', renderer.screen?.width, 'x', renderer.screen?.height);
+    console.log('[positionOverlay] sprite anchor:', sprite.anchor?.x, sprite.anchor?.y, 'pivot:', sprite.pivot?.x, sprite.pivot?.y);
+    console.log('[positionOverlay] overlay worldTransform:', overlay.worldTransform?.tx, overlay.worldTransform?.ty);
     // Render once in static mode to reflect layout changes
     maybeRender();
+    console.log('[positionOverlay] AFTER maybeRender sprite pos:', sprite.x, sprite.y);
   }, [maybeRender]);
 
   const closeOverlay = useCallback((): void => {
     overlayTokenRef.current += 1;
     const overlay = overlayRef.current;
     const state = overlayStateRef.current;
-    const app = appRef.current;
     if (!overlay || !state) {
       return;
     }
@@ -785,9 +866,6 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
     }
     if (typeof window !== "undefined" && state.keyHandler) {
       window.removeEventListener("keydown", state.keyHandler);
-    }
-    if (app) {
-      rendererOff(app, "resize", positionOverlayContents);
     }
     if (state.objectContainer) {
       const removedSprites = state.objectContainer.removeChildren();
@@ -835,7 +913,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
     }
     // Reflect visibility change immediately in static mode
     maybeRender();
-  }, [positionOverlayContents, maybeRender]);
+  }, [maybeRender]);
 
   useEffect(() => {
     return () => {
@@ -1611,8 +1689,13 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
           existing.sprite.sortChildren();
           existing.highlight = g;
         }
-        rendererOn(app, "resize", positionOverlayContents);
         positionOverlayContents();
+        // Force immediate render so the overlay appears centered right away
+        try {
+          app.render();
+        } catch {
+          /* ignore */
+        }
         return;
       }
       const assetUrl = resolveAssetHref(mapLabel);
@@ -1744,7 +1827,6 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
           highlightGraphic.x = highlight.xCells * cellSize;
           highlightGraphic.y = highlight.yCells * cellSize;
           highlightGraphic.eventMode = "none";
-          highlightGraphic.interactive = false;
           highlightGraphic.cursor = "auto";
           highlightGraphic.zIndex = 4;
           sprite.addChild(highlightGraphic);
@@ -1765,7 +1847,6 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
           }
         };
 
-        overlay.visible = true;
         overlayStateRef.current = {
           mapLabel,
           sprite,
@@ -1785,7 +1866,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
           fitScale: 1,
           minScale: MIN_SCALE,
           maxScale: MAX_SCALE,
-          positioned: false,
+          userPanned: false,
         };
         const elapsed = Math.max(0, app.ticker.lastTime - syncStartRef.current);
         const initialFrame = frameIndexForTime(
@@ -1797,17 +1878,32 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
           sprite.gotoAndStop(initialFrame);
         }
         refreshOverlayObjects();
+        // Position overlay BEFORE making it visible to avoid flash at (0,0)
+        positionOverlayContents();
         const world = worldRef.current;
         if (world) {
           world.visible = false;
         }
+        overlay.visible = true;
+        console.log('[openOverlay] AFTER visible=true, sprite.x:', sprite.x, 'sprite.y:', sprite.y);
         if (typeof window !== "undefined") {
           window.addEventListener("keydown", keyHandler);
         }
-        rendererOff(app, "resize", positionOverlayContents);
-        rendererOn(app, "resize", positionOverlayContents);
-        positionOverlayContents();
-        maybeRender();
+        // Force immediate render so the overlay appears centered right away
+        try {
+          app.render();
+          console.log('[openOverlay] AFTER final render, sprite.x:', sprite.x, 'sprite.y:', sprite.y);
+        } catch {
+          /* ignore */
+        }
+        // Debug: check position after a delay to see if something resets it
+        const debugSprite = sprite;
+        setTimeout(() => {
+          console.log('[openOverlay] 100ms later, sprite.x:', debugSprite.x, 'sprite.y:', debugSprite.y);
+        }, 100);
+        setTimeout(() => {
+          console.log('[openOverlay] 500ms later, sprite.x:', debugSprite.x, 'sprite.y:', debugSprite.y);
+        }, 500);
         // Notify parent of overlay open
         if (onOverlayChangeRef.current) {
           onOverlayChangeRef.current({ mapLabel, backlink: backlinkRef.current });
@@ -1826,7 +1922,6 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
       positionOverlayContents,
       refreshOverlayObjects,
       resolveAssetHref,
-      maybeRender,
     ],
   );
 
@@ -2896,6 +2991,10 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
         refreshWarpMarkers();
         refreshObjectSprites();
         refreshOverlayObjects();
+        // Draw map borders if enabled
+        if (mapBordersEnabled) {
+          drawMapBorders();
+        }
       })
       .catch((err) => {
         console.error("Failed to load map sprites", err);
@@ -2953,6 +3052,8 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
     timeOfDay,
     clearHighlightTimers,
     closeOverlay,
+    mapBordersEnabled,
+    drawMapBorders,
   ]);
 
   useEffect(() => {
@@ -3527,7 +3628,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
         }
       }
 
-      state.positioned = true;
+      state.userPanned = true;
       maybeRender();
     };
 
@@ -3571,7 +3672,6 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
           overlaySprite.y = Math.min(maxY, Math.max(minY, overlaySprite.y));
         }
       }
-      state.positioned = true;
     };
 
     const updatePinchStart = (): void => {
@@ -3622,6 +3722,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
           lastDrag = { x: event.clientX, y: event.clientY };
           overlayState.sprite.x += dx;
           overlayState.sprite.y += dy;
+          overlayState.userPanned = true;
           clampOverlayPosition();
           maybeRender();
           return;

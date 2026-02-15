@@ -744,6 +744,7 @@ export default function App() {
   // Weather and sprite limit toggles (controlled from header)
   const [weatherEnabled, setWeatherEnabled] = useState<boolean>(true);
   const [spriteLimitEnabled, setSpriteLimitEnabled] = useState<boolean>(false);
+  const [mapBordersEnabled, setMapBordersEnabled] = useState<boolean>(false);
 
   // Overlay navigation state
   const [overlayState, setOverlayState] = useState<{
@@ -784,6 +785,8 @@ export default function App() {
         onWeatherEnabledChange={setWeatherEnabled}
         spriteLimitEnabled={spriteLimitEnabled}
         onSpriteLimitEnabledChange={setSpriteLimitEnabled}
+        mapBordersEnabled={mapBordersEnabled}
+        onMapBordersEnabledChange={setMapBordersEnabled}
         onReload={handleReloadClick}
         onResetView={handleResetView}
         onScreenshot={handleScreenshot}
@@ -867,6 +870,7 @@ export default function App() {
           onWeatherEnabledChange={setWeatherEnabled}
           spriteLimitEnabled={spriteLimitEnabled}
           onSpriteLimitEnabledChange={setSpriteLimitEnabled}
+          mapBordersEnabled={mapBordersEnabled}
           onViewStateChange={handleViewStateChange}
           onOverlayChange={handleOverlayChange}
         />

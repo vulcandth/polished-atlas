@@ -382,6 +382,7 @@ export interface ObjectEventEntry {
   };
   eventFlag: string | null;
   eventFlagSet: boolean;
+  isTrainer: boolean;
   species?: {
     constant: string | null;
     id: number | null;

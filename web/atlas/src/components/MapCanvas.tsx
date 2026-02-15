@@ -1488,13 +1488,35 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
         const isBall =
           macro === "itemball_event" || macro === "keyitemball_event" || macro === "tmhmball_event";
         const isFruitTree = macro === "fruittree_event";
-        if (isBall) {
+        // Detect scripted item balls (like Lucky Egg on Lucky Island)
+        const isScriptedItemBall =
+          !isBall &&
+          objectEntry.paletteOverride?.constant === "PAL_OW_POKE_BALL" &&
+          objectEntry.objectType?.constant === "OBJECTTYPE_SCRIPT" &&
+          objectEntry.script?.argument;
+        // Extract item name from script argument for scripted item balls
+        let scriptedItemName: string | null = null;
+        if (isScriptedItemBall) {
+          const scriptArg = objectEntry.script?.argument ?? "";
+          // Extract item name by removing map prefix and "Script" suffix
+          // e.g., "LuckyIslandLuckyEgg" -> "Lucky Egg"
+          const cleanedArg = scriptArg.replace(/Script$/, "");
+          // Try to find item name pattern (consecutive uppercase words at end)
+          const match = cleanedArg.match(/([A-Z][a-z]+){2,}$/);
+          if (match) {
+            scriptedItemName = match[0]
+              .replace(/([A-Z])/g, " $1")
+              .trim();
+          }
+        }
+        if (isBall || (isScriptedItemBall && scriptedItemName)) {
           spriteInstance.eventMode = "static";
           spriteInstance.cursor = editing ? "not-allowed" : "pointer";
-          const label =
-            (objectEntry.extra && (objectEntry.extra["item"] as string)) ||
-            objectEntry.script?.argument ||
-            "Item";
+          const label = isBall
+            ? ((objectEntry.extra && (objectEntry.extra["item"] as string)) ||
+               objectEntry.script?.argument ||
+               "Item")
+            : scriptedItemName!;
           spriteInstance.on("pointerover", (ev: FederatedPointerEvent) => {
             if (editing) return;
             const x = (ev as any).clientX ?? window.innerWidth / 2;
@@ -1529,16 +1551,20 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
       }
       // Enable click-to-link for trainers
       try {
-        const trainerConstant = objectEntry.objectType?.constant;
-        const isTrainer = trainerConstant === "OBJECTTYPE_TRAINER" || trainerConstant === "OBJECTTYPE_GENERICTRAINER";
+        const isTrainer = objectEntry.isTrainer;
         if (isTrainer && !editing) {
-          const trainerName = objectEntry.script?.argument ?? "";
+          const scriptArg = objectEntry.script?.argument ?? "";
+          const spriteConstant = objectEntry.sprite?.constant ?? "";
+          // Derive trainer name from script argument or sprite constant
+          const trainerName = scriptArg.replace(/Script$/, "") ||
+            spriteConstant.replace(/^SPRITE_/, "").charAt(0) +
+            spriteConstant.replace(/^SPRITE_/, "").slice(1).toLowerCase();
           const mapLabel = state.mapLabel ?? "";
           if (trainerName && mapLabel) {
             spriteInstance.eventMode = "static";
             spriteInstance.cursor = "pointer";
             const mapSlug = mapLabel.toLowerCase().replace(/_/g, "");
-            const url = `https://polisheddex.app/locations/${mapSlug}/#${trainerName}`;
+            const url = `https://polisheddex.app/locations/${mapSlug}/#${scriptArg || spriteConstant.replace(/^SPRITE_/, "")}`;
             // Format trainer name for display (remove "Trainer" prefix and add spaces before capitals)
             const displayName = trainerName
               .replace(/^Trainer/, "")
@@ -2419,13 +2445,35 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
             macro === "keyitemball_event" ||
             macro === "tmhmball_event";
           const isFruitTree = macro === "fruittree_event";
-          if (isBall) {
+          // Detect scripted item balls (like Lucky Egg on Lucky Island)
+          const isScriptedItemBall =
+            !isBall &&
+            objectEntry.paletteOverride?.constant === "PAL_OW_POKE_BALL" &&
+            objectEntry.objectType?.constant === "OBJECTTYPE_SCRIPT" &&
+            objectEntry.script?.argument;
+          // Extract item name from script argument for scripted item balls
+          let scriptedItemName: string | null = null;
+          if (isScriptedItemBall) {
+            const scriptArg = objectEntry.script?.argument ?? "";
+            // Extract item name by removing map prefix and "Script" suffix
+            // e.g., "LuckyIslandLuckyEgg" -> "Lucky Egg"
+            const cleanedArg = scriptArg.replace(/Script$/, "");
+            // Try to find item name pattern (consecutive uppercase words at end)
+            const match = cleanedArg.match(/([A-Z][a-z]+){2,}$/);
+            if (match) {
+              scriptedItemName = match[0]
+                .replace(/([A-Z])/g, " $1")
+                .trim();
+            }
+          }
+          if (isBall || (isScriptedItemBall && scriptedItemName)) {
             sprite.eventMode = "static";
             sprite.cursor = editing ? "not-allowed" : "pointer";
-            const label =
-              (objectEntry.extra && (objectEntry.extra["item"] as string)) ||
-              objectEntry.script?.argument ||
-              "Item";
+            const label = isBall
+              ? ((objectEntry.extra && (objectEntry.extra["item"] as string)) ||
+                 objectEntry.script?.argument ||
+                 "Item")
+              : scriptedItemName!;
             sprite.on("pointerover", (ev: FederatedPointerEvent) => {
               if (editing) return;
               const x = (ev as any).clientX ?? window.innerWidth / 2;
@@ -2460,16 +2508,20 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
         }
         // Enable click-to-link for trainers
         try {
-          const trainerConstant = objectEntry.objectType?.constant;
-          const isTrainer = trainerConstant === "OBJECTTYPE_TRAINER" || trainerConstant === "OBJECTTYPE_GENERICTRAINER";
+          const isTrainer = objectEntry.isTrainer;
           if (isTrainer && !editing) {
-            const trainerName = objectEntry.script?.argument ?? "";
+            const scriptArg = objectEntry.script?.argument ?? "";
+            const spriteConstant = objectEntry.sprite?.constant ?? "";
+            // Derive trainer name from script argument or sprite constant
+            const trainerName = scriptArg.replace(/Script$/, "") ||
+              spriteConstant.replace(/^SPRITE_/, "").charAt(0) +
+              spriteConstant.replace(/^SPRITE_/, "").slice(1).toLowerCase();
             const mapLabel = entry.placement.label ?? "";
             if (trainerName && mapLabel) {
               sprite.eventMode = "static";
               sprite.cursor = "pointer";
               const mapSlug = mapLabel.toLowerCase().replace(/_/g, "");
-              const url = `https://polisheddex.app/locations/${mapSlug}/#${trainerName}`;
+              const url = `https://polisheddex.app/locations/${mapSlug}/#${scriptArg || spriteConstant.replace(/^SPRITE_/, "")}`;
               // Format trainer name for display (remove "Trainer" prefix and add spaces before capitals)
               const displayName = trainerName
                 .replace(/^Trainer/, "")

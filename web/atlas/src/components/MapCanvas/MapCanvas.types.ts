@@ -136,6 +136,7 @@ export type OverlayState = {
   background: Graphics;
   markers: WarpMarkerEntry[];
   highlight?: Graphics;
+  transitionFlash?: Graphics;
   baseWidth: number;
   baseHeight: number;
   cellSize: number;

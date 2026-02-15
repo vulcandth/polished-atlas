@@ -1716,6 +1716,29 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
         overlay.addChild(background);
         overlay.addChild(sprite);
 
+        // Create warp transition flash effect
+        const transitionFlash = new Graphics();
+        transitionFlash.beginFill(0x88ddff, 0.6); // Light cyan flash
+        transitionFlash.drawRect(0, 0, 10000, 10000); // Large enough to cover viewport
+        transitionFlash.endFill();
+        transitionFlash.zIndex = 1000; // Above everything
+        transitionFlash.eventMode = "none";
+        overlay.addChild(transitionFlash);
+        overlay.sortChildren();
+        // Animate flash fade-out
+        let flashAlpha = 0.6;
+        const fadeFlash = (): void => {
+          flashAlpha -= 0.04;
+          if (flashAlpha <= 0) {
+            transitionFlash.visible = false;
+            transitionFlash.alpha = 0;
+            return;
+          }
+          transitionFlash.alpha = flashAlpha;
+          requestAnimationFrame(fadeFlash);
+        };
+        requestAnimationFrame(fadeFlash);
+
         const objectContainer = new Container();
         // Make container interactive so children can receive pointer events
         objectContainer.eventMode = "static";
@@ -1833,6 +1856,7 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
           background,
           markers,
           highlight: highlightGraphic,
+          transitionFlash,
           baseWidth,
           baseHeight,
           cellSize,

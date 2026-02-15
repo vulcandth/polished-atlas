@@ -1484,11 +1484,12 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
       spriteInstance.y = baseY + offsetY;
       spriteInstance.scale.set(pixelScale);
       container.addChild(spriteInstance);
-      // If this object is an item/key/TM/HM ball, enable pointer interactions and show tooltip
+      // If this object is an item/key/TM/HM ball or fruit tree, enable pointer interactions and show tooltip
       try {
         const macro = objectEntry.macro ?? "";
         const isBall =
           macro === "itemball_event" || macro === "keyitemball_event" || macro === "tmhmball_event";
+        const isFruitTree = macro === "fruittree_event";
         if (isBall) {
           spriteInstance.eventMode = "static";
           spriteInstance.cursor = editing ? "not-allowed" : "pointer";
@@ -1501,6 +1502,25 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
             const x = (ev as any).clientX ?? window.innerWidth / 2;
             const y = (ev as any).clientY ?? window.innerHeight / 2;
             showTooltip({ title: String(label) }, x, y);
+          });
+          spriteInstance.on("pointerout", () => {
+            hideTooltip();
+          });
+        }
+        if (isFruitTree && !editing) {
+          spriteInstance.eventMode = "static";
+          spriteInstance.cursor = "pointer";
+          const berryName =
+            (objectEntry.extra && (objectEntry.extra["berry"] as string)) || "Berry";
+          // Format berry name for display (e.g., "WHT_APRICORN" -> "Wht Apricorn")
+          const displayName = berryName
+            .split("_")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(" ");
+          spriteInstance.on("pointerover", (ev: FederatedPointerEvent) => {
+            const x = (ev as any).clientX ?? window.innerWidth / 2;
+            const y = (ev as any).clientY ?? window.innerHeight / 2;
+            showTooltip({ title: displayName, subtitle: "Berry Tree" }, x, y);
           });
           spriteInstance.on("pointerout", () => {
             hideTooltip();
@@ -2394,13 +2414,14 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
         sprite.y = baseY + offsetY;
         sprite.scale.set(pixelScale);
         container.addChild(sprite);
-        // If this object is an item/key/TM/HM ball, enable pointer interactions and show tooltip
+        // If this object is an item/key/TM/HM ball or fruit tree, enable pointer interactions and show tooltip
         try {
           const macro = objectEntry.macro ?? "";
           const isBall =
             macro === "itemball_event" ||
             macro === "keyitemball_event" ||
             macro === "tmhmball_event";
+          const isFruitTree = macro === "fruittree_event";
           if (isBall) {
             sprite.eventMode = "static";
             sprite.cursor = editing ? "not-allowed" : "pointer";
@@ -2413,6 +2434,25 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
               const x = (ev as any).clientX ?? window.innerWidth / 2;
               const y = (ev as any).clientY ?? window.innerHeight / 2;
               showTooltip({ title: String(label) }, x, y);
+            });
+            sprite.on("pointerout", () => {
+              hideTooltip();
+            });
+          }
+          if (isFruitTree && !editing) {
+            sprite.eventMode = "static";
+            sprite.cursor = "pointer";
+            const berryName =
+              (objectEntry.extra && (objectEntry.extra["berry"] as string)) || "Berry";
+            // Format berry name for display (e.g., "WHT_APRICORN" -> "Wht Apricorn")
+            const displayName = berryName
+              .split("_")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+              .join(" ");
+            sprite.on("pointerover", (ev: FederatedPointerEvent) => {
+              const x = (ev as any).clientX ?? window.innerWidth / 2;
+              const y = (ev as any).clientY ?? window.innerHeight / 2;
+              showTooltip({ title: displayName, subtitle: "Berry Tree" }, x, y);
             });
             sprite.on("pointerout", () => {
               hideTooltip();

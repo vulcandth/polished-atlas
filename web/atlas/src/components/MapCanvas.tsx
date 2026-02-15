@@ -123,6 +123,10 @@ export interface MapCanvasHandle {
   resetView: () => void;
   /** Close the current overlay and return to the atlas view */
   closeOverlay: () => void;
+  /** Open an overlay for a specific map */
+  openOverlay: (mapLabel: string, highlight?: { xCells?: number | null; yCells?: number | null }) => Promise<void>;
+  /** Set the backlink chain (for breadcrumb navigation) */
+  setBacklink: (backlink: WarpBacklink | null) => void;
 }
 
 interface MapCanvasProps {
@@ -764,9 +768,6 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
     const rendererWidth = Math.max(1, (renderer.width ?? renderer.screen?.width ?? 0) / resolution);
     const rendererHeight = Math.max(1, (renderer.height ?? renderer.screen?.height ?? 0) / resolution);
 
-    console.log('[positionOverlay] renderer:', rendererWidth, 'x', rendererHeight, 'resolution:', resolution, 'userPanned:', state.userPanned);
-    console.log('[positionOverlay] called from:', new Error().stack?.split('\n').slice(1, 4).join(' <- '));
-
     if (background) {
       background.clear();
       background.beginFill(0x000000, Math.max(0, Math.min(1, state.baseAlpha ?? 0.9)));
@@ -777,7 +778,6 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
 
     const baseWidth = state.baseWidth || sprite.width || 1;
     const baseHeight = state.baseHeight || sprite.height || 1;
-    console.log('[positionOverlay] baseSize:', baseWidth, 'x', baseHeight);
     const padding = Math.max(12, Math.min(rendererWidth, rendererHeight) * 0.05);
     const availableWidth = Math.max(1, rendererWidth - padding * 2);
     const availableHeight = Math.max(1, rendererHeight - padding * 2);
@@ -842,15 +842,8 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
 
     sprite.x = nextX + padding;
     sprite.y = nextY + padding;
-    console.log('[positionOverlay] final sprite pos:', sprite.x, sprite.y, 'centered:', centeredX, centeredY, 'scale:', scale);
-    console.log('[positionOverlay] overlay pos:', overlay.x, overlay.y, 'visible:', overlay.visible, 'children:', overlay.children.length);
-    console.log('[positionOverlay] sprite identity check:', sprite === overlay.children[1], 'sprite parent:', sprite.parent === overlay);
-    console.log('[positionOverlay] renderer resolution:', renderer.resolution, 'screen:', renderer.screen?.width, 'x', renderer.screen?.height);
-    console.log('[positionOverlay] sprite anchor:', sprite.anchor?.x, sprite.anchor?.y, 'pivot:', sprite.pivot?.x, sprite.pivot?.y);
-    console.log('[positionOverlay] overlay worldTransform:', overlay.worldTransform?.tx, overlay.worldTransform?.ty);
     // Render once in static mode to reflect layout changes
     maybeRender();
-    console.log('[positionOverlay] AFTER maybeRender sprite pos:', sprite.x, sprite.y);
   }, [maybeRender]);
 
   const closeOverlay = useCallback((): void => {
@@ -1085,20 +1078,6 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
       maybeRender();
     },
     [clampWorldToBounds, schedulePersistViewState, maybeRender],
-  );
-
-  // Expose imperative handle for parent components
-  useImperativeHandle(
-    ref,
-    () => ({
-      focusWorldOn,
-      setScale: (scale: number) => setScaleAt(scale),
-      getViewState,
-      getApp: () => appRef.current,
-      resetView: () => resetViewRef.current?.(),
-      closeOverlay,
-    }),
-    [focusWorldOn, setScaleAt, getViewState, closeOverlay],
   );
 
   const resolveTargetLabel = useCallback(
@@ -1885,25 +1864,15 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
           world.visible = false;
         }
         overlay.visible = true;
-        console.log('[openOverlay] AFTER visible=true, sprite.x:', sprite.x, 'sprite.y:', sprite.y);
         if (typeof window !== "undefined") {
           window.addEventListener("keydown", keyHandler);
         }
         // Force immediate render so the overlay appears centered right away
         try {
           app.render();
-          console.log('[openOverlay] AFTER final render, sprite.x:', sprite.x, 'sprite.y:', sprite.y);
         } catch {
           /* ignore */
         }
-        // Debug: check position after a delay to see if something resets it
-        const debugSprite = sprite;
-        setTimeout(() => {
-          console.log('[openOverlay] 100ms later, sprite.x:', debugSprite.x, 'sprite.y:', debugSprite.y);
-        }, 100);
-        setTimeout(() => {
-          console.log('[openOverlay] 500ms later, sprite.x:', debugSprite.x, 'sprite.y:', debugSprite.y);
-        }, 500);
         // Notify parent of overlay open
         if (onOverlayChangeRef.current) {
           onOverlayChangeRef.current({ mapLabel, backlink: backlinkRef.current });
@@ -1923,6 +1892,24 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
       refreshOverlayObjects,
       resolveAssetHref,
     ],
+  );
+
+  // Expose imperative handle for parent components
+  useImperativeHandle(
+    ref,
+    () => ({
+      focusWorldOn,
+      setScale: (scale: number) => setScaleAt(scale),
+      getViewState,
+      getApp: () => appRef.current,
+      resetView: () => resetViewRef.current?.(),
+      closeOverlay,
+      openOverlay,
+      setBacklink: (backlink: WarpBacklink | null) => {
+        backlinkRef.current = backlink;
+      },
+    }),
+    [focusWorldOn, setScaleAt, getViewState, closeOverlay, openOverlay],
   );
 
   const handleWarpMarkerTap = useCallback(

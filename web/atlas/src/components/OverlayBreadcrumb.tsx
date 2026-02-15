@@ -6,6 +6,7 @@ interface OverlayBreadcrumbProps {
   mapLabel: string | null;
   backlink: WarpBacklink | null;
   onClose: () => void;
+  onNavigate?: (mapLabel: string, newBacklink: WarpBacklink | null) => void;
   className?: string;
 }
 
@@ -17,40 +18,58 @@ function formatMapLabel(label: string): string {
     .trim();
 }
 
+interface BreadcrumbItem {
+  label: string;
+  backlink: WarpBacklink | null; // The backlink chain to restore when navigating to this item
+}
+
 function buildBreadcrumbPath(
   currentLabel: string | null,
   backlink: WarpBacklink | null
-): string[] {
-  const path: string[] = [];
+): BreadcrumbItem[] {
+  const items: BreadcrumbItem[] = [];
   
-  // Walk back through the backlink chain to build path
+  // Collect all backlinks in order (oldest first)
+  const backlinks: WarpBacklink[] = [];
   let current = backlink;
   while (current) {
-    if (current.mapLabel) {
-      path.unshift(current.mapLabel);
-    }
+    backlinks.unshift(current);
     current = current.previous;
   }
   
-  // Add current map if present
-  if (currentLabel) {
-    path.push(currentLabel);
+  // Build breadcrumb items with the correct backlink chain for each
+  for (let i = 0; i < backlinks.length; i++) {
+    const bl = backlinks[i];
+    // When navigating to this item, restore the backlink chain up to (but not including) this point
+    items.push({
+      label: bl.mapLabel,
+      backlink: bl.previous,
+    });
   }
   
-  return path;
+  // Add current map if present (no backlink change needed since it's current)
+  if (currentLabel) {
+    items.push({
+      label: currentLabel,
+      backlink: backlink, // Current backlink stays as-is
+    });
+  }
+  
+  return items;
 }
 
 export default function OverlayBreadcrumb({
   mapLabel,
   backlink,
   onClose,
+  onNavigate,
   className,
 }: OverlayBreadcrumbProps) {
   if (!mapLabel) {
     return null;
   }
 
-  const path = buildBreadcrumbPath(mapLabel, backlink);
+  const items = buildBreadcrumbPath(mapLabel, backlink);
 
   return (
     <nav
@@ -77,23 +96,31 @@ export default function OverlayBreadcrumb({
       </button>
 
       {/* Breadcrumb items */}
-      {path.map((label, index) => {
-        const isLast = index === path.length - 1;
+      {items.map((item, index) => {
+        const isLast = index === items.length - 1;
         
         return (
-          <div key={`${label}-${index}`} className="flex items-center gap-1">
+          <div key={`${item.label}-${index}`} className="flex items-center gap-1">
             <ChevronRightIcon className="size-3.5 text-muted-foreground/60" />
             {isLast ? (
               // Current location - not clickable
               <span className="flex items-center gap-1.5 px-2 py-1 font-medium text-foreground">
                 <MapIcon className="size-3.5" />
-                {formatMapLabel(label)}
+                {formatMapLabel(item.label)}
               </span>
             ) : (
-              // Previous location - shows but not interactive for now
-              <span className="flex items-center gap-1.5 px-2 py-1 text-muted-foreground">
-                {formatMapLabel(label)}
-              </span>
+              // Previous location - clickable to navigate back
+              <button
+                onClick={() => onNavigate?.(item.label, item.backlink)}
+                className={cn(
+                  "flex items-center gap-1.5 px-2 py-1 rounded-md",
+                  "text-muted-foreground hover:text-foreground hover:bg-muted",
+                  "transition-colors"
+                )}
+                title={`Go back to ${formatMapLabel(item.label)}`}
+              >
+                {formatMapLabel(item.label)}
+              </button>
             )}
           </div>
         );

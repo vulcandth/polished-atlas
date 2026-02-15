@@ -763,6 +763,18 @@ export default function App() {
     mapCanvasRef.current?.closeOverlay();
   }, []);
 
+  const handleNavigateBreadcrumb = useCallback(
+    (mapLabel: string, newBacklink: WarpBacklink | null) => {
+      const canvas = mapCanvasRef.current;
+      if (!canvas) return;
+      // Close current overlay, restore backlink chain, then open target
+      canvas.closeOverlay();
+      canvas.setBacklink(newBacklink);
+      canvas.openOverlay(mapLabel);
+    },
+    []
+  );
+
   return (
     <TooltipProvider>
       <main className="app-shell dark">
@@ -800,6 +812,7 @@ export default function App() {
         mapLabel={overlayState.mapLabel}
         backlink={overlayState.backlink}
         onClose={handleCloseOverlay}
+        onNavigate={handleNavigateBreadcrumb}
       />
       {editing && canEdit && (
         <section className="dev-toolbar">

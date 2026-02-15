@@ -853,10 +853,8 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
     if (!overlay || !state) {
       return;
     }
-    const backlink = backlinkRef.current;
-    if (backlink && backlink.applicableTo === state.mapLabel) {
-      backlinkRef.current = backlink.previous ?? null;
-    }
+    // When closing overlay to return to world view, clear the entire backlink chain
+    backlinkRef.current = null;
     if (typeof window !== "undefined" && state.keyHandler) {
       window.removeEventListener("keydown", state.keyHandler);
     }
@@ -2075,10 +2073,9 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
       if (targetLabel) {
         const targetEntry = findWorldEntry(targetLabel);
         if (targetEntry) {
-          const backlink = backlinkRef.current;
-          if (backlink && backlink.applicableTo === currentMapLabel) {
-            backlinkRef.current = backlink.previous ?? null;
-          }
+          // When exiting overlay to a world map, clear the entire backlink chain
+          // (no need to track a trail back when we're in the world view)
+          backlinkRef.current = null;
           closeOverlay();
           focusEntryOnWarp(targetEntry, target);
           if (typeof target.warpIndex === "number") {

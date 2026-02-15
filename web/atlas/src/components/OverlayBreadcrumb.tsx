@@ -28,7 +28,7 @@ function buildBreadcrumbPath(
   backlink: WarpBacklink | null
 ): BreadcrumbItem[] {
   const items: BreadcrumbItem[] = [];
-  
+
   // Collect all backlinks in order (oldest first)
   const backlinks: WarpBacklink[] = [];
   let current = backlink;
@@ -36,7 +36,7 @@ function buildBreadcrumbPath(
     backlinks.unshift(current);
     current = current.previous;
   }
-  
+
   // Build breadcrumb items with the correct backlink chain for each
   for (let i = 0; i < backlinks.length; i++) {
     const bl = backlinks[i];
@@ -46,7 +46,7 @@ function buildBreadcrumbPath(
       backlink: bl.previous,
     });
   }
-  
+
   // Add current map if present (no backlink change needed since it's current)
   if (currentLabel) {
     items.push({
@@ -54,7 +54,7 @@ function buildBreadcrumbPath(
       backlink: backlink, // Current backlink stays as-is
     });
   }
-  
+
   return items;
 }
 
@@ -98,7 +98,7 @@ export default function OverlayBreadcrumb({
       {/* Breadcrumb items */}
       {items.map((item, index) => {
         const isLast = index === items.length - 1;
-        
+
         return (
           <div key={`${item.label}-${index}`} className="flex items-center gap-1">
             <ChevronRightIcon className="size-3.5 text-muted-foreground/60" />
@@ -111,7 +111,9 @@ export default function OverlayBreadcrumb({
             ) : (
               // Previous location - clickable to navigate back
               <button
-                onClick={() => onNavigate?.(item.label, item.backlink)}
+                onClick={() => {
+                  onNavigate?.(item.label, item.backlink);
+                }}
                 className={cn(
                   "flex items-center gap-1.5 px-2 py-1 rounded-md",
                   "text-muted-foreground hover:text-foreground hover:bg-muted",

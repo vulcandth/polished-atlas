@@ -967,6 +967,7 @@ class RepositoryIndex:
         weekday: Optional[int] = None,
         events: Optional[Set[str]] = None,
         overcast_index: Optional[int] = None,
+        skip_darkness: bool = False,
     ) -> bool:
         trigger = entry.trigger
         identifier = entry.identifier
@@ -977,6 +978,8 @@ class RepositoryIndex:
         if trigger == "tileset":
             return identifier == map_info.tileset
         if trigger == "darkness":
+            if skip_darkness:
+                return False
             return "IN_DARKNESS" in map_info.palette_flags
         if trigger == "overcast":
             if overcast_index is None:
@@ -1152,6 +1155,7 @@ class RepositoryIndex:
         time_of_day: int,
         weekday: Optional[int] = None,
         events: Optional[Set[str]] = None,
+        skip_darkness: bool = False,
     ) -> Optional[List[List[RGB]]]:
         overcast_index = self.get_overcast_index(map_info, weekday=weekday, events=events)
         for entry in self._special_bg_palettes:
@@ -1161,6 +1165,7 @@ class RepositoryIndex:
                 weekday=weekday,
                 events=events,
                 overcast_index=overcast_index,
+                skip_darkness=skip_darkness,
             ):
                 continue
             palettes = self._palette_from_entry(entry, map_info, time_of_day)
@@ -2156,6 +2161,7 @@ def _build_renderer(
     weekday: Optional[int] = None,
     time_of_day: int = 1,
     events: Optional[Set[str]] = None,
+    skip_darkness: bool = False,
 ) -> RendererData:
     map_info = repo_index.map_info(map_label)
     tileset_resources = repo_index.tileset_resources(map_info.tileset)
@@ -2180,6 +2186,7 @@ def _build_renderer(
         time_of_day,
         weekday=weekday,
         events=events,
+        skip_darkness=skip_darkness,
     )
     if special_palette is not None:
         palette = special_palette
@@ -2351,6 +2358,11 @@ def parse_args() -> argparse.Namespace:
         default="sheet",
         help="Select output format: sprite sheet metadata (sheet), animated GIF (gif), or static PNG (png).",
     )
+    parser.add_argument(
+        "--flash-lit",
+        action="store_true",
+        help="Render dark caves as lit (as if Flash has been used), making them visible.",
+    )
     return parser.parse_args()
 
 
@@ -2382,6 +2394,7 @@ def main() -> None:
             weekday=weekday,
             time_of_day=time_of_day,
             events=events,
+            skip_darkness=args.flash_lit,
         )
     except KeyError as exc:
         raise SystemExit(str(exc))

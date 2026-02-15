@@ -23,6 +23,7 @@ class _RenderTask:
     time_of_day: int
     weekday: int
     polished_path: str
+    skip_darkness: bool = True
 
 
 _WORKER_STATE: dict[str, object] = {
@@ -87,6 +88,18 @@ def parse_args() -> argparse.Namespace:
         default="process",
         help="Parallelism model to use (process for CPU-bound workloads, thread for legacy behaviour).",
     )
+    parser.add_argument(
+        "--flash-lit",
+        action="store_true",
+        default=True,
+        help="Render dark caves as lit (as if Flash has been used). Enabled by default for visibility.",
+    )
+    parser.add_argument(
+        "--no-flash-lit",
+        action="store_false",
+        dest="flash_lit",
+        help="Render dark caves in their natural dark state.",
+    )
     return parser.parse_args()
 
 
@@ -124,6 +137,7 @@ def _render_single(
     format_choice: str,
     time_of_day: int,
     weekday: int,
+    skip_darkness: bool = True,
 ) -> Tuple[str, Path]:
     # Keep the heavy work in a helper so the thread pool stays focused on rendering.
     events = repo_index.initial_event_flags
@@ -135,6 +149,7 @@ def _render_single(
         weekday=weekday,
         time_of_day=time_of_day,
         events=events,
+        skip_darkness=skip_darkness,
     )
     if format_choice == "gif":
         animations = render_map._load_tileset_animations(polished_path, renderer, png_module)
@@ -180,6 +195,7 @@ def _render_single_task(task: _RenderTask) -> Tuple[str, Path]:
         task.format_choice,
         task.time_of_day,
         task.weekday,
+        task.skip_darkness,
     )
 
 
@@ -194,6 +210,7 @@ def _render_all(
     time_of_day: int,
     weekday: int,
     executor_mode: str,
+    skip_darkness: bool = True,
 ) -> Tuple[int, Tuple[Tuple[str, Exception], ...]]:
     unique_dirs = {path.resolve() for path in output_directories.values()}
     for directory in unique_dirs:
@@ -219,6 +236,7 @@ def _render_all(
                     format_choice,
                     time_of_day,
                     weekday,
+                    skip_darkness,
                 )
                 futures[future] = label
             for future in as_completed(futures):
@@ -243,6 +261,7 @@ def _render_all(
                 time_of_day=time_of_day,
                 weekday=weekday,
                 polished_path=str(polished_path),
+                skip_darkness=skip_darkness,
             )
         )
     with ProcessPoolExecutor(max_workers=workers) as executor:
@@ -312,6 +331,7 @@ def main() -> None:
         time_of_day,
         weekday,
         executor_mode,
+        skip_darkness=args.flash_lit,
     )
     if invariant_count and variant_count:
         print(

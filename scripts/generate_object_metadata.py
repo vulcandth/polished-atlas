@@ -292,6 +292,22 @@ class ObjectEventEntry:
     extra_payload: Dict[str, object] = field(default_factory=dict)
     event_flag_set: bool = False
 
+    def is_trainer(self) -> bool:
+        """Determine if this object is a trainer (explicit type or boss pattern)."""
+        # Explicit trainer object types
+        if self.object_type_constant in ("OBJECTTYPE_TRAINER", "OBJECTTYPE_GENERICTRAINER"):
+            return True
+        # Boss trainers use OBJECTTYPE_SCRIPT but are still trainers
+        # Detected by: sprite name matches script argument pattern (e.g., SPRITE_WILL + WillScript)
+        if self.object_type_constant == "OBJECTTYPE_SCRIPT" and self.sprite_constant and self.script_argument:
+            # Extract name from sprite constant (e.g., SPRITE_WILL -> WILL)
+            sprite_name = self.sprite_constant.replace("SPRITE_", "").upper()
+            # Check if script argument starts with the sprite name (case insensitive)
+            script_upper = self.script_argument.upper()
+            if script_upper.startswith(sprite_name) and script_upper.endswith("SCRIPT"):
+                return True
+        return False
+
     def to_payload(self, block_pixel_size: int, palette_lookup: Sequence[str]) -> Dict[str, object]:
         division = EVENT_CELLS_PER_BLOCK if EVENT_CELLS_PER_BLOCK > 0 else 1
         cell_pixel_size = max(1, block_pixel_size // division) if block_pixel_size > 0 else 1
@@ -340,6 +356,7 @@ class ObjectEventEntry:
             },
             "event_flag": self.event_flag,
             "event_flag_set": self.event_flag_set,
+            "is_trainer": self.is_trainer(),
         }
         if self.species_constant or self.species_id is not None:
             payload["species"] = {

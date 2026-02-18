@@ -149,6 +149,7 @@ def compute_map_palettes(
     *,
     weekday: int,
     events: Optional[Sequence[str]] = None,
+    skip_darkness: bool = True,
 ) -> Dict[str, List[List[RGB]]]:
     result: Dict[str, List[List[RGB]]] = {}
     for time_index, time_slug in enumerate(TIME_OF_DAY_SLOTS):
@@ -158,6 +159,7 @@ def compute_map_palettes(
             time_index,
             weekday=weekday,
             events=set(events or []),
+            skip_darkness=skip_darkness,
         )
         if special is not None:
             # Special palettes usually provide 7 rows; derive slot 7 (text) from environment

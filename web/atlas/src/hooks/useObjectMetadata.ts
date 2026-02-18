@@ -412,6 +412,7 @@ function sanitizeObjectEvent(raw: RawObjectEventEntry | undefined): ObjectEventE
     },
     eventFlag: typeof raw?.event_flag === "string" ? raw!.event_flag : null,
     eventFlagSet: raw?.event_flag_set === true,
+    isTrainer: raw?.is_trainer === true,
     species:
       raw?.species && (typeof raw.species.constant === "string" || Number.isFinite(raw.species.id))
         ? {

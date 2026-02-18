@@ -1,148 +1,140 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import type React from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import {
   Application,
   Container,
   AnimatedSprite,
   FederatedPointerEvent,
-  Assets,
   Graphics,
   Sprite,
-  Texture,
 } from "pixi.js";
 import { WeatherSystem } from "@/lib/weather";
 import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
 import {
   AtlasLayout,
-  MapPlacement,
   MapWarp,
   ObjectMetadata,
-  MapObjectMetadataEntry,
-  ObjectEventEntry,
-  ObjectSpriteDefinition,
   WarpMetadata,
-  MovementSummary,
   BgPalettesMetadata,
+  MapPlacement,
 } from "@/types";
 import { registerPixiExtensions } from "@/pixi/registerExtensions";
-import { loadMapAnimation, type MapAnimationResource } from "@/lib/loadMapAnimation";
+import { loadMapAnimation } from "@/lib/loadMapAnimation";
 import { ObjectSpriteCache } from "@/lib/objectSprites";
 import { computeObjectPosition, type PlacementContext } from "@/lib/objectPlacement";
-import { createCollisionHelper, type CollisionHelper } from "@/lib/collision";
-import { getMovementModel } from "@/lib/movementModel";
-import { simulateNpcMovement } from "@/lib/movementSimulation";
+import { createCollisionHelper } from "@/lib/collision";
 import {
   analyzeAllSpriteLimits,
   type SpriteLimitIssue,
   type MapScope,
 } from "@/lib/spriteLimitAnalysis";
+import {
+  readStoredViewState,
+  writeStoredViewState,
+  readPerfSettings,
+  writePerfSettings,
+  clampUnit,
+  isFiniteNumber,
+  VIEW_STATE_VERSION
+} from "@/lib/storage";
+import { cn, reduce } from "@/lib/utils";
 
-type OffsetTuple = [number, number];
+// Tooltip state type
+interface TooltipData {
+  title: string;
+  subtitle?: string;
+}
 
-type WarpMarkerEntry = {
-  warp: MapWarp;
-  graphic: Graphics;
-  // Local pixel offsets within the map sprite
-  localX: number;
-  localY: number;
-};
+// Extracted types
+import type {
+  OffsetTuple,
+  WarpMarkerEntry,
+  WarpBacklink,
+  SpriteFrameRef,
+  MovementFrameSet,
+  SyncedAnimation,
+  OverlayState,
+} from "./MapCanvas/MapCanvas.types";
 
-type WarpBacklink = {
-  applicableTo: string | null;
-  mapLabel: string;
-  mapConstant: string | null;
-  warpIndex: number;
-  previous: WarpBacklink | null;
-};
+export type { WarpBacklink };
 
-type CardinalDirection = "down" | "up" | "left" | "right";
+// Extracted constants
+import { MIN_SCALE, MAX_SCALE } from "./MapCanvas/constants";
 
-type Offset = { dx: number; dy: number };
-
-type SpriteFrameRef = {
-  key: string;
-  texture: Texture;
-  offsetX: number;
-  offsetY: number;
-};
-
-type MovementFrameSet = {
-  framesByDirection: Partial<Record<CardinalDirection, SpriteFrameRef[]>>;
-  availableDirections: CardinalDirection[];
-  defaultFrame: SpriteFrameRef;
-  defaultDirection: CardinalDirection | null;
-};
-
-type PokemonIconFrameRecord = NonNullable<
-  ReturnType<ObjectSpriteCache["getPokemonIconFrameTextures"]>
->["frames"][number];
-
-type MovementSegment =
-  | {
-      type: "move";
-      from: Offset;
-      to: Offset;
-      direction: CardinalDirection;
-      durationMs: number;
-      stepIndex: number;
-    }
-  | {
-      type: "wait";
-      position: Offset;
-      direction: CardinalDirection;
-      durationMs: number;
-      stepIndex: number;
-    };
+// Extracted utilities
+import {
+  computeOverscrollPx,
+  computeBottomExtraPx,
+  clampScale,
+  disposeAnimationResource,
+  rendererOn,
+  rendererOff,
+  getEffectiveViewSize,
+  snapToHalf,
+} from "@/lib/map-canvas/viewport-utils";
+import {
+  frameIndexForTime,
+  isObjectVisibleAtTime,
+  resolveFacingConstant,
+  computeMovementSummaryForObject,
+  isObjectWithinMapBounds,
+  resolveDirectionFromFacingKey,
+  buildMovementFrameSet,
+  buildPokemonIconFrameSet,
+  createSpriteFrameRef,
+} from "@/lib/map-canvas/animation-frames";
+import {
+  createMovementAnimator,
+  createPokemonIconAnimator,
+} from "@/lib/map-canvas/movement-animators";
+import {
+  applySpriteFrame,
+  updateMarkerAnimation,
+} from "@/lib/map-canvas/sprite-animation";
 
 // Local event typings to avoid React typing dependency issues
 type CheckboxChangeEvent = { target: { checked: boolean } };
 type InputNumberChangeEvent = { target: { value: string } };
 type SelectChangeEvent = { target: { value: string } };
 
-type PathMovementAnimator = {
-  kind: "path";
-  segments: MovementSegment[];
-  totalDurationMs: number;
-  stepCount: number;
+/** Build a polisheddex trainer URL from map label and anchor text */
+const buildTrainerUrl = (mapLabel: string, rawAnchor: string): string => {
+  const mapSlug = reduce(mapLabel);
+  const anchor = reduce(rawAnchor);
+  return `https://polisheddex.app/locations/${mapSlug}/#${anchor}`;
 };
 
-type SpinStep = {
-  direction: CardinalDirection;
-  durationMs: number;
-};
+/**
+ * View state exposed via callbacks and imperative handle
+ */
+export interface MapViewState {
+  x: number;
+  y: number;
+  scale: number;
+  centerWorldX: number;
+  centerWorldY: number;
+}
 
-type SpinMovementAnimator = {
-  kind: "spin";
-  steps: SpinStep[];
-  totalDurationMs: number;
-};
-
-type IdleMovementAnimator = {
-  kind: "idle";
-  direction: CardinalDirection | null;
-  frameCount: number;
-  frameDurationMs: number;
-  phaseOffsetMs: number;
-};
-
-type MovementAnimator = PathMovementAnimator | SpinMovementAnimator | IdleMovementAnimator;
-
-type ObjectMarkerEntry = {
-  object: ObjectEventEntry;
-  sprite: Sprite;
-  movementSummary: MovementSummary | null;
-  animator: MovementAnimator | null;
-  basePosition: { x: number; y: number };
-  spriteOffset: { x: number; y: number };
-  cellPixelSize: number;
-  frameSet: MovementFrameSet | null;
-  currentFrameKey: string | null;
-  spriteScale: number;
-  lastDirection: CardinalDirection | null;
-  currentStepIndex: number | null;
-  stepProgress: number;
-  stepCount: number | null;
-};
+/**
+ * Imperative handle for MapCanvas component
+ */
+export interface MapCanvasHandle {
+  /** Navigate to a specific world coordinate */
+  focusWorldOn: (worldX: number, worldY: number) => void;
+  /** Set the zoom scale */
+  setScale: (scale: number) => void;
+  /** Get the current view state */
+  getViewState: () => MapViewState | null;
+  /** Get the Pixi Application (for screenshots) */
+  getApp: () => Application | null;
+  /** Reset view to fit the entire atlas */
+  resetView: () => void;
+  /** Close the current overlay and return to the atlas view */
+  closeOverlay: () => void;
+  /** Open an overlay for a specific map */
+  openOverlay: (mapLabel: string, highlight?: { xCells?: number | null; yCells?: number | null }) => Promise<void>;
+  /** Set the backlink chain (for breadcrumb navigation) */
+  setBacklink: (backlink: WarpBacklink | null) => void;
+}
 
 interface MapCanvasProps {
   atlas: AtlasLayout | null;
@@ -162,1534 +154,57 @@ interface MapCanvasProps {
   // Optional controlled perf toggles passed from parent header
   disableMapAnimations?: boolean;
   disableObjectAnimations?: boolean;
-}
-
-const MIN_SCALE = 0.25;
-const MAX_SCALE = 4;
-// Allow panning beyond the edge of the content for better UX (esp. on mobile)
-function computeOverscrollPx(viewW: number, viewH: number): number {
-  // 10% of the smaller viewport dimension, clamped to a sensible range
-  const candidate = Math.max(viewW, viewH) > 0 ? Math.min(viewW, viewH) * 0.1 : 64;
-  return Math.max(48, Math.min(256, candidate));
-}
-
-// Provide a slightly larger buffer at the bottom, where browser UI can
-// overlap content and thumbs often need headroom.
-function computeBottomExtraPx(viewH: number): number {
-  // 1.5x the base overscroll or at least 32 additional pixels
-  const base = computeOverscrollPx(viewH, viewH);
-  return Math.max(32, Math.floor(base * 0.5));
-}
-const VIEW_STATE_STORAGE_KEY = "polished-atlas:view-state";
-const VIEW_STATE_VERSION = 1;
-
-// Persisted performance settings
-const PERF_SETTINGS_STORAGE_KEY = "polished-atlas:perf-settings";
-
-interface PerfSettingsState {
-  disableMapAnimations: boolean;
-  disableObjectAnimations: boolean;
-}
-
-interface StoredViewState {
-  version: number;
-  scale: number;
-  center: {
-    x: number;
-    y: number;
-  };
-}
-
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
-}
-
-function readStoredViewState(): StoredViewState | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  try {
-    const raw = window.localStorage.getItem(VIEW_STATE_STORAGE_KEY);
-    if (!raw) {
-      return null;
-    }
-    const parsed = JSON.parse(raw) as StoredViewState | undefined;
-    if (!parsed || parsed.version !== VIEW_STATE_VERSION) {
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function writeStoredViewState(state: StoredViewState): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-  try {
-    window.localStorage.setItem(VIEW_STATE_STORAGE_KEY, JSON.stringify(state));
-  } catch (err) {
-    console.warn("Failed to persist atlas view state", err);
-  }
-}
-
-function readPerfSettings(): PerfSettingsState {
-  if (typeof window === "undefined") {
-    return { disableMapAnimations: false, disableObjectAnimations: false };
-  }
-  try {
-    const raw = window.localStorage.getItem(PERF_SETTINGS_STORAGE_KEY);
-    if (!raw) return { disableMapAnimations: false, disableObjectAnimations: false };
-    const parsed = JSON.parse(raw) as Partial<PerfSettingsState> | undefined;
-    return {
-      disableMapAnimations: Boolean(parsed?.disableMapAnimations),
-      disableObjectAnimations: Boolean(parsed?.disableObjectAnimations),
-    };
-  } catch {
-    return { disableMapAnimations: false, disableObjectAnimations: false };
-  }
-}
-
-function writePerfSettings(next: PerfSettingsState): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(PERF_SETTINGS_STORAGE_KEY, JSON.stringify(next));
-  } catch {
-    /* ignore */
-  }
-}
-
-function clampUnit(value: unknown, fallback = 0.5): number {
-  if (!isFiniteNumber(value)) {
-    return fallback;
-  }
-  if (value < 0) {
-    return 0;
-  }
-  if (value > 1) {
-    return 1;
-  }
-  return value;
-}
-
-function clampScale(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 1;
-  }
-  return Math.min(MAX_SCALE, Math.max(MIN_SCALE, value));
+  // Optional controlled weather/sprite-limit toggles
+  weatherEnabled?: boolean;
+  onWeatherEnabledChange?: (enabled: boolean) => void;
+  spriteLimitEnabled?: boolean;
+  onSpriteLimitEnabledChange?: (enabled: boolean) => void;
+  // Optional map borders toggle
+  mapBordersEnabled?: boolean;
+  // View state callbacks
+  onViewStateChange?: (state: MapViewState) => void;
+  // Overlay navigation callback
+  onOverlayChange?: (state: { mapLabel: string | null; backlink: WarpBacklink | null }) => void;
+  // Initial view state (from URL params)
+  initialViewState?: Partial<MapViewState>;
 }
 
 registerPixiExtensions();
 
-function disposeAnimationResource(
-  resource: MapAnimationResource | null | undefined,
-  options?: { unload?: boolean },
-): void {
-  if (!resource) {
-    return;
-  }
-  // First, dispose of the Texture wrappers without touching the BaseTexture
-  // so that the asset system can own the BaseTexture lifecycle.
-  for (const texture of resource.textures) {
-    try {
-      // In some teardown orders, PIXI may already have nulled the baseTexture
-      // on a Texture without marking it destroyed. Guard for that to avoid
-      // internal refCount access on a null baseTexture.
-      if (texture && !texture.destroyed) {
-        const bt = (texture as any).baseTexture ?? (texture as any)._baseTexture;
-        if (!bt) {
-          continue;
-        }
-        texture.destroy(false);
-      }
-    } catch {
-      /* ignore individual texture destroy issues */
-    }
-  }
-  // Optionally unload via Assets which will destroy the BaseTexture it manages.
-  // NOTE: Only use unload for short-lived overlay assets; for world map sprites, multiple
-  // instances share the same BaseTexture by URL and unloading can de-texture currently
-  // visible sprites.
-  if (options?.unload) {
-    void Assets.unload(resource.imageUrl);
-  }
-}
-
-function rendererOn(
-  app: Application | null,
-  event: string,
-  handler: (...args: any[]) => void,
-): void {
-  const r: any = app && (app as any).renderer;
-  if (r && typeof r.on === "function") {
-    try {
-      r.on(event, handler);
-    } catch {
-      /* noop */
-    }
-  }
-}
-
-function rendererOff(
-  app: Application | null,
-  event: string,
-  handler: (...args: any[]) => void,
-): void {
-  const r: any = app && (app as any).renderer;
-  if (r && typeof r.off === "function") {
-    try {
-      r.off(event, handler);
-    } catch {
-      /* noop */
-    }
-  }
-}
-
-// Compute the effective visible size of the canvas in CSS pixels, accounting for
-// mobile browser UI that reduces the visual viewport compared to the layout viewport.
-function getEffectiveViewSize(app: Application | null): { width: number; height: number } {
-  if (!app) return { width: 0, height: 0 };
-  const renderer = app.renderer;
-  const canvas = app.view as unknown as HTMLCanvasElement | null;
-  const baseW = Math.max(0, renderer?.width ?? 0);
-  const baseH = Math.max(0, renderer?.height ?? 0);
-  let rectW = baseW;
-  let rectH = baseH;
-  if (canvas) {
-    const rect = canvas.getBoundingClientRect();
-    rectW = Math.max(0, Math.round(rect.width));
-    rectH = Math.max(0, Math.round(rect.height));
-  }
-  let vvW = Number.POSITIVE_INFINITY;
-  let vvH = Number.POSITIVE_INFINITY;
-  if (typeof window !== "undefined" && (window as any).visualViewport) {
-    const vv = window.visualViewport as VisualViewport;
-    vvW = Math.max(0, Math.round(vv.width));
-    vvH = Math.max(0, Math.round(vv.height));
-  }
-  const width = Math.min(baseW || Number.POSITIVE_INFINITY, rectW || Number.POSITIVE_INFINITY, vvW);
-  const height = Math.min(
-    baseH || Number.POSITIVE_INFINITY,
-    rectH || Number.POSITIVE_INFINITY,
-    vvH,
-  );
-  return {
-    width: Number.isFinite(width) ? width : baseW,
-    height: Number.isFinite(height) ? height : baseH,
-  };
-}
-
-type SyncedAnimation = {
-  sprite: AnimatedSprite;
-  resource: MapAnimationResource;
-  placement: MapPlacement;
-  order: number;
-  neighborhoodId: string | null;
-  warpMarkers: WarpMarkerEntry[];
-  objectContainer: Container | null;
-  objectMarkers: ObjectMarkerEntry[];
-  collisionHelper: CollisionHelper | null;
-  // Whether this map sprite is currently within (or near) the viewport
-  // and should be updated/rendered. Used for simple view culling.
-  visible?: boolean;
-  weather?: WeatherSystem | null;
-};
-
-type OverlayState = {
-  mapLabel: string;
-  sprite: AnimatedSprite;
-  resource: MapAnimationResource;
-  background: Graphics;
-  markers: WarpMarkerEntry[];
-  highlight?: Graphics;
-  baseWidth: number;
-  baseHeight: number;
-  cellSize: number;
-  baseAlpha: number;
-  keyHandler: (event: KeyboardEvent) => void;
-  objectContainer: Container | null;
-  objectMarkers: ObjectMarkerEntry[];
-  collisionHelper: CollisionHelper | null;
-  scale: number;
-  fitScale: number;
-  minScale: number;
-  maxScale: number;
-  positioned: boolean;
-  // Sprite limit analysis
-  spriteLimitEnabled?: boolean;
-  spriteIssues?: SpriteLimitIssue[];
-  spriteIssueIndex?: number;
-  spriteIssueHighlight?: Graphics;
-};
-
-function frameIndexForTime(elapsedMs: number, durations: number[], loopDuration: number): number {
-  if (!durations.length || loopDuration <= 0) {
-    return 0;
-  }
-  const cycle = elapsedMs % loopDuration;
-  let acc = 0;
-  for (let index = 0; index < durations.length; index += 1) {
-    acc += durations[index];
-    if (cycle < acc) {
-      return index;
-    }
-  }
-  return durations.length - 1;
-}
-
-function isObjectVisibleAtTime(entry: ObjectEventEntry, timeOfDay: string): boolean {
-  const slots = entry.timeOfDay?.slots;
-  if (!Array.isArray(slots) || slots.length === 0) {
-    return true;
-  }
-  return slots.includes(timeOfDay);
-}
-
-function resolveFacingConstant(entry: ObjectEventEntry, metadata: ObjectMetadata): string | null {
-  const movementKey = entry.movement?.constant ?? "";
-  const movement = movementKey ? metadata.movements[movementKey] : undefined;
-  const movementAction = movement?.action ?? "";
-  if (movementAction === "OBJECT_ACTION_CUT_TREE" && metadata.facings["FACING_CUT_TREE"]) {
-    return "FACING_CUT_TREE";
-  }
-  if (movementAction === "OBJECT_ACTION_FRUIT") {
-    const treeNameRaw = entry.extra?.["tree"];
-    const treeName = typeof treeNameRaw === "string" ? treeNameRaw : "";
-    if (treeName.includes("APRICORN") && metadata.facings["FACING_APRICORN"]) {
-      return "FACING_APRICORN";
-    }
-    if (metadata.facings["FACING_BERRY"]) {
-      return "FACING_BERRY";
-    }
-    if (metadata.facings["FACING_PICKED_FRUIT"]) {
-      return "FACING_PICKED_FRUIT";
-    }
-  }
-  if (movementAction === "OBJECT_ACTION_BIG_GYARADOS") {
-    if (metadata.facings["FACING_BIG_GYARADOS_2"]) {
-      return "FACING_BIG_GYARADOS_2";
-    }
-    if (metadata.facings["FACING_BIG_GYARADOS_1"]) {
-      return "FACING_BIG_GYARADOS_1";
-    }
-  }
-  if (movementAction === "OBJECT_ACTION_BIG_SNORLAX" && metadata.facings["FACING_BIG_DOLL_SYM"]) {
-    return "FACING_BIG_DOLL_SYM";
-  }
-  if (movementAction === "OBJECT_ACTION_SAILBOAT_TOP" && metadata.facings["FACING_SAILBOAT_TOP"]) {
-    return "FACING_SAILBOAT_TOP";
-  }
-  if (
-    movementAction === "OBJECT_ACTION_SAILBOAT_BOTTOM" &&
-    metadata.facings["FACING_SAILBOAT_BOTTOM"]
-  ) {
-    return "FACING_SAILBOAT_BOTTOM";
-  }
-  // Standing flip variants: choose flip facings instead of default.
-  if (movementAction === "OBJECT_ACTION_STAND_FLIP") {
-    const face = (movement?.facing ?? "").toUpperCase();
-    if (face === "DOWN" && metadata.facings["FACING_STEP_DOWN_FLIP"]) {
-      return "FACING_STEP_DOWN_FLIP";
-    }
-    if (face === "UP" && metadata.facings["FACING_STEP_UP_FLIP"]) {
-      return "FACING_STEP_UP_FLIP";
-    }
-  }
-  // Tiny windows use a custom facing series FACING_TINY_WINDOWS_0..6 and the variant
-  // is selected by the object's X range field in map data (args[5] in object_event).
-  // Examples: SnowtopMountainOutside places SPRITE_SAILBOAT with SPRITEMOVEDATA_TINY_WINDOWS
-  // using range.x values 0, 1, 3. Clamp to the defined [0..6] constants and fall back to 0.
-  if (movementAction === "OBJECT_ACTION_TINY_WINDOWS") {
-    const raw = entry.range?.x;
-    const variant = Number.isFinite(raw as number)
-      ? Math.max(0, Math.min(6, Math.trunc(raw as number)))
-      : 0;
-    const key = `FACING_TINY_WINDOWS_${variant}` as const;
-    if (metadata.facings[key]) {
-      return key;
-    }
-    if (metadata.facings["FACING_TINY_WINDOWS_0"]) {
-      return "FACING_TINY_WINDOWS_0";
-    }
-  }
-  const facingValue = movement?.facing ?? "";
-  if (facingValue) {
-    if (metadata.facings[facingValue]) {
-      return facingValue;
-    }
-    const normalized = facingValue.toUpperCase();
-    const mapped =
-      metadata.defaultFacingForDirection[facingValue] ??
-      metadata.defaultFacingForDirection[normalized] ??
-      metadata.defaultFacingForDirection[normalized.toLowerCase()];
-    if (mapped && metadata.facings[mapped]) {
-      return mapped;
-    }
-  }
-  const fallback =
-    metadata.defaultFacingForDirection.DOWN ??
-    metadata.defaultFacingForDirection.Down ??
-    metadata.defaultFacingForDirection.down ??
-    "FACING_STEP_DOWN_0";
-  if (fallback && metadata.facings[fallback]) {
-    return fallback;
-  }
-  const firstKey = Object.keys(metadata.facings)[0];
-  return firstKey ?? null;
-}
-
-function resolvePokemonSpecies(entry: ObjectEventEntry): {
-  species: string | null;
-  form: string | null;
-} {
-  const speciesConstant =
-    typeof entry.species?.constant === "string" ? entry.species.constant : null;
-  const fallbackSpecies =
-    typeof entry.extra?.["species"] === "string" ? (entry.extra!["species"] as string) : null;
-  const rawForm = entry.extra?.["form"];
-  const formConstant = typeof rawForm === "string" ? rawForm : null;
-  return {
-    species: speciesConstant ?? fallbackSpecies,
-    form: formConstant,
-  };
-}
-
-function computeMovementSummaryForObject(
-  objectEntry: ObjectEventEntry,
-  collisionHelper: CollisionHelper | null,
-): MovementSummary | null {
-  const model = getMovementModel(objectEntry.movement?.constant ?? null);
-  try {
-    return simulateNpcMovement({
-      object: objectEntry,
-      model,
-      collisionHelper,
-    });
-  } catch (err) {
-    console.warn("Failed to compute movement summary", objectEntry, err);
-    return null;
-  }
-}
-
-function isObjectWithinMapBounds(
-  objectEntry: ObjectEventEntry,
-  mapData: MapObjectMetadataEntry | null | undefined,
-  cellsPerBlock: number,
-  eventCellPixelSize: number,
-): boolean {
-  if (!mapData) {
-    return true;
-  }
-  const normalisedCellsPerBlock =
-    Number.isFinite(cellsPerBlock) && cellsPerBlock > 0
-      ? Math.trunc(Math.abs(cellsPerBlock))
-      : null;
-  if (!normalisedCellsPerBlock) {
-    return true;
-  }
-  const widthBlocks =
-    Number.isFinite(mapData.widthBlocks) && mapData.widthBlocks && mapData.widthBlocks > 0
-      ? Math.abs(mapData.widthBlocks)
-      : null;
-  const heightBlocks =
-    Number.isFinite(mapData.heightBlocks) && mapData.heightBlocks && mapData.heightBlocks > 0
-      ? Math.abs(mapData.heightBlocks)
-      : null;
-  if (!widthBlocks && !heightBlocks) {
-    return true;
-  }
-  const widthCells = widthBlocks ? widthBlocks * normalisedCellsPerBlock : null;
-  const heightCells = heightBlocks ? heightBlocks * normalisedCellsPerBlock : null;
-  const baseCellSize =
-    Number.isFinite(eventCellPixelSize) && eventCellPixelSize > 0
-      ? Math.abs(eventCellPixelSize)
-      : null;
-
-  const resolveCells = (tiles: number, pixels: number): number | null => {
-    if (Number.isFinite(tiles)) {
-      return tiles;
-    }
-    if (baseCellSize && Number.isFinite(pixels)) {
-      return pixels / baseCellSize;
-    }
-    return null;
-  };
-
-  const xCells = resolveCells(objectEntry.xTiles, objectEntry.xPixels);
-  const yCells = resolveCells(objectEntry.yTiles, objectEntry.yPixels);
-
-  if (widthCells !== null && xCells !== null) {
-    if (xCells < 0 || xCells >= widthCells) {
-      return false;
-    }
-  }
-  if (heightCells !== null && yCells !== null) {
-    if (yCells < 0 || yCells >= heightCells) {
-      return false;
-    }
-  }
-  return true;
-}
-
-const FRAME_DURATION_MS = 1000 / 60;
-const POKEMON_ICON_FRAME_DURATION_SCALE = 2;
-const MIN_POKEMON_ICON_FRAME_DURATION_MS = 120;
-const MOVEMENT_SPEED_SCALE = 2;
-
-const STEP_FRAMES_BY_SPEED: Record<string, number> = {
-  slow: 32,
-  normal: 16,
-  fast: 8,
-};
-
-const IDLE_FRAMES_BY_SPEED: Record<string, number> = {
-  slow: 48,
-  normal: 32,
-  fast: 20,
-};
-
-const SPIN_INTERVAL_BY_SPEED: Record<string, number> = {
-  slow: 700,
-  normal: 540,
-  fast: 360,
-};
-
-const STEP_FACING_KEYS: Record<CardinalDirection, string[]> = {
-  down: ["FACING_STEP_DOWN_0", "FACING_STEP_DOWN_1", "FACING_STEP_DOWN_2", "FACING_STEP_DOWN_3"],
-  up: ["FACING_STEP_UP_0", "FACING_STEP_UP_1", "FACING_STEP_UP_2", "FACING_STEP_UP_3"],
-  left: ["FACING_STEP_LEFT_0", "FACING_STEP_LEFT_1", "FACING_STEP_LEFT_2", "FACING_STEP_LEFT_3"],
-  right: [
-    "FACING_STEP_RIGHT_0",
-    "FACING_STEP_RIGHT_1",
-    "FACING_STEP_RIGHT_2",
-    "FACING_STEP_RIGHT_3",
-  ],
-};
-
-const CLOCKWISE_SEQUENCE: CardinalDirection[] = ["right", "down", "left", "up"];
-const COUNTERCLOCKWISE_SEQUENCE: CardinalDirection[] = ["right", "up", "left", "down"];
-
-const DIRECTION_DELTAS: Record<CardinalDirection, Offset> = {
-  down: { dx: 0, dy: 1 },
-  up: { dx: 0, dy: -1 },
-  left: { dx: -1, dy: 0 },
-  right: { dx: 1, dy: 0 },
-};
-
-function movementSpeedToStepDuration(speed: MovementSummary["model"]["speed"] | undefined): number {
-  const frames = speed ? STEP_FRAMES_BY_SPEED[speed] : undefined;
-  const frameCount = Number.isFinite(frames) ? (frames as number) : STEP_FRAMES_BY_SPEED.normal;
-  return frameCount * FRAME_DURATION_MS * MOVEMENT_SPEED_SCALE;
-}
-
-function movementSpeedToIdleDuration(speed: MovementSummary["model"]["speed"] | undefined): number {
-  const frames = speed ? IDLE_FRAMES_BY_SPEED[speed] : undefined;
-  const frameCount = Number.isFinite(frames) ? (frames as number) : IDLE_FRAMES_BY_SPEED.normal;
-  return frameCount * FRAME_DURATION_MS * MOVEMENT_SPEED_SCALE;
-}
-
-function movementSpeedToSpinInterval(speed: MovementSummary["model"]["speed"] | undefined): number {
-  const interval = speed ? SPIN_INTERVAL_BY_SPEED[speed] : undefined;
-  const base = Number.isFinite(interval) ? (interval as number) : SPIN_INTERVAL_BY_SPEED.normal;
-  return base * MOVEMENT_SPEED_SCALE;
-}
-
-function resolveDirectionFromFacingKey(key: string | null | undefined): CardinalDirection | null {
-  if (!key) {
-    return null;
-  }
-  const normalized = key.toUpperCase();
-  if (normalized.includes("_DOWN")) {
-    return "down";
-  }
-  if (normalized.includes("_UP")) {
-    return "up";
-  }
-  if (normalized.includes("_LEFT")) {
-    return "left";
-  }
-  if (normalized.includes("_RIGHT")) {
-    return "right";
-  }
-  return null;
-}
-
-function createSpriteFrameRef(
-  key: string,
-  record: NonNullable<ReturnType<ObjectSpriteCache["getFacingTexture"]>>,
-): SpriteFrameRef {
-  return {
-    key,
-    texture: record.texture,
-    offsetX: record.offsetX,
-    offsetY: record.offsetY,
-  };
-}
-
-function createSeededRandom(seed: number): () => number {
-  let value = seed >>> 0;
-  return () => {
-    value = (value * 1664525 + 1013904223) >>> 0;
-    return value / 0xffffffff;
-  };
-}
-
-function deltaToDirection(dx: number, dy: number): CardinalDirection | null {
-  if (dx === 0 && dy === 0) {
-    return null;
-  }
-  if (dx === 0) {
-    if (dy > 0) {
-      return "down";
-    }
-    if (dy < 0) {
-      return "up";
-    }
-  }
-  if (dy === 0) {
-    if (dx > 0) {
-      return "right";
-    }
-    if (dx < 0) {
-      return "left";
-    }
-  }
-  return null;
-}
-
-function oppositeDirection(direction: CardinalDirection): CardinalDirection {
-  switch (direction) {
-    case "down":
-      return "up";
-    case "up":
-      return "down";
-    case "left":
-      return "right";
-    case "right":
-      return "left";
-    default:
-      return direction;
-  }
-}
-
-function buildStaticAnimationFrames(
-  cache: ObjectSpriteCache,
-  spriteKey: string,
-  paletteName: string | null,
-  defaultDirection: CardinalDirection | null,
-): { direction: CardinalDirection; frames: SpriteFrameRef[] } | null {
-  if (spriteKey !== "SPRITE_BIG_GYARADOS") {
-    return null;
-  }
-  const facingKeys = ["FACING_BIG_GYARADOS_1", "FACING_BIG_GYARADOS_2"];
-  const frames: SpriteFrameRef[] = [];
-  for (const facingKey of facingKeys) {
-    const record = cache.getFacingTexture(spriteKey, facingKey, paletteName ?? null);
-    if (record) {
-      frames.push(createSpriteFrameRef(facingKey, record));
-    }
-  }
-  if (frames.length === 0) {
-    return null;
-  }
-  if (frames.length === 1) {
-    frames.push(frames[0]);
-  }
-  const direction = defaultDirection ?? "down";
-  return {
-    direction,
-    frames,
-  };
-}
-
-function buildMovementFrameSet(
-  cache: ObjectSpriteCache,
-  spriteKey: string,
-  spriteDef: ObjectSpriteDefinition,
-  paletteName: string | null,
-  baseKey: string,
-  baseRecord: NonNullable<ReturnType<ObjectSpriteCache["getFacingTexture"]>>,
-): MovementFrameSet {
-  const defaultFrame = createSpriteFrameRef(baseKey, baseRecord);
-  const framesByDirection: Partial<Record<CardinalDirection, SpriteFrameRef[]>> = {};
-  const availableDirections: CardinalDirection[] = [];
-  let defaultDirection = resolveDirectionFromFacingKey(baseKey);
-
-  if (spriteDef.spriteType !== "WALKING_SPRITE") {
-    const staticFrames = buildStaticAnimationFrames(
-      cache,
-      spriteKey,
-      paletteName ?? null,
-      defaultDirection ?? null,
-    );
-    if (staticFrames) {
-      framesByDirection[staticFrames.direction] = staticFrames.frames;
-      if (!availableDirections.includes(staticFrames.direction)) {
-        availableDirections.push(staticFrames.direction);
-      }
-      if (!defaultDirection) {
-        defaultDirection = staticFrames.direction;
-      }
-    }
-    return {
-      framesByDirection,
-      availableDirections,
-      defaultFrame,
-      defaultDirection: defaultDirection ?? resolveDirectionFromFacingKey(baseKey),
-    };
-  }
-
-  (Object.keys(STEP_FACING_KEYS) as CardinalDirection[]).forEach((direction) => {
-    const keys = STEP_FACING_KEYS[direction];
-    const frames: SpriteFrameRef[] = [];
-    for (const facingKey of keys) {
-      const record = cache.getFacingTexture(spriteKey, facingKey, paletteName ?? null);
-      if (record) {
-        frames.push(createSpriteFrameRef(facingKey, record));
-      }
-    }
-    if (frames.length > 0) {
-      if (frames.length < 4) {
-        const originals = frames.slice();
-        while (frames.length < 4) {
-          frames.push(originals[frames.length % originals.length]);
-        }
-      }
-      framesByDirection[direction] = frames;
-      if (!availableDirections.includes(direction)) {
-        availableDirections.push(direction);
-      }
-    }
-  });
-
-  defaultDirection = defaultDirection ?? resolveDirectionFromFacingKey(baseKey);
-  if (!defaultDirection && availableDirections.length > 0) {
-    defaultDirection = availableDirections[0];
-  }
-  if (defaultDirection && !availableDirections.includes(defaultDirection)) {
-    availableDirections.unshift(defaultDirection);
-  }
-
-  return {
-    framesByDirection,
-    availableDirections,
-    defaultFrame,
-    defaultDirection: defaultDirection ?? null,
-  };
-}
-
-function buildPokemonIconFrameSet(
-  cache: ObjectSpriteCache,
-  objectEntry: ObjectEventEntry,
-  _spriteDef: ObjectSpriteDefinition,
-  facingKey: string,
-  paletteName: string | null,
-  logContext: string,
-): {
-  baseFrame: SpriteFrameRef | null;
-  frameSet: MovementFrameSet | null;
-  frameDurationMs: number | null;
-} {
-  const spriteKey = "SPRITE_MON_ICON";
-  const { species, form } = resolvePokemonSpecies(objectEntry);
-  const palette = paletteName ?? null;
-  const direction = resolveDirectionFromFacingKey(facingKey) ?? "down";
-  const fallbackRecord = cache.getFacingTexture(spriteKey, facingKey, palette);
-  const iconData = cache.getPokemonIconFrameTextures(species, form, palette);
-
-  const convertFrame = (frameRecord: PokemonIconFrameRecord, index: number): SpriteFrameRef => {
-    const halfWidth = Math.round((frameRecord.width ?? 0) / 2);
-    const halfHeight = Math.round((frameRecord.height ?? 0) / 2);
-    return {
-      key: `${spriteKey}:${species ?? "UNKNOWN"}:${form ?? "NO_FORM"}:${index}`,
-      texture: frameRecord.texture,
-      offsetX: frameRecord.offsetX + halfWidth,
-      offsetY: frameRecord.offsetY + halfHeight,
-    };
-  };
-
-  if (iconData && iconData.frames.length > 0) {
-    console.info(`[MapCanvas] Pokémon icon lookup (${logContext})`, {
-      species,
-      form,
-      palette,
-      hasEntry: true,
-      frameCount: iconData.frames.length,
-      frameDurationFrames: iconData.frameDurationFrames,
-    });
-
-    const frames: SpriteFrameRef[] = iconData.frames.map((frameRecord, index) =>
-      convertFrame(frameRecord, index),
-    );
-    const baseFrame = frames[0] ?? null;
-    const frameSet = baseFrame
-      ? {
-          framesByDirection: { [direction]: frames },
-          availableDirections: [direction],
-          defaultFrame: baseFrame,
-          defaultDirection: direction,
-        }
-      : null;
-    const frameDurationMs = Math.max(
-      MIN_POKEMON_ICON_FRAME_DURATION_MS,
-      iconData.frameDurationFrames * FRAME_DURATION_MS * POKEMON_ICON_FRAME_DURATION_SCALE,
-    );
-    return {
-      baseFrame,
-      frameSet,
-      frameDurationMs,
-    };
-  }
-
-  console.warn(`[MapCanvas] Falling back to placeholder icon (${logContext})`, {
-    species,
-    form,
-    palette,
-    hasEntry: Boolean(iconData?.frames.length),
-  });
-
-  if (!fallbackRecord) {
-    return {
-      baseFrame: null,
-      frameSet: null,
-      frameDurationMs: null,
-    };
-  }
-
-  const halfWidth = Math.round((fallbackRecord.width ?? 0) / 2);
-  const halfHeight = Math.round((fallbackRecord.height ?? 0) / 2);
-  const fallbackFrame: SpriteFrameRef = {
-    key: `${spriteKey}:${facingKey}:fallback`,
-    texture: fallbackRecord.texture,
-    offsetX: fallbackRecord.offsetX + halfWidth,
-    offsetY: fallbackRecord.offsetY + halfHeight,
-  };
-  const fallbackFrameSet: MovementFrameSet = {
-    framesByDirection: { [direction]: [fallbackFrame] },
-    availableDirections: [direction],
-    defaultFrame: fallbackFrame,
-    defaultDirection: direction,
-  };
-
-  return {
-    baseFrame: fallbackFrame,
-    frameSet: fallbackFrameSet,
-    frameDurationMs: null,
-  };
-}
-
-function createAxisPathAnimator(
-  summary: MovementSummary,
-  objectEntry: ObjectEventEntry,
-  frameSet: MovementFrameSet | null,
-): PathMovementAnimator | null {
-  if (!summary.path || summary.path.length === 0) {
-    return null;
-  }
-  const start = summary.startCell;
-  const path = summary.path;
-  const recordedSteps = summary.steps ?? [];
-  const startIndex = path.findIndex((cell) => cell.x === start.x && cell.y === start.y);
-  if (startIndex === -1) {
-    return null;
-  }
-  const positiveOffsets = path
-    .slice(startIndex + 1)
-    .map((cell) => ({ dx: cell.x - start.x, dy: cell.y - start.y }));
-  const negativeOffsets = path
-    .slice(0, startIndex)
-    .map((cell) => ({ dx: cell.x - start.x, dy: cell.y - start.y }))
-    .reverse();
-
-  if (positiveOffsets.length === 0 && negativeOffsets.length === 0) {
-    return null;
-  }
-
-  const moveDuration = Math.max(90, movementSpeedToStepDuration(summary.model.speed));
-  const idleDuration = Math.max(120, movementSpeedToIdleDuration(summary.model.speed) * 0.6);
-
-  const segments: MovementSegment[] = [];
-  let current: Offset = { dx: 0, dy: 0 };
-  let currentDirection: CardinalDirection =
-    frameSet?.defaultDirection ?? (summary.axis === "x" ? "right" : "down");
-  let lastStepIndex: number = recordedSteps.length > 0 ? recordedSteps[0].index : 0;
-  let nextStepCursor = 0;
-  let moveSegmentCount = 0;
-
-  const rngSeedBase =
-    ((objectEntry.index ?? 0) * 1103515245 + start.x * 1237 + start.y * 1999) >>> 0;
-  const rng = createSeededRandom(rngSeedBase);
-  const earlyTurnChance = 0.35;
-  const earlyTurnFloor = 0.5;
-
-  const claimStepIndex = (target: Offset, direction: CardinalDirection): number => {
-    if (recordedSteps.length === 0) {
-      const index = nextStepCursor;
-      nextStepCursor += 1;
-      return index;
-    }
-    const targetX = start.x + target.dx;
-    const targetY = start.y + target.dy;
-    for (let cursor = nextStepCursor; cursor < recordedSteps.length; cursor += 1) {
-      const step = recordedSteps[cursor];
-      if (step.to.x === targetX && step.to.y === targetY && step.direction === direction) {
-        nextStepCursor = cursor + 1;
-        return step.index;
-      }
-    }
-    const fallbackStep =
-      recordedSteps[Math.min(recordedSteps.length - 1, nextStepCursor)] ??
-      recordedSteps[recordedSteps.length - 1];
-    nextStepCursor = Math.min(recordedSteps.length, nextStepCursor + 1);
-    return fallbackStep ? fallbackStep.index : recordedSteps.length;
-  };
-
-  const pushMove = (target: Offset): void => {
-    if (target.dx === current.dx && target.dy === current.dy) {
-      return;
-    }
-    const direction = deltaToDirection(target.dx - current.dx, target.dy - current.dy);
-    if (!direction) {
-      return;
-    }
-    const stepIndex = claimStepIndex(target, direction);
-    segments.push({
-      type: "move",
-      from: { ...current },
-      to: { ...target },
-      direction,
-      durationMs: moveDuration,
-      stepIndex,
-    });
-    current = { ...target };
-    currentDirection = direction;
-    lastStepIndex = stepIndex;
-    moveSegmentCount += 1;
-  };
-
-  const pushIdle = (duration: number): void => {
-    if (!(duration > 0)) {
-      return;
-    }
-    segments.push({
-      type: "wait",
-      position: { ...current },
-      direction: currentDirection,
-      durationMs: duration,
-      stepIndex: lastStepIndex,
-    });
-  };
-
-  const planSequences = (offsets: Offset[]): Offset[][] => {
-    if (offsets.length === 0) {
-      return [];
-    }
-    const passes = offsets.length > 1 ? 2 : 1;
-    const sequences: Offset[][] = [];
-    for (let pass = 0; pass < passes; pass += 1) {
-      let length = offsets.length;
-      if (pass > 0 && offsets.length > 1 && rng() < earlyTurnChance) {
-        const minSteps = Math.max(1, Math.floor(offsets.length * earlyTurnFloor));
-        const maxSteps = Math.max(minSteps, offsets.length - 1);
-        if (maxSteps > minSteps) {
-          const span = maxSteps - minSteps + 1;
-          length = minSteps + Math.floor(rng() * span);
-        } else {
-          length = minSteps;
-        }
-      }
-      length = Math.max(1, Math.min(offsets.length, length));
-      sequences.push(offsets.slice(0, length));
-    }
-    return sequences;
-  };
-
-  const runSequence = (offsets: Offset[]): void => {
-    if (!offsets.length) {
-      pushIdle(idleDuration);
-      return;
-    }
-    for (const offset of offsets) {
-      pushMove(offset);
-      pushIdle(idleDuration);
-    }
-    for (let index = offsets.length - 2; index >= 0; index -= 1) {
-      const offset = offsets[index];
-      if (!offset) {
-        continue;
-      }
-      pushMove(offset);
-      pushIdle(idleDuration);
-    }
-    pushMove({ dx: 0, dy: 0 });
-    pushIdle(idleDuration);
-  };
-
-  const positiveSequences = planSequences(positiveOffsets);
-  const negativeSequences = planSequences(negativeOffsets);
-  const totalSequences = Math.max(positiveSequences.length, negativeSequences.length);
-
-  if (totalSequences === 0) {
-    return null;
-  }
-
-  for (let pass = 0; pass < totalSequences; pass += 1) {
-    const forward = positiveSequences[pass];
-    if (forward) {
-      runSequence(forward);
-    }
-    const backward = negativeSequences[pass];
-    if (backward) {
-      runSequence(backward);
-    }
-  }
-
-  if (!segments.length) {
-    return null;
-  }
-  const totalDuration = segments.reduce(
-    (total, segment) => total + Math.max(0, segment.durationMs),
-    0,
-  );
-  if (!(totalDuration > 0)) {
-    return null;
-  }
-  const stepCount = recordedSteps.length > 0 ? recordedSteps.length : moveSegmentCount;
-
-  return {
-    kind: "path",
-    segments,
-    totalDurationMs: totalDuration,
-    stepCount,
-  };
-}
-
-function createWanderAnimator(
-  summary: MovementSummary,
-  objectEntry: ObjectEventEntry,
-  frameSet: MovementFrameSet | null,
-): PathMovementAnimator | null {
-  const bounds = summary.bounds ?? {
-    left: summary.startCell.x,
-    right: summary.startCell.x,
-    top: summary.startCell.y,
-    bottom: summary.startCell.y,
-  };
-  const reachableCells = summary.reachable ?? null;
-  const reachableSet = reachableCells
-    ? new Set(reachableCells.map((cell) => `${cell.x},${cell.y}`))
-    : null;
-
-  const seedBase =
-    (objectEntry.index ?? 0) * 1103515245 + summary.startCell.x * 1237 + summary.startCell.y * 1999;
-  const rng = createSeededRandom(seedBase >>> 0);
-  const moveDuration = Math.max(90, movementSpeedToStepDuration(summary.model.speed));
-  const idleBase = Math.max(120, movementSpeedToIdleDuration(summary.model.speed));
-  const directionPool: CardinalDirection[] = ["down", "up", "left", "right"];
-
-  let current: Offset = { dx: 0, dy: 0 };
-  let currentDirection: CardinalDirection = frameSet?.defaultDirection ?? "down";
-  let lastStepIndex = 0;
-  let nextStepIndex = 0;
-  let moveSegmentCount = 0;
-
-  const maxExtentX = bounds.right - bounds.left;
-  const maxExtentY = bounds.bottom - bounds.top;
-  const halfLength = Math.max(3, Math.min(12, maxExtentX + maxExtentY + 4));
-
-  const forwardDirections: CardinalDirection[] = [];
-
-  for (let step = 0; step < halfLength; step += 1) {
-    const candidates: CardinalDirection[] = [];
-    for (const direction of directionPool) {
-      const delta = DIRECTION_DELTAS[direction];
-      const next = { dx: current.dx + delta.dx, dy: current.dy + delta.dy };
-      const absX = summary.startCell.x + next.dx;
-      const absY = summary.startCell.y + next.dy;
-      if (absX < bounds.left || absX > bounds.right || absY < bounds.top || absY > bounds.bottom) {
-        continue;
-      }
-      if (reachableSet && !reachableSet.has(`${absX},${absY}`)) {
-        continue;
-      }
-      candidates.push(direction);
-    }
-    if (!candidates.length) {
-      break;
-    }
-    const choice = candidates[Math.floor(rng() * candidates.length)];
-    forwardDirections.push(choice);
-    const delta = DIRECTION_DELTAS[choice];
-    current = { dx: current.dx + delta.dx, dy: current.dy + delta.dy };
-  }
-
-  if (!forwardDirections.length) {
-    return null;
-  }
-
-  const directions: CardinalDirection[] = [...forwardDirections];
-  for (let index = forwardDirections.length - 1; index >= 0; index -= 1) {
-    directions.push(oppositeDirection(forwardDirections[index]));
-  }
-
-  current = { dx: 0, dy: 0 };
-  const segments: MovementSegment[] = [];
-  for (const direction of directions) {
-    const delta = DIRECTION_DELTAS[direction];
-    const target = { dx: current.dx + delta.dx, dy: current.dy + delta.dy };
-    const stepIndex = nextStepIndex;
-    nextStepIndex += 1;
-    segments.push({
-      type: "move",
-      from: { ...current },
-      to: target,
-      direction,
-      durationMs: moveDuration,
-      stepIndex,
-    });
-    current = target;
-    currentDirection = direction;
-    lastStepIndex = stepIndex;
-    moveSegmentCount += 1;
-    const idleDuration = idleBase * (0.6 + rng() * 0.6);
-    segments.push({
-      type: "wait",
-      position: { ...current },
-      direction: currentDirection,
-      durationMs: idleDuration,
-      stepIndex: lastStepIndex,
-    });
-  }
-
-  if (current.dx !== 0 || current.dy !== 0) {
-    while (current.dx !== 0) {
-      const direction = current.dx > 0 ? "left" : "right";
-      const delta = DIRECTION_DELTAS[direction];
-      const target = { dx: current.dx + delta.dx, dy: current.dy + delta.dy };
-      const stepIndex = nextStepIndex;
-      nextStepIndex += 1;
-      segments.push({
-        type: "move",
-        from: { ...current },
-        to: target,
-        direction,
-        durationMs: moveDuration,
-        stepIndex,
-      });
-      current = target;
-      currentDirection = direction;
-      lastStepIndex = stepIndex;
-      moveSegmentCount += 1;
-    }
-    while (current.dy !== 0) {
-      const direction = current.dy > 0 ? "up" : "down";
-      const delta = DIRECTION_DELTAS[direction];
-      const target = { dx: current.dx + delta.dx, dy: current.dy + delta.dy };
-      const stepIndex = nextStepIndex;
-      nextStepIndex += 1;
-      segments.push({
-        type: "move",
-        from: { ...current },
-        to: target,
-        direction,
-        durationMs: moveDuration,
-        stepIndex,
-      });
-      current = target;
-      currentDirection = direction;
-      lastStepIndex = stepIndex;
-      moveSegmentCount += 1;
-    }
-    segments.push({
-      type: "wait",
-      position: { ...current },
-      direction: currentDirection,
-      durationMs: idleBase,
-      stepIndex: moveSegmentCount > 0 ? lastStepIndex : 0,
-    });
-  }
-
-  const totalDuration = segments.reduce(
-    (total, segment) => total + Math.max(0, segment.durationMs),
-    0,
-  );
-  if (!(totalDuration > 0)) {
-    return null;
-  }
-  const stepCount = moveSegmentCount;
-  if (stepCount === 0) {
-    return null;
-  }
-
-  return {
-    kind: "path",
-    segments,
-    totalDurationMs: totalDuration,
-    stepCount,
-  };
-}
-
-function createSpinAnimator(
-  summary: MovementSummary,
-  objectEntry: ObjectEventEntry,
-  frameSet: MovementFrameSet | null,
-): SpinMovementAnimator | null {
-  const directionMode = summary.model.spinDirection ?? "random";
-  const interval = Math.max(180, movementSpeedToSpinInterval(summary.model.speed));
-  const steps: SpinStep[] = [];
-
-  if (directionMode === "clockwise" || directionMode === "counterclockwise") {
-    const sequence = directionMode === "clockwise" ? CLOCKWISE_SEQUENCE : COUNTERCLOCKWISE_SEQUENCE;
-    const startDirection = frameSet?.defaultDirection ?? sequence[0];
-    const startIndex = sequence.indexOf(startDirection);
-    const normalizedStart = startIndex >= 0 ? startIndex : 0;
-    for (let index = 0; index < sequence.length; index += 1) {
-      const direction = sequence[(normalizedStart + index) % sequence.length];
-      steps.push({ direction, durationMs: interval });
-    }
-  } else {
-    const available = frameSet?.availableDirections?.length
-      ? frameSet.availableDirections
-      : (["down", "up", "left", "right"] as CardinalDirection[]);
-    const rngSeed =
-      (objectEntry.index ?? 0) * 214013 +
-      summary.startCell.x * 2531011 +
-      summary.startCell.y * 1376312589;
-    const rng = createSeededRandom(rngSeed >>> 0);
-    const stepCount = 6;
-    for (let index = 0; index < stepCount; index += 1) {
-      const direction = available[Math.floor(rng() * available.length)] ?? "down";
-      const duration = interval * (0.6 + rng() * 0.8);
-      steps.push({ direction, durationMs: duration });
-    }
-  }
-
-  const totalDuration = steps.reduce((total, step) => total + Math.max(0, step.durationMs), 0);
-  if (!(totalDuration > 0)) {
-    return null;
-  }
-
-  return {
-    kind: "spin",
-    steps,
-    totalDurationMs: totalDuration,
-  };
-}
-
-function createIdleAnimator(
-  summary: MovementSummary,
-  objectEntry: ObjectEventEntry,
-  frameSet: MovementFrameSet | null,
-): IdleMovementAnimator | null {
-  if (!frameSet) {
-    return null;
-  }
-  const primaryDirection = frameSet.defaultDirection ?? frameSet.availableDirections[0] ?? null;
-  if (!primaryDirection) {
-    return null;
-  }
-  const frames = frameSet.framesByDirection[primaryDirection];
-  if (!frames || frames.length <= 1) {
-    return null;
-  }
-  const frameDuration = Math.max(260, movementSpeedToIdleDuration(summary.model.speed));
-  const seed =
-    ((objectEntry.index ?? 0) * 2147483647 +
-      summary.startCell.x * 2654435761 +
-      summary.startCell.y * 40503) >>>
-    0;
-  const rng = createSeededRandom(seed);
-  const phaseOffsetMs = Math.floor(rng() * frameDuration * frames.length);
-  return {
-    kind: "idle",
-    direction: primaryDirection,
-    frameCount: frames.length,
-    frameDurationMs: frameDuration,
-    phaseOffsetMs,
-  };
-}
-
-function createPokemonIconAnimator(
-  objectEntry: ObjectEventEntry,
-  frameSet: MovementFrameSet | null,
-  frameDurationMs: number,
-): IdleMovementAnimator | null {
-  if (!frameSet || !frameSet.defaultDirection) {
-    return null;
-  }
-  const direction = frameSet.defaultDirection;
-  const frames = frameSet.framesByDirection[direction];
-  if (!frames || frames.length <= 1) {
-    return null;
-  }
-  const duration = Math.max(60, Math.round(frameDurationMs));
-  const seed = ((objectEntry.index ?? 0) * 1103515245 + duration * 1664525) >>> 0;
-  const rng = createSeededRandom(seed);
-  const phaseOffsetMs = Math.floor(rng() * duration * frames.length);
-  return {
-    kind: "idle",
-    direction,
-    frameCount: frames.length,
-    frameDurationMs: duration,
-    phaseOffsetMs,
-  };
-}
-
-function createMovementAnimator(
-  summary: MovementSummary | null,
-  objectEntry: ObjectEventEntry,
-  frameSet: MovementFrameSet | null,
-): MovementAnimator | null {
-  if (!summary) {
-    return null;
-  }
-  if (summary.model.category === "axis-walk") {
-    return createAxisPathAnimator(summary, objectEntry, frameSet);
-  }
-  if (summary.model.category === "random-walk") {
-    return createWanderAnimator(summary, objectEntry, frameSet);
-  }
-  if (summary.model.category === "spin") {
-    return createSpinAnimator(summary, objectEntry, frameSet);
-  }
-  if (
-    summary.model.category === "object" &&
-    objectEntry.movement?.constant === "SPRITEMOVEDATA_BIG_GYARADOS"
-  ) {
-    const idleAnimator = createIdleAnimator(summary, objectEntry, frameSet);
-    if (idleAnimator) {
-      return idleAnimator;
-    }
-  }
-  return null;
-}
-
-function applySpriteFrame(
-  marker: ObjectMarkerEntry,
-  direction: CardinalDirection | null,
-  frameIndex: number,
-): void {
-  const frameSet = marker.frameSet;
-  if (!frameSet) {
-    if (direction) {
-      marker.lastDirection = direction;
-    }
-    return;
-  }
-  let frames =
-    direction && frameSet.framesByDirection[direction]?.length
-      ? frameSet.framesByDirection[direction]
-      : undefined;
-  let resolvedDirection = direction;
-  if ((!frames || frames.length === 0) && frameSet.defaultDirection) {
-    const fallback = frameSet.framesByDirection[frameSet.defaultDirection];
-    if (fallback && fallback.length) {
-      frames = fallback;
-      resolvedDirection = frameSet.defaultDirection;
-    }
-  }
-  if ((!frames || frames.length === 0) && frameSet.availableDirections.length > 0) {
-    const fallbackDirection = frameSet.availableDirections[0];
-    const fallback = frameSet.framesByDirection[fallbackDirection];
-    if (fallback && fallback.length) {
-      frames = fallback;
-      resolvedDirection = fallbackDirection;
-    }
-  }
-  let frame: SpriteFrameRef | null = null;
-  if (frames && frames.length > 0) {
-    const normalizedIndex = Math.max(0, Math.floor(frameIndex)) % frames.length;
-    frame = frames[normalizedIndex];
-  }
-  if (!frame) {
-    frame = frameSet.defaultFrame;
-  }
-  if (marker.currentFrameKey !== frame.key) {
-    marker.sprite.texture = frame.texture;
-    const spriteName = marker.object.sprite.constant;
-    if (
-      import.meta.env?.DEV &&
-      spriteName &&
-      (spriteName === "SPRITE_SAILBOAT" ||
-        spriteName === "SPRITE_BIG_GYARADOS" ||
-        spriteName === "SPRITE_BIG_SNORLAX")
-    ) {
-      const tex = frame.texture;
-      console.info(
-        `[SpriteCache] ${spriteName} frame ${frame.key} resolved ${tex.width}x${tex.height} (offset=${frame.offsetX},${frame.offsetY})`,
-      );
-    }
-    marker.currentFrameKey = frame.key;
-  }
-  marker.spriteOffset.x = frame.offsetX * marker.spriteScale;
-  marker.spriteOffset.y = frame.offsetY * marker.spriteScale;
-  if (resolvedDirection) {
-    marker.lastDirection = resolvedDirection;
-  }
-}
-
-function updateMarkerAnimation(marker: ObjectMarkerEntry, elapsedMs: number): void {
-  const baseX = marker.basePosition.x;
-  const baseY = marker.basePosition.y;
-  const cellSize = marker.cellPixelSize;
-  const animator = marker.animator;
-
-  if (!animator) {
-    applySpriteFrame(marker, marker.lastDirection ?? marker.frameSet?.defaultDirection ?? null, 0);
-    marker.sprite.x = baseX + marker.spriteOffset.x;
-    marker.sprite.y = baseY + marker.spriteOffset.y;
-    marker.stepCount = null;
-    marker.currentStepIndex = null;
-    marker.stepProgress = 0;
-    return;
-  }
-
-  if (animator.kind === "path") {
-    const total = animator.totalDurationMs;
-    marker.stepCount = animator.stepCount;
-    if (!(total > 0) || animator.segments.length === 0) {
-      applySpriteFrame(
-        marker,
-        marker.lastDirection ?? marker.frameSet?.defaultDirection ?? null,
-        0,
-      );
-      marker.sprite.x = baseX + marker.spriteOffset.x;
-      marker.sprite.y = baseY + marker.spriteOffset.y;
-      marker.currentStepIndex = null;
-      marker.stepProgress = 0;
-      return;
-    }
-    const timeInCycle = ((elapsedMs % total) + total) % total;
-    let accumulator = 0;
-    let activeSegment = animator.segments[animator.segments.length - 1];
-    for (const segment of animator.segments) {
-      const next = accumulator + segment.durationMs;
-      if (timeInCycle < next) {
-        activeSegment = segment;
-        break;
-      }
-      accumulator = next;
-    }
-    if (activeSegment.type === "move") {
-      const segmentElapsed = timeInCycle - accumulator;
-      const duration = activeSegment.durationMs > 0 ? activeSegment.durationMs : 1;
-      const progress = Math.max(0, Math.min(1, segmentElapsed / duration));
-      const interpDx =
-        activeSegment.from.dx + (activeSegment.to.dx - activeSegment.from.dx) * progress;
-      const interpDy =
-        activeSegment.from.dy + (activeSegment.to.dy - activeSegment.from.dy) * progress;
-      const stepIndex = activeSegment.stepIndex ?? 0;
-      const parity = stepIndex & 1;
-      const inStride = progress >= 0.5;
-      const baseFrameIndex = parity === 0 ? 0 : 2;
-      const strideFrameIndex = parity === 0 ? 1 : 3;
-      const frameIndex = inStride ? strideFrameIndex : baseFrameIndex;
-      applySpriteFrame(marker, activeSegment.direction, frameIndex);
-      marker.sprite.x = baseX + marker.spriteOffset.x + interpDx * cellSize;
-      marker.sprite.y = baseY + marker.spriteOffset.y + interpDy * cellSize;
-      marker.currentStepIndex = activeSegment.stepIndex;
-      marker.stepProgress = progress;
-    } else {
-      const stepIndex = activeSegment.stepIndex ?? 0;
-      const parity = stepIndex & 1;
-      const frameIndex = parity === 0 ? 0 : 2;
-      applySpriteFrame(marker, activeSegment.direction, frameIndex);
-      marker.sprite.x = baseX + marker.spriteOffset.x + activeSegment.position.dx * cellSize;
-      marker.sprite.y = baseY + marker.spriteOffset.y + activeSegment.position.dy * cellSize;
-      marker.currentStepIndex = activeSegment.stepIndex;
-      marker.stepProgress = 0;
-    }
-    return;
-  }
-
-  if (animator.kind === "idle") {
-    const frameCount = Math.max(1, animator.frameCount);
-    const frameDuration = Math.max(1, animator.frameDurationMs);
-    const loopDuration = frameCount * frameDuration;
-    const cycleTime =
-      (((elapsedMs + animator.phaseOffsetMs) % loopDuration) + loopDuration) % loopDuration;
-    const frameIndex = Math.floor(cycleTime / frameDuration) % frameCount;
-    applySpriteFrame(marker, animator.direction, frameIndex);
-    marker.sprite.x = baseX + marker.spriteOffset.x;
-    marker.sprite.y = baseY + marker.spriteOffset.y;
-    marker.lastDirection = animator.direction ?? marker.lastDirection;
-    marker.stepCount = null;
-    marker.currentStepIndex = null;
-    marker.stepProgress = 0;
-    return;
-  }
-
-  if (animator.kind === "spin") {
-    const total = animator.totalDurationMs;
-    if (!(total > 0) || animator.steps.length === 0) {
-      applySpriteFrame(
-        marker,
-        marker.lastDirection ?? marker.frameSet?.defaultDirection ?? null,
-        0,
-      );
-      marker.sprite.x = baseX + marker.spriteOffset.x;
-      marker.sprite.y = baseY + marker.spriteOffset.y;
-      marker.stepCount = null;
-      marker.currentStepIndex = null;
-      marker.stepProgress = 0;
-      return;
-    }
-    const timeInCycle = ((elapsedMs % total) + total) % total;
-    let accumulator = 0;
-    let activeStep = animator.steps[animator.steps.length - 1];
-    for (const step of animator.steps) {
-      const next = accumulator + step.durationMs;
-      if (timeInCycle < next) {
-        activeStep = step;
-        break;
-      }
-      accumulator = next;
-    }
-    applySpriteFrame(marker, activeStep.direction, 0);
-    marker.sprite.x = baseX + marker.spriteOffset.x;
-    marker.sprite.y = baseY + marker.spriteOffset.y;
-    marker.lastDirection = activeStep.direction;
-    marker.stepCount = null;
-    marker.currentStepIndex = null;
-    marker.stepProgress = 0;
-    return;
-  }
-
-  applySpriteFrame(marker, marker.lastDirection ?? marker.frameSet?.defaultDirection ?? null, 0);
-  marker.sprite.x = baseX + marker.spriteOffset.x;
-  marker.sprite.y = baseY + marker.spriteOffset.y;
-  marker.stepCount = null;
-  marker.currentStepIndex = null;
-  marker.stepProgress = 0;
-}
-
-function snapToHalf(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.round(value * 2) / 2;
-}
-
-export default function MapCanvas({
-  atlas,
-  loading,
-  editing = false,
-  warpMetadata = null,
-  bgPalettes = null,
-  resolveAssetHref,
-  baseOffsets = null,
-  offsetOverrides = null,
-  zOverrides = null,
-  selectedNeighborhoodId = null,
-  onSelectNeighborhood,
-  onOffsetChange,
-  objectMetadata = null,
-  timeOfDay = "day",
-  // Optional controlled perf toggles (when provided by parent header)
-  disableMapAnimations: controlledDisableMapAnimations,
-  disableObjectAnimations: controlledDisableObjectAnimations,
-}: MapCanvasProps) {
+const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas(
+  {
+    atlas,
+    loading,
+    editing = false,
+    warpMetadata = null,
+    bgPalettes = null,
+    resolveAssetHref,
+    baseOffsets = null,
+    offsetOverrides = null,
+    zOverrides = null,
+    selectedNeighborhoodId = null,
+    onSelectNeighborhood,
+    onOffsetChange,
+    objectMetadata = null,
+    timeOfDay = "day",
+    // Optional controlled perf toggles (when provided by parent header)
+    disableMapAnimations: controlledDisableMapAnimations,
+    disableObjectAnimations: controlledDisableObjectAnimations,
+    // Optional controlled weather/sprite-limit toggles
+    weatherEnabled: controlledWeatherEnabled,
+    // onWeatherEnabledChange: _onWeatherEnabledChange,
+    spriteLimitEnabled: controlledSpriteLimitEnabled,
+    // onSpriteLimitEnabledChange: _onSpriteLimitEnabledChange,
+    // Optional map borders toggle
+    mapBordersEnabled = false,
+    // View state callbacks
+    onViewStateChange,
+    // Overlay navigation callback
+    onOverlayChange,
+    initialViewState: _initialViewState,
+  },
+  ref,
+) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const appRef = useRef<Application | null>(null);
   const worldRef = useRef<Container | null>(null);
@@ -1720,46 +235,41 @@ export default function MapCanvas({
   const objectMetadataRef = useRef<ObjectMetadata | null>(null);
   const objectSpriteCacheRef = useRef<ObjectSpriteCache | null>(null);
   const objectCacheSourceRef = useRef<ObjectMetadata | null>(null);
+  const onViewStateChangeRef = useRef(onViewStateChange);
+  const onOverlayChangeRef = useRef(onOverlayChange);
   const [ready, setReady] = useState(false);
 
-  // Tooltip DOM element for item/key/TM/HM balls
-  const tooltipRef = useRef<HTMLDivElement | null>(null);
-  const tooltipPinnedRef = useRef(false);
-
+  // Keep onViewStateChange ref up to date
   useEffect(() => {
-    const el = document.createElement("div");
-    el.className = "pa-item-tooltip";
-    el.style.display = "none";
-    el.setAttribute("role", "tooltip");
-    document.body.appendChild(el);
-    tooltipRef.current = el;
-    return () => {
-      try {
-        if (el.parentNode) el.parentNode.removeChild(el);
-      } catch {
-        /* ignore */
-      }
-      tooltipRef.current = null;
-    };
+    onViewStateChangeRef.current = onViewStateChange;
+  }, [onViewStateChange]);
+
+  // Keep onOverlayChange ref up to date
+  useEffect(() => {
+    onOverlayChangeRef.current = onOverlayChange;
+  }, [onOverlayChange]);
+
+  // Tooltip state (React-based instead of DOM manipulation)
+  const [tooltipState, setTooltipState] = useState<{
+    data: TooltipData | null;
+    x: number;
+    y: number;
+  }>({ data: null, x: 0, y: 0 });
+
+  const showTooltip = useCallback(
+    (data: TooltipData, clientX: number, clientY: number) => {
+      setTooltipState({
+        data,
+        x: Math.max(8, clientX + 12),
+        y: Math.max(8, clientY + 12),
+      });
+    },
+    []
+  );
+
+  const hideTooltip = useCallback(() => {
+    setTooltipState((prev) => ({ ...prev, data: null }));
   }, []);
-
-  const showTooltip = (html: string, clientX: number, clientY: number, pinned = false) => {
-    const el = tooltipRef.current;
-    if (!el) return;
-    el.innerHTML = html;
-    el.style.display = "block";
-    el.style.left = `${Math.max(8, clientX + 12)}px`;
-    el.style.top = `${Math.max(8, clientY + 12)}px`;
-    tooltipPinnedRef.current = Boolean(pinned);
-  };
-
-  const hideTooltip = (force = false) => {
-    const el = tooltipRef.current;
-    if (!el) return;
-    if (tooltipPinnedRef.current && !force) return;
-    el.style.display = "none";
-    tooltipPinnedRef.current = false;
-  };
 
   // Performance toggles
   const initialPerf = readPerfSettings();
@@ -1800,7 +310,7 @@ export default function MapCanvas({
   }, [disableMapAnimations, disableObjectAnimations, perfControlled]);
 
   // Sprite limits UI state
-  const [spriteLimitEnabled, setSpriteLimitEnabled] = useState(false);
+  const [spriteLimitEnabled, setSpriteLimitEnabledInternal] = useState(false);
   const [spriteIssues, setSpriteIssues] = useState<SpriteLimitIssue[] | null>(null);
   const [spriteIssuesAll, setSpriteIssuesAll] = useState<SpriteLimitIssue[] | null>(null);
   const [spriteIssueIndex, setSpriteIssueIndex] = useState<number>(0);
@@ -1811,10 +321,23 @@ export default function MapCanvas({
   const [spriteIncludeWeather, setSpriteIncludeWeather] = useState<boolean>(false);
   const [spriteOnlyErrors, setSpriteOnlyErrors] = useState<boolean>(false);
   // Weather UI state
-  const [weatherEnabled, setWeatherEnabled] = useState<boolean>(true);
+  const [weatherEnabled, setWeatherEnabledInternal] = useState<boolean>(true);
   const [spriteAnalyzing, setSpriteAnalyzing] = useState<boolean>(false);
   const worldIssueHighlightRef = useRef<Graphics | null>(null);
+  const mapBordersContainerRef = useRef<Container | null>(null);
   const [resultsCollapsed, setResultsCollapsed] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof controlledWeatherEnabled === "boolean" && controlledWeatherEnabled !== weatherEnabled) {
+      setWeatherEnabledInternal(controlledWeatherEnabled);
+    }
+  }, [controlledWeatherEnabled, weatherEnabled]);
+
+  useEffect(() => {
+    if (typeof controlledSpriteLimitEnabled === "boolean" && controlledSpriteLimitEnabled !== spriteLimitEnabled) {
+      setSpriteLimitEnabledInternal(controlledSpriteLimitEnabled);
+    }
+  }, [controlledSpriteLimitEnabled, spriteLimitEnabled]);
 
   const baseOffsetsRef = useRef<Record<string, OffsetTuple>>({});
   const offsetOverridesRef = useRef<Record<string, OffsetTuple>>({});
@@ -2103,6 +626,62 @@ export default function MapCanvas({
     [atlas, clearWorldIssueHighlight, maybeRender],
   );
 
+  // Map borders functions
+  const clearMapBorders = useCallback((): void => {
+    const container = mapBordersContainerRef.current;
+    if (container) {
+      try {
+        container.destroy({ children: true });
+      } catch {
+        /* ignore */
+      }
+      mapBordersContainerRef.current = null;
+    }
+  }, []);
+
+  const drawMapBorders = useCallback((): void => {
+    clearMapBorders();
+    const world = worldRef.current;
+    if (!world || !mapBordersEnabled || animationsRef.current.length === 0) return;
+
+    const container = new Container();
+    container.zIndex = 10_000_001; // Just above warps layer
+    container.eventMode = "none";
+
+    const blockPx =
+      atlas && Number.isFinite(atlas.blockPixelSize) && (atlas.blockPixelSize as number) > 0
+        ? Math.abs(atlas.blockPixelSize as number)
+        : 16;
+
+    for (const entry of animationsRef.current) {
+      const g = new Graphics();
+      g.lineStyle(Math.max(1, blockPx * 0.15), 0x00ffff, 0.85); // Cyan border
+      g.drawRect(
+        entry.placement.x,
+        entry.placement.y,
+        entry.placement.widthPx,
+        entry.placement.heightPx
+      );
+      container.addChild(g);
+    }
+
+    world.addChild(container);
+    world.sortChildren();
+    mapBordersContainerRef.current = container;
+    maybeRender();
+  }, [atlas, clearMapBorders, mapBordersEnabled, maybeRender]);
+
+  // Update map borders when toggle changes
+  useEffect(() => {
+    if (!ready) return;
+    if (mapBordersEnabled) {
+      drawMapBorders();
+    } else {
+      clearMapBorders();
+      maybeRender();
+    }
+  }, [ready, mapBordersEnabled, drawMapBorders, clearMapBorders, maybeRender]);
+
   const computeSpriteLimitAnalysis = useCallback(() => {
     const warp = warpMetadataRef.current;
     const objects = objectMetadataRef.current;
@@ -2173,13 +752,16 @@ export default function MapCanvas({
     const renderer = app.renderer;
     const sprite = state.sprite;
     const background = state.background;
-    const rendererWidth = Math.max(1, renderer.width ?? renderer.screen?.width ?? 0);
-    const rendererHeight = Math.max(1, renderer.height ?? renderer.screen?.height ?? 0);
+    const resolution = renderer.resolution || 1;
+    // Divide by resolution to get CSS pixels (PixiJS positions in CSS coords, not device pixels)
+    const rendererWidth = Math.max(1, (renderer.width ?? renderer.screen?.width ?? 0) / resolution);
+    const rendererHeight = Math.max(1, (renderer.height ?? renderer.screen?.height ?? 0) / resolution);
 
     if (background) {
       background.clear();
       background.beginFill(0x000000, Math.max(0, Math.min(1, state.baseAlpha ?? 0.9)));
-      background.drawRect(0, 0, rendererWidth, rendererHeight);
+      // Background needs to cover the full device pixel area
+      background.drawRect(0, 0, rendererWidth * resolution, rendererHeight * resolution);
       background.endFill();
     }
 
@@ -2214,25 +796,41 @@ export default function MapCanvas({
     const scaledWidth = baseWidth * scale;
     const scaledHeight = baseHeight * scale;
 
+    // Helper to clamp position within bounds (with overscroll allowance)
     const clampAxis = (value: number, total: number, viewport: number): number => {
       if (!(total > 0) || !(viewport > 0)) {
         return value;
       }
       if (total <= viewport) {
-        return Math.max(0, (viewport - total) / 2);
+        // Content fits - center it
+        return (viewport - total) / 2;
       }
+      // Content larger than viewport - allow some overscroll
       const overscroll = computeOverscrollPx(viewport, viewport);
       const min = viewport - total - overscroll;
       const max = 0 + overscroll;
       return Math.min(max, Math.max(min, value));
     };
 
-    const nextX = state.positioned ? sprite.x - padding : 0;
-    const nextY = state.positioned ? sprite.y - padding : 0;
+    // Calculate centered position (works for both small and large content)
+    const centeredX = (availableWidth - scaledWidth) / 2;
+    const centeredY = (availableHeight - scaledHeight) / 2;
 
-    sprite.x = clampAxis(nextX, scaledWidth, availableWidth) + padding;
-    sprite.y = clampAxis(nextY, scaledHeight, availableHeight) + padding;
-    state.positioned = true;
+    let nextX: number;
+    let nextY: number;
+
+    if (state.userPanned) {
+      // User has interacted - preserve their position but apply bounds
+      nextX = clampAxis(sprite.x - padding, scaledWidth, availableWidth);
+      nextY = clampAxis(sprite.y - padding, scaledHeight, availableHeight);
+    } else {
+      // No user interaction yet - always center the content
+      nextX = centeredX;
+      nextY = centeredY;
+    }
+
+    sprite.x = nextX + padding;
+    sprite.y = nextY + padding;
     // Render once in static mode to reflect layout changes
     maybeRender();
   }, [maybeRender]);
@@ -2241,19 +839,13 @@ export default function MapCanvas({
     overlayTokenRef.current += 1;
     const overlay = overlayRef.current;
     const state = overlayStateRef.current;
-    const app = appRef.current;
     if (!overlay || !state) {
       return;
     }
-    const backlink = backlinkRef.current;
-    if (backlink && backlink.applicableTo === state.mapLabel) {
-      backlinkRef.current = backlink.previous ?? null;
-    }
+    // When closing overlay to return to world view, clear the entire backlink chain
+    backlinkRef.current = null;
     if (typeof window !== "undefined" && state.keyHandler) {
       window.removeEventListener("keydown", state.keyHandler);
-    }
-    if (app) {
-      rendererOff(app, "resize", positionOverlayContents);
     }
     if (state.objectContainer) {
       const removedSprites = state.objectContainer.removeChildren();
@@ -2291,13 +883,17 @@ export default function MapCanvas({
   disposeAnimationResource(state.resource, { unload: true });
     overlay.visible = false;
     overlayStateRef.current = null;
+    // Notify parent of overlay close
+    if (onOverlayChangeRef.current) {
+      onOverlayChangeRef.current({ mapLabel: null, backlink: backlinkRef.current });
+    }
     const world = worldRef.current;
     if (world) {
       world.visible = true;
     }
     // Reflect visibility change immediately in static mode
     maybeRender();
-  }, [positionOverlayContents, maybeRender]);
+  }, [maybeRender]);
 
   useEffect(() => {
     return () => {
@@ -2386,6 +982,25 @@ export default function MapCanvas({
     });
   }, []);
 
+  const getViewState = useCallback((): MapViewState | null => {
+    const app = appRef.current;
+    const world = worldRef.current;
+    const scale = scaleRef.current;
+    if (!app || !world || !isFiniteNumber(scale) || scale <= 0) {
+      return null;
+    }
+    const renderer = app.renderer;
+    const centerWorldX = (-world.x + renderer.width / 2) / scale;
+    const centerWorldY = (-world.y + renderer.height / 2) / scale;
+    return {
+      x: world.x,
+      y: world.y,
+      scale,
+      centerWorldX,
+      centerWorldY,
+    };
+  }, []);
+
   const schedulePersistViewState = useCallback((): void => {
     if (typeof window === "undefined") {
       return;
@@ -2396,8 +1011,13 @@ export default function MapCanvas({
     persistTimerRef.current = window.setTimeout(() => {
       persistTimerRef.current = null;
       persistViewState();
+      // Notify parent of view state change via ref to avoid dependency cycle
+      const viewState = getViewState();
+      if (viewState && onViewStateChangeRef.current) {
+        onViewStateChangeRef.current(viewState);
+      }
     }, 120);
-  }, [persistViewState]);
+  }, [persistViewState, getViewState]);
 
   const focusWorldOn = useCallback(
     (worldX: number, worldY: number): void => {
@@ -2410,6 +1030,36 @@ export default function MapCanvas({
       const { width: viewW, height: viewH } = getEffectiveViewSize(app);
       world.x = viewW / 2 - worldX * scale;
       world.y = viewH / 2 - worldY * scale;
+      clampWorldToBounds();
+      schedulePersistViewState();
+      maybeRender();
+    },
+    [clampWorldToBounds, schedulePersistViewState, maybeRender],
+  );
+
+  const setScaleAt = useCallback(
+    (newScale: number, pivotX?: number, pivotY?: number): void => {
+      const app = appRef.current;
+      const world = worldRef.current;
+      const bounds = boundsRef.current;
+      if (!app || !world || !bounds) {
+        return;
+      }
+      const { width: viewW, height: viewH } = getEffectiveViewSize(app);
+      const oldScale = scaleRef.current;
+      const clampedScale = clampScale(newScale);
+      scaleRef.current = clampedScale;
+
+      // Pivot defaults to center of view
+      const px = pivotX !== undefined ? pivotX : viewW / 2;
+      const py = pivotY !== undefined ? pivotY : viewH / 2;
+
+      // Zoom towards the pivot point
+      const worldPx = (px - world.x) / oldScale;
+      const worldPy = (py - world.y) / oldScale;
+      world.x = px - worldPx * clampedScale;
+      world.y = py - worldPy * clampedScale;
+
       clampWorldToBounds();
       schedulePersistViewState();
       maybeRender();
@@ -2735,8 +1385,9 @@ export default function MapCanvas({
     let container = state.objectContainer;
     if (!container) {
       container = new Container();
-      container.eventMode = "none";
-      container.interactiveChildren = false;
+      // Make container participate in hit testing so children can receive pointer events
+      container.eventMode = "static";
+      container.interactiveChildren = true;
       container.zIndex = 5;
       sprite.addChild(container);
       state.objectContainer = container;
@@ -2820,53 +1471,125 @@ export default function MapCanvas({
       spriteInstance.y = baseY + offsetY;
       spriteInstance.scale.set(pixelScale);
       container.addChild(spriteInstance);
-      // If this object is an item/key/TM/HM ball, enable pointer interactions and show tooltip
+      // If this object is an item/key/TM/HM ball or fruit tree, enable pointer interactions and show tooltip
       try {
         const macro = objectEntry.macro ?? "";
         const isBall =
           macro === "itemball_event" || macro === "keyitemball_event" || macro === "tmhmball_event";
-        if (isBall) {
+        const isFruitTree = macro === "fruittree_event";
+        // Detect scripted item balls (like Lucky Egg on Lucky Island)
+        const isScriptedItemBall =
+          !isBall &&
+          objectEntry.paletteOverride?.constant === "PAL_OW_POKE_BALL" &&
+          objectEntry.objectType?.constant === "OBJECTTYPE_SCRIPT" &&
+          objectEntry.script?.argument;
+        // Extract item name from script argument for scripted item balls
+        let scriptedItemName: string | null = null;
+        if (isScriptedItemBall) {
+          const scriptArg = objectEntry.script?.argument ?? "";
+          // Extract item name by removing map prefix and "Script" suffix
+          // e.g., "LuckyIslandLuckyEgg" -> "Lucky Egg"
+          const cleanedArg = scriptArg.replace(/Script$/, "");
+          // Try to find item name pattern (consecutive uppercase words at end)
+          const match = cleanedArg.match(/([A-Z][a-z]+){2,}$/);
+          if (match) {
+            scriptedItemName = match[0]
+              .replace(/([A-Z])/g, " $1")
+              .trim();
+          }
+        }
+        if (isBall || (isScriptedItemBall && scriptedItemName)) {
           spriteInstance.eventMode = "static";
           spriteInstance.cursor = editing ? "not-allowed" : "pointer";
-          const label =
-            (objectEntry.extra && (objectEntry.extra["item"] as string)) ||
-            objectEntry.script?.argument ||
-            "Item";
+          const label = isBall
+            ? ((objectEntry.extra && (objectEntry.extra["item"] as string)) ||
+               objectEntry.script?.argument ||
+               "Item")
+            : scriptedItemName!;
           spriteInstance.on("pointerover", (ev: FederatedPointerEvent) => {
             if (editing) return;
             const x = (ev as any).clientX ?? window.innerWidth / 2;
             const y = (ev as any).clientY ?? window.innerHeight / 2;
-            showTooltip(`<strong>${String(label)}</strong>`, x, y, false);
-          });
-          spriteInstance.on("pointermove", (ev: FederatedPointerEvent) => {
-            if (editing) return;
-            const x = (ev as any).clientX;
-            const y = (ev as any).clientY;
-            if (typeof x !== "number" || typeof y !== "number") return;
-            showTooltip(`<strong>${String(label)}</strong>`, x, y, tooltipPinnedRef.current);
+            showTooltip({ title: String(label) }, x, y);
           });
           spriteInstance.on("pointerout", () => {
             hideTooltip();
           });
-          spriteInstance.on("pointertap", (ev: FederatedPointerEvent) => {
-            ev.stopPropagation();
+        }
+        if (isFruitTree && !editing) {
+          spriteInstance.eventMode = "static";
+          spriteInstance.cursor = "pointer";
+          const berryName =
+            (objectEntry.extra && (objectEntry.extra["berry"] as string)) || "Berry";
+          // Format berry name for display (e.g., "WHT_APRICORN" -> "Wht Apricorn")
+          const displayName = berryName
+            .split("_")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(" ");
+          spriteInstance.on("pointerover", (ev: FederatedPointerEvent) => {
             const x = (ev as any).clientX ?? window.innerWidth / 2;
             const y = (ev as any).clientY ?? window.innerHeight / 2;
-            // Toggle pinned state
-            if (tooltipPinnedRef.current) {
-              hideTooltip(true);
-            } else {
-              showTooltip(
-                `<strong>${String(label)}</strong><div style="margin-top:6px;font-size:12px;opacity:0.85;">Tap again to close</div>`,
-                x,
-                y,
-                true,
-              );
-            }
+            showTooltip({ title: displayName, subtitle: "Berry Tree" }, x, y);
+          });
+          spriteInstance.on("pointerout", () => {
+            hideTooltip();
           });
         }
       } catch {
         /* ignore tooltip wiring failures */
+      }
+      // Enable click-to-link for trainers
+      try {
+        const isTrainer = objectEntry.isTrainer;
+        if (isTrainer && !editing) {
+          const scriptArg = objectEntry.script?.argument ?? "";
+          const spriteConstant = objectEntry.sprite?.constant ?? "";
+          // Derive trainer name from script argument or sprite constant
+          const trainerName = scriptArg.replace(/Script$/, "") ||
+            spriteConstant.replace(/^SPRITE_/, "").charAt(0) +
+            spriteConstant.replace(/^SPRITE_/, "").slice(1).toLowerCase();
+          const mapLabel = state.mapLabel ?? "";
+          if (trainerName && mapLabel) {
+            spriteInstance.eventMode = "static";
+            spriteInstance.cursor = "pointer";
+            const rawAnchor = (scriptArg || spriteConstant.replace(/^SPRITE_/, "")).replace(/^GenericTrainer/i, "");
+            const url = buildTrainerUrl(mapLabel, rawAnchor);
+            // Format trainer name for display
+            // "GenericTrainerBug_maniacKai" -> "Bug Maniac Kai"
+            const cleanedName = trainerName
+              .replace(/^GenericTrainer/i, "")
+              .replace(/^Trainer/, "");
+            // Insert space before the final name (uppercase start after lowercase)
+            // e.g., "Bug_maniacKai" -> "Bug_maniac Kai"
+            const withNameSplit = cleanedName.replace(/([a-z])([A-Z])/g, "$1 $2");
+            // Replace underscores with spaces and capitalize each word
+            const displayName = withNameSplit
+              .replace(/_/g, " ")
+              .split(" ")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")
+              .trim() || "Trainer";
+            spriteInstance.on("pointerover", (ev: FederatedPointerEvent) => {
+              const x = (ev as any).clientX ?? window.innerWidth / 2;
+              const y = (ev as any).clientY ?? window.innerHeight / 2;
+              showTooltip(
+                { title: displayName, subtitle: "Click to view team" },
+                x,
+                y,
+              );
+            });
+            spriteInstance.on("pointerout", () => {
+              hideTooltip();
+            });
+            spriteInstance.on("pointertap", (ev: FederatedPointerEvent) => {
+              ev.stopPropagation();
+              hideTooltip();
+              window.open(url, "_blank", "noopener,noreferrer");
+            });
+          }
+        }
+      } catch {
+        /* ignore trainer link wiring failures */
       }
       const movementSummary = disableObjectAnimations
         ? null
@@ -2935,15 +1658,7 @@ export default function MapCanvas({
     sprite.sortChildren();
     // Render on demand to apply overlay object changes in static mode
     maybeRender();
-  }, [
-    atlas,
-    timeOfDay,
-    bgPalettes,
-    getCollisionMetadata,
-    maybeRender,
-    editing,
-    disableObjectAnimations,
-  ]);
+  }, [atlas, maybeRender, getCollisionMetadata, bgPalettes?.maps, timeOfDay, getMapMetadata, computeMapWeather, disableObjectAnimations, editing, showTooltip, hideTooltip]);
 
   const openOverlay = useCallback(
     async (
@@ -2996,8 +1711,13 @@ export default function MapCanvas({
           existing.sprite.sortChildren();
           existing.highlight = g;
         }
-        rendererOn(app, "resize", positionOverlayContents);
         positionOverlayContents();
+        // Force immediate render so the overlay appears centered right away
+        try {
+          app.render();
+        } catch {
+          /* ignore */
+        }
         return;
       }
       const assetUrl = resolveAssetHref(mapLabel);
@@ -3038,6 +1758,29 @@ export default function MapCanvas({
 
         overlay.addChild(background);
         overlay.addChild(sprite);
+
+        // Create warp transition flash effect
+        const transitionFlash = new Graphics();
+        transitionFlash.beginFill(0x88ddff, 0.6); // Light cyan flash
+        transitionFlash.drawRect(0, 0, 10000, 10000); // Large enough to cover viewport
+        transitionFlash.endFill();
+        transitionFlash.zIndex = 1000; // Above everything
+        transitionFlash.eventMode = "none";
+        overlay.addChild(transitionFlash);
+        overlay.sortChildren();
+        // Animate flash fade-out
+        let flashAlpha = 0.6;
+        const fadeFlash = (): void => {
+          flashAlpha -= 0.04;
+          if (flashAlpha <= 0) {
+            transitionFlash.visible = false;
+            transitionFlash.alpha = 0;
+            return;
+          }
+          transitionFlash.alpha = flashAlpha;
+          requestAnimationFrame(fadeFlash);
+        };
+        requestAnimationFrame(fadeFlash);
 
         const objectContainer = new Container();
         // Make container interactive so children can receive pointer events
@@ -3129,7 +1872,6 @@ export default function MapCanvas({
           highlightGraphic.x = highlight.xCells * cellSize;
           highlightGraphic.y = highlight.yCells * cellSize;
           highlightGraphic.eventMode = "none";
-          highlightGraphic.interactive = false;
           highlightGraphic.cursor = "auto";
           highlightGraphic.zIndex = 4;
           sprite.addChild(highlightGraphic);
@@ -3150,7 +1892,6 @@ export default function MapCanvas({
           }
         };
 
-        overlay.visible = true;
         overlayStateRef.current = {
           mapLabel,
           sprite,
@@ -3158,6 +1899,7 @@ export default function MapCanvas({
           background,
           markers,
           highlight: highlightGraphic,
+          transitionFlash,
           baseWidth,
           baseHeight,
           cellSize,
@@ -3170,7 +1912,7 @@ export default function MapCanvas({
           fitScale: 1,
           minScale: MIN_SCALE,
           maxScale: MAX_SCALE,
-          positioned: false,
+          userPanned: false,
         };
         const elapsed = Math.max(0, app.ticker.lastTime - syncStartRef.current);
         const initialFrame = frameIndexForTime(
@@ -3182,17 +1924,26 @@ export default function MapCanvas({
           sprite.gotoAndStop(initialFrame);
         }
         refreshOverlayObjects();
+        // Position overlay BEFORE making it visible to avoid flash at (0,0)
+        positionOverlayContents();
         const world = worldRef.current;
         if (world) {
           world.visible = false;
         }
+        overlay.visible = true;
         if (typeof window !== "undefined") {
           window.addEventListener("keydown", keyHandler);
         }
-        rendererOff(app, "resize", positionOverlayContents);
-        rendererOn(app, "resize", positionOverlayContents);
-        positionOverlayContents();
-        maybeRender();
+        // Force immediate render so the overlay appears centered right away
+        try {
+          app.render();
+        } catch {
+          /* ignore */
+        }
+        // Notify parent of overlay open
+        if (onOverlayChangeRef.current) {
+          onOverlayChangeRef.current({ mapLabel, backlink: backlinkRef.current });
+        }
       } catch (err) {
         if (overlayTokenRef.current === token) {
           console.error(`Failed to open overlay for ${mapLabel}`, err);
@@ -3207,8 +1958,25 @@ export default function MapCanvas({
       positionOverlayContents,
       refreshOverlayObjects,
       resolveAssetHref,
-      maybeRender,
     ],
+  );
+
+  // Expose imperative handle for parent components
+  useImperativeHandle(
+    ref,
+    () => ({
+      focusWorldOn,
+      setScale: (scale: number) => setScaleAt(scale),
+      getViewState,
+      getApp: () => appRef.current,
+      resetView: () => resetViewRef.current?.(),
+      closeOverlay,
+      openOverlay,
+      setBacklink: (backlink: WarpBacklink | null) => {
+        backlinkRef.current = backlink;
+      },
+    }),
+    [focusWorldOn, setScaleAt, getViewState, closeOverlay, openOverlay],
   );
 
   const handleWarpMarkerTap = useCallback(
@@ -3330,10 +2098,9 @@ export default function MapCanvas({
       if (targetLabel) {
         const targetEntry = findWorldEntry(targetLabel);
         if (targetEntry) {
-          const backlink = backlinkRef.current;
-          if (backlink && backlink.applicableTo === currentMapLabel) {
-            backlinkRef.current = backlink.previous ?? null;
-          }
+          // When exiting overlay to a world map, clear the entire backlink chain
+          // (no need to track a trail back when we're in the world view)
+          backlinkRef.current = null;
           closeOverlay();
           focusEntryOnWarp(targetEntry, target);
           if (typeof target.warpIndex === "number") {
@@ -3445,17 +2212,30 @@ export default function MapCanvas({
           }
           handleWarpMarkerTap(entry, warp);
         });
-        graphic.on("pointerover", () => {
+        graphic.on("pointerover", (ev: FederatedPointerEvent) => {
           if (editing) {
             return;
           }
           graphic.alpha = 1;
+          // Show tooltip with destination
+          const targetLabel = warp.target?.mapLabel;
+          if (targetLabel) {
+            // Format map label for display (add spaces before capitals, handle underscores)
+            const displayLabel = targetLabel
+              .replace(/_/g, " ")
+              .replace(/([a-z])([A-Z])/g, "$1 $2")
+              .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2");
+            const x = (ev as any).clientX ?? window.innerWidth / 2;
+            const y = (ev as any).clientY ?? window.innerHeight / 2;
+            showTooltip({ title: `To: ${displayLabel}` }, x, y);
+          }
         });
         graphic.on("pointerout", () => {
           if (editing) {
             return;
           }
           graphic.alpha = baseAlpha;
+          hideTooltip();
         });
         graphic.zIndex = 10;
         if (hasWarpsLayer && warpsLayer) {
@@ -3473,7 +2253,7 @@ export default function MapCanvas({
     }
     // Reflect marker changes in static mode
     maybeRender();
-  }, [computeCellSize, editing, handleWarpMarkerTap, maybeRender, clearHighlightTimers]);
+  }, [computeCellSize, editing, handleWarpMarkerTap, maybeRender, clearHighlightTimers, showTooltip, hideTooltip]);
 
   const refreshObjectSprites = useCallback((): void => {
     const metadata = objectMetadataRef.current;
@@ -3656,54 +2436,129 @@ export default function MapCanvas({
         sprite.y = baseY + offsetY;
         sprite.scale.set(pixelScale);
         container.addChild(sprite);
-        // If this object is an item/key/TM/HM ball, enable pointer interactions and show tooltip
+        // If this object is an item/key/TM/HM ball or fruit tree, enable pointer interactions and show tooltip
         try {
           const macro = objectEntry.macro ?? "";
           const isBall =
             macro === "itemball_event" ||
             macro === "keyitemball_event" ||
             macro === "tmhmball_event";
-          if (isBall) {
+          const isFruitTree = macro === "fruittree_event";
+          // Detect scripted item balls (like Lucky Egg on Lucky Island)
+          const isScriptedItemBall =
+            !isBall &&
+            objectEntry.paletteOverride?.constant === "PAL_OW_POKE_BALL" &&
+            objectEntry.objectType?.constant === "OBJECTTYPE_SCRIPT" &&
+            objectEntry.script?.argument;
+          // Extract item name from script argument for scripted item balls
+          let scriptedItemName: string | null = null;
+          if (isScriptedItemBall) {
+            const scriptArg = objectEntry.script?.argument ?? "";
+            // Extract item name by removing map prefix and "Script" suffix
+            // e.g., "LuckyIslandLuckyEgg" -> "Lucky Egg"
+            const cleanedArg = scriptArg.replace(/Script$/, "");
+            // Try to find item name pattern (consecutive uppercase words at end)
+            const match = cleanedArg.match(/([A-Z][a-z]+){2,}$/);
+            if (match) {
+              scriptedItemName = match[0]
+                .replace(/([A-Z])/g, " $1")
+                .trim();
+            }
+          }
+          if (isBall || (isScriptedItemBall && scriptedItemName)) {
             sprite.eventMode = "static";
             sprite.cursor = editing ? "not-allowed" : "pointer";
-            const label =
-              (objectEntry.extra && (objectEntry.extra["item"] as string)) ||
+            // Determine item name for tooltip: use scripted name for scripted item balls, otherwise check for explicit "item" extra or fallback to generic "Item"
+            const itemLabel = (objectEntry.extra && (objectEntry.extra["item"] as string)) ||
               objectEntry.script?.argument ||
               "Item";
+            const label = isBall
+              ? itemLabel
+              : scriptedItemName!;
             sprite.on("pointerover", (ev: FederatedPointerEvent) => {
               if (editing) return;
               const x = (ev as any).clientX ?? window.innerWidth / 2;
               const y = (ev as any).clientY ?? window.innerHeight / 2;
-              showTooltip(`<strong>${String(label)}</strong>`, x, y, false);
-            });
-            sprite.on("pointermove", (ev: FederatedPointerEvent) => {
-              if (editing) return;
-              const x = (ev as any).clientX;
-              const y = (ev as any).clientY;
-              if (typeof x !== "number" || typeof y !== "number") return;
-              showTooltip(`<strong>${String(label)}</strong>`, x, y, tooltipPinnedRef.current);
+              showTooltip({ title: String(label) }, x, y);
             });
             sprite.on("pointerout", () => {
               hideTooltip();
             });
-            sprite.on("pointertap", (ev: FederatedPointerEvent) => {
-              ev.stopPropagation();
+          }
+          if (isFruitTree && !editing) {
+            sprite.eventMode = "static";
+            sprite.cursor = "pointer";
+            const berryName =
+              (objectEntry.extra && (objectEntry.extra["berry"] as string)) || "Berry";
+            // Format berry name for display (e.g., "WHT_APRICORN" -> "Wht Apricorn")
+            const displayName = berryName
+              .split("_")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+              .join(" ");
+            sprite.on("pointerover", (ev: FederatedPointerEvent) => {
               const x = (ev as any).clientX ?? window.innerWidth / 2;
               const y = (ev as any).clientY ?? window.innerHeight / 2;
-              if (tooltipPinnedRef.current) {
-                hideTooltip(true);
-              } else {
-                showTooltip(
-                  `<strong>${String(label)}</strong><div style="margin-top:6px;font-size:12px;opacity:0.85;">Tap again to close</div>`,
-                  x,
-                  y,
-                  true,
-                );
-              }
+              showTooltip({ title: displayName, subtitle: "Berry Tree" }, x, y);
+            });
+            sprite.on("pointerout", () => {
+              hideTooltip();
             });
           }
         } catch {
           /* ignore tooltip wiring failures */
+        }
+        // Enable click-to-link for trainers
+        try {
+          const isTrainer = objectEntry.isTrainer;
+          if (isTrainer && !editing) {
+            const scriptArg = objectEntry.script?.argument ?? "";
+            const spriteConstant = objectEntry.sprite?.constant ?? "";
+            // Derive trainer name from script argument or sprite constant
+            const trainerName = scriptArg.replace(/Script$/, "") ||
+              spriteConstant.replace(/^SPRITE_/, "").charAt(0) +
+              spriteConstant.replace(/^SPRITE_/, "").slice(1).toLowerCase();
+            const mapLabel = entry.placement.label ?? "";
+            if (trainerName && mapLabel) {
+              sprite.eventMode = "static";
+              sprite.cursor = "pointer";
+              const rawAnchor = (scriptArg || spriteConstant.replace(/^SPRITE_/, "")).replace(/^GenericTrainer/i, "");
+              const url = buildTrainerUrl(mapLabel, rawAnchor);
+              // Format trainer name for display
+              // "GenericTrainerBug_maniacKai" -> "Bug Maniac Kai"
+              const cleanedName = trainerName
+                .replace(/^GenericTrainer/i, "")
+                .replace(/^Trainer/, "");
+              // Insert space before the final name (uppercase start after lowercase)
+              // e.g., "Bug_maniacKai" -> "Bug_maniac Kai"
+              const withNameSplit = cleanedName.replace(/([a-z])([A-Z])/g, "$1 $2");
+              // Replace underscores with spaces and capitalize each word
+              const displayName = withNameSplit
+                .replace(/_/g, " ")
+                .split(" ")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ")
+                .trim() || "Trainer";
+              sprite.on("pointerover", (ev: FederatedPointerEvent) => {
+                const x = (ev as any).clientX ?? window.innerWidth / 2;
+                const y = (ev as any).clientY ?? window.innerHeight / 2;
+                showTooltip(
+                  { title: displayName, subtitle: "Click to view team" },
+                  x,
+                  y,
+                );
+              });
+              sprite.on("pointerout", () => {
+                hideTooltip();
+              });
+              sprite.on("pointertap", (ev: FederatedPointerEvent) => {
+                ev.stopPropagation();
+                hideTooltip();
+                window.open(url, "_blank", "noopener,noreferrer");
+              });
+            }
+          }
+        } catch {
+          /* ignore trainer link wiring failures */
         }
         const movementSummary = disableObjectAnimations
           ? null
@@ -3782,6 +2637,8 @@ export default function MapCanvas({
     maybeRender,
     editing,
     disableObjectAnimations,
+    showTooltip,
+    hideTooltip,
   ]);
 
   useEffect(() => {
@@ -4245,6 +3102,10 @@ export default function MapCanvas({
         refreshWarpMarkers();
         refreshObjectSprites();
         refreshOverlayObjects();
+        // Draw map borders if enabled
+        if (mapBordersEnabled) {
+          drawMapBorders();
+        }
       })
       .catch((err) => {
         console.error("Failed to load map sprites", err);
@@ -4302,6 +3163,8 @@ export default function MapCanvas({
     timeOfDay,
     clearHighlightTimers,
     closeOverlay,
+    mapBordersEnabled,
+    drawMapBorders,
   ]);
 
   useEffect(() => {
@@ -4876,7 +3739,7 @@ export default function MapCanvas({
         }
       }
 
-      state.positioned = true;
+      state.userPanned = true;
       maybeRender();
     };
 
@@ -4920,7 +3783,6 @@ export default function MapCanvas({
           overlaySprite.y = Math.min(maxY, Math.max(minY, overlaySprite.y));
         }
       }
-      state.positioned = true;
     };
 
     const updatePinchStart = (): void => {
@@ -4971,6 +3833,7 @@ export default function MapCanvas({
           lastDrag = { x: event.clientX, y: event.clientY };
           overlayState.sprite.x += dx;
           overlayState.sprite.y += dy;
+          overlayState.userPanned = true;
           clampOverlayPosition();
           maybeRender();
           return;
@@ -4989,7 +3852,9 @@ export default function MapCanvas({
             x: (first.clientX + second.clientX) / 2,
             y: (first.clientY + second.clientY) / 2,
           };
-          const scaleFactor = distance / pinchStartDistance;
+          // Apply sensitivity multiplier for overlay pinch-to-zoom
+          const rawFactor = distance / pinchStartDistance;
+          const scaleFactor = 1 + (rawFactor - 1) * 1.8;
           applyOverlayScale(pinchStartScale * scaleFactor, center);
         }
         return;
@@ -5018,7 +3883,9 @@ export default function MapCanvas({
           x: (first.clientX + second.clientX) / 2,
           y: (first.clientY + second.clientY) / 2,
         };
-        const scaleFactor = distance / pinchStartDistance;
+        // Apply a sensitivity multiplier to make pinch-to-zoom faster
+        const rawFactor = distance / pinchStartDistance;
+        const scaleFactor = 1 + (rawFactor - 1) * 1.8;
         applyScale(pinchStartScale * scaleFactor, center);
       }
     };
@@ -5144,6 +4011,8 @@ export default function MapCanvas({
       if (editing) return;
       if (overlayStateRef.current) return;
       if (isInteractiveTarget(event.target)) return;
+      // Don't capture keyboard shortcuts with Ctrl/Cmd modifiers
+      if (event.ctrlKey || event.metaKey) return;
 
       let consumed = false;
       const panStep = event.shiftKey ? 120 : 60; // screen-space px per keypress
@@ -5326,128 +4195,110 @@ export default function MapCanvas({
     <div className="canvas-stage" ref={containerRef}>
       {loading && <div className="status-banner info">Loading atlas…</div>}
       {!loading && !atlas && <div className="status-banner warning">No map data available.</div>}
-      {/* Sprite Limits Panel */}
-      <div
-        style={{
-          position: "absolute",
-          right: 12,
-          top: 12,
-          padding: 8,
-          background: "rgba(0,0,0,0.5)",
-          color: "#fff",
-          borderRadius: 6,
-          display: "flex",
-          gap: 8,
-          alignItems: "center",
-          flexWrap: "wrap",
-          maxWidth: "calc(100% - 24px)",
-          overflow: "hidden",
-          zIndex: 1000,
-        }}
-      >
-        {/* Weather toggle (auto per-map) */}
-        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-          <input
-            type="checkbox"
-            checked={weatherEnabled}
-            onChange={(e: CheckboxChangeEvent) => setWeatherEnabled(e.target.checked)}
-          />
-          <span>Weather</span>
-        </label>
-        {/* Sprite Limits toggle */}
-        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-          <input
-            type="checkbox"
-            checked={spriteLimitEnabled}
-            onChange={(e: CheckboxChangeEvent) => setSpriteLimitEnabled(e.target.checked)}
-          />
-          <span>Sprite Limits</span>
-        </label>
-        {spriteLimitEnabled && (
-          <>
-            {/* Severity filter */}
-            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-              <input
-                type="checkbox"
-                checked={spriteOnlyErrors}
-                onChange={(e: CheckboxChangeEvent) => setSpriteOnlyErrors(e.target.checked)}
-              />
-              <span>Only errors (&gt; limit)</span>
-            </label>
-            {/* Follower toggle */}
-            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-              <input
-                type="checkbox"
-                checked={spriteIncludeFollower}
-                onChange={(e: CheckboxChangeEvent) => setSpriteIncludeFollower(e.target.checked)}
-              />
-              <span>Follower Pokémon</span>
-            </label>
-            {/* Weather toggle (overworld only when applied in analysis) */}
-            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-              <input
-                type="checkbox"
-                checked={spriteIncludeWeather}
-                onChange={(e: CheckboxChangeEvent) => setSpriteIncludeWeather(e.target.checked)}
-              />
-              <span>Weather (reserve 1)</span>
-            </label>
-            {/* Scope selector */}
-            <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
-              <span>Scope</span>
-              <select
-                value={spriteScope}
-                onChange={(e: SelectChangeEvent) =>
-                  setSpriteScope((e.target.value as MapScope) ?? "all")
-                }
-                style={{ fontSize: 12, maxWidth: 140 }}
-              >
-                <option value="all">All</option>
-                <option value="overworld">Overworld</option>
-                <option value="indoor">Indoor</option>
-              </select>
-            </label>
-            {/* Limits */}
-            <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
-              <span>Scanline</span>
-              <input
-                type="number"
-                value={spriteScanlineLimit}
-                onChange={(e: InputNumberChangeEvent) =>
-                  setSpriteScanlineLimit(
-                    Number.isFinite(parseInt(e.target.value)) ? parseInt(e.target.value) : 10,
-                  )
-                }
-                min={0}
-                step={1}
-                style={{ width: 64, fontSize: 12 }}
-              />
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
-              <span>Total</span>
-              <input
-                type="number"
-                value={spriteTotalLimit}
-                onChange={(e: InputNumberChangeEvent) =>
-                  setSpriteTotalLimit(
-                    Number.isFinite(parseInt(e.target.value)) ? parseInt(e.target.value) : 40,
-                  )
-                }
-                min={0}
-                step={1}
-                style={{ width: 64, fontSize: 12 }}
-              />
-            </label>
-            <button
-              type="button"
-              onClick={() => runSpriteLimitAnalysis()}
-              disabled={spriteAnalyzing}
+      {/* Sprite Limits Analysis Panel - only shown when enabled */}
+      {spriteLimitEnabled && (
+        <div
+          style={{
+            position: "absolute",
+            right: 12,
+            top: 12,
+            padding: 8,
+            background: "rgba(0,0,0,0.7)",
+            color: "#fff",
+            borderRadius: 6,
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+            flexWrap: "wrap",
+            maxWidth: "calc(100% - 24px)",
+            overflow: "hidden",
+            zIndex: 40,
+            fontSize: 12,
+          }}
+        >
+          {/* Severity filter */}
+          <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <input
+              type="checkbox"
+              checked={spriteOnlyErrors}
+              onChange={(e: CheckboxChangeEvent) => setSpriteOnlyErrors(e.target.checked)}
+            />
+            <span>Errors only</span>
+          </label>
+          {/* Follower toggle */}
+          <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <input
+              type="checkbox"
+              checked={spriteIncludeFollower}
+              onChange={(e: CheckboxChangeEvent) => setSpriteIncludeFollower(e.target.checked)}
+            />
+            <span>+Follower</span>
+          </label>
+          {/* Weather toggle (overworld only when applied in analysis) */}
+          <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <input
+              type="checkbox"
+              checked={spriteIncludeWeather}
+              onChange={(e: CheckboxChangeEvent) => setSpriteIncludeWeather(e.target.checked)}
+            />
+            <span>+Weather</span>
+          </label>
+          {/* Scope selector */}
+          <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span>Scope</span>
+            <select
+              value={spriteScope}
+              onChange={(e: SelectChangeEvent) =>
+                setSpriteScope((e.target.value as MapScope) ?? "all")
+              }
+              style={{ fontSize: 12, maxWidth: 100 }}
             >
-              {spriteAnalyzing ? "Analyzing…" : "Analyze"}
-            </button>
-          </>
-        )}
-      </div>
+              <option value="all">All</option>
+              <option value="overworld">Overworld</option>
+              <option value="indoor">Indoor</option>
+            </select>
+          </label>
+          {/* Limits */}
+          <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span>Line</span>
+            <input
+              type="number"
+              value={spriteScanlineLimit}
+              onChange={(e: InputNumberChangeEvent) =>
+                setSpriteScanlineLimit(
+                  Number.isFinite(parseInt(e.target.value)) ? parseInt(e.target.value) : 10,
+                )
+              }
+              min={0}
+              step={1}
+              style={{ width: 48, fontSize: 12 }}
+            />
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span>Total</span>
+            <input
+              type="number"
+              value={spriteTotalLimit}
+              onChange={(e: InputNumberChangeEvent) =>
+                setSpriteTotalLimit(
+                  Number.isFinite(parseInt(e.target.value)) ? parseInt(e.target.value) : 40,
+                )
+              }
+              min={0}
+              step={1}
+              style={{ width: 48, fontSize: 12 }}
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => runSpriteLimitAnalysis()}
+            disabled={spriteAnalyzing}
+            style={{ fontSize: 12, padding: "2px 8px" }}
+          >
+            {spriteAnalyzing ? "Analyzing…" : "Analyze"}
+          </button>
+        </div>
+      )}
       {/* When no overlay is open, Analyze scans the entire overworld. */}
       {spriteLimitEnabled &&
         spriteIssues &&
@@ -5463,7 +4314,7 @@ export default function MapCanvas({
               background: "rgba(0,0,0,0.6)",
               color: "#fff",
               borderRadius: 16,
-              zIndex: 1000,
+              zIndex: 40,
               cursor: "pointer",
               userSelect: "none",
             }}
@@ -5497,7 +4348,7 @@ export default function MapCanvas({
               background: "rgba(0,0,0,0.6)",
               color: "#fff",
               borderRadius: 6,
-              zIndex: 1000,
+              zIndex: 40,
             }}
           >
             <div
@@ -5706,6 +4557,25 @@ export default function MapCanvas({
             )}
           </div>
         ))}
+      {/* Canvas tooltip (React-rendered, styled like shadcn) */}
+      {tooltipState.data && (
+        <div
+          role="tooltip"
+          className={cn(
+            "fixed z-[9999] pointer-events-none",
+            "rounded-md bg-neutral-900 px-3 py-1.5 text-xs text-neutral-50",
+            "shadow-md animate-in fade-in-0 zoom-in-95"
+          )}
+          style={{ left: tooltipState.x, top: tooltipState.y }}
+        >
+          <span className="font-medium">{tooltipState.data.title}</span>
+          {tooltipState.data.subtitle && (
+            <div className="mt-1 text-[11px] opacity-70">{tooltipState.data.subtitle}</div>
+          )}
+        </div>
+      )}
     </div>
   );
-}
+});
+
+export default MapCanvas;

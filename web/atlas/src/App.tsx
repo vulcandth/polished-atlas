@@ -1,25 +1,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import MapCanvas from "@/components/MapCanvas";
+import MapCanvas, { type MapCanvasHandle, type MapViewState, type WarpBacklink } from "@/components/MapCanvas";
+import type { SearchResult } from "@/components/MapSearch";
+import ZoomControls from "@/components/ZoomControls";
+import HelpPanel from "@/components/HelpPanel";
+import OverlayBreadcrumb from "@/components/OverlayBreadcrumb";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useAtlasData } from "@/hooks/useAtlasData";
 import { useObjectMetadata } from "@/hooks/useObjectMetadata";
 import { useWarpMetadata } from "@/hooks/useWarpMetadata";
 import { useBgPalettes } from "@/hooks/useBgPalettes";
+import { useUrlState, type UrlViewState } from "@/hooks/useUrlState";
 import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
+import { takeScreenshot } from "@/lib/screenshot";
 import type { NeighborhoodSummary } from "@/types";
+import { MIN_SCALE, MAX_SCALE } from "@/components/MapCanvas/constants";
+import HeaderNav, { TIME_OF_DAY_OPTIONS, TimeOfDaySlug } from "./components/HeaderNav";
 
 const DEFAULT_ROOT = import.meta.env.VITE_ROOT_MAP ?? "NewBarkTown";
 const MANIFEST_OVERRIDE = import.meta.env.VITE_NEIGHBORHOOD_MANIFEST_URL?.trim() || "";
 const TIME_STORAGE_KEY = "polished-atlas/time-of-day";
-
-const TIME_OF_DAY_OPTIONS = [
-  { value: "morn", label: "Morning" },
-  { value: "day", label: "Day" },
-  { value: "nite", label: "Night" },
-  { value: "eve", label: "Evening" },
-] as const;
-
-type TimeOfDayOption = (typeof TIME_OF_DAY_OPTIONS)[number];
-type TimeOfDaySlug = TimeOfDayOption["value"];
 
 // Persisted performance settings (shared with MapCanvas)
 const PERF_SETTINGS_STORAGE_KEY = "polished-atlas:perf-settings";
@@ -56,7 +55,7 @@ const POLISHED_VERSION = (() => {
       return trimmed;
     }
   }
-  return "v3.2.0";
+  return "v3.2.3";
 })();
 
 function sanitizeTimeOfDay(value: unknown): TimeOfDaySlug {
@@ -212,6 +211,138 @@ export default function App() {
     reload: objectReload,
   } = useObjectMetadata();
   const isLoading = loading || warpLoading || objectLoading || bgLoading;
+
+  // New UI state
+  const mapCanvasRef = useRef<MapCanvasHandle>(null);
+  const [currentScale, setCurrentScale] = useState(1);
+  const [helpPanelOpen, setHelpPanelOpen] = useState(false);
+
+  // URL deep-linking
+  const handleUrlStateChange = useCallback((state: UrlViewState) => {
+    if (mapCanvasRef.current) {
+      if (state.x !== undefined && state.y !== undefined) {
+        mapCanvasRef.current.focusWorldOn(state.x, state.y);
+      }
+      if (state.zoom !== undefined) {
+        mapCanvasRef.current.setScale(state.zoom);
+      }
+    }
+  }, []);
+
+  const { getInitialState, updateUrl } = useUrlState({
+    onStateChange: handleUrlStateChange,
+  });
+
+  // Apply initial URL state on mount
+  useEffect(() => {
+    const initialState = getInitialState();
+    if (initialState.zoom !== undefined || initialState.x !== undefined) {
+      handleUrlStateChange(initialState);
+    }
+  }, [getInitialState, handleUrlStateChange]);
+
+  // Handle view state changes from MapCanvas
+  const handleViewStateChange = useCallback(
+    (viewState: MapViewState) => {
+      setCurrentScale(viewState.scale);
+      updateUrl(
+        {
+          x: Math.round(viewState.centerWorldX),
+          y: Math.round(viewState.centerWorldY),
+          zoom: viewState.scale,
+        },
+        true, // replace instead of push to avoid polluting history
+      );
+    },
+    [updateUrl],
+  );
+
+  // Search navigation
+  const handleSearchSelect = useCallback((result: SearchResult) => {
+    if (result.x !== undefined && result.y !== undefined && mapCanvasRef.current) {
+      mapCanvasRef.current.focusWorldOn(result.x, result.y);
+    }
+  }, []);
+
+  // Zoom controls
+  const handleZoom = useCallback((newScale: number) => {
+    if (mapCanvasRef.current) {
+      mapCanvasRef.current.setScale(newScale);
+    }
+  }, []);
+
+  // Reset view to fit entire atlas
+  const handleResetView = useCallback(() => {
+    mapCanvasRef.current?.resetView();
+  }, []);
+
+  // Screenshot
+  const handleScreenshot = useCallback(async () => {
+    const app = mapCanvasRef.current?.getApp();
+    if (app) {
+      try {
+        await takeScreenshot(app, { filename: `polished-atlas-${Date.now()}` });
+      } catch (err) {
+        console.error("Screenshot failed:", err);
+      }
+    }
+  }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip if typing in an input
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target instanceof HTMLSelectElement
+      ) {
+        return;
+      }
+
+      // Ctrl+K / Cmd+K to focus search
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        document.querySelector<HTMLInputElement>(".map-search input")?.focus();
+        return;
+      }
+
+      switch (e.key) {
+        case "?":
+          e.preventDefault();
+          setHelpPanelOpen(true);
+          break;
+        case "/":
+          e.preventDefault();
+          document.querySelector<HTMLInputElement>(".map-search input")?.focus();
+          break;
+        case "Escape":
+          setHelpPanelOpen(false);
+          break;
+        case "0":
+          e.preventDefault();
+          if (mapCanvasRef.current) {
+            mapCanvasRef.current.setScale(1);
+          }
+          break;
+        case "f":
+        case "F":
+          // Don't toggle fullscreen if modifier keys are pressed
+          if (e.ctrlKey || e.metaKey || e.altKey) break;
+          e.preventDefault();
+          if (document.fullscreenElement) {
+            document.exitFullscreen();
+          } else {
+            document.documentElement.requestFullscreen();
+          }
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const neighborhoods: NeighborhoodSummary[] = useMemo(
     () => layout?.metadata?.neighborhoods ?? [],
     [layout],
@@ -634,63 +765,79 @@ export default function App() {
     writePerfSettings({ disableMapAnimations, disableObjectAnimations });
   }, [disableMapAnimations, disableObjectAnimations]);
 
+  // Weather and sprite limit toggles (controlled from header)
+  const [weatherEnabled, setWeatherEnabled] = useState<boolean>(true);
+  const [spriteLimitEnabled, setSpriteLimitEnabled] = useState<boolean>(false);
+  const [mapBordersEnabled, setMapBordersEnabled] = useState<boolean>(false);
+
+  // Overlay navigation state
+  const [overlayState, setOverlayState] = useState<{
+    mapLabel: string | null;
+    backlink: WarpBacklink | null;
+  }>({ mapLabel: null, backlink: null });
+
+  const handleOverlayChange = useCallback(
+    (state: { mapLabel: string | null; backlink: WarpBacklink | null }) => {
+      setOverlayState(state);
+    },
+    []
+  );
+
+  const handleCloseOverlay = useCallback(() => {
+    mapCanvasRef.current?.closeOverlay();
+  }, []);
+
+  const handleNavigateBreadcrumb = useCallback(
+    (mapLabel: string, newBacklink: WarpBacklink | null) => {
+      const canvas = mapCanvasRef.current;
+      if (!canvas) return;
+      // Close current overlay, restore backlink chain, then open target
+      canvas.closeOverlay();
+      canvas.setBacklink(newBacklink);
+      canvas.openOverlay(mapLabel);
+    },
+    []
+  );
+
   return (
-    <main className="app-shell">
-      <header className="app-header">
-        <div className="brand">
-          <h1>Polished Atlas</h1>
-          <span className="subtitle">{subtitle}</span>
-          <span className="version">polishedcrystal {POLISHED_VERSION}</span>
-        </div>
-        <div className="actions">
-          <div className="time-picker">
-            <label htmlFor="time-of-day-select">Time</label>
-            <select
-              id="time-of-day-select"
-              value={timeOfDay}
-              onChange={(event) => handleTimeOfDayChange(event.target.value)}
-              disabled={timeSelectDisabled}
-              title={timeSelectTitle}
-            >
-              {TIME_OF_DAY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="perf-toggles" title="Rendering performance options">
-            <label>
-              <input
-                type="checkbox"
-                checked={disableMapAnimations}
-                onChange={(e) => setDisableMapAnimations(e.target.checked)}
-              />
-              <span>Disable map animations</span>
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={disableObjectAnimations}
-                onChange={(e) => setDisableObjectAnimations(e.target.checked)}
-              />
-              <span>Disable NPC animations</span>
-            </label>
-          </div>
-          <button type="button" onClick={handleReloadClick} disabled={isLoading}>
-            {isLoading ? "Loading…" : "Reload"}
-          </button>
-          {canEdit && (
-            <button
-              type="button"
-              onClick={handleToggleEditing}
-              disabled={isLoading || saveStatus === "saving"}
-            >
-              {!editing ? "Edit Layout" : saveStatus === "saving" ? "Saving…" : "Finish Editing"}
-            </button>
-          )}
-        </div>
-      </header>
+    <TooltipProvider>
+      <main className="app-shell dark">
+      <HeaderNav
+        subtitle={subtitle}
+        version={POLISHED_VERSION}
+        placements={layout?.placements ?? []}
+        neighborhoods={neighborhoods}
+        onSearchSelect={handleSearchSelect}
+        isLoading={isLoading}
+        timeOfDay={timeOfDay}
+        onTimeOfDayChange={handleTimeOfDayChange}
+        timeSelectDisabled={timeSelectDisabled}
+        timeSelectTitle={timeSelectTitle}
+        disableMapAnimations={disableMapAnimations}
+        onDisableMapAnimationsChange={setDisableMapAnimations}
+        disableObjectAnimations={disableObjectAnimations}
+        onDisableObjectAnimationsChange={setDisableObjectAnimations}
+        weatherEnabled={weatherEnabled}
+        onWeatherEnabledChange={setWeatherEnabled}
+        spriteLimitEnabled={spriteLimitEnabled}
+        onSpriteLimitEnabledChange={setSpriteLimitEnabled}
+        mapBordersEnabled={mapBordersEnabled}
+        onMapBordersEnabledChange={setMapBordersEnabled}
+        onReload={handleReloadClick}
+        onResetView={handleResetView}
+        onScreenshot={handleScreenshot}
+        onOpenHelp={() => setHelpPanelOpen(true)}
+        canEdit={canEdit}
+        editing={editing}
+        onToggleEditing={handleToggleEditing}
+        saveStatus={saveStatus}
+      />
+      <OverlayBreadcrumb
+        mapLabel={overlayState.mapLabel}
+        backlink={overlayState.backlink}
+        onClose={handleCloseOverlay}
+        onNavigate={handleNavigateBreadcrumb}
+      />
       {editing && canEdit && (
         <section className="dev-toolbar">
           <div className="dev-row">
@@ -739,6 +886,7 @@ export default function App() {
       )}
       <section className="canvas-container">
         <MapCanvas
+          ref={mapCanvasRef}
           atlas={layout}
           loading={isLoading}
           editing={editing}
@@ -755,7 +903,74 @@ export default function App() {
           timeOfDay={timeOfDay}
           disableMapAnimations={disableMapAnimations}
           disableObjectAnimations={disableObjectAnimations}
+          weatherEnabled={weatherEnabled}
+          onWeatherEnabledChange={setWeatherEnabled}
+          spriteLimitEnabled={spriteLimitEnabled}
+          onSpriteLimitEnabledChange={setSpriteLimitEnabled}
+          mapBordersEnabled={mapBordersEnabled}
+          onViewStateChange={handleViewStateChange}
+          onOverlayChange={handleOverlayChange}
         />
+        <ZoomControls
+          scale={currentScale}
+          minScale={MIN_SCALE}
+          maxScale={MAX_SCALE}
+          onZoom={handleZoom}
+          onResetView={handleResetView}
+          disabled={isLoading}
+        />
+        <div className="controls-overlay">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                className="control-btn"
+                onClick={handleScreenshot}
+                disabled={isLoading}
+                aria-label="Take screenshot"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Take screenshot</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                className="control-btn"
+                onClick={() => setHelpPanelOpen(true)}
+                aria-label="Help"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Help &amp; keyboard shortcuts</TooltipContent>
+          </Tooltip>
+        </div>
         {error && <div className="status-banner error">{error}</div>}
         {!error && warpError && <div className="status-banner error">{warpError}</div>}
         {!error && bgError && <div className="status-banner error">{bgError}</div>}
@@ -767,6 +982,8 @@ export default function App() {
           <div className="status-banner info">Neighborhood layout saved.</div>
         )}
       </section>
-    </main>
+      <HelpPanel isOpen={helpPanelOpen} onClose={() => setHelpPanelOpen(false)} />
+      </main>
+    </TooltipProvider>
   );
 }

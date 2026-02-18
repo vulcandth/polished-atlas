@@ -947,7 +947,7 @@
     "YELLOW_FOREST": "YellowForest",
     "YELLOW_FOREST_GATE": "YellowForestGate"
   },
-  "generated_at": "2025-11-04T02:37:50.353298Z",
+  "generated_at": "2026-02-15T15:45:32.066703Z",
   "maps": {
     "AzaleaGym": {
       "collision": {
@@ -8287,15 +8287,15 @@
     },
     "DanceTheatre": {
       "collision": {
-        "cells": "BwcHBwcHBwcHBwcHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAo6Ojo6Ojo6Ojo6OjBwAHBwcHBwcHBwAHAAAAAAAAAAAAAAAAAAAAAAAHBwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwcAAAAAAA",
+        "cells": "BwcHBwcHBwcHBwcHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAo6Ojo6Ojo6Ojo6OjBwAHBwcHBwcHBwAHAAAAAAAAAAAAAAAAAAAAAAAHBwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwcAAAAAAA",
         "encoding": "base64",
-        "height_cells": 14,
+        "height_cells": 16,
         "tileset_constant": "TILESET_TRADITIONAL_HOUSE",
         "tileset_index": 13,
         "tileset_label": "TilesetHouse3",
         "width_cells": 12
       },
-      "height_blocks": 7,
+      "height_blocks": 8,
       "is_overworld": false,
       "label": "DanceTheatre",
       "map_constant": "DANCE_THEATRE",
@@ -8313,7 +8313,7 @@
             "y_cells": 21
           },
           "x_cells": 5,
-          "y_cells": 13
+          "y_cells": 15
         },
         {
           "index": 2,
@@ -8327,7 +8327,7 @@
             "y_cells": 21
           },
           "x_cells": 6,
-          "y_cells": 13
+          "y_cells": 15
         }
       ],
       "width_blocks": 6
@@ -9491,7 +9491,7 @@
             "map_type": "INDOOR",
             "warp_index": 1,
             "x_cells": 5,
-            "y_cells": 13
+            "y_cells": 15
           },
           "x_cells": 23,
           "y_cells": 21

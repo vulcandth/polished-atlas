@@ -3,7 +3,23 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 POLISHED_REPO_URL="${POLISHED_REPO_URL:-https://github.com/Rangi42/polishedcrystal.git}"
-POLISHED_REF="${POLISHED_REF:-v3.2.2}"
+
+# Auto-detect latest stable version from upstream (filters out beta/alpha tags)
+get_latest_stable_tag() {
+  git ls-remote --tags --sort=-version:refname "${POLISHED_REPO_URL}" 2>/dev/null \
+    | grep -oE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' \
+    | head -n1 \
+    | sed 's|refs/tags/||' \
+    || echo "v3.2.2"
+}
+
+POLISHED_REF_AUTO="${POLISHED_REF_AUTO:-true}"
+if [[ -z "${POLISHED_REF:-}" && "${POLISHED_REF_AUTO}" == "true" ]]; then
+  POLISHED_REF=$(get_latest_stable_tag)
+else
+  POLISHED_REF="${POLISHED_REF:-v3.2.2}"
+fi
+
 POLISHED_DIR="${POLISHED_DIR:-${ROOT_DIR}/external/polishedcrystal}"
 POLISHED_UPDATE="${POLISHED_UPDATE:-false}"
 TIME_OF_DAY_LIST_ENV="${TIME_OF_DAY_SET:-}"
@@ -14,9 +30,9 @@ TIME_OF_DAY_LIST="${TIME_OF_DAY_LIST_ENV:-day,morn,nite,eve}"
 WEEKDAY="${WEEKDAY:-1}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 NODE_BIN="${NODE_BIN:-npm}"
-# Web app versioning
-# Upstream polishedcrystal version (for UI display only)
-VITE_POLISHED_CRYSTAL_VERSION="${VITE_POLISHED_CRYSTAL_VERSION:-${VITE_POLISHED_VERSION:-v3.2.2}}"
+
+# Web app versioning - derive from resolved POLISHED_REF
+VITE_POLISHED_CRYSTAL_VERSION="${VITE_POLISHED_CRYSTAL_VERSION:-${POLISHED_REF}}"
 # Polished Atlas app version (for cache-busting). Use provided value, else git describe/commit, else timestamp.
 if [[ -z "${VITE_POLISHED_ATLAS_VERSION:-}" ]]; then
   if command -v git >/dev/null 2>&1; then
@@ -58,7 +74,7 @@ ensure_polished_repo() {
 run_generators() {
   local raw_time_slugs=()
   IFS=',' read -r -a raw_time_slugs <<< "${TIME_OF_DAY_LIST}"
-  declare -A seen_slugs=()
+  local seen_slugs=""
   local canonical_slugs=()
   for raw_slug in "${raw_time_slugs[@]}"; do
     local trimmed
@@ -66,8 +82,9 @@ run_generators() {
     if [[ -z "${trimmed}" ]]; then
       continue
     fi
+    # Convert to lowercase (bash 3.2 compatible)
     local lower
-    lower="${trimmed,,}"
+    lower="$(echo "${trimmed}" | tr '[:upper:]' '[:lower:]')"
     local canonical
     case "${lower}" in
       0|morn|morning) canonical="morn" ;;
@@ -79,9 +96,10 @@ run_generators() {
         exit 1
         ;;
     esac
-    if [[ -z "${seen_slugs[${canonical}]:-}" ]]; then
+    # Deduplicate using string matching (bash 3.2 compatible)
+    if [[ ! " ${seen_slugs} " =~ " ${canonical} " ]]; then
       canonical_slugs+=("${canonical}")
-      seen_slugs["${canonical}"]=1
+      seen_slugs="${seen_slugs} ${canonical}"
     fi
   done
 
@@ -91,7 +109,7 @@ run_generators() {
   fi
 
   # Prefer to render the day palette first so manifests exist for other palettes.
-  if [[ -n "${seen_slugs[day]:-}" ]]; then
+  if [[ " ${seen_slugs} " =~ " day " ]]; then
     local reordered=("day")
     for slug in "${canonical_slugs[@]}"; do
       if [[ "${slug}" != "day" ]]; then

@@ -196,7 +196,7 @@ export default function HeaderNav({
               <span className="sr-only">Settings</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-[var(--radix-popper-anchor-width)]">
+          <DropdownMenuContent align="end" className="w-[var(--radix-popper-anchor-width)] top-14 relative rounded-none">
             {/* Time of Day */}
             <DropdownMenuLabel className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
               <TimeIcon className="size-3.5" />

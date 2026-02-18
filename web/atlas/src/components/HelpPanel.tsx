@@ -28,12 +28,8 @@ interface LegendItem {
 }
 
 const MAP_LEGEND: LegendItem[] = [
-  { icon: "●", color: "#4CAF50", label: "Grass / Wild encounters" },
-  { icon: "●", color: "#2196F3", label: "Water / Surf encounters" },
-  { icon: "●", color: "#9C27B0", label: "Cave / Rock Smash" },
-  { icon: "↔", color: "#FF9800", label: "Map connection" },
-  { icon: "◆", color: "#F44336", label: "Warp point" },
-  { icon: "○", color: "#FFEB3B", label: "NPC / Trainer" },
+  { icon: "▢", color: "#1abc9c", label: "Warp point (clickable)" },
+  { icon: "▢", color: "#f1c40f", label: "Search highlight" },
 ];
 
 export default function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
@@ -66,7 +62,7 @@ export default function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
             </svg>
           </button>
         </header>
-        
+
         <nav className="help-panel-tabs">
           <button
             className={activeTab === "shortcuts" ? "active" : ""}
@@ -81,7 +77,7 @@ export default function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
             Map Legend
           </button>
         </nav>
-        
+
         <div className="help-panel-content">
           {activeTab === "shortcuts" && (
             <table className="shortcuts-table">
@@ -102,7 +98,7 @@ export default function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
               </tbody>
             </table>
           )}
-          
+
           {activeTab === "legend" && (
             <ul className="legend-list">
               {MAP_LEGEND.map((item, index) => (
@@ -116,7 +112,7 @@ export default function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
             </ul>
           )}
         </div>
-        
+
         <footer className="help-panel-footer">
           <p>
             Polished Atlas — Map viewer for Polished Crystal ROM hack

@@ -300,6 +300,13 @@ export default function App() {
         return;
       }
 
+      // Ctrl+K / Cmd+K to focus search
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        document.querySelector<HTMLInputElement>(".map-search input")?.focus();
+        return;
+      }
+
       switch (e.key) {
         case "?":
           e.preventDefault();
@@ -311,6 +318,23 @@ export default function App() {
           break;
         case "Escape":
           setHelpPanelOpen(false);
+          break;
+        case "0":
+          e.preventDefault();
+          if (mapCanvasRef.current) {
+            mapCanvasRef.current.setScale(1);
+          }
+          break;
+        case "f":
+        case "F":
+          // Don't toggle fullscreen if modifier keys are pressed
+          if (e.ctrlKey || e.metaKey || e.altKey) break;
+          e.preventDefault();
+          if (document.fullscreenElement) {
+            document.exitFullscreen();
+          } else {
+            document.documentElement.requestFullscreen();
+          }
           break;
       }
     };

@@ -116,6 +116,14 @@ export default function HeaderNav({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
+      
+      // Handle Ctrl+K / Cmd+K from anywhere (even inputs)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+        return;
+      }
+      
       if (
         target.tagName === "INPUT" ||
         target.tagName === "TEXTAREA" ||

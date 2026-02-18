@@ -4000,6 +4000,8 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
       if (editing) return;
       if (overlayStateRef.current) return;
       if (isInteractiveTarget(event.target)) return;
+      // Don't capture keyboard shortcuts with Ctrl/Cmd modifiers
+      if (event.ctrlKey || event.metaKey) return;
 
       let consumed = false;
       const panStep = event.shiftKey ? 120 : 60; // screen-space px per keypress

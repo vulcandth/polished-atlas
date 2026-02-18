@@ -36,7 +36,7 @@ import {
   isFiniteNumber,
   VIEW_STATE_VERSION
 } from "@/lib/storage";
-import { cn } from "@/lib/utils";
+import { cn, reduce } from "@/lib/utils";
 
 // Tooltip state type
 interface TooltipData {
@@ -95,6 +95,13 @@ import {
 type CheckboxChangeEvent = { target: { checked: boolean } };
 type InputNumberChangeEvent = { target: { value: string } };
 type SelectChangeEvent = { target: { value: string } };
+
+/** Build a polisheddex trainer URL from map label and anchor text */
+const buildTrainerUrl = (mapLabel: string, rawAnchor: string): string => {
+  const mapSlug = reduce(mapLabel);
+  const anchor = reduce(rawAnchor);
+  return `https://polisheddex.app/locations/${mapSlug}/#${anchor}`;
+};
 
 /**
  * View state exposed via callbacks and imperative handle
@@ -185,9 +192,9 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
     disableObjectAnimations: controlledDisableObjectAnimations,
     // Optional controlled weather/sprite-limit toggles
     weatherEnabled: controlledWeatherEnabled,
-    onWeatherEnabledChange,
+    // onWeatherEnabledChange: _onWeatherEnabledChange,
     spriteLimitEnabled: controlledSpriteLimitEnabled,
-    onSpriteLimitEnabledChange,
+    // onSpriteLimitEnabledChange: _onSpriteLimitEnabledChange,
     // Optional map borders toggle
     mapBordersEnabled = false,
     // View state callbacks
@@ -320,10 +327,6 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
   const mapBordersContainerRef = useRef<Container | null>(null);
   const [resultsCollapsed, setResultsCollapsed] = useState<boolean>(false);
 
-  // Controlled weather/sprite-limit sync
-  const weatherControlled = typeof controlledWeatherEnabled === "boolean";
-  const spriteLimitControlled = typeof controlledSpriteLimitEnabled === "boolean";
-
   useEffect(() => {
     if (typeof controlledWeatherEnabled === "boolean" && controlledWeatherEnabled !== weatherEnabled) {
       setWeatherEnabledInternal(controlledWeatherEnabled);
@@ -335,20 +338,6 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
       setSpriteLimitEnabledInternal(controlledSpriteLimitEnabled);
     }
   }, [controlledSpriteLimitEnabled, spriteLimitEnabled]);
-
-  const setWeatherEnabled = useCallback((enabled: boolean) => {
-    setWeatherEnabledInternal(enabled);
-    if (weatherControlled && onWeatherEnabledChange) {
-      onWeatherEnabledChange(enabled);
-    }
-  }, [weatherControlled, onWeatherEnabledChange]);
-
-  const setSpriteLimitEnabled = useCallback((enabled: boolean) => {
-    setSpriteLimitEnabledInternal(enabled);
-    if (spriteLimitControlled && onSpriteLimitEnabledChange) {
-      onSpriteLimitEnabledChange(enabled);
-    }
-  }, [spriteLimitControlled, onSpriteLimitEnabledChange]);
 
   const baseOffsetsRef = useRef<Record<string, OffsetTuple>>({});
   const offsetOverridesRef = useRef<Record<string, OffsetTuple>>({});
@@ -1563,13 +1552,23 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
           if (trainerName && mapLabel) {
             spriteInstance.eventMode = "static";
             spriteInstance.cursor = "pointer";
-            const mapSlug = mapLabel.toLowerCase().replace(/_/g, "");
-            const url = `https://polisheddex.app/locations/${mapSlug}/#${scriptArg || spriteConstant.replace(/^SPRITE_/, "")}`;
-            // Format trainer name for display (remove "Trainer" prefix and add spaces before capitals)
-            const displayName = trainerName
-              .replace(/^Trainer/, "")
-              .replace(/([A-Z])/g, " $1")
-              .trim();
+            const rawAnchor = (scriptArg || spriteConstant.replace(/^SPRITE_/, "")).replace(/^GenericTrainer/i, "");
+            const url = buildTrainerUrl(mapLabel, rawAnchor);
+            // Format trainer name for display
+            // "GenericTrainerBug_maniacKai" -> "Bug Maniac Kai"
+            const cleanedName = trainerName
+              .replace(/^GenericTrainer/i, "")
+              .replace(/^Trainer/, "");
+            // Insert space before the final name (uppercase start after lowercase)
+            // e.g., "Bug_maniacKai" -> "Bug_maniac Kai"
+            const withNameSplit = cleanedName.replace(/([a-z])([A-Z])/g, "$1 $2");
+            // Replace underscores with spaces and capitalize each word
+            const displayName = withNameSplit
+              .replace(/_/g, " ")
+              .split(" ")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")
+              .trim() || "Trainer";
             spriteInstance.on("pointerover", (ev: FederatedPointerEvent) => {
               const x = (ev as any).clientX ?? window.innerWidth / 2;
               const y = (ev as any).clientY ?? window.innerHeight / 2;
@@ -2469,10 +2468,12 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
           if (isBall || (isScriptedItemBall && scriptedItemName)) {
             sprite.eventMode = "static";
             sprite.cursor = editing ? "not-allowed" : "pointer";
+            // Determine item name for tooltip: use scripted name for scripted item balls, otherwise check for explicit "item" extra or fallback to generic "Item"
+            const itemLabel = (objectEntry.extra && (objectEntry.extra["item"] as string)) ||
+              objectEntry.script?.argument ||
+              "Item";
             const label = isBall
-              ? ((objectEntry.extra && (objectEntry.extra["item"] as string)) ||
-                 objectEntry.script?.argument ||
-                 "Item")
+              ? itemLabel
               : scriptedItemName!;
             sprite.on("pointerover", (ev: FederatedPointerEvent) => {
               if (editing) return;
@@ -2520,13 +2521,23 @@ const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas
             if (trainerName && mapLabel) {
               sprite.eventMode = "static";
               sprite.cursor = "pointer";
-              const mapSlug = mapLabel.toLowerCase().replace(/_/g, "");
-              const url = `https://polisheddex.app/locations/${mapSlug}/#${scriptArg || spriteConstant.replace(/^SPRITE_/, "")}`;
-              // Format trainer name for display (remove "Trainer" prefix and add spaces before capitals)
-              const displayName = trainerName
-                .replace(/^Trainer/, "")
-                .replace(/([A-Z])/g, " $1")
-                .trim();
+              const rawAnchor = (scriptArg || spriteConstant.replace(/^SPRITE_/, "")).replace(/^GenericTrainer/i, "");
+              const url = buildTrainerUrl(mapLabel, rawAnchor);
+              // Format trainer name for display
+              // "GenericTrainerBug_maniacKai" -> "Bug Maniac Kai"
+              const cleanedName = trainerName
+                .replace(/^GenericTrainer/i, "")
+                .replace(/^Trainer/, "");
+              // Insert space before the final name (uppercase start after lowercase)
+              // e.g., "Bug_maniacKai" -> "Bug_maniac Kai"
+              const withNameSplit = cleanedName.replace(/([a-z])([A-Z])/g, "$1 $2");
+              // Replace underscores with spaces and capitalize each word
+              const displayName = withNameSplit
+                .replace(/_/g, " ")
+                .split(" ")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ")
+                .trim() || "Trainer";
               sprite.on("pointerover", (ev: FederatedPointerEvent) => {
                 const x = (ev as any).clientX ?? window.innerWidth / 2;
                 const y = (ev as any).clientY ?? window.innerHeight / 2;

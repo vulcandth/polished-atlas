@@ -18,6 +18,7 @@ from typing import Dict, Optional, Set, Tuple
 
 import render_map
 from map_palette import palette_time
+from event_state import effective_flags
 
 ROOT_DIR: Path = Path(__file__).resolve().parent.parent
 DEFAULT_POLISHED_PATH: Path = Path(os.environ.get("POLISHED_DIR", str(ROOT_DIR / "external/polishedcrystal")))
@@ -25,7 +26,7 @@ DEFAULT_MAPS_DIR: Path = Path(os.environ.get("ATLAS_MAPS_DIR", str(ROOT_DIR / "m
 
 _repo_cache: Dict[Path, render_map.RepositoryIndex] = {}
 _png_cache: Dict[Path, ModuleType] = {}
-_time_invariant_cache: Dict[Path, Set[str]] = {}
+_time_invariant_cache: Dict[tuple[Path, frozenset[str]], Set[str]] = {}
 
 
 def resolve_path(candidate: Optional[Path], fallback: Path) -> Path:
@@ -151,13 +152,14 @@ def _is_time_invariant_map(
 def time_invariant_maps(repo_index: render_map.RepositoryIndex) -> Set[str]:
     """Return the set of maps whose rendering is unaffected by time-of-day or weekday."""
     root = Path(repo_index.root).resolve()
-    cached = _time_invariant_cache.get(root)
+    event_flags = effective_flags(repo_index.initial_event_flags)
+    cache_key = (root, frozenset(event_flags))
+    cached = _time_invariant_cache.get(cache_key)
     if cached is not None:
         return set(cached)
-    event_flags = set(repo_index.initial_event_flags)
     invariant_labels: Set[str] = set()
     for map_info in repo_index.maps.values():
         if _is_time_invariant_map(repo_index, map_info, events=event_flags):
             invariant_labels.add(map_info.label)
-    _time_invariant_cache[root] = set(invariant_labels)
+    _time_invariant_cache[cache_key] = set(invariant_labels)
     return set(invariant_labels)

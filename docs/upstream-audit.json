@@ -17395,12 +17395,13 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "Full diff reviewed: fixed rain/thunder intensities differ by location; generated weather still uses hash-based thunder selection. Adapt shared weather policy and test terrain/NPC/particles together. Pal-state name/constants changes preserve previous/current semantics.",
+      "reason": "Implemented scripted rain/thunder intensity by map in fixed_weather.py, replacing hash-based selection. Terrain, background/NPC palette metadata and weather consume the same event snapshot. The remaining changes rename previous/current palette-state fields without changing their semantics.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/4e8493b706f40164552cd92d2f236911bf79ef4e",
-        "Full commit diff inspected; unresolved work is stated in reason."
+        "Full commit diff inspected; unresolved work is stated in reason.",
+        "scripts/tests/test_fixed_weather.py: weekly schedules, global story gate, scripted intensity and every-map weather/overcast agreement across seven weekdays and four clock times; complete 612-map build and bundle validation pass."
       ],
       "review_method": "full-diff"
     },
@@ -18819,12 +18820,13 @@
           "engine/events/overcast.asm"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "Full diff reviewed: Route 10 North thunder and Route 9 rain until Zapdos event set, index 4. Current atlas overcast policy omits both. Adapt shared weather policy and palette selection.",
+      "reason": "Added Route 10 North thunder and Route 9 rain with index 4 while Zapdos is present, subject to the global Slowpoke gate. Both terrain rendering and exported NPC/background palette metadata use this policy.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/a693ba7c5e71658a9c83bdb8ff03c978efa8553e",
-        "Full commit diff inspected; unresolved work is stated in reason."
+        "Full commit diff inspected; unresolved work is stated in reason.",
+        "scripts/tests/test_fixed_weather.py: both Zapdos event states and global gate, plus actual terrain/background palette equality at all four times under overrides; complete 612-map build and bundle validation pass."
       ],
       "review_method": "full-diff"
     },
@@ -35153,7 +35155,7 @@
       ],
       "status": "reviewed",
       "disposition": "adaptation",
-      "reason": "Full diff reviewed: immediate weather clearing prevents stale particles during sprite refresh. Verify atlas weather disable, overlay teardown and time/map transitions before resolving.",
+      "reason": "Full diff reviewed. Atlas now clears previous weather particles on type changes, hides disabled layers and destroys overlay weather on close. Cherrygrove day/night and weather-off/on browser checks pass without console errors. Indoor snow overlay round-trip and rapid teardown/async-load lifecycle verification remain open.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/1c69513eafedd940d91e630650a3b4637ba6af77",
         "Full commit diff inspected; unresolved work is stated in reason."

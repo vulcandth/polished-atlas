@@ -179,22 +179,8 @@ def compute_map_palettes(
 
 
 def parse_event_overrides(path: Optional[Path]) -> Tuple[set[str], set[str]]:
-    set_flags: set[str] = set()
-    clear_flags: set[str] = set()
-    if not path or not path.exists():
-        return set_flags, clear_flags
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        if isinstance(data, list):
-            set_flags.update([str(x) for x in data if isinstance(x, str) and x])
-        elif isinstance(data, dict):
-            for key, dest in (("set", set_flags), ("clear", clear_flags)):
-                values = data.get(key, [])
-                if isinstance(values, list):
-                    dest.update([str(x) for x in values if isinstance(x, str) and x])
-    except Exception:
-        return set(), set()
-    return set_flags, clear_flags
+    from event_state import parse_overrides
+    return parse_overrides(path)
 
 
 def build_payload(opts: Options) -> Dict[str, object]:

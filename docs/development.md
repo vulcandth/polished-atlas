@@ -12,10 +12,19 @@ installed npm dependencies. `--output .build/my-bundle` selects a separate bundl
 directory. `TIME_OF_DAY_SET` can limit local iteration; publication requires all
 four palettes. Build outputs never reuse tracked or previously generated metadata.
 
-The default source event flags are combined with `scripts/event_overrides.json`.
-The default weekday is Monday. Dev's target policy is scripted/scheduled weather
-only and spatially composited palette swaps; see the implementation tracker for
-completion status.
+The default event and engine flags are combined with `scripts/event_overrides.json`
+for terrain, animation, objects, palettes and weather. Standalone generators can
+inherit the same file through `ATLAS_EVENT_OVERRIDES`; an explicit metadata
+`--event-overrides` path takes precedence. Invalid or contradictory overrides fail
+instead of silently generating inconsistent layers.
+
+The default weekday is Monday. Dev uses scripted/scheduled weather only, including
+the global Slowpoke story gate, Zapdos/Team Rocket conditions, weekly rain/thunder,
+snow, sandstorms and guaranteed early Cherrygrove blossoms. Random regional weather
+and random blossoms after Mystery Egg delivery are omitted. Particle positions and
+motion remain randomized. Weather palettes follow each map's effective palette time.
+Map snapshots switch weather immediately rather than simulating the ROM's 32-frame
+gameplay transition cooldown. See the implementation tracker for validation status.
 
 Individual generators retain their `--help` interfaces. `POLISHED_DIR` and
 `ATLAS_MAPS_DIR` set their default source/output roots. Standalone scripts still

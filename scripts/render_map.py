@@ -18,6 +18,8 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 from map_palette import palette_time
+from event_state import initial_flags, effective_flags
+from fixed_weather import fixed_weather
 import palette_swaps
 
 RGB = Tuple[int, int, int]
@@ -408,6 +410,8 @@ class RepositoryIndex:
         self.root = root
         self._default_weekday = self._determine_default_weekday()
         self._initial_event_flags = self._parse_initial_event_flags()
+        weather_constants = self.root / "constants/weather_constants.asm"
+        self.has_modern_weather = weather_constants.exists() and "OW_WEATHER_CHERRY_BLOSSOMS" in weather_constants.read_text(encoding="utf-8")
         self._bg_tile_palettes = _load_palette(self.root / "gfx/tilesets/bg_tiles.pal")
         self.palette_swaps = palette_swaps.PaletteSwapIndex(self.root, _load_palette)
         self._environment_palette_indices = self._parse_environment_colors()
@@ -519,20 +523,7 @@ class RepositoryIndex:
         return 1
 
     def _parse_initial_event_flags(self) -> Set[str]:
-        path = self.root / "data/events/initialize_events.asm"
-        flags: Set[str] = set()
-        if not path.exists():
-            return flags
-        for raw_line in path.read_text().splitlines():
-            line = raw_line.split(";", 1)[0].strip()
-            if not line or not line.startswith("dw"):
-                continue
-            entries = [entry.strip() for entry in line[2:].split(",") if entry.strip()]
-            for entry in entries:
-                if entry == "-1":
-                    return flags
-                flags.add(entry)
-        return flags
+        return initial_flags(self.root)
 
     def _parse_map_table(self) -> dict[str, _MapHeader]:
         path = self.root / "data/maps/maps.asm"
@@ -990,11 +981,13 @@ class RepositoryIndex:
     ) -> Optional[int]:
         events_set: Set[str]
         if events is None:
-            events_set = set(self._initial_event_flags)
+            events_set = effective_flags(self._initial_event_flags)
         else:
             events_set = set(events)
         day = (self._default_weekday if weekday is None else weekday) % 7
         constant = map_info.constant
+        if self.has_modern_weather:
+            return fixed_weather(constant, day, events_set).overcast_index
         if constant in _AZALEA_OVERCAST_MAPS:
             if _EVENT_AZALEA_SLOWPOKES in events_set:
                 return None
@@ -2499,7 +2492,7 @@ def main() -> None:
     map_label = args.map
     weekday = args.weekday
     time_of_day = args.time_of_day
-    events: Set[str] = repo_index.initial_event_flags
+    events: Set[str] = effective_flags(repo_index.initial_event_flags)
     if args.event_overrides:
         for flag_name, state in args.event_overrides:
             if state:

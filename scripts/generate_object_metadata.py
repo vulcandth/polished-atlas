@@ -652,63 +652,13 @@ def parse_darkness_palettes(root: Path, names: Sequence[str]) -> Dict[str, List[
 
 
 def parse_initial_event_flags(root: Path) -> Set[str]:
-    path = root / "data/events/initialize_events.asm"
-    flags: Set[str] = set()
-    if not path.exists():
-        return flags
-    current_section: Optional[str] = None
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
-        code, *_ = raw_line.split(";", 1)
-        line = code.strip()
-        if not line:
-            continue
-        if line.endswith(":"):
-            current_section = line[:-1]
-            continue
-        if current_section not in {"InitialEvents", "InitialEngineFlags"}:
-            continue
-        if not line.startswith("dw"):
-            continue
-        payload = line[2:].strip()
-        if not payload:
-            continue
-        tokens = [token.strip() for token in payload.split(",") if token.strip()]
-        for token in tokens:
-            if token == "-1":
-                current_section = None
-                continue
-            flags.add(token)
-    return flags
+    from event_state import initial_flags
+    return initial_flags(root)
 
 
 def parse_event_overrides(path: Optional[Path]) -> Tuple[Set[str], Set[str]]:
-    """Load event flag overrides from a JSON file.
-
-    Supported formats:
-    - Object with keys {"set": [..], "clear": [..]}
-    - Array of strings, treated as the "set" list
-    If the file is missing or empty, returns empty sets.
-    """
-    set_flags: Set[str] = set()
-    clear_flags: Set[str] = set()
-    if not path:
-        return set_flags, clear_flags
-    try:
-        if not path.exists():
-            return set_flags, clear_flags
-        data = json.loads(path.read_text(encoding="utf-8"))
-        if isinstance(data, list):
-            set_flags.update([str(x) for x in data if isinstance(x, str) and x])
-        elif isinstance(data, dict):
-            for key, dest in (("set", set_flags), ("clear", clear_flags)):
-                values = data.get(key, [])
-                if isinstance(values, list):
-                    dest.update([str(x) for x in values if isinstance(x, str) and x])
-        # Ignore other shapes silently.
-    except Exception:
-        # Be permissive; if overrides can't be read, proceed without them.
-        return set(), set()
-    return set_flags, clear_flags
+    from event_state import parse_overrides
+    return parse_overrides(path)
 
 
 def _read_species_sequence(path: Path, expected_count: int) -> List[Optional[str]]:

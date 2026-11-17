@@ -631,33 +631,8 @@ def parse_darkness_palettes(root: Path, names: Sequence[str]) -> Dict[str, List[
 
 
 def parse_initial_event_flags(root: Path) -> Set[str]:
-    path = root / "data/events/initialize_events.asm"
-    flags: Set[str] = set()
-    if not path.exists():
-        return flags
-    current_section: Optional[str] = None
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
-        code, *_ = raw_line.split(";", 1)
-        line = code.strip()
-        if not line:
-            continue
-        if line.endswith(":"):
-            current_section = line[:-1]
-            continue
-        if current_section not in {"InitialEvents", "InitialEngineFlags"}:
-            continue
-        if not line.startswith("dw"):
-            continue
-        payload = line[2:].strip()
-        if not payload:
-            continue
-        tokens = [token.strip() for token in payload.split(",") if token.strip()]
-        for token in tokens:
-            if token == "-1":
-                current_section = None
-                continue
-            flags.add(token)
-    return flags
+    from event_state import initial_flags
+    return initial_flags(root)
 
 
 def _read_species_sequence(path: Path, expected_count: int) -> List[Optional[str]]:
@@ -1800,7 +1775,7 @@ def main() -> None:
     movements = parse_movement_table(polished_root, constants)
     facings = parse_facings(polished_root, constants)
     block_pixel_size = atlas_common.block_pixel_size()
-    initial_event_flags = parse_initial_event_flags(polished_root)
+    initial_event_flags = atlas_common.effective_flags(parse_initial_event_flags(polished_root))
     map_objects = parse_map_objects(
         polished_root,
         constants,

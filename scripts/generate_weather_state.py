@@ -1,63 +1,21 @@
 #!/usr/bin/env python3
-"""Compute per-map weather state to mirror SetCurrentWeather and GetOvercastIndex.
+"""Generate fixed scripted/scheduled weather using the shared build event state.
 
-Outputs a JSON at maps/weather_state.json with, for each map:
-- constant name
-- overcast index (null if not overcast)
-- weather type (none | rain | thunderstorm | snow | sandstorm)
-
-Weather selection rules mirror engine/events/weather.asm:
-- If GetOvercastIndex > 0, choose rain vs thunderstorm (~25% thunder) deterministically
-- Else snow on SNOWTOP_MOUNTAIN_[OUTSIDE|INSIDE]
-- Else sandstorm on RUGGED_ROAD_[NORTH|SOUTH]
-- Else none
-
-Deterministic thunderstorm selection uses a hash of (map label, weekday, time_of_day).
+Random regional weather and random post-delivery cherry blossoms are omitted.
+Time of day affects palettes, not the selected weather type.
 """
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Optional, Set
+from typing import Dict, Set
 
 import atlas_common
 import render_map
-
-
-SNOW_MAPS = {"SNOWTOP_MOUNTAIN_OUTSIDE", "SNOWTOP_MOUNTAIN_INSIDE"}
-SAND_MAPS = {"RUGGED_ROAD_NORTH", "RUGGED_ROAD_SOUTH"}
-
-
-def _load_event_overrides(path: Optional[Path]) -> Dict[str, Set[str]]:
-    result = {"set": set(), "clear": set()}
-    if not path:
-        return result
-    resolved = path.resolve()
-    if not resolved.exists():
-        return result
-    try:
-        payload = json.loads(resolved.read_text(encoding="utf-8"))
-        to_set = payload.get("set", []) or []
-        to_clear = payload.get("clear", []) or []
-        result["set"] = {str(x) for x in to_set if isinstance(x, str)}
-        result["clear"] = {str(x) for x in to_clear if isinstance(x, str)}
-    except Exception:
-        # Ignore bad overrides silently
-        pass
-    return result
-
-
-def _stable_ratio(*parts: str) -> float:
-    """Return a stable pseudo-random ratio in [0,1) based on the input strings."""
-    h = hashlib.sha256()
-    for part in parts:
-        h.update(part.encode("utf-8"))
-        h.update(b"\x00")
-    value = int.from_bytes(h.digest()[:8], "big")
-    return (value % 1_000_000) / 1_000_000.0
+from fixed_weather import fixed_weather
+from event_state import effective_flags
 
 
 def _determine_weather_for_map(
@@ -68,24 +26,15 @@ def _determine_weather_for_map(
     time_of_day: int,
     events: Set[str],
 ) -> Dict[str, object]:
-    overcast_index = repo.get_overcast_index(info, weekday=weekday, events=events)
-    constant = info.constant
-    weather: str
-    if overcast_index is not None:
-        # 25% thunderstorm, 75% rain; deterministic by label+weekday+time
-        r = _stable_ratio(info.label, str(weekday), str(time_of_day))
-        weather = "thunderstorm" if r < 0.25 else "rain"
-    elif constant in SNOW_MAPS:
-        weather = "snow"
-    elif constant in SAND_MAPS:
-        weather = "sandstorm"
-    else:
-        weather = "none"
-    return {
-        "constant": constant,
-        "overcast_index": overcast_index,
-        "weather": weather,
-    }
+    state = fixed_weather(info.constant, weekday, events)
+    # Standalone rendering of the stable source retains its legacy overcast gate.
+    if not repo.has_modern_weather:
+        index = repo.get_overcast_index(info, weekday=weekday, events=events)
+        weather = ('rain' if index is not None else
+                   'snow' if info.constant in {'SNOWTOP_MOUNTAIN_OUTSIDE', 'SNOWTOP_MOUNTAIN_INSIDE'} else
+                   'sandstorm' if info.constant in {'RUGGED_ROAD_NORTH', 'RUGGED_ROAD_SOUTH'} else 'none')
+        return {'constant': info.constant, 'overcast_index': index, 'weather': weather}
+    return {'constant': info.constant, 'overcast_index': state.overcast_index, 'weather': state.weather}
 
 
 def parse_args() -> argparse.Namespace:
@@ -103,10 +52,7 @@ def main() -> None:
     polished_root = args.polishedcrystal.resolve()
     repo = atlas_common.repository(polished_root)
 
-    overrides = _load_event_overrides(args.event_overrides)
-    events = set(repo.initial_event_flags)
-    events.difference_update(overrides.get("clear", set()))
-    events.update(overrides.get("set", set()))
+    events = effective_flags(repo.initial_event_flags, args.event_overrides)
 
     maps: Dict[str, Dict[str, object]] = {}
     for info in repo.maps.values():
@@ -120,6 +66,8 @@ def main() -> None:
 
     payload = {
         "generated_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+        "policy": "scripted-scheduled-only",
+        "event_flags": sorted(events),
         "weekday": int(args.weekday),
         "time_of_day": int(args.time_of_day),
         "maps": maps,

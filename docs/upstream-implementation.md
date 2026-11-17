@@ -86,11 +86,11 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   locally in `.build/palette-preview/`; Goldenrod's composite was visually inspected.
 - 17 Python tests pass, including the locally available upstream palette-swap corpus.
 - One hundred eighteen commits have received detailed review: ninety-two are resolved as no
-  atlas impact, three with adaptations, one already supported, and twenty-two retain
+  atlas impact, five with adaptations, one already supported, and twenty retain
   open validation work.
   Accelerated batches additionally skipped 308 unrelated commits after subject,
   complete file-scope and consumer screening. These are explicitly marked
-  `scope-screen`, not full reviews. There are 404 resolved commits in total and
+  `scope-screen`, not full reviews. There are 406 resolved commits in total and
   625 still pending. Inventory generation does not constitute review.
 - The latest screening batches cover menu/battle/audio/RAM changes, standalone ROM
   analysis/build tools and LZP compressor maintenance. Atlas consumes checked-in
@@ -182,8 +182,8 @@ commit/file inventory. Never skip a change solely because it is undocumented.
 - A complete dev build now validates its generated bundle before reporting success.
   It includes all 612 maps, four time variants and 29 neighborhoods. Dirty build
   asset versions include the generation time to prevent stale force-cached previews.
-  The publication audit gate still rejects 647 unresolved commits: 625 pending
-  and twenty-two reviewed with open validation. Nothing has been pushed or published.
+  The publication audit gate still rejects 645 unresolved commits: 625 pending
+  and twenty reviewed with open validation. Nothing has been pushed or published.
 - Shared map palette time now follows upstream's brightness table, including forced
   MORN/DAY/NITE/EVE and the pre-Flash darkness mapping. Terrain, roof colors, animation
   gates, palette-swap regions and NPC context use the same policy; object schedules
@@ -213,9 +213,33 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   fixed rain/thunder intensity, and Zapdos-dependent Route 9/10 overcast.
 - Target-source weather inspection also confirms the global Azalea Slowpoke gate
   on rain/overcast, snow in Silver Cave Room 3, and guaranteed Cherrygrove City
-  blossoms before delivering the Mystery Egg. These findings require shared event
-  state and particle/palette integration; they are not completed compatibility work.
+  blossoms before delivering the Mystery Egg. These findings drove the shared event
+  state and particle/palette integration below; broader verification remains open.
   Random regional weather and random later blossoms remain intentionally omitted.
+- Fixed weather now shares one event/engine-flag loader and override policy across
+  terrain, animation, objects, background palettes and weather generation. This
+  fixes terrain ignoring overrides and stopping before the initial engine flags.
+  Invalid overrides fail, and invariant-render caching includes effective flags.
+  The shared weather policy implements the global Slowpoke gate, weekly schedules,
+  fixed rain/thunder intensity, Zapdos/Team Rocket conditions, all three snow maps,
+  sandstorms and guaranteed early Cherrygrove blossoms. Two reviewed weather
+  commits are now resolved with these adaptations and corpus checks.
+- Weather graphics now follow upstream INCBIN declarations and load the declared
+  tile prefix. Snow uses white for all visible colors; blossoms use PAL_OW_PINK.
+  The frontend spawns blossoms from cherry-leaf collision cells or map edges,
+  refreshes when weather metadata arrives, and uses effective map palette time.
+  It no longer invents rain from a map-name hash while metadata loads. Weather
+  fields are also attached to indoor overlays and disposed on close. Parent map
+  transforms handle panning rather than applying the camera delta twice.
+- Current checks: 48 Python tests, 32 frontend tests and TypeScript checking pass.
+  The complete 612-map/four-time dev build and bundle validation pass. ESLint has
+  the existing hook-dependency warning and no errors. Tests cover all maps over
+  seven weekdays/four clock times with several event states, terrain/metadata
+  agreement under overrides, weather source tiles, and blossom spawning rules.
+- Browser preview confirms Cherrygrove day/night rendering and weather off/on
+  without console errors; a screenshot is retained at `.build/cherrygrove-weather.jpg`.
+  Indoor snow overlays, rapid teardown during asynchronous weather loading, and
+  non-default rainy event-state browser scenarios still need focused verification.
 - Exhaustive review, remaining dev compatibility, complete visual verification,
   pushing branches, CI execution, and publication remain incomplete.
 
@@ -228,8 +252,8 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   shared event state. Forced map time is now shared across terrain and objects. Modern GIF output still fails explicitly
   on modern tables and needs adaptation. Backport compact-asset validation into
   main's shared publication tooling, then verify combined deployment.
-- Complete NPC glow effects, shared event state, fixed-weather rules/cherry blossoms, dual object
-  palettes, and all map/object/movement findings from the audit.
+- Complete NPC glow effects, weather integration verification, dual object palettes,
+  and all map/object/movement findings from the audit.
 - Finish glow validation on Dragon Shrine, cave mouths, underground lamps and lava
   ladders, including directional walls/warps and secondary palettes. Verify
   `SPRITE_AQUARIUM_MON` handling (also used for volcano Moltres), and reconcile

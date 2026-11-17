@@ -115,8 +115,10 @@ def main() -> None:
     generated = ROOT / ".build/generated" / source["channel"]
     reset_generated(generated)
     maps = generated / "maps"
-    env = dict(os.environ, ATLAS_MAPS_DIR=str(maps), POLISHED_DIR=str(upstream))
     scripts = ROOT / "scripts"
+    overrides = scripts / "event_overrides.json"
+    env = dict(os.environ, ATLAS_MAPS_DIR=str(maps), POLISHED_DIR=str(upstream),
+               ATLAS_EVENT_OVERRIDES=str(overrides))
 
     def generate(script: str, *options: str | Path) -> None:
         run(sys.executable, scripts / script, "--polishedcrystal", upstream, *options, env=env)
@@ -137,7 +139,6 @@ def main() -> None:
                  "--overlay-rules", scripts / "overlay_rules.json",
                  "--overworld-exclude-file", scripts / "overworld_exclude.json")
     generate("generate_warp_metadata.py", "--overworld-exclude-file", scripts / "overworld_exclude.json")
-    overrides = scripts / "event_overrides.json"
     generate("generate_object_metadata.py", "--event-overrides", overrides)
     generate("generate_weather_metadata.py")
     generate("generate_weather_state.py", "--weekday", str(weekday), "--time-of-day", slugs[0],

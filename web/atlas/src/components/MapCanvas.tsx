@@ -11,6 +11,7 @@ import {
   Texture,
 } from "pixi.js";
 import { WeatherSystem } from "@/lib/weather";
+import { weatherType } from "@/lib/weatherState";
 import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
 import { channelStorageKey } from "@/lib/channel";
 import { createSpatialPaletteSelector } from "@/lib/paletteSwaps";
@@ -403,6 +404,7 @@ type SyncedAnimation = {
 };
 
 type OverlayState = {
+  weather?: WeatherSystem | null;
   mapLabel: string;
   sprite: AnimatedSprite;
   resource: MapAnimationResource;
@@ -1772,7 +1774,6 @@ export default function MapCanvas({
   const overlayRef = useRef<Container | null>(null);
   const overlayStateRef = useRef<OverlayState | null>(null);
   const overlayTokenRef = useRef(0);
-  const weatherSystemRef = useRef<WeatherSystem | null>(null);
   const weatherTickerRef = useRef<((delta: number) => void) | null>(null);
   const warpsLayerRef = useRef<Container | null>(null);
   const highlightTimersRef = useRef<Map<string, number>>(new Map());
@@ -2310,6 +2311,8 @@ export default function MapCanvas({
     if (!overlay || !state) {
       return;
     }
+    state.weather?.destroy();
+    state.weather = null;
     const backlink = backlinkRef.current;
     if (backlink && backlink.applicableTo === state.mapLabel) {
       backlinkRef.current = backlink.previous ?? null;
@@ -2521,6 +2524,7 @@ export default function MapCanvas({
   };
   type WeatherStatePayload = { maps?: Record<string, WeatherStateEntry> };
   const weatherStateRef = useRef<WeatherStatePayload | null>(null);
+  const [weatherStateRevision, setWeatherStateRevision] = useState(0);
 
   const resolveWeatherStateUrl = useCallback((): string => {
     const override =
@@ -2552,9 +2556,10 @@ export default function MapCanvas({
         const payload = (await res.json()) as WeatherStatePayload;
         if (!cancelled) {
           weatherStateRef.current = payload;
+          setWeatherStateRevision((revision) => revision + 1);
         }
       } catch {
-        // non-fatal; fall back to heuristic
+        // Leave effects off if authoritative state is unavailable.
       }
     };
     run();
@@ -2564,58 +2569,10 @@ export default function MapCanvas({
     };
   }, [resolveWeatherStateUrl]);
 
-  // Determine weather for a map by constant/name using simplified game logic
+  // Never invent weather from map names or hashes while metadata is loading.
   const computeMapWeather = useCallback(
-    (mapLabel: string): "none" | "rain" | "thunderstorm" | "snow" | "sandstorm" => {
-      const ws = weatherStateRef.current?.maps?.[mapLabel]?.weather;
-      if (
-        ws === "rain" ||
-        ws === "thunderstorm" ||
-        ws === "snow" ||
-        ws === "sandstorm" ||
-        ws === "none"
-      ) {
-        return ws;
-      }
-      const meta = getMapMetadata(mapLabel);
-      const constant = meta?.mapConstant ?? "";
-      const isOverworld = Boolean(meta?.isOverworld);
-      const c = (constant || "").toUpperCase();
-      // Snow maps
-      const SNOW = new Set(["SNOWTOP_MOUNTAIN_OUTSIDE", "SNOWTOP_MOUNTAIN_INSIDE"]);
-      // Sandstorm maps
-      const SAND = new Set(["RUGGED_ROAD_NORTH", "RUGGED_ROAD_SOUTH"]);
-      if (SNOW.has(c)) return "snow";
-      if (SAND.has(c)) return "sandstorm";
-      // Overcast-related (rain/thunderstorm); overworld only
-      if (!isOverworld) return "none";
-      const AZALEA = new Set(["AZALEA_TOWN", "ROUTE_33"]);
-      const LOR = new Set(["LAKE_OF_RAGE", "ROUTE_43"]);
-      const STORMY = new Set([
-        "STORMY_BEACH",
-        "GOLDENROD_CITY",
-        "MAGNET_TUNNEL_WEST",
-        "ROUTE_34",
-        "ROUTE_34_COAST",
-      ]);
-      let overcast = false;
-      if (AZALEA.has(c)) {
-        // Default weekday = 1 (Monday) like the Python tooling; Azalea days are {0,2,4,6} (not Monday)
-        overcast = false;
-      } else if (LOR.has(c)) {
-        // Lake of Rage overcast days {1,3,5}; default Monday -> yes
-        overcast = true;
-      } else if (STORMY.has(c)) {
-        overcast = true;
-      }
-      if (!overcast) return "none";
-      // Stable 25% thunderstorm selection based on map label hash
-      let h = 0;
-      for (let i = 0; i < mapLabel.length; i++) h = (h * 31 + mapLabel.charCodeAt(i)) >>> 0;
-      const ratio = (h % 1000) / 1000;
-      return ratio < 0.25 ? "thunderstorm" : "rain";
-    },
-    [getMapMetadata],
+    (mapLabel: string) => weatherType(weatherStateRef.current?.maps?.[mapLabel]?.weather),
+    [],
   );
 
   const getWarpMetadata = useCallback(
@@ -2642,6 +2599,40 @@ export default function MapCanvas({
     }
     return collision;
   }, []);
+
+  const configureMapWeather = useCallback((
+    parent: Container, label: string, width: number, height: number,
+    existing?: WeatherSystem | null,
+  ): WeatherSystem | null => {
+    const type = computeMapWeather(label);
+    const app = appRef.current;
+    if (!app || type === "none") {
+      existing?.destroy();
+      return null;
+    }
+    if (!weatherEnabled && !existing) return null;
+    const system = existing ?? new WeatherSystem(app, parent);
+    system.setBounds(width, height);
+    const paletteTime = bgPalettes?.maps[label]?.palette_times?.[timeOfDay] ?? timeOfDay;
+    system.setTimeOfDay(paletteTime === "morn" || paletteTime === "eve" || paletteTime === "nite" ? paletteTime : "day");
+    system.setWeather(type);
+    system.setEnabled(weatherEnabled && !disableMapAnimations);
+    const collision = getCollisionMetadata(label);
+    const cherry = warpMetadataRef.current?.collisionConstants?.COLL_CHERRY_LEAVES;
+    const leaves = [];
+    if (collision && typeof cherry === "number") {
+      for (let i = 0; i < collision.cellBytes.length; i++) {
+        if (collision.cellBytes[i] === cherry) {
+          leaves.push({ x: (i % collision.widthCells) * 16 + 8,
+                        y: Math.floor(i / collision.widthCells) * 16 + 8 });
+        }
+      }
+    }
+    system.setCherryLeaves(leaves);
+    system.container.zIndex = 6;
+    parent.sortChildren();
+    return system;
+  }, [computeMapWeather, weatherEnabled, disableMapAnimations, timeOfDay, bgPalettes, getCollisionMetadata]);
 
   const findWorldEntry = useCallback(
     (mapLabel: string | null | undefined): SyncedAnimation | null => {
@@ -3225,6 +3216,7 @@ export default function MapCanvas({
 
         overlay.visible = true;
         overlayStateRef.current = {
+          weather: configureMapWeather(sprite, mapLabel, baseWidth, baseHeight),
           mapLabel,
           sprite,
           resource,
@@ -3278,6 +3270,7 @@ export default function MapCanvas({
       computeCellSize,
       getMapMetadata,
       getCollisionMetadata,
+      configureMapWeather,
       disableMapAnimations,
       positionOverlayContents,
       refreshOverlayObjects,
@@ -4009,27 +4002,20 @@ export default function MapCanvas({
         cleanupVisibility,
         { once: true } as any,
       );
-      // Weather ticker: update per-map systems using world pan delta
+      // Fields are children of map sprites: parent transforms already apply pan
+      // and zoom. There is no separate player step vector in the atlas.
       const weatherTick = (_delta: number): void => {
-        const w = worldRef.current;
-        if (!w) return;
-        // Compute camera step in screen pixels since last tick
-        const prev: any = weatherTick as any;
-        const lastX: number = typeof prev._lastX === "number" ? prev._lastX : w.x;
-        const lastY: number = typeof prev._lastY === "number" ? prev._lastY : w.y;
-        const stepX = w.x - lastX;
-        const stepY = w.y - lastY;
-        (weatherTick as any)._lastX = w.x;
-        (weatherTick as any)._lastY = w.y;
-        // In static mode, skip updates
         if (disableMapAnimations) return;
-        // Update each weather field
-        for (const entry of animationsRef.current) {
-          if (entry.weather) {
-            entry.weather.update(stepX, stepY);
+        const overlay = overlayStateRef.current;
+        if (overlay) {
+          overlay.weather?.update(0, 0);
+        } else {
+          for (const entry of animationsRef.current) {
+            if (entry.visible !== false) entry.weather?.update(0, 0);
           }
         }
       };
+
       try {
         app.ticker.add(weatherTick);
       } catch {
@@ -4078,15 +4064,6 @@ export default function MapCanvas({
       overlayRef.current = null;
       warpsLayerRef.current = null;
       overlayStateRef.current = null;
-      // Destroy any lingering global weather (not used) and per-map instances will be destroyed in disposeAnimations
-      if (weatherSystemRef.current) {
-        try {
-          weatherSystemRef.current.clear();
-        } catch {
-          /* ignore */
-        }
-        weatherSystemRef.current = null;
-      }
       scaleRef.current = 1;
       boundsRef.current = null;
       resetViewRef.current = () => undefined;
@@ -4288,25 +4265,7 @@ export default function MapCanvas({
           };
           animationsRef.current.push(entry);
           spriteEntryMapRef.current.set(sprite, entry);
-          // Attach per-map weather if applicable
-          if (weatherEnabled) {
-            const type = computeMapWeather(placement.label);
-            if (type !== "none") {
-              try {
-                const appInst = appRef.current;
-                if (appInst) {
-                  const ws = new WeatherSystem(appInst, sprite);
-                  ws.setBounds(placement.widthPx, placement.heightPx);
-                  ws.setTimeOfDay(timeOfDay as any);
-                  ws.setEnabled(!disableMapAnimations);
-                  ws.setWeather(type as any);
-                  entry.weather = ws;
-                }
-              } catch {
-                /* ignore weather setup failures */
-              }
-            }
-          }
+          entry.weather = configureMapWeather(sprite, placement.label, placement.widthPx, placement.heightPx);
           return sprite;
         } catch (err) {
           console.error(`Failed to load animation for ${placement.label}`, err);
@@ -4383,6 +4342,7 @@ export default function MapCanvas({
     disableObjectAnimations,
     weatherEnabled,
     computeMapWeather,
+    configureMapWeather,
     timeOfDay,
     clearHighlightTimers,
     closeOverlay,
@@ -5357,64 +5317,18 @@ export default function MapCanvas({
       }
     };
   }, []);
-  // Keep per-map weather enabled state in sync with perf toggle and UI
+  // Refresh after metadata arrives, including after maps were already loaded.
   useEffect(() => {
     for (const entry of animationsRef.current) {
-      if (entry.weather) {
-        entry.weather.setEnabled(weatherEnabled && !disableMapAnimations);
-      }
+      entry.weather = configureMapWeather(entry.sprite, entry.placement.label,
+        entry.placement.widthPx, entry.placement.heightPx, entry.weather);
     }
-  }, [weatherEnabled, disableMapAnimations]);
-
-  // When enabling weather, attach to any eligible maps that don't have it yet
-  useEffect(() => {
-    if (!weatherEnabled) return;
-    const app = appRef.current;
-    if (!app) return;
-    for (const entry of animationsRef.current) {
-      if (entry.weather) continue;
-      const type = computeMapWeather(entry.placement.label);
-      if (type !== "none") {
-        try {
-          const ws = new WeatherSystem(app, entry.sprite);
-          ws.setBounds(entry.placement.widthPx, entry.placement.heightPx);
-          ws.setTimeOfDay(timeOfDay as any);
-          ws.setEnabled(!disableMapAnimations);
-          ws.setWeather(type as any);
-          entry.weather = ws;
-        } catch {
-          /* ignore */
-        }
-      }
+    const overlay = overlayStateRef.current;
+    if (overlay) {
+      overlay.weather = configureMapWeather(overlay.sprite, overlay.mapLabel,
+        overlay.baseWidth, overlay.baseHeight, overlay.weather);
     }
-  }, [weatherEnabled, computeMapWeather, disableMapAnimations, timeOfDay]);
-
-  // Update weather palettes on time-of-day changes
-  useEffect(() => {
-    for (const entry of animationsRef.current) {
-      if (entry.weather) {
-        entry.weather.setTimeOfDay(timeOfDay as any);
-      }
-    }
-  }, [timeOfDay]);
-
-  // Propagate resize to weather system
-  useEffect(() => {
-    const app = appRef.current;
-    if (!app) return;
-    const recompute = (): void => {
-      const ws = weatherSystemRef.current;
-      if (!ws) return;
-      const { width: w, height: h } = getEffectiveViewSize(app);
-      ws.onResize(w, h);
-    };
-    const onResize = (): void => recompute();
-    recompute();
-    rendererOn(app, "resize", onResize);
-    return () => {
-      rendererOff(app, "resize", onResize);
-    };
-  }, [ready]);
+  }, [configureMapWeather, weatherStateRevision, warpMetadata]);
 
   return (
     <div className="canvas-stage" ref={containerRef}>

@@ -9,8 +9,9 @@ import {
 } from "pixi.js";
 import { decodeBase64 } from "@/lib/base64";
 import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
+import { cherrySpawnPoint, type WeatherPoint, type WeatherType } from "@/lib/weatherState";
 
-export type WeatherType = "none" | "rain" | "thunderstorm" | "snow" | "sandstorm";
+export type { WeatherType } from "@/lib/weatherState";
 
 // Game Boy constants adapted to screen-space
 const TILE_WIDTH = 8; // px
@@ -21,9 +22,10 @@ const RAINDROP = 1;
 const RAINSPLASH = 2;
 const SNOWFLAKE = 3;
 const SAND = 4;
+const CHERRY = 5;
 
 type Particle = {
-  kind: typeof RAINDROP | typeof RAINSPLASH | typeof SNOWFLAKE | typeof SAND;
+  kind: typeof RAINDROP | typeof RAINSPLASH | typeof SNOWFLAKE | typeof SAND | typeof CHERRY;
   sprite: Sprite;
   alive: boolean;
   // Screen-space integer positions
@@ -53,6 +55,10 @@ export class WeatherSystem {
   private splashTex: Texture | null = null;
   private snowTex: Texture | null = null;
   private sandTex: Texture | null = null;
+  private cherryTex: Texture | null = null;
+  private cherryLeaves: WeatherPoint[] = [];
+  private destroyed = false;
+  private textureTime: string | null = null;
   private ready = false;
 
   // --- Static asset cache ---
@@ -103,7 +109,7 @@ export class WeatherSystem {
     [255, 255, 255],
     [255, 255, 255],
     [255, 255, 255],
-    [0, 0, 0],
+    [255, 255, 255],
   ];
 
   // Palettize a frame of a source texture using a 4-color palette (light->dark)
@@ -195,7 +201,9 @@ export class WeatherSystem {
 
   public setWeather(next: WeatherType): void {
     if (this.weather === next) return;
-    // Keep old particles; they'll exit screen naturally to approximate cooldown behavior
+    // Map snapshots have no gameplay transition state. Clear previous particles
+    // immediately so a disabled/replaced layer cannot leave stale effects.
+    this.clear();
     this.weather = next;
     this.layer.visible = this.enabled && this.weather !== "none";
     // Rebuild textures if assets are ready
@@ -218,6 +226,10 @@ export class WeatherSystem {
     this.clip.endFill();
   }
 
+  public setCherryLeaves(points: WeatherPoint[]): void {
+    this.cherryLeaves = points;
+  }
+
   public clear(): void {
     for (const p of this.particles) {
       try {
@@ -238,7 +250,9 @@ export class WeatherSystem {
   }
 
   public destroy(): void {
+    this.destroyed = true;
     this.clear();
+    this.disposeTextures();
     try {
       if (this.layer.mask === this.clip) {
         this.layer.mask = null as any;
@@ -266,7 +280,15 @@ export class WeatherSystem {
 
   private async prepareTextures(): Promise<void> {
     // Ensure sources are available
-    await WeatherSystem.ensureAssets();
+    try {
+      await WeatherSystem.ensureAssets();
+    } catch (error) {
+      if (!this.destroyed) console.error("Weather assets could not be loaded", error);
+      return;
+    }
+    if (this.destroyed || this.textureTime === this.timeOfDay) return;
+    this.clear();
+    this.disposeTextures();
     const meta = WeatherSystem._weatherMeta || {};
     const gfx = meta.graphics || {};
     const pals = meta.palettes || {};
@@ -274,6 +296,7 @@ export class WeatherSystem {
     const rainOvercast = pals["PAL_OW_RAIN"]?.overcast?.[tod] || WeatherSystem.SNOW_WHITE;
     const sandTod = pals["PAL_OW_SAND"]?.time_variants?.[tod] || WeatherSystem.SNOW_WHITE;
     const snowPal = pals["PAL_OW_SNOW"]?.static || WeatherSystem.SNOW_WHITE;
+    const cherryPal = pals["PAL_OW_PINK"]?.time_variants?.[tod] || pals["PAL_OW_PINK"]?.static;
 
     this.rainTex = WeatherSystem.buildTextureFrom2bpp(
       gfx.rain?.tiles_2bpp_base64 || "",
@@ -299,19 +322,28 @@ export class WeatherSystem {
       gfx.sand?.height || 8,
       sandTod,
     ) as Texture;
+    this.cherryTex = cherryPal ? WeatherSystem.buildTextureFrom2bpp(
+      gfx.cherry?.tiles_2bpp_base64 || "", 8, 8, cherryPal,
+    ) : null;
+    this.textureTime = tod;
     this.ready = true;
   }
 
+  private disposeTextures(): void {
+    for (const texture of [this.rainTex, this.splashTex, this.snowTex, this.sandTex, this.cherryTex]) {
+      texture?.destroy(true);
+    }
+    this.rainTex = this.splashTex = this.snowTex = this.sandTex = this.cherryTex = null;
+    this.ready = false;
+  }
+
+  private textureFor(kind: Particle["kind"]): Texture | null {
+    return kind === RAINDROP ? this.rainTex : kind === RAINSPLASH ? this.splashTex :
+      kind === SNOWFLAKE ? this.snowTex : kind === CHERRY ? this.cherryTex : this.sandTex;
+  }
+
   private alloc(kind: Particle["kind"]): Particle {
-    const tex = (
-      kind === RAINDROP
-        ? this.rainTex
-        : kind === RAINSPLASH
-          ? this.splashTex
-          : kind === SNOWFLAKE
-            ? this.snowTex
-            : this.sandTex
-    ) as Texture;
+    const tex = this.textureFor(kind) as Texture;
     const sprite = new Sprite(tex);
     sprite.anchor.set(0.5, 0.5);
     sprite.alpha = 1;
@@ -330,6 +362,8 @@ export class WeatherSystem {
 
   private spawn(kind: Particle["kind"], x: number, y: number): void {
     if (this.particles.length >= OAM_COUNT) return;
+    const texture = this.textureFor(kind);
+    if (!texture) return;
     const p = this.pool.pop() ?? this.alloc(kind);
     p.kind = kind;
     p.alive = true;
@@ -337,15 +371,7 @@ export class WeatherSystem {
     p.ttlFrames = kind === RAINSPLASH ? 4 : 0; // ~3.75 frames in GB; 4 is fine
     p.x = x;
     p.y = y;
-    p.sprite.texture = (
-      kind === RAINDROP
-        ? this.rainTex
-        : kind === RAINSPLASH
-          ? this.splashTex
-          : kind === SNOWFLAKE
-            ? this.snowTex
-            : this.sandTex
-    ) as Texture;
+    p.sprite.texture = texture;
     p.sprite.visible = true;
     p.sprite.x = x;
     p.sprite.y = y;
@@ -393,6 +419,9 @@ export class WeatherSystem {
       for (let i = 0; i < 2; i++) if (Math.random() < 0.4) this.trySpawnSnow();
     } else if (this.weather === "sandstorm") {
       for (let i = 0; i < 3; i++) this.trySpawnSand();
+    } else if (this.weather === "cherry_blossoms") {
+      const point = cherrySpawnPoint(this.width, this.height, this.cherryLeaves);
+      if (point) this.spawn(CHERRY, point.x, point.y);
     }
 
     // Update particles
@@ -450,7 +479,11 @@ export class WeatherSystem {
         continue;
       }
 
-      if (p.kind === SNOWFLAKE) {
+      if (p.kind === SNOWFLAKE || p.kind === CHERRY) {
+        if (p.kind === CHERRY && Math.random() < 0.01) {
+          this.despawn(i--);
+          continue;
+        }
         // y: min 2 + (even?1:0) - 2*stepY
         const y = p.y - stepY2 + (p.evenBias ? 1 : 0) + 2;
         // x wiggle: 50% chance to add 1 to the step; x -= (2*stepX + wiggle)

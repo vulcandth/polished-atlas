@@ -116,6 +116,15 @@ export interface MapAnimationMetadata {
   frameDurationsMs: number[];
   loopDurationMs: number;
   sheetColumns?: number;
+  tileAnimation?: TileAnimationMetadata;
+}
+
+export interface TileAnimationMetadata {
+  image: string;
+  tileCount: number;
+  sheetColumns: number;
+  frameMs: number;
+  tracks: { positions: [number, number][]; frames: number[]; durations: number[] }[];
 }
 
 export interface WarpEndpointDTO {

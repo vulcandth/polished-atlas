@@ -7,6 +7,7 @@ import base64
 import json
 from pathlib import Path
 import shutil
+from animation_assets import validate_compact_animation
 
 # GitHub Pages published sites are limited to 1 GB. Leave room for packaging.
 MAX_SITE_BYTES = 950_000_000
@@ -52,6 +53,10 @@ def validate_bundle(root: Path, channel: str, *, require_clean: bool = True) -> 
             raise ValueError(f"Missing or invalid animation sheet: {sheet}")
         if min(animation["frameCount"], animation["frameWidth"], animation["frameHeight"]) <= 0:
             raise ValueError(f"Invalid animation dimensions: {path}")
+        if animation.get("version") == 2:
+            validate_compact_animation(animation, path, root)
+        elif animation.get("version") != 1:
+            raise ValueError(f"Unsupported animation version: {path}")
     warp_maps = json.loads((root / "maps/warp_metadata.json").read_text(encoding="utf-8")).get("maps", {})
     if not warp_maps:
         raise ValueError("Empty warp map inventory")

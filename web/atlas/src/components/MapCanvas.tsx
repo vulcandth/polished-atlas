@@ -296,7 +296,7 @@ function disposeAnimationResource(
   }
   // First, dispose of the Texture wrappers without touching the BaseTexture
   // so that the asset system can own the BaseTexture lifecycle.
-  for (const texture of resource.textures) {
+  for (const texture of [...resource.textures, ...(resource.tileTextures ?? [])]) {
     try {
       // In some teardown orders, PIXI may already have nulled the baseTexture
       // on a Texture without marking it destroyed. Guard for that to avoid
@@ -318,6 +318,7 @@ function disposeAnimationResource(
   // visible sprites.
   if (options?.unload) {
     void Assets.unload(resource.imageUrl);
+    if (resource.tileImageUrl) void Assets.unload(resource.tileImageUrl);
   }
 }
 
@@ -1881,6 +1882,7 @@ export default function MapCanvas({
   const zOverridesRef = useRef<Record<string, number>>({});
 
   // Ticker control: stop the PIXI ticker when both animations are disabled and render on-demand
+  const updateAnimationsRef = useRef<(() => void) | null>(null);
   const updateTickerMode = useCallback((): void => {
     const app = appRef.current;
     if (!app) return;
@@ -1901,6 +1903,9 @@ export default function MapCanvas({
     if (!app) return;
     if (disableMapAnimations && disableObjectAnimations) {
       try {
+        // Panning, loading and restoring a view can expose maps culled by the
+        // last running tick. Refresh visibility and static frames before drawing.
+        updateAnimationsRef.current?.();
         app.render();
       } catch {
         /* ignore */
@@ -3243,6 +3248,7 @@ export default function MapCanvas({
         if (sprite.currentFrame !== initialFrame) {
           sprite.gotoAndStop(initialFrame);
         }
+        resource.applyTiles?.(sprite, elapsed, !disableMapAnimations);
         refreshOverlayObjects();
         const world = worldRef.current;
         if (world) {
@@ -3266,6 +3272,7 @@ export default function MapCanvas({
       computeCellSize,
       getMapMetadata,
       getCollisionMetadata,
+      disableMapAnimations,
       positionOverlayContents,
       refreshOverlayObjects,
       resolveAssetHref,
@@ -4238,6 +4245,7 @@ export default function MapCanvas({
           // Only show pointer on truly clickable UI (e.g., warps, items). Default to auto for maps.
           sprite.cursor = "auto";
           sprite.sortableChildren = true;
+          resource.applyTiles?.(sprite, Math.max(0, app.ticker.lastTime - syncStartRef.current), !disableMapAnimations);
           const neighborhoodId =
             typeof placement.metadata?.neighborhoodId === "string"
               ? placement.metadata.neighborhoodId
@@ -4490,6 +4498,7 @@ export default function MapCanvas({
             entry.sprite.gotoAndStop(nextFrame);
           }
         }
+        entry.resource.applyTiles?.(entry.sprite, elapsed, !disableMapAnimations);
         for (const marker of entry.objectMarkers) {
           if (disableObjectAnimations) {
             marker.animationElapsedMs = undefined;
@@ -4535,6 +4544,7 @@ export default function MapCanvas({
             overlayState.sprite.gotoAndStop(nextFrame);
           }
         }
+        overlayState.resource.applyTiles?.(overlayState.sprite, elapsed, !disableMapAnimations);
         for (const marker of overlayState.objectMarkers) {
           if (disableObjectAnimations) {
             marker.animationElapsedMs = undefined;
@@ -4554,8 +4564,14 @@ export default function MapCanvas({
         }
       }
     };
+    updateAnimationsRef.current = updateAnimations;
     ticker.add(updateAnimations);
+    if (disableMapAnimations && disableObjectAnimations) {
+      updateAnimations();
+      app.render();
+    }
     return () => {
+      if (updateAnimationsRef.current === updateAnimations) updateAnimationsRef.current = null;
       try {
         ticker.remove(updateAnimations);
       } catch {

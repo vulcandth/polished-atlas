@@ -153,6 +153,10 @@ def _render_single(
         render_map._write_png(destination, width, height, rows, png_module)
         return map_label, destination
 
+    if (polished_path / "data/tileset_anims.asm").exists():
+        metadata_path = output_dir / f"{renderer.map_label}.animation.json"
+        render_map._write_modern_animation(polished_path, renderer, png_module, repo_index, time_of_day, events, metadata_path)
+        return map_label, metadata_path
     animations = render_map._load_tileset_animations(polished_path, renderer, png_module)
     period = render_map._animation_period(animations)
     frames = []

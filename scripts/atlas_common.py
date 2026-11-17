@@ -11,6 +11,7 @@ from __future__ import annotations
 import importlib
 import os
 import sys
+from functools import lru_cache
 from pathlib import Path
 from types import ModuleType
 from typing import Dict, Optional, Set, Tuple
@@ -124,6 +125,16 @@ def _palette_signature(
     return overcast_index, signature
 
 
+@lru_cache(maxsize=4)
+def _time_sensitive_animation_tilesets(root: Path) -> set[str]:
+    path = root / "data/tileset_anims.asm"
+    if not path.exists():
+        return set()
+    from tile_animation import parse_tables
+    return {label for label, commands in parse_tables(path).items()
+            if any(command.function == "AnimateLampLightTiles" for command in commands)}
+
+
 def _is_time_invariant_map(
     repo_index: render_map.RepositoryIndex,
     map_info: render_map.MapInfo,
@@ -134,6 +145,10 @@ def _is_time_invariant_map(
     # render each palette rather than reusing a common sheet based on base colors.
     if repo_index.palette_swaps.maps.get(map_info.label):
         return False
+    if repo_index.tileset_label(map_info.tileset) in _time_sensitive_animation_tilesets(Path(repo_index.root)):
+        from tile_animation_export import context_for_map
+        if len({context_for_map(map_info, time, events).time >= 2 for time in _TIME_OF_DAY_VALUES}) > 1:
+            return False
     baseline: Optional[Tuple[Optional[int], Tuple[Tuple[Tuple[int, int, int], ...], ...]]] = None
     for weekday in _WEEKDAY_VALUES:
         for time_of_day in _TIME_OF_DAY_VALUES:

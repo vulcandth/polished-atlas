@@ -520,10 +520,17 @@ class RepositoryIndex:
     def _parse_map_table(self) -> dict[str, _MapHeader]:
         path = self.root / "data/maps/maps.asm"
         mapping: dict[str, _MapHeader] = {}
+        constants_by_id = {(group, number): constant
+                           for constant, (_, _, group, number) in self._map_constants.items()}
+        group = number = 0
         for raw_line in path.read_text().splitlines():
             line = raw_line.split(";", 1)[0].strip()
+            group_match = re.fullmatch(r"MapGroup(\d+):", line)
+            if group_match:
+                group, number = int(group_match[1]), 0
             if not line.startswith("map "):
                 continue
+            number += 1
             parts = [part.strip() for part in line.split(",")]
             if len(parts) < 5:
                 continue
@@ -531,7 +538,9 @@ class RepositoryIndex:
             tileset = parts[1]
             map_type = parts[2]
             location = parts[4]
-            default_constant = parts[4] if len(parts) > 4 else None
+            default_constant = constants_by_id.get((group, number))
+            if default_constant is None:
+                raise ValueError(f"No map constant for {label} at group {group}, index {number}")
             palette_flags: Set[str] = set()
             if len(parts) > 7:
                 palette_flags = {flag.strip() for flag in parts[7].split("|") if flag.strip()}
@@ -1181,14 +1190,17 @@ class RepositoryIndex:
         for label, header in self._map_table.items():
             tileset = header.tileset
             map_type = header.map_type
-            constant_name = self._map_attributes.get(label, header.default_constant)
-            constant_data = self._map_constants.get(constant_name)
+            # Header position identifies a map; map_attributes can reuse another
+            # map's dimensions (LavRadioTower4F uses the 3F constant upstream).
+            constant_name = header.default_constant
+            constant_data = self._map_constants.get(self._map_attributes.get(label, constant_name))
             if constant_data is None:
                 continue
             tileset_index = self._tileset_indices.get(tileset)
             if tileset_index is None:
                 continue
-            width, height, group, map_number = constant_data
+            width, height, _, _ = constant_data
+            _, _, group, map_number = self._map_constants[constant_name]
             roof_constant = self.roof_constant(group)
             location = header.location
             location_index = self._landmark_indices.get(location)
@@ -1856,6 +1868,12 @@ def _load_tileset_animations(
     return []
 
 
+def _write_modern_animation(polished_path, renderer, png_module, repo_index, time_of_day, events, metadata_path):
+    from tile_animation_export import context_for_map, write_animation
+    context = context_for_map(repo_index.map_info(renderer.map_label), time_of_day, events or set())
+    return write_animation(polished_path, renderer, png_module, metadata_path, context)
+
+
 def _animation_period(animations: Sequence[TileAnimation]) -> int:
     period = 1
     for animation in animations:
@@ -2465,6 +2483,10 @@ def main() -> None:
     elif metadata_path.suffix.lower() != ".json":
         metadata_path = metadata_path.with_suffix(".json")
     image_path = metadata_path.with_suffix(".png")
+    if (polished_path / "data/tileset_anims.asm").exists():
+        _write_modern_animation(polished_path, renderer, png, repo_index, time_of_day, events, metadata_path)
+        print(f"Wrote {metadata_path} and compact animation assets")
+        return
     animations = _load_tileset_animations(polished_path, renderer, png)
     period = _animation_period(animations)
     frames: List[Tuple[int, int, List[List[int]]]] = []

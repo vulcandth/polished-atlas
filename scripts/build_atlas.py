@@ -151,7 +151,9 @@ def main() -> None:
                 public_base=env.get("VITE_PUBLIC_BASE", "/"),
                 built_at=datetime.now(timezone.utc).isoformat())
     settings_hash = hashlib.sha256(json.dumps(info["settings"], sort_keys=True).encode()).hexdigest()[:12]
-    info["asset_version"] = f"{atlas_sha}-{source['commit']}-{settings_hash}" + ("-dirty" if dirty else "")
+    # Dirty previews can change without a new commit. Give each such generation
+    # a distinct cache key so force-cached metadata cannot hide local fixes.
+    info["asset_version"] = f"{atlas_sha}-{source['commit']}-{settings_hash}" + (f"-dirty-{info['built_at']}" if dirty else "")
     (generated / "build-info.json").write_text(json.dumps(info, indent=2) + "\n", encoding="utf-8")
     if args.assets_only:
         return
@@ -170,6 +172,8 @@ def main() -> None:
     run(npm, "run", "build", "--", "--outDir", destination, cwd=ROOT / "web/atlas", env=env)
     shutil.copytree(maps, destination / "maps")
     shutil.copy2(generated / "build-info.json", destination / "build-info.json")
+    from assemble_pages import validate_bundle
+    validate_bundle(destination, source["channel"], require_clean=not dirty)
     print(f"[build-atlas] Complete: {destination}")
 
 

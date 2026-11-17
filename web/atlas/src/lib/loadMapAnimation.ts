@@ -1,6 +1,7 @@
-import { Assets, BaseTexture, Rectangle, Texture } from "pixi.js";
+import { Assets, BaseTexture, Rectangle, Texture, type Container } from "pixi.js";
 import type { MapAnimationMetadata } from "@/types";
 import { withVersion } from "@/lib/basePath";
+import { createTileAnimationPlayer, validateTileAnimation } from "@/lib/tileAnimation";
 
 export interface MapAnimationResource {
   textures: Texture[];
@@ -8,6 +9,9 @@ export interface MapAnimationResource {
   loopDuration: number;
   baseTexture: BaseTexture;
   imageUrl: string;
+  tileTextures?: Texture[];
+  tileImageUrl?: string;
+  applyTiles?: (parent: Container, elapsedMs: number, enabled?: boolean) => void;
 }
 
 const resolvedUrlCache = new Map<string, string>();
@@ -88,6 +92,22 @@ export async function loadMapAnimation(assetUrl: string): Promise<MapAnimationRe
         );
         textures.push(new Texture(baseTexture, frameRect));
       }
+      let tileTextures: Texture[] | undefined;
+      let tileImageUrl: string | undefined;
+      let applyTiles: MapAnimationResource["applyTiles"];
+      if (metadata.tileAnimation) {
+        const tiles = metadata.tileAnimation;
+        tileImageUrl = withVersion(new URL(tiles.image, baseHref).toString());
+        await Assets.load(tileImageUrl);
+        const tileBase = BaseTexture.from(tileImageUrl);
+        if (tileBase.width !== tiles.sheetColumns * 8 ||
+            tileBase.height !== Math.ceil(tiles.tileCount / tiles.sheetColumns) * 8) {
+          throw new Error(`Invalid animated tile atlas dimensions at ${tileImageUrl}`);
+        }
+        tileTextures = Array.from({ length: tiles.tileCount }, (_, index) => new Texture(tileBase,
+          new Rectangle((index % tiles.sheetColumns) * 8, Math.floor(index / tiles.sheetColumns) * 8, 8, 8)));
+        applyTiles = createTileAnimationPlayer(tiles, tileTextures);
+      }
       const durations = [...metadata.frameDurationsMs];
       const loopDuration =
         metadata.loopDurationMs > 0
@@ -102,6 +122,9 @@ export async function loadMapAnimation(assetUrl: string): Promise<MapAnimationRe
         loopDuration,
         baseTexture,
         imageUrl: resolvedImageUrl,
+        tileTextures,
+        tileImageUrl,
+        applyTiles,
       };
     } catch (error) {
       lastError = error;
@@ -170,8 +193,12 @@ function computeCommonFallback(sourceUrl: string): string | null {
 }
 
 function validateMetadata(metadata: MapAnimationMetadata, assetUrl: string): void {
-  if (metadata.version !== 1) {
-    console.warn(`Unsupported animation metadata version ${metadata.version} for ${assetUrl}.`);
+  if (metadata.version !== 1 && metadata.version !== 2) {
+    throw new Error(`Unsupported animation metadata version ${metadata.version} for ${assetUrl}.`);
+  }
+  if (metadata.tileAnimation) {
+    if (metadata.version !== 2 || metadata.frameCount !== 1) throw new Error("Invalid tile animation version or base frame count");
+    validateTileAnimation(metadata.tileAnimation, metadata.frameWidth, metadata.frameHeight);
   }
   if (
     !Array.isArray(metadata.frameDurationsMs) ||

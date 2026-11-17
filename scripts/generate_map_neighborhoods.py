@@ -564,6 +564,10 @@ def main() -> None:
     raw_graph = parser.parse()
 
     repo_index = atlas_common.repository(polished_path)
+    if set(raw_graph) != set(repo_index.maps):
+        missing = sorted(set(repo_index.maps) - set(raw_graph))
+        extra = sorted(set(raw_graph) - set(repo_index.maps))
+        raise ValueError(f"Map attributes inventory mismatch: missing={missing}, extra={extra}")
     invariant_labels = atlas_common.time_invariant_maps(repo_index)
     _augment_with_repo(raw_graph, repo_index)
 
@@ -650,6 +654,8 @@ def main() -> None:
             )
         )
 
+    if not neighborhoods:
+        raise ValueError("No neighborhoods generated; refusing to write an empty atlas manifest")
     neighborhoods.sort(key=lambda record: (record.z_offset, record.root))
     _build_manifest(manifest_path, neighborhoods)
 

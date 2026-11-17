@@ -60,7 +60,7 @@ def fixture(root, channel):
         "collision": {"width_cells": 2, "height_cells": 2, "cells": "AAAAAA=="}}}}))
     common = maps / "common/animated"
     common.mkdir(parents=True)
-    (common / "Test.animation.json").write_text(json.dumps(dict(image="Test.png", frameCount=1, frameWidth=32, frameHeight=32)))
+    (common / "Test.animation.json").write_text(json.dumps(dict(version=1, image="Test.png", frameCount=1, frameWidth=32, frameHeight=32)))
     (common / "Test.png").write_bytes(b"test-sheet")
     for slug in info["settings"]["times"]:
         directory = maps / slug / "animated"

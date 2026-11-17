@@ -376,11 +376,8 @@ def build_metadata(
     attributes_source = attributes_path or polished_path / "data/maps/attributes.asm"
     parser = AttributesParser(attributes_source)
     attribute_graph = parser.parse()
-    constant_to_label: Dict[str, str] = {}
-    for label, data in attribute_graph.items():
-        if data.constant:
-            constant_to_label[data.constant] = label
     map_info = repo_index.maps
+    constant_to_label = {info.constant: label for label, info in map_info.items()}
     map_scripts_dir = polished_path / "maps"
     script_warps: Dict[str, List[WarpEvent]] = {}
     for script_path in _iter_map_scripts(map_scripts_dir):

@@ -22,7 +22,7 @@ import render_map
 import atlas_common
 
 _MAP_ATTRIBUTES_RE = re.compile(
-    r"map_attributes\s+([A-Za-z0-9_]+),\s*([A-Z0-9_]+),\s*([^,]+),\s*(.+)"
+    r"map_attributes\s+([A-Za-z0-9_]+),\s*([A-Z0-9_]+),\s*([^,]+?)(?:,\s*([^,]+))?"
 )
 _CONNECTION_RE = re.compile(
     r"connection\s+([a-z]+),\s*([A-Za-z0-9_]+),\s*([A-Z0-9_]+),\s*([-+]?[0-9]+)"
@@ -65,10 +65,12 @@ class AttributesParser:
             line = raw_line.split(";", 1)[0].strip()
             if not line:
                 continue
-            attr_match = _MAP_ATTRIBUTES_RE.match(line)
+            attr_match = _MAP_ATTRIBUTES_RE.fullmatch(line)
             if attr_match:
                 label, constant, border_block, flag_expr = attr_match.groups()
-                flags = [part.strip() for part in flag_expr.split("|")]
+                if label in maps:
+                    raise ValueError(f"Duplicate map attributes: {label}")
+                flags = [part.strip() for part in flag_expr.split("|")] if flag_expr else []
                 current = MapAttributes(
                     label=label,
                     constant=constant,
@@ -77,11 +79,15 @@ class AttributesParser:
                 )
                 maps[label] = current
                 continue
-            if line.startswith("connection") and current is not None:
-                conn_match = _CONNECTION_RE.match(line)
-                if not conn_match:
+            if line.startswith("map_attributes "):
+                raise ValueError(f"Unable to parse map attributes: {line}")
+            if line.startswith("connection "):
+                conn_match = _CONNECTION_RE.fullmatch(line)
+                if not conn_match or current is None:
                     raise ValueError(f"Unable to parse connection line: {line}")
                 direction, target_label, target_constant, offset = conn_match.groups()
+                if direction not in {"north", "south", "west", "east"}:
+                    raise ValueError(f"Unknown connection direction: {direction}")
                 current.connections.append(
                     MapConnection(
                         direction=direction,
@@ -90,6 +96,13 @@ class AttributesParser:
                         offset=int(offset),
                     )
                 )
+        if not maps:
+            raise ValueError(f"No map attributes found in {self.attributes_path}")
+        # Modern upstream derives the flags from each connection macro instead
+        # of repeating a fourth argument on map_attributes.
+        for data in maps.values():
+            if not data.connection_flags:
+                data.connection_flags = [connection.direction.upper() for connection in data.connections] or ["0"]
         return maps
 
     def _iter_lines(self) -> Iterable[str]:
@@ -140,6 +153,7 @@ def _augment_with_repo(
         except KeyError:
             continue
         data.width = info.width
+        data.constant = info.constant
         data.height = info.height
         data.map_type = info.map_type
         data.group = info.group

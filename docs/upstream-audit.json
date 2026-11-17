@@ -15726,10 +15726,14 @@
           "maps/EcruteakHouse.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Calls UpdateSprites between existing sage appear/disappear commands to avoid ROM flicker. Object coordinates, event flags and movement commands are unchanged; atlas uses its own sprite display lifecycle.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/23728a3c9ccb94e379fe3c1dbac4d8aa74da1c51",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "e1ebe4679c7748736505ade7b8b609e9ee161a96",
@@ -15979,10 +15983,14 @@
           "data/maps/overcast_maps.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Updates the random-overcast list for the Route23 split. Random weather is explicitly excluded; fixed/scripted/scheduled weather tables are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4ab1adcf9838f4d8b5b1e8a7817779f54dca81a3",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "24312f9eb7fa16d19440e658564e3a4ef5d6108b",
@@ -16577,10 +16585,14 @@
           "maps/CopycatsHouse2F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Changes Copycat overrides from PURPLE to TEAL. Current generated Copycat object resolves PAL_OW_TEAL (value 8), consumed by the existing palette override renderer. Full object-data diff reviewed.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7220134e449f9606933b830d73132380d98b7fa5",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "c12270faca44a2745148ebc8ce3b6012399fca67",
@@ -17226,10 +17238,14 @@
           "maps/ElmsLab.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Splits Elm dialogue and adds a shock emote after the theft conversation. No map, object definition or movement path changes; atlas does not play dialogue/emote cutscenes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/436715f8789c9ea346b4f99123d2daeecb7a100f",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff",
       "triage_note": "Full diff screened: includes dialog control flow, event/item branch, interaction direction, wait timing or facing behavior. Retained for scripted-movement/interaction consumer check; not dismissed as text-only."
     },
     {
@@ -18990,10 +19006,14 @@
           "data/sprites/facings.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Moves the mirrored half of both Lugia facings one pixel left. Generated metadata retains all twelve corrected mirrored offsets and NEXT_PALETTE/XFLIP flags; dual-palette renderer handles them. Both source frames were inspected in the prior browser NPC pass. Full facing diff reviewed.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6e53162adce7495ad50dbd2d5a03ecd48edce413",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "3a29f00b477c632271fdedd1afda4e14108e4c78",
@@ -19098,10 +19118,14 @@
           "maps/CeladonMansion3F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Adds a deliberate PEBKAC crash interaction to the Celadon game-program computer, its error constant and BSOD text. Atlas does not execute computer dialogue or ROM crash handlers; static map and object data are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/06fee348a7f483f67f4159ade3d4dd52251e41cd",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "8630872af72cfd101699f1880f8ac05fdf8ff6b6",
@@ -19206,10 +19230,14 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Updates the optional player-house debug cheat script and adds RAM table assertions. Atlas event_state reads InitialEvents/InitialEngineFlags plus explicit overrides, not this debug script; its commented weather/power flag cheats do not alter atlas defaults.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/89941d4af3ae5ec65a479db8db129a042c07ac27",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "55a3b907fb9ffa028a54bfe2902845d0546db81d",
@@ -19227,10 +19255,14 @@
           "ram/hram.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Adds object occlusion to the trainer-versus-player line-of-sight battle trigger and HRAM scratch storage. Atlas has no player battle-trigger or trainer-sight simulation; object collision/movement declarations are unchanged. Verified no sight consumer in atlas scripts/frontend.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/55a3b907fb9ffa028a54bfe2902845d0546db81d",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "8252bc5f7199d501d9ff560cfaa1aae03e0ba2f2",
@@ -19269,10 +19301,14 @@
           "maps/SaffronTrainStation.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Reduces only the wait after the player arrives by Magnet Train. Atlas does not simulate train arrival or these script wait commands; NPC movement definitions and warp endpoints are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/88688ed6e8ceab72c82c0eec39f8615aa18aaba4",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff",
       "triage_note": "Full diff screened: includes dialog control flow, event/item branch, interaction direction, wait timing or facing behavior. Retained for scripted-movement/interaction consumer check; not dismissed as text-only."
     },
     {
@@ -19312,10 +19348,14 @@
           "maps/WarehouseEntrance.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Checks bag capacity and retries reward delivery in Lorelei/Piers conversations. No object visibility declaration, movement path or map graphics changes; atlas does not execute reward inventory interactions.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1dddde4630fd71de5b5ad93e6dcbd973fe7ea906",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff",
       "triage_note": "Full diff screened: includes dialog control flow, event/item branch, interaction direction, wait timing or facing behavior. Retained for scripted-movement/interaction consumer check; not dismissed as text-only."
     },
     {
@@ -19383,10 +19423,14 @@
           "engine/tilesets/tileset_anims.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Renames 22 tileset label prefixes across the 47-entry table and animation aliases. Reviewed rename mapping and proved exact whole-file parent/commit equality after applying that mapping to both changed files; no remaining changes. Atlas resolves current labels from source and all 53 target tilesets build.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1ed36aee7cb3cca60ca63453eb73265f400c8bc8",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "normalized-diff"
     },
     {
       "sha": "b25c748be560f7273563bd1393ab9af553a021b9",
@@ -27560,10 +27604,14 @@
           "data/maps/attributes.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Changes RuinsOfAlphOutside east Route32 offset from 12 to 10. Target parsing retains offset 10; derived reverse placement now includes the ruins. Current full-layout constraint check has no coordinate conflicts. FakeRoute36 north alias remains separate open work.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d220005e641355a1da2199950eb8caf5ffb1923a",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "31aea92972132dd6b434160cee84c21d476f4abe",
@@ -37635,10 +37683,14 @@
           "engine/tilesets/tileset_anims.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Removes a redundant mask before rVBK (hardware ignores upper bits). Animation addresses, bank bit and table semantics are unchanged; atlas already separates the bank explicitly.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/29c86fb2e1a4130fb3f8b9cb29ac53cc7a452dba",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "91337c9d1d8e80647dcc7fd18e218bd3a4faac95",
@@ -38623,10 +38675,14 @@
           "maps/GoldenrodPokecomCenterOffice.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Changes computer background interactions to require facing up and wraps their text in scripts. Atlas does not execute background dialogue; object positions, terrain collisions and warps are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6e06061634aae9474a9a84be399ff819ec4e1877",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff",
       "triage_note": "Full diff screened: includes dialog control flow, event/item branch, interaction direction, wait timing or facing behavior. Retained for scripted-movement/interaction consumer check; not dismissed as text-only."
     },
     {
@@ -39687,10 +39743,14 @@
           "maps/GoldenrodHappinessRater.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Adds party selection to the happiness-rater interaction and registers its special function. Atlas does not simulate party menus or happiness checks; no object or map format changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c6f7cd15db1727a699c53f8e75588742abaa2ea9",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "9e2aad02c03649c24744c136af4e84b1af192a60",
@@ -41074,10 +41134,14 @@
           "engine/gfx/sprite_palettes.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Removes redundant stack exchanges around CatchUpObjPaletteFade. Palette selection, RGB values and fade timing are unchanged; atlas does not emulate this register stack.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/74e9e0174f0bdd657977a3f919f38995ae6186af",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "38860f70226085c4a042dccfcdc4a039ca6a2f93",
@@ -41178,10 +41242,14 @@
           "data/sprites/map_objects.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Converts sprite_movement_data macros into six db fields with named flags. Verified all 51 parent/commit records are identical after applying the original dn high-nibble packing to palette flags, using constants at the commit. Modern parser adaptation exports all 59 target records and rejects truncated tables; corpus tests and stable metadata generation pass. Complete record-level normalization plus macro/header inspection, not a line-by-line expanded diff review.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f9fe4298de5b04abc2993c12e25c6830c634d002",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "normalized-diff",
       "triage_note": "Movement-table format adaptation implemented: six db fields under SPRITEMOVEDATA headers are parsed strictly, preserving the legacy macro format. All 59 current movements and every object movement reference validate; stable metadata generation succeeds. This note does not assert complete review of the 466-line conversion diff."
     },
     {
@@ -41333,10 +41401,14 @@
           "data/collision/field_move_blocks.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Updates Whirlpool field-move replacement pointers for the coast tileset. Atlas renders source terrain and does not execute field moves or consume this replacement table; whirlpool animation data are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/273846e06f9469d977ee7ee0adead8dddd513e9f",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "d1fcbeaf4cfed2a1f8abd3a7a26e39690cc8c393",
@@ -41948,10 +42020,14 @@
           "gfx/overworld/heal_machine.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Changes the transient healing-machine Pokeball animation palette. No atlas consumer of heal_machine.pal or healing cutscene playback; static Pokecenter terrain and NPC palettes are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d21b67a6b2827f1dc0e6743708265e2888bf1cef",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "1226ea17bb0bdf5de1bad706a688fe89af573981",
@@ -42943,10 +43019,14 @@
           "maps/Route34.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Replaces gender-indexed Lyra introduction dialogue with one shared message. NPC/player movement commands are unchanged; atlas does not execute the dialogue-selection table.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/efb0ec3ca17bd08f20966f845bbd3666beb88f9b",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "fd4ca056479a0ccdbdcab00aaed6740902adc8ff",
@@ -43456,10 +43536,14 @@
           "home/decompress.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Reorders and factors ROM decompression branches and packed lookup output. No compression opcode/table or source asset change; atlas does not execute this ROM routine.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b7e86796114bf4608c1a028a555c974e0f984131",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "d24619d7b29a6fa4d0d2edcc2b24f45faaa506c3",
@@ -44948,10 +45032,14 @@
           "data/maps/attributes.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Removes the direct Route10North/South connection in both directions. Asserted neither edge exists in the target layout graph, including derived reverse constraints; both maps remain reachable through their other routes. Full attribute diff reviewed.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d0580c52cad4cd533c76a4cb26202bb268c9120d",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "a423093785809cb5859634c8d9ec8c3a09ac1dc3",
@@ -45536,10 +45624,14 @@
           "engine/tilesets/tileset_anims.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Moves the tile-pointer register setup before the left/right scroll branch and comments unused public wrappers. Scroll order, timer updates and pixel transforms are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/786bf72dfc2ceae642b55f228ca41875a152600b",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "3432f278b5a02f0d373756475901bdbc7a3a70be",
@@ -46351,10 +46443,14 @@
           "engine/tilesets/tileset_anims.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Comments the unused ScrollTileRightLeft routine and uses fallthrough instead of an equivalent jump. Current animation tables no longer call that routine; active four-tile scrolling behavior is unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6aaa38dd11a7063e9f8fa6a4967765ec8b566942",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "e8574dd755c48d8147c5a6851eb0671e25d1eea2",
@@ -46377,10 +46473,14 @@
           "gfx/tilesets/animations/rocks.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Renames Buoy/TinyBuoy animation functions and the identical PNG to Rock/TinyRock. Modern tile_animation COPY_SPECS implements both new names and loads rocks from source declarations. All current animation tables and the complete dev build pass; full text diff and R100 asset rename reviewed.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e8574dd755c48d8147c5a6851eb0671e25d1eea2",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "897620ca96645003d7b23c8dbd1859fc5cf1b948",
@@ -48529,10 +48629,14 @@
           "gfx/overworld/npc_sprites_overcast.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Changes dark-skinned NPC light colors for all four overcast times. Asserted generated DARK_RED/BLUE/GREEN/PURPLE color 1 values against all sixteen reviewed RGB5 entries after 8-bit expansion. Existing renderer selects these time/overcast variants; full palette diff reviewed.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ae6fe366501e79e2d80803fdc4f64e6f1740a184",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "45d4e41d43650f5f246019fb7bf62b18c919e95e",
@@ -48784,10 +48888,14 @@
           "maps/GoldenrodMuseum2F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Changes museum painting/puzzle interaction gates and dialogue, and replaces the sightseer script with a supported OBJECTTYPE_COMMAND text interaction. Does not change displayed map blocks, NPC sprite, position, time mask or movement; atlas does not render modal paintingpic interactions.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a80977857b4aa4ab1a7d9177847cdb47e23c05e8",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "65cdb9eb71d00600de22300e4456f4b76871b84c",
@@ -51337,10 +51445,14 @@
           "maps/CeruleanCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Removes nonfunctional Cerulean bridge coordinate triggers and scene constants. Script analysis consumes coordinate events; retain open with 1f9e29dbc993 for explicit bridge-state/collision support review rather than treating all map scripts as dialogue.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7da3c7e051dde2965a4289255025da6f0f92fc0f",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "36becc776f6e6ee92fa716c6052d66468d2d8dd7",
@@ -51568,10 +51680,14 @@
           "maps/PowerPlant.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Removes Silver Leaf payment from the Power Plant move tutor and updates text. Map/object data and fixed weather/event declarations are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e62e6b3e5174c28110eae3e8a938be0e0705b591",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "b7d026eef54ba134d6fcb2743c9ebed0e7821cf5",
@@ -52001,10 +52117,14 @@
           "maps/GoldenrodHoneyHouse.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Removes a temporary dialogue gate and clarifies repeat Sweet Honey purchases. No object visibility/movement changes; atlas does not simulate shop interactions.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/920a4ca123175460ed87d6546e6c5ba6bfc15245",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "df08847a8da61827a08f95c51ef16f7bb261808a",
@@ -52205,10 +52325,14 @@
           "data/collision/field_move_blocks.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Removes an obsolete grass-cut replacement pair. Atlas does not simulate Cut field-move block replacement or consume field_move_blocks.asm; base map and collision data are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/515a05936fec55bb627d4e58edf8ad4027bd5cfd",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "0340f8079445d63ae22a8826d320a39a67f1a6ce",
@@ -52558,10 +52682,14 @@
           "maps/Route36.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Adds two compile-time assertions to Route36 sign text. No map, object, palette or movement data changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/102fb1e56782192bcb8c11121d0b10b05a65a3a7",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "548c99425a8687dc81984afb655c6648453014a8",
@@ -53856,10 +53984,14 @@
           "maps/Route32.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Adds a hatched-Togepi dialogue branch to the Route32 grotto introduction. Movement and grotto destination/appearance rules are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/326dfb0654d03fbfbe1c6d1b30b51d3e2415b192",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "1f9e29dbc993a73c839e3dfd9292a57ce8166b77",
@@ -53881,10 +54013,14 @@
           "maps/Route24.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Adds Cerulean/Route24 bridge coordinate triggers, shared scene state and wWalkingOnBridge updates. Retain open to reconcile atlas bridge appearance/collision and movement analysis; no complete implementation evidence for dynamic bridge state yet.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1f9e29dbc993a73c839e3dfd9292a57ce8166b77",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "3d5047bae5a2ab4bebc8168c94d4c2ee4faba564",
@@ -54986,10 +55122,14 @@
           "maps/SaffronCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Reorders swaps in GoldenrodCity/Harbor and Saffron so the green palette is processed last for Fly leaves. Atlas preserves declaration order and NULL inheritance; current-source palette tests cover Goldenrod museum/bike-shop slots. Fly cutscene leaves are not rendered. Full three-file diff reviewed.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c6ed0a1aacf8608980d465605afeb75c19b3179a",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "a2564e1ec66c814c8f293e668f16cf71a7925925",
@@ -55314,10 +55454,14 @@
           "data/collision/collision_permissions.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Adds descriptive names to two collision permission comments. LAND_TILE bytes remain identical; no change to campfire/aquarium glow rules.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/55057e6a2964b0d254fa508310aafb5c67878353",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "722966c58934eb29904e24b1fa1cf4bd5f5626af",
@@ -56372,10 +56516,14 @@
           "maps/DragonShrine.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Shifts the Dragon Shrine elder/Clair spawn coordinates and reverses several scripted paths/facings to keep the player centered. Retain open for scripted-movement analysis and on-map validation; this is more than a camera-only change.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1df26d6168b53240cf2223cfe5133aeebbc572fb",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "59b438584f66d9b24f3539c0934e217bfe1fa4ce",
@@ -56670,10 +56818,14 @@
           "engine/gfx/dynamic_pals.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Replaces two branches in glow-type lookup with equivalent fallthrough. Collision-to-glow mappings and selected glow values are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/32d875bbe551c3aeb13c87dff1af23d96164ee32",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "0c3236c2d802f24e5e3c4349596add86236d2a77",
@@ -59252,10 +59404,14 @@
           "data/maps/setup_scripts.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Adds BufferScreen to the ROM map-connection setup sequence. Atlas builds complete map textures and does not use Game Boy screen-backup RAM; source geometry and graphics are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/512b9dc588d69af917e58c22df7d9518235b4eac",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "3695982aca00bce7273e1e83955bebba1bac9eb9",
@@ -59369,10 +59525,14 @@
           "maps/TrainerHouseB1F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Moves daily Trainer House opponent selection into clock-reset handling and updates the callback loading its variable trainer sprite. Retain open to establish and validate the atlas representative daily-opponent sprite policy; no ROM clock-reset crash simulation is needed.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9e59a67ed797473a0fd0517a6b5c325ac36830c2",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "31c123342f0a97aa8e7624659ad842386e27beb6",
@@ -60226,10 +60386,14 @@
           "data/maps/attributes.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Changes Route46 east Route45 offset to -39. Asserted the current parsed value and checked all world placement constraints for conflicts; all four regenerated layouts include both maps.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/aff9285473a13dd7946e4f689cc29071012cf397",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "5548a5209105c062d7d3b5fdcece7b17d96c16ea",
@@ -60453,10 +60617,14 @@
           "data/sprites/map_objects.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Changes arch-tree objects from MOVE_ANYWHERE/high priority to EMOTE_OBJECT/low priority. Modern metadata exports these flags, but overlap drawing and NPC obstruction behavior need explicit validation before resolution.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/89084450e318062819ae4c17e33c34bf3fabeb84",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "692cd7da2abeb0d4b4781f0636d0725032a90b1f",
@@ -60499,10 +60667,14 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Consolidates grass encounter-rate WRAM and updates wild encounter/Sweet Honey callers. Atlas does not simulate encounter rates or consume these RAM fields; no map sprite/terrain changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/15a3be51fd8a9ddcfeffadad2d022ef8fb49142c",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "435bb9061592246dec0c5c5cf813389e7d17de4a",
@@ -62908,10 +63080,14 @@
           "maps/ElmsLab.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Fixes dialogue branching after showing Elm a hatched Togepi. No object visibility declaration, map data or movement path changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/fb71b4080af9b51d51aaba7570a03d8be725e68d",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff",
       "triage_note": "Full diff screened: includes dialog control flow, event/item branch, interaction direction, wait timing or facing behavior. Retained for scripted-movement/interaction consumer check; not dismissed as text-only."
     },
     {
@@ -64184,10 +64360,14 @@
           "maps/EusinesHouse.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Inlines two Eusine-house dialogue blocks and removes a comment in event constants. Event IDs, object definitions and movement are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ee1ec2994f211b144b35da1804b5721dd9159f54",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "eeb33801bd801188c6e04c9215bee9872bfee914",
@@ -64322,10 +64502,14 @@
           "home/decompress.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Optimizes the ROM LZP decoder while retaining its opcode formats and packed-nibble lookup table. Atlas uses source raw/PNG fallback assets and its own decoding path, not home/decompress.asm; no source data format change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d0f0a5c6b99ab446cc436abb84bb78dbb5e98b3b",
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "f419aa17a4d9003a8e4cfaba3a21957684df17a9",

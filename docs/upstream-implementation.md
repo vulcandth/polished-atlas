@@ -303,6 +303,22 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   `interactive` deprecation warning. This verifies access and displayed sprites,
   not every aquarium floor, animation phase, dual seam or glow transition.
 
+- Latest audit batch: 46 commits processed, with 41 resolved and five retained
+  as reviewed/open. Thirty-one resolutions are dialogue, excluded random weather,
+  field-move interaction or equivalent ROM bookkeeping changes with no atlas
+  impact. Ten validate supported data regeneration or existing adaptations,
+  including Lugia symmetry, Copycat teal, dark NPC overcast colors, rock animation
+  names, palette-swap ordering and three connection edits.
+  Two large mechanical conversions used exact normalization: all 51 movement
+  records match after accounting for the old macro's palette-nibble packing, and
+  both complete tileset files match after the 22-prefix rename mapping. These are
+  recorded as `normalized-diff`, distinct from line-by-line full patch review.
+- The audit now has **484 resolved, 539 pending and 28 reviewed/open commits**
+  (567 unresolved total). New open checks cover Cerulean/Route24 bridge state,
+  Dragon Shrine scripted paths, Trainer House's daily variable sprite and arch-tree
+  priority/obstruction. This batch does not complete the audit or broaden the
+  previous visual verification claims.
+
 ## Immediate remaining implementation work
 
 - Verify palette-swap NPC colors in the full generated site. The frontend now

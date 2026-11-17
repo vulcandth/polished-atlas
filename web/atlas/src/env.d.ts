@@ -9,6 +9,9 @@ declare interface ImportMetaEnv {
   readonly VITE_ATLAS_TIME?: string;
   readonly VITE_WARP_METADATA_URL?: string;
   readonly VITE_PUBLIC_BASE?: string;
+  readonly VITE_ATLAS_CHANNEL?: "stable" | "dev";
+  readonly VITE_POLISHED_CRYSTAL_COMMIT?: string;
+  readonly VITE_POLISHED_CRYSTAL_REPOSITORY?: string;
 }
 
 declare interface ImportMeta {

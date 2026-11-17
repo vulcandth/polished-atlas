@@ -1,92 +1,70 @@
 # polished-atlas
 
-Interactive web atlas for the [polishedcrystal](https://github.com/Rangi42/polishedcrystal)
-ROM hack. The project stitches overworld maps into a zoomable canvas and exposes
-warp metadata so players can jump between interior and exterior locations. The
-tooling targets polishedcrystal release **v3.2.2** and displays the upstream
-version in the UI so visitors know which ROM build is represented.
+Interactive React/Pixi atlas for [polishedcrystal](https://github.com/Rangi42/polishedcrystal),
+with animated maps, connections, warps, NPCs, weather, and movement analysis.
+
+| Branch | Upstream | Site |
+| --- | --- | --- |
+| `main` | Pinned v3.2.2 | [Stable](https://vulcandth.github.io/polished-atlas/) |
+| `dev` | Reviewed master commit | [Development](https://vulcandth.github.io/polished-atlas/dev/) |
+
+The development channel is being implemented; its URL becomes available with
+the first successful combined publication. See [implementation status](docs/upstream-implementation.md).
+
+## Build locally
+
+Requirements: Python 3.11+, Git, and Node.js 22.12+ with npm.
+
+```sh
+python scripts/build_atlas.py
+npm --prefix web/atlas run preview
+```
+
+`scripts/build_atlas.sh` remains a Bash wrapper. The source repository, display
+ref, exact commit, and channel are pinned in `atlas-source.json`. The build
+checks out that exact commit under `external/<commit>/`. It rejects modified
+or mismatched existing checkouts instead of resetting them.
+
+The pipeline renders all maps, generates metadata in a clean
+`.build/generated/<channel>/maps/` directory, installs locked web dependencies,
+and builds `web/atlas/dist/`. The bundle contains its own maps and
+`build-info.json`. The tracked `maps/` JSON files are legacy development inputs;
+only the curated neighborhood layouts are used as production layout templates.
+
+Useful environment settings:
+
+- `POLISHED_DIR`: an existing clean checkout at the exact pinned SHA, or an empty
+  directory for a new checkout.
+- `TIME_OF_DAY_SET`: defaults to `day,morn,nite,eve`. `TIME_OF_DAY` is a shorthand.
+- `WEEKDAY`: 0–6, default 1 (Monday).
+- `ATLAS_WORKERS`: optional renderer worker count.
+- `VITE_PUBLIC_BASE`: default `/` locally; publication supplies the channel URL prefix.
+- `GIT_BIN`, `NODE_BIN`, `PYTHON_BIN`: executable overrides (`PYTHON_BIN` is for the Bash wrapper).
+
+The former moving `POLISHED_REF`/`POLISHED_UPDATE` settings are replaced by the
+reviewed source pin. Version labels and cache identifiers are derived from the
+verified checkout, atlas revision, and build settings.
+
+## CI and publication
+
+CI validates pushes and pull requests to `main` and `dev` and uploads build
+artifacts. It does not publish. Run **Publish both atlases** from `main` to
+snapshot both branch heads, build them independently, validate both, and publish
+one Pages artifact containing stable at the root and development under `dev/`.
+The dev audit must be complete before publication succeeds.
+
+A failure in either channel leaves the existing published site intact. The
+**Restore combined atlas deployment** workflow redeploys a retained combined
+artifact from a successful publication run. See [development and publishing](docs/development.md).
 
 ## Project layout
 
-- `scripts/` — Python and shell utilities that generate map assets, layout
-	manifests, and metadata consumed by the web client.
-- `maps/` — Generated sprite sheets, manifests, and metadata. The contents are
-	produced by the build pipeline and are not committed.
-- `web/atlas/` — React + Pixi web client distributed through Vite.
-- `external/polishedcrystal/` — Local checkout of the upstream polishedcrystal
-	repository (cloned automatically by the build script or GitHub CI).
+- `scripts/`: renderers, extractors, build, audit, and validation tools.
+- `web/atlas/`: React/Pixi client.
+- `maps/`: legacy JSON metadata and curated neighborhood layout.
+- `external/`: ignored upstream checkouts.
+- `.build/`: ignored generated assets and local verification evidence.
 
-## Prerequisites
-
-- Python 3.11+
-- Node.js 20+
-- git and bash available on your PATH
-
-## Local build pipeline
-
-Run the orchestration script to fetch assets, generate metadata, and build the
-web bundle. The script clones polishedcrystal v3.2.2 if it is missing and reuses
-any existing checkout by default.
-
-```bash
-./scripts/build_atlas.sh
-```
-
-Environment overrides:
-
-- `POLISHED_REPO_URL` – source repository (default:
-	`https://github.com/Rangi42/polishedcrystal.git`).
-- `POLISHED_REF` – branch or tag to checkout (default: `v3.2.2`).
-- `POLISHED_DIR` – destination for the checkout (default:
-	`external/polishedcrystal`).
-- `POLISHED_UPDATE` – set to `true` to force-fetch the requested ref.
-- `TIME_OF_DAY_SET` – comma-delimited list of time-of-day palettes to render.
-	Defaults to `day,morn,nite,eve` (all palettes). The legacy `TIME_OF_DAY`
-	variable remains supported as a shorthand for single entries.
-- `WEEKDAY` – game weekday (0–6) used for weather-dependent renders.
-- `VITE_POLISHED_CRYSTAL_VERSION` – upstream polishedcrystal version string shown in the UI (defaults to `v1`).
-- `VITE_POLISHED_ATLAS_VERSION` – atlas build/version identifier used for cache-busting asset URLs (optional).
-
-The script performs the following steps:
-
-1. Render polishedcrystal maps into animated sprite sheets for every requested
-	time of day (defaults to `day`, `morn`, `nite`, `eve`).
-2. Generate neighborhood connection manifests for each rendered palette.
-3. Extract warp metadata for every map.
-4. Run `npm ci` and `npm run build` inside `web/atlas/` to produce `dist/` with
-	the upstream polishedcrystal version injected into the UI and an atlas version used for cache-busting.
-
-See `docs/development.md` for deeper operational guidance and troubleshooting
-tips.
-
-## Available scripts
-
-- `scripts/build_atlas.sh` – orchestrates the entire asset + web build pipeline.
-- `scripts/render_maps.py` – renders animated sprite sheets for every map.
-- `scripts/generate_map_neighborhoods.py` – creates neighborhood connection
-	graphs and layout manifests.
-- `scripts/generate_warp_metadata.py` – emits warp metadata consumed by the web
-	application.
-- `scripts/generate_object_metadata.py` – exports NPC and object placement
-	metadata for overlay rendering.
-
-## Continuous integration & deployment
-
-GitHub Actions (`.github/workflows/ci.yml`) runs on pushes, and supports manual
-dispatches when you want to publish to GitHub Pages. The workflow:
-
-- Clones the repository and sets up Python 3.11 and Node 20.
-- Executes `scripts/build_atlas.sh` (which clones polishedcrystal, renders
-	assets, generates metadata, and builds the web client).
-- Publishes the compiled site as a workflow artifact for every run.
-- Deploys `web/atlas/dist` to GitHub Pages only when the workflow is triggered
-	via the manual dispatch action.
-
-Repository variables `POLISHED_REPO_URL`, `POLISHED_REF`, `TIME_OF_DAY`, and
-`WEEKDAY` can be configured to point CI at a different upstream fork or palette.
-
-## Deployment targets
-
-The GitHub Pages deployment produced by CI publishes `web/atlas/dist`. For
-manual publishing, run `scripts/build_atlas.sh` locally and push the resulting
-`dist/` directory to your preferred static hosting provider.
+All-commit audit requirements and known compatibility work are documented in
+[the implementation tracker](docs/upstream-implementation.md). The preliminary
+planning inspection is not an exhaustive audit.

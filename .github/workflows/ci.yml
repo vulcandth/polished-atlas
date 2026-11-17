@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
 
 permissions:
   contents: read
@@ -18,45 +18,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: npm
           cache-dependency-path: web/atlas/package-lock.json
-      - name: Build atlas bundle
-        env:
-          VITE_PUBLIC_BASE: "/${{ github.event.repository.name }}/"
-        run: POLISHED_UPDATE=true scripts/build_atlas.sh
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+      - run: python -m unittest discover -s scripts/tests
+      - run: npm ci
+        working-directory: web/atlas
+      - run: npm test && npm run lint && npx tsc --noEmit
+        working-directory: web/atlas
+      - name: Resolve channel
+        id: channel
+        run: |
+          channel=$(python -c 'import json; print(json.load(open("atlas-source.json"))["channel"])')
+          echo "name=$channel" >> "$GITHUB_OUTPUT"
+          base="/${{ github.event.repository.name }}/"
+          if [ "$channel" = dev ]; then base="${base}dev/"; fi
+          echo "VITE_PUBLIC_BASE=$base" >> "$GITHUB_ENV"
+      - run: python scripts/build_atlas.py --skip-install
+      - uses: actions/upload-artifact@v4
         with:
-          name: web-atlas-dist
+          name: atlas-${{ steps.channel.outputs.name }}-${{ github.sha }}
           path: web/atlas/dist
-
-  deploy:
-    if: github.event_name == 'workflow_dispatch'
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: web-atlas-dist
-          path: dist
-      - name: Configure Pages
-        uses: actions/configure-pages@v4
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          if-no-files-found: error

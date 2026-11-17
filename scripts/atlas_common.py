@@ -9,6 +9,7 @@ parsing of the polishedcrystal repository state within a single process.
 from __future__ import annotations
 
 import importlib
+import os
 import sys
 from pathlib import Path
 from types import ModuleType
@@ -17,8 +18,8 @@ from typing import Dict, Optional, Set, Tuple
 import render_map
 
 ROOT_DIR: Path = Path(__file__).resolve().parent.parent
-DEFAULT_POLISHED_PATH: Path = ROOT_DIR / "external" / "polishedcrystal"
-DEFAULT_MAPS_DIR: Path = ROOT_DIR / "maps"
+DEFAULT_POLISHED_PATH: Path = Path(os.environ.get("POLISHED_DIR", str(ROOT_DIR / "external/polishedcrystal")))
+DEFAULT_MAPS_DIR: Path = Path(os.environ.get("ATLAS_MAPS_DIR", str(ROOT_DIR / "maps")))
 
 _repo_cache: Dict[Path, render_map.RepositoryIndex] = {}
 _png_cache: Dict[Path, ModuleType] = {}

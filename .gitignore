@@ -14,3 +14,7 @@ web/atlas/.env.*.local
 
 __pycache__/
 
+# Isolated upstream checkouts, generated assets, and local verification evidence
+external/
+.build/
+

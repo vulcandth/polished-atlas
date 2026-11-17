@@ -1,0 +1,6 @@
+{
+  "channel": "stable",
+  "repository": "https://github.com/Rangi42/polishedcrystal.git",
+  "ref": "v3.2.2",
+  "commit": "e410d7405e7d5d016b16a0a59bfb6da0b2a9eabf"
+}

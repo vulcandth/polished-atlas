@@ -12,6 +12,7 @@ import {
 } from "pixi.js";
 import { WeatherSystem } from "@/lib/weather";
 import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
+import { channelStorageKey } from "@/lib/channel";
 import {
   AtlasLayout,
   MapPlacement,
@@ -180,11 +181,11 @@ function computeBottomExtraPx(viewH: number): number {
   const base = computeOverscrollPx(viewH, viewH);
   return Math.max(32, Math.floor(base * 0.5));
 }
-const VIEW_STATE_STORAGE_KEY = "polished-atlas:view-state";
+const VIEW_STATE_STORAGE_KEY = channelStorageKey("polished-atlas:view-state");
 const VIEW_STATE_VERSION = 1;
 
 // Persisted performance settings
-const PERF_SETTINGS_STORAGE_KEY = "polished-atlas:perf-settings";
+const PERF_SETTINGS_STORAGE_KEY = channelStorageKey("polished-atlas:perf-settings");
 
 interface PerfSettingsState {
   disableMapAnimations: boolean;

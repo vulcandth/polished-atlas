@@ -5,11 +5,12 @@ import { useObjectMetadata } from "@/hooks/useObjectMetadata";
 import { useWarpMetadata } from "@/hooks/useWarpMetadata";
 import { useBgPalettes } from "@/hooks/useBgPalettes";
 import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
+import { ATLAS_CHANNEL, channelStorageKey, otherChannelHref, UPSTREAM_COMMIT_URL } from "@/lib/channel";
 import type { NeighborhoodSummary } from "@/types";
 
 const DEFAULT_ROOT = import.meta.env.VITE_ROOT_MAP ?? "NewBarkTown";
 const MANIFEST_OVERRIDE = import.meta.env.VITE_NEIGHBORHOOD_MANIFEST_URL?.trim() || "";
-const TIME_STORAGE_KEY = "polished-atlas/time-of-day";
+const TIME_STORAGE_KEY = channelStorageKey("polished-atlas/time-of-day");
 
 const TIME_OF_DAY_OPTIONS = [
   { value: "morn", label: "Morning" },
@@ -22,7 +23,7 @@ type TimeOfDayOption = (typeof TIME_OF_DAY_OPTIONS)[number];
 type TimeOfDaySlug = TimeOfDayOption["value"];
 
 // Persisted performance settings (shared with MapCanvas)
-const PERF_SETTINGS_STORAGE_KEY = "polished-atlas:perf-settings";
+const PERF_SETTINGS_STORAGE_KEY = channelStorageKey("polished-atlas:perf-settings");
 type PerfSettingsState = { disableMapAnimations: boolean; disableObjectAnimations: boolean };
 function readPerfSettings(): PerfSettingsState {
   if (typeof window === "undefined")
@@ -56,7 +57,7 @@ const POLISHED_VERSION = (() => {
       return trimmed;
     }
   }
-  return "v3.2.0";
+  return "v3.2.2";
 })();
 
 function sanitizeTimeOfDay(value: unknown): TimeOfDaySlug {
@@ -640,9 +641,14 @@ export default function App() {
         <div className="brand">
           <h1>Polished Atlas</h1>
           <span className="subtitle">{subtitle}</span>
-          <span className="version">polishedcrystal {POLISHED_VERSION}</span>
+          <a className="version" href={UPSTREAM_COMMIT_URL} target="_blank" rel="noreferrer">
+            {ATLAS_CHANNEL === "dev" ? "Development" : "Stable"} · polishedcrystal {POLISHED_VERSION}
+          </a>
         </div>
         <div className="actions">
+          <a href={otherChannelHref()}>
+            {ATLAS_CHANNEL === "dev" ? "View stable v3.2.2" : "View development atlas"}
+          </a>
           <div className="time-picker">
             <label htmlFor="time-of-day-select">Time</label>
             <select

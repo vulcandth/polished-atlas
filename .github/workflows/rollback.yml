@@ -1,0 +1,58 @@
+name: Restore combined atlas deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful Publish both atlases run containing the retained combined-site artifact
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: github-pages-publication
+  cancel-in-progress: false
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - run: test '${{ github.ref }}' = refs/heads/main
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify artifact provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.run_id }}
+        run: |
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" > .rollback-run.json
+          python -c 'import json; r=json.load(open(".rollback-run.json")); assert r["path"] == ".github/workflows/publish.yml" and r["head_branch"] == "main" and r["conclusion"] == "success"'
+      - uses: actions/download-artifact@v4
+        with:
+          name: combined-site
+          path: .build/site
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+      - run: python scripts/assemble_pages.py --verify-site .build/site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .build/site
+  deploy:
+    needs: restore
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v4
+      - uses: actions/deploy-pages@v4
+        id: deployment

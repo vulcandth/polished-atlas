@@ -14189,10 +14189,13 @@
           "home/battle.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Read all twenty files in the Mold Breaker overhaul, including a separate complete effect_commands.asm diff after output truncation. Changes are battle move-state flags, ability suppression, AI and move effects. Atlas does not execute battle code or consume these constants.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7ce3686edaae62e36c5468b2a93d47ea0814d80d",
+        "Full patch review plus consumer search in scripts/ and web/atlas/src; no changed battle files consumed."
+      ]
     },
     {
       "sha": "c91896377b05bea2d1fa5e55770e506b366b6a22",
@@ -14274,10 +14277,13 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Read all twelve changed files. Adds previous/current weather, darkness, overcast and time states; palette fade catch-up; saved object palette clearing at connections; white-fade handling for lightning. Atlas currently builds steady-state palettes and selects UI time directly. Must verify map environment metadata and object palette precedence against the new engine, including later glow integration, before resolving.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/91322e3740c5a824cd6224b7c74b6740f62f3582",
+        "Full patch read in two file groups; open consumers: generate_bg_palette_metadata.py, generate_object_metadata.py, objectSprites.ts and weather rendering."
+      ]
     },
     {
       "sha": "d9c6e346cdc28b574ed35b1dd3f6713fd7fc3754",
@@ -14375,10 +14381,13 @@
       ],
       "subject": "Merge in v3.2.3",
       "changes": [],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Reviewed the merge against both parents. No combined conflict diff; all seven files changed from first parent exactly match second-parent blobs. It imports the v3.2.3 Flare Blitz/release hotfix already reviewed under 2327860585c7df3193ddfe585f8050ac07826e3a and 3fa43192379df5c3e7b09a08e4d5d79af4f02f42. Dynamic-palette work on the other parent remains tracked separately.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/79198bb6fbab78b22cd393ba3e6ecda00b6d2a2f",
+        "git show --cc; per-parent diff inventories; exact git rev-parse blob identity for all seven first-parent changed paths."
+      ],
       "merge_parent_changes": {
         "d9c6e346cdc28b574ed35b1dd3f6713fd7fc3754": [
           [
@@ -14614,10 +14623,13 @@
           "data/maps/setup_scripts.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Full single-file patch moves MapConnOWFadePalettesInit after ClearSavedObjPals and EnableDynPalUpdatesNoApply. Atlas does not emulate mapsetup calls, but correct per-map object palette context is part of the unresolved dynamic palette verification for 91322e3740c5.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3adfee12feb6c07b68f4c415aea69f9948271f93",
+        "Full data/maps/setup_scripts.asm patch; MapCanvas.tsx shared sprite cache context checked; full connection visual verification remains open."
+      ]
     },
     {
       "sha": "34d2df23b00ae4076c97851b547eb0eb777d0172",
@@ -14631,10 +14643,13 @@
           "data/trainers/parties.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Reviewed trainer-team changes through patch samples and a complete structural scan of every added/deleted line. All changed content is trainer definitions, team species/forms/genders/items, moves, EVs/DVs/abilities/natures, FAITHFUL branches, whitespace and one TODO. Atlas displays overworld objects and does not read trainer party data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/34d2df23b00ae4076c97851b547eb0eb777d0172",
+        "Complete diff token inventory: 797 tr_moves, 1153 tr_mon, 770 tr_extra, 510 tr_evs, 5 tr_dvs, 12 def_trainer, 4 end_trainer, 43 each if/else/endc, 7 blank and 1 comment. Inspected every non-primary token line; consumer search found no parties.asm/tr_mon/tr_moves/tr_evs usage."
+      ]
     },
     {
       "sha": "825591409eb416f9fa17069b838029fcffde3f2c",
@@ -14648,10 +14663,13 @@
           "engine/battle/endturn.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Full patch adds a fainted-user check between hail and sandstorm damage processing. This concerns battle weather damage, not overworld weather state or visual effects.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/825591409eb416f9fa17069b838029fcffde3f2c",
+        "Complete engine/battle/endturn.asm patch reviewed; atlas weather generators consume overworld weather code."
+      ]
     },
     {
       "sha": "aa06ced712bec98b5479da0d890f43bd32067d1a",
@@ -14665,10 +14683,13 @@
           "data/trainers/parties.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Full patch removes trailing whitespace and a blank line from trainer party data. No values, map assets or parser inputs used by atlas change.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/aa06ced712bec98b5479da0d890f43bd32067d1a",
+        "Complete data/trainers/parties.asm patch reviewed; no trainer party consumer in atlas."
+      ]
     },
     {
       "sha": "2ee1787fcb26c6101028bd43548e0e657526509c",
@@ -14682,10 +14703,13 @@
           "data/moves/descriptions.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Full patch adds a missing done terminator to Thunder Wave move-description text. Atlas does not display move descriptions.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2ee1787fcb26c6101028bd43548e0e657526509c",
+        "Complete data/moves/descriptions.asm patch; no atlas consumer."
+      ]
     },
     {
       "sha": "a7a53716f3d077db0e85379b99c4305a5bf64049",
@@ -14707,10 +14731,13 @@
           "INSTALL.md"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Read all three changed files: upstream CI, .rgbds-version and INSTALL.md raise RGBDS from 1.0.0 to 1.0.1. Atlas reads source assets and uses Python graphics conversion, without assembling/linking the ROM. Assembly syntax changes in later commits still require independent review.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a7a53716f3d077db0e85379b99c4305a5bf64049",
+        "Full patch review; scripts/build_atlas.py and atlas generator consumer search confirm no rgbasm/rgblink invocation."
+      ]
     },
     {
       "sha": "6754e9f04c7bda1339a67899419c21b1dd8ba38e",
@@ -14724,10 +14751,13 @@
           "engine/battle/core.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Full patch resets both sides ability-ignorance flags and propagates Mold Breaker across a battle pivot. No overworld objects, icons, palette data or map logic changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6754e9f04c7bda1339a67899419c21b1dd8ba38e",
+        "Complete engine/battle/core.asm patch reviewed; atlas does not execute battle switching."
+      ]
     },
     {
       "sha": "09a83a65aaa116e3b9a84994ba9ca2e68b620f82",
@@ -14741,10 +14771,13 @@
           "engine/pokemon/summary/blue_page.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Full patch corrects summary-screen Hyper Training highlight coordinates and buffer stride. Atlas does not render the Pokemon summary screen.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/09a83a65aaa116e3b9a84994ba9ca2e68b620f82",
+        "Complete engine/pokemon/summary/blue_page.asm patch reviewed."
+      ]
     },
     {
       "sha": "1640118e5a301561135558e9e0fe6c014e34b265",
@@ -14758,10 +14791,13 @@
           "engine/overworld/scripting.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Full scripting.asm patch replaces duplicate Key Pocket/TM Pocket strings with existing ItemPocketNames labels. Script command names and map event behavior are unchanged; atlas does not render inventory pocket text.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1640118e5a301561135558e9e0fe6c014e34b265",
+        "Complete engine/overworld/scripting.asm patch reviewed against object/event parser consumers."
+      ]
     },
     {
       "sha": "92181a4fe790001f7dd40f50d653c9881173a614",
@@ -14779,10 +14815,13 @@
           "engine/battle/effect_commands.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Full two-file patch optimizes battle ability branches and a tail call to CheckPowerHerb. No atlas-consumed data or behavior changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/92181a4fe790001f7dd40f50d653c9881173a614",
+        "Complete engine/battle/abilities.asm and effect_commands.asm patches reviewed."
+      ]
     },
     {
       "sha": "0b1f8980435c504c9815a7d600c5c9d10de3e59a",
@@ -14796,10 +14835,13 @@
           "maps/RocketHideoutB1F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Full map-script patch changes Scientist Sanders dialogue grammar from They decides to They decide. Coordinates, objects, movement and script control flow are untouched. Atlas object tooltips do not display dialogue text.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0b1f8980435c504c9815a7d600c5c9d10de3e59a",
+        "Complete maps/RocketHideoutB1F.asm patch and generate_object_metadata.py/MapCanvas.tsx consumer review."
+      ]
     },
     {
       "sha": "29b945c35a0180abf39e5e68bb3ecd7b0926177f",
@@ -14813,10 +14855,13 @@
           "engine/battle/effect_commands.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Full patch limits Early Bird battle activation announcements to non-FAITHFUL builds. No overworld display or atlas source data changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/29b945c35a0180abf39e5e68bb3ecd7b0926177f",
+        "Complete engine/battle/effect_commands.asm patch reviewed."
+      ]
     },
     {
       "sha": "393a56320cb08760382a80f96c91c6f9f779dddb",

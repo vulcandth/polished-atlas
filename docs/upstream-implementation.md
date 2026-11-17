@@ -76,8 +76,8 @@ passing this structural check alone does not prove compatibility.
   are covered by tests. Goldenrod City and Route 7 static previews are available
   locally in `.build/palette-preview/`; Goldenrod's composite was visually inspected.
 - 17 Python tests pass, including the locally available upstream palette-swap corpus.
-- Nine commits have been individually reviewed: seven are resolved as no atlas
-  impact and two retain open adaptation/validation work. Another 1,042 commits
+- Twenty-four commits have been individually reviewed: twenty are resolved as no atlas
+  impact and four retain open adaptation/validation work. Another 1,027 commits
   have not been reviewed. Inventory generation does not constitute review.
 - The frontend consumes palette-swap regions for background-derived NPC colors,
   including movement, and supports special WHITE/GRASS background color mapping.
@@ -85,6 +85,14 @@ passing this structural check alone does not prove compatibility.
 - Current focused checks: 18 Python tests (including the required pinned upstream
   corpus), 15 frontend tests, and TypeScript checking pass. ESLint has one existing
   hook dependency warning and no errors.
+- NPC glow requirements are confirmed in target engine sources: collision cells
+  select glow types; DAY/NITE select non-overcast palette endpoints; aquarium,
+  lantern, Dragon Shrine and lava types add saturated 5-bit RGB adjustments to
+  colors 0-2 while preserving color 3. Movement into/out of glow cells fades palettes.
+  Relevant sources are `data/collision/glow_collisions.asm`,
+  `data/collision/glow_adjustments.asm`, `engine/gfx/dynamic_pals.asm` and
+  `engine/gfx/sprite_palettes.asm`. This source inspection is not yet a completed
+  review of every glow-related commit, nor an implementation of the feature.
 - Exhaustive review, remaining dev compatibility, complete visual verification,
   pushing branches, CI execution, and publication remain incomplete.
 

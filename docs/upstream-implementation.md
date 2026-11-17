@@ -117,6 +117,23 @@ passing this structural check alone does not prove compatibility.
   ESLint reports one existing hook-dependency warning and no errors. The audit
   publication gate correctly fails with 1,031 unresolved commits (1,014 pending
   review plus 17 reviewed with outstanding adaptation/validation).
+- Banked animation command engine implemented in `scripts/tile_animation.py`.
+  It parses all 53 target tables, runs one command per VBlank, preserves command
+  aliases and both VRAM banks, supports multi-tile and unaligned byte copies,
+  scrolling, palette effects, and explicit time/event/hardware-counter inputs.
+  Engine routines and `maskbits` macro were read at the target revision; this
+  does not constitute reviewing their entire commit history.
+- All 53 tilesets were simulated using their actual decoded graphics. Thirty-five
+  produce changes; every command stream reaches a repeating state. The longest
+  captured loop is 1,536 frames for PokeCom Center. Evidence is retained locally
+  in `.build/tile-animation-corpus.json`. Hardware-divider samples use a fixed
+  CGB double-speed phase for reproducibility; actual CPU execution can shift the
+  Judge machine's samples. This is not a cycle-accurate ROM emulator.
+- Modern animated output is deliberately rejected by the legacy sheet exporter,
+  which previously silently omitted these effects. Static PNG previews remain
+  available. Compact tile-delta asset export and frontend playback are still
+  required before the dev build can succeed; the command engine alone is not
+  completed animation support.
 - Exhaustive review, remaining dev compatibility, complete visual verification,
   pushing branches, CI execution, and publication remain incomplete.
 
@@ -125,8 +142,11 @@ passing this structural check alone does not prove compatibility.
 - Verify palette-swap NPC colors in the full generated site. The frontend now
   consumes swap metadata and rebuilds background-derived NPC frames when movement
   crosses a color boundary; focused tests cover selection and boundary changes.
-- Implement modern banked `tileframe` animation tables/routines; the old animation
-  decoder remains and must not be treated as master-compatible.
+- Connect modern banked animation streams to compact tile-delta export and
+  frontend playback, including palette swaps and object background colors.
+  Avoid multiplying large map textures by every VBlank frame. Extend bundle
+  validation, common/time asset deduplication and combined publication for the
+  new format. Legacy animated output now fails explicitly on modern tables.
 - Complete NPC glow effects, shared event state, fixed-weather rules/cherry blossoms, dual object
   palettes, all map/object/movement findings from the audit, and full dev generation.
 - Finish glow validation on Dragon Shrine, cave mouths, underground lamps and lava

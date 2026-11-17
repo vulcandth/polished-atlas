@@ -1804,6 +1804,8 @@ def _load_tileset_animations(
     renderer: RendererData,
     png_module,
 ) -> List[TileAnimation]:
+    if (polished_path / "data/tileset_anims.asm").exists():
+        raise ValueError("Banked tileframe animations require the modern delta exporter; legacy animation output would omit effects")
     tileset_label = renderer.tileset_label
     entries = _tileset_animation_entries(polished_path).get(tileset_label)
     if not entries:
@@ -2417,7 +2419,6 @@ def main() -> None:
         )
     except KeyError as exc:
         raise SystemExit(str(exc))
-    animations = _load_tileset_animations(polished_path, renderer, png)
     format_choice = args.format
     repo_root = Path(__file__).resolve().parent.parent
     time_slug = time_of_day_slug(time_of_day)
@@ -2431,6 +2432,7 @@ def main() -> None:
     output_target = (args.output or default_output).resolve()
 
     if format_choice == "gif":
+        animations = _load_tileset_animations(polished_path, renderer, png)
         output_target.parent.mkdir(parents=True, exist_ok=True)
         period = _animation_period(animations)
         frames: List[Tuple[int, int, List[List[int]]]] = []
@@ -2463,6 +2465,7 @@ def main() -> None:
     elif metadata_path.suffix.lower() != ".json":
         metadata_path = metadata_path.with_suffix(".json")
     image_path = metadata_path.with_suffix(".png")
+    animations = _load_tileset_animations(polished_path, renderer, png)
     period = _animation_period(animations)
     frames: List[Tuple[int, int, List[List[int]]]] = []
     for timer in range(period):

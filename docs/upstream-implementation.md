@@ -407,6 +407,32 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   of NPC glow/grass/object-ordering work. The barn commit is resolved: **591
   resolved, 432 pending and 28 reviewed/open** (**460 unresolved**).
 
+- World and overlay object containers now sort by upstream LOW/NORMAL/HIGH
+  priority. LOW wins if both priority bits are set. Stable insertion order keeps
+  later source objects in front within each group, matching reverse OAM writes
+  for initial source-order allocation; screen Y does not change the order. This
+  does not emulate runtime object-slot allocation, player-follow priority changes
+  or skyfall transitions. The existing terrain-priority/weather layers stay above
+  the object container.
+- All 18 arch-tree movement consumers across EcruteakCity, EcruteakShrineOutside,
+  SilverCaveRoom3 and VermilionCity carry LOW_PRIORITY/EMOTE_OBJECT and no longer
+  MOVE_ANYWHERE/HIGH_PRIORITY. Upstream skips EMOTE_OBJECT in occupancy checks;
+  atlas movement summaries already use terrain-only collisions and add no
+  decoration occupancy. General NPC-to-NPC collision simulation is not claimed.
+  The arch-tree commit is resolved after a real-asset overlap check.
+- Verification: 60 Python tests, 42 frontend tests, TypeScript and frontend
+  production build pass; lint retains only the existing hook warning. Browser
+  fixtures verify low-priority arch fragments behind NPCs, high-priority Rattata
+  in front of Pidgey, and stable ties in day/night, with no console errors.
+  Screenshots: `.build/object-order-day.jpg`, `.build/object-order-night.jpg`.
+  No generated source assets changed or needed rebuilding in this step.
+- Full review of the Rattata priority commit found its new movement type also
+  needs idle bounce animation: upstream alternates DOWN/UP facing every 16
+  VBlanks. Priority is fixed, but that commit remains open until the animation
+  path is implemented and verified, including the same sprite's static decorative
+  reuse. Current ledger: **592 resolved, 431 pending and 28 reviewed/open**
+  (**459 unresolved**). The audit remains incomplete; nothing is published.
+
 ## Immediate remaining implementation work
 
 - Verify palette-swap NPC colors in the full generated site. The frontend now
@@ -418,10 +444,10 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   main's shared publication tooling, then verify combined deployment.
 - Complete NPC glow effects, weather integration verification, dual-palette integration validation,
   and all map/object/movement findings from the audit.
-- Finish object-to-object OAM ordering and grass occlusion, including arch-tree
-  flags and the per-facing RELATIVE_ATTRIBUTES/OAM_PRIO behavior. BG attribute
-  priority is implemented as recorded above; broader glow and object-priority
-  interaction validation remains open.
+- Finish grass occlusion and per-facing RELATIVE_ATTRIBUTES/OAM_PRIO behavior.
+  Static object priority groups and BG attribute priority are implemented as
+  recorded above; broader glow and runtime object-priority interaction validation
+  remains open. Wire the new RATTATA_BACK bounce movement to its two source frames.
 - Finish glow validation on Dragon Shrine, cave mouths, underground lamps and lava
   ladders, including directional walls/warps and secondary palettes. Verify
   `SPRITE_AQUARIUM_MON` handling (also used for volcano Moltres), and reconcile

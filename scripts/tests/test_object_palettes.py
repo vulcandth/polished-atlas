@@ -37,6 +37,18 @@ class ObjectPaletteTests(unittest.TestCase):
         self.assertEqual(components["PAL_MON_RED"], {"mon_components": ["PAL_OW_TAN", "PAL_OW_RED"]})
         self.assertEqual(components["PAL_MON_TAN"], {"mon_components": ["PAL_OW_TAN", "PAL_OW_TAN"]})
 
+    def test_priority_masks_and_arch_tree_flags(self):
+        # Frontend object ordering consumes these source bits, independently of
+        # terrain bit 7. Guard the contract against future upstream renumbering.
+        self.assertEqual(self.constants.get("LOW_PRIORITY"), 1)
+        self.assertEqual(self.constants.get("HIGH_PRIORITY"), 2)
+        for side in ("LEFT", "RIGHT"):
+            movement = self.movements[f"SPRITEMOVEDATA_ARCH_TREE_{side}"]
+            self.assertTrue(movement.flags2 & self.constants.get("LOW_PRIORITY"))
+            self.assertFalse(movement.flags2 & self.constants.get("HIGH_PRIORITY"))
+            self.assertTrue(movement.flags1 & self.constants.get("EMOTE_OBJECT"))
+            self.assertFalse(movement.flags1 & self.constants.get("MOVE_ANYWHERE"))
+
     def test_icon_palette_repeats_and_form_alignment(self):
         self.assertEqual(self.constants.get("NUM_PIKACHU"), 6)
         self.assertEqual(self.constants.get("NUM_MAGIKARP"), 20)

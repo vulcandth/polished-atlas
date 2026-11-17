@@ -10,6 +10,14 @@ export interface PlacementContext {
 const DEFAULT_ATLAS_BLOCK = 32;
 const DEFAULT_CELLS_PER_BLOCK = 2;
 
+export function computeObjectPriority(flags2: number | null | undefined): number {
+  // InitSprites tests LOW_PRIORITY (bit 0) before HIGH_PRIORITY (bit 1).
+  // Higher groups are written last into reverse-ordered OAM, hence appear in front.
+  if ((flags2 ?? 0) & 1) return 0;
+  if ((flags2 ?? 0) & 2) return 2;
+  return 1;
+}
+
 function normalisePositive(value: number, fallback: number): number {
   if (!Number.isFinite(value) || value <= 0) {
     return fallback;

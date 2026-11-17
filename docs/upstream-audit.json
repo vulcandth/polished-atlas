@@ -49211,10 +49211,16 @@
           "maps/Route30.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Full three-file text diff adds SPRITEMOVEDATA_RATTATA_BACK with BOUNCE action and HIGH_PRIORITY, and applies it on Route30. Source metadata parses the new record and priority now draws Rattata in front (verified with real Rattata/Pidgey textures). Remains open: movementModel has no RATTATA_BACK entry and createMovementAnimator/static frame selection do not wire its SetFacingBounce down/up frames (16 VBlanks per phase). Confirm the new type animates without changing the same sprite reused as arch decoration in SilverCaveRoom3.",
+      "evidence": [
+        "Complete text diff: git show 522851adeed402a2586b6cb8b5e9d4a605ae0629",
+        "engine/overworld/map_object_action.asm: SetFacingBounce / SetFacingFreezeBounce / AlternateStepFrame",
+        "web/atlas/src/lib/movementModel.ts and components/MapCanvas.tsx: missing idle animation route for new movement type",
+        "Browser high-priority overlap verified in .build/object-order-day.jpg and .build/object-order-night.jpg; not a bounce-animation validation"
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "a80977857b4aa4ab1a7d9177847cdb47e23c05e8",
@@ -61119,12 +61125,19 @@
           "data/sprites/map_objects.asm"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "Changes arch-tree objects from MOVE_ANYWHERE/high priority to EMOTE_OBJECT/low priority. Modern metadata exports these flags, but overlap drawing and NPC obstruction behavior need explicit validation before resolution.",
+      "reason": "Full diff changes only arch-tree movement flags: LOW_PRIORITY places decorations behind normal NPCs, and EMOTE_OBJECT makes them nonblocking in upstream IsNPCAtCoord. Both world and overlay object containers now use source priority groups with stable event order within a group. All 18 current consumers across four maps retain the low/nonblocking flags. Atlas movement summaries already consume terrain collision only and do not insert decoration occupancy, so these objects introduce no blocker; this does not claim full NPC-to-NPC collision simulation. Real generated arch-tree/NPC overlap verified in day/night.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/89084450e318062819ae4c17e33c34bf3fabeb84",
-        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason.",
+        "Upstream engine/overworld/map_objects.asm InitSprites: low then normal then high, reverse OAM writes; LOW tested first",
+        "Upstream engine/overworld/npc_movement.asm IsNPCAtCoord: EMOTE_OBJECT objects skipped",
+        "web/atlas/src/components/MapCanvas.tsx: both object containers sort by computeObjectPriority; movement summaries receive terrain-only collision helpers",
+        "scripts/tests/test_object_palettes.py: exact pinned priority masks and arch-tree flags guarded",
+        "All 18 consumers checked: .build/arch-tree-priority-consumers.json",
+        "Real-asset browser overlap fixture: .build/object-order-check.html; screenshots .build/object-order-day.jpg and .build/object-order-night.jpg; no console errors",
+        "60 Python tests, 42 frontend tests, TypeScript and frontend production build passed; lint has existing hook warning only"
       ],
       "review_method": "full-diff"
     },

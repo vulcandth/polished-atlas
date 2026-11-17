@@ -30,7 +30,7 @@ import {
 import { registerPixiExtensions } from "@/pixi/registerExtensions";
 import { loadMapAnimation, type MapAnimationResource } from "@/lib/loadMapAnimation";
 import { ObjectSpriteCache, isPokemonIconSprite } from "@/lib/objectSprites";
-import { computeObjectPosition, type PlacementContext } from "@/lib/objectPlacement";
+import { computeObjectPosition, computeObjectPriority, type PlacementContext } from "@/lib/objectPlacement";
 import { createCollisionHelper, type CollisionHelper } from "@/lib/collision";
 import { createGlowTransition, NO_GLOW, UNLIT } from "@/lib/objectGlow";
 import { getMovementModel } from "@/lib/movementModel";
@@ -2822,6 +2822,8 @@ export default function MapCanvas({
       sprite.addChild(container);
       state.objectContainer = container;
     }
+    // Stable sorting retains source object order within each priority group.
+    container.sortableChildren = true;
 
     const removedSprites = container.removeChildren();
     for (const child of removedSprites) {
@@ -2891,6 +2893,7 @@ export default function MapCanvas({
         continue;
       }
       const spriteInstance = new Sprite(baseFrame.texture);
+      spriteInstance.zIndex = computeObjectPriority(metadata.movements[objectEntry.movement.constant ?? ""]?.flags2);
       // Default to not interactive unless it's a clickable object
       spriteInstance.eventMode = "none";
       spriteInstance.cursor = "auto";
@@ -3631,6 +3634,7 @@ export default function MapCanvas({
         entry.sprite.addChild(container);
         entry.objectContainer = container;
       }
+      container.sortableChildren = true;
       const removedChildren = container.removeChildren();
       for (const child of removedChildren) {
         if (typeof (child as { destroy?: () => void }).destroy === "function") {
@@ -3747,6 +3751,7 @@ export default function MapCanvas({
         }
 
         const sprite = new Sprite(baseFrame.texture);
+        sprite.zIndex = computeObjectPriority(metadata.movements[objectEntry.movement.constant ?? ""]?.flags2);
         sprite.eventMode = "none";
         sprite.cursor = "auto";
         const { x: baseX, y: baseY } = computeObjectPosition(objectEntry, placementContext);

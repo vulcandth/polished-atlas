@@ -1,5 +1,30 @@
 import { describe, expect, it } from "vitest";
-import { computeObjectPosition, type PlacementContext } from "./objectPlacement";
+import { Container, Sprite } from "pixi.js";
+import { computeObjectPosition, computeObjectPriority, type PlacementContext } from "./objectPlacement";
+
+describe("object drawing priority", () => {
+  it("draws low-priority decorations behind NPCs regardless of event order, keeping ties stable", () => {
+    const parent = new Container();
+    parent.sortableChildren = true;
+    const flags = [0, 2, 0, 1, 3, undefined];
+    const sprites = flags.map((flags2) => {
+      const sprite = new Sprite();
+      sprite.zIndex = computeObjectPriority(flags2);
+      parent.addChild(sprite);
+      return sprite;
+    });
+    parent.sortChildren();
+    // The later normal NPC stays in front of the earlier one. Both low/high
+    // bits still select LOW, matching upstream's first priority test.
+    expect(parent.children).toEqual([sprites[3], sprites[4], sprites[0], sprites[2], sprites[5], sprites[1]]);
+    // Changing positions cannot introduce an unsupported Y-based depth order.
+    sprites[0].y = 100;
+    sprites[2].y = 0;
+    parent.sortChildren();
+    expect(parent.children.indexOf(sprites[0])).toBeLessThan(parent.children.indexOf(sprites[2]));
+    parent.destroy({ children: true });
+  });
+});
 
 describe("computeObjectPosition", () => {
   it("uses source BG_ALIGNED/BG_OFFSET offsets, including at doubled scale", () => {

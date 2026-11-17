@@ -15626,10 +15626,14 @@
           "macros/monochrome.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Only the alternate monochrome DMG palette macro changes. Monochrome builds are explicitly outside this color atlas support scope.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a3cb00095339e279dc88dd3c2e3a0c2e4ae6057f",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d4165fd1c8340b9db3ba72945b240f25b7e3b7c3",
@@ -15664,10 +15668,14 @@
           "engine/movie/title.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Clarify title screen crystal sprites code. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/33e6eed802cfd7958a15be2384f372a4f10ac737",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "9407bd23d8ba28df4f4275075abb8a02b2c42975",
@@ -15689,10 +15697,14 @@
           "gfx/title/title.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Redraw the title screen crystal with more detail. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9407bd23d8ba28df4f4275075abb8a02b2c42975",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "23728a3c9ccb94e379fe3c1dbac4d8aa74da1c51",
@@ -16339,10 +16351,14 @@
           "gfx/pokemon/dudunsparce_two_segment/front.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use Sage Deoxys' Dudunsparce sprites. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/070574ac2e64691c8061a4d3695f4f5a424d0092",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "690c884791ac98983c2b2610d4fe4517e2874550",
@@ -16528,10 +16544,14 @@
           "gfx/pokegear/pokegear.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use a clock instead of a back arrow for the Pokegear icon. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f2f92ff4d83788afc8c627730aa9c71faf3410ed",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "7220134e449f9606933b830d73132380d98b7fa5",
@@ -16747,10 +16767,14 @@
           "maps/IlexForest.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Diff only changes dialogue/sign text content, not geometry, object definitions, palettes, movement or visibility. Atlas does not display game dialogue.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6f6472865c04b8e5d645b922401d35d436b30f5f",
+        "Full commit diff inspected in a batch; checked against atlas metadata/rendering and scripted-movement consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "773628a90bc48d65c64fae2027d353c8b506d273",
@@ -16826,10 +16850,14 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Port `wSuicuneFrame` label from pokecrystal. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b6d4bfca2074fd94a32e002468963b7452873b92",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "052b22324ffed1af0b05e094bf90f0b12f749791",
@@ -17123,10 +17151,14 @@
           "engine/movie/title.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Title-screen rendering/build targets only; the atlas does not build or display the ROM title screen.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9250527e0c95a7b09297d599c3b46bd92a562e67",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "aa03b0c01633764b65852a2e92b8189d2133d618",
@@ -17172,7 +17204,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Full diff screened: includes dialog control flow, event/item branch, interaction direction, wait timing or facing behavior. Retained for scripted-movement/interaction consumer check; not dismissed as text-only."
     },
     {
       "sha": "756f3adcb512c04cc0ab678b6cd4c972a3ff63f4",
@@ -17202,10 +17235,14 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Make options menu scrollable (#1316). Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/756f3adcb512c04cc0ab678b6cd4c972a3ff63f4",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ede8bcf810d6ad8a07ea674bbd315401be45b3a1",
@@ -17506,10 +17543,14 @@
           "gfx/type_chart/type_chart.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use Jace's notebook ring binding tiles for the type chart. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a0facd0a61c0ef7ec5b936251d2167124221d875",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "644f24bfe29dbd385c23bb6c9db32d086ec8aacc",
@@ -17548,10 +17589,14 @@
           "engine/events/item_maniacs.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Confined to item-maniac/gift/egg/happiness game mechanics. No map definitions, sprite assets, movement commands, palette or weather inputs change; atlas does not execute these game mechanics.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/fd8ef471d829fcc0cd5c0b34fadb50cffb0ca740",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "5c0bb50512b8c3ca0e6ddd8132ee6b963e1c47bf",
@@ -17651,10 +17696,14 @@
           "engine/movie/bsod.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Replace \"No windows available for popping\" with \"Window underflow\" crash. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b2a8bb26a75c62a1db5cf8e8f7638c6d8d7e8098",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "f23b42856f54edb99170a79e4e6e755dddb22d99",
@@ -17675,7 +17724,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Full diff screened: includes dialog control flow, event/item branch, interaction direction, wait timing or facing behavior. Retained for scripted-movement/interaction consumer check; not dismissed as text-only."
     },
     {
       "sha": "cec82d75d56d23f39b0f4d52fac4d07865102ea7",
@@ -17810,10 +17860,14 @@
           "gfx/title/title.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Add gradient to title like G/S. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1b863cab2f760999efb9b4e4cc2c6626d0767afd",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "3477abd37c36b7e50ef9d5fe1bae026d6206e5b3",
@@ -17915,10 +17969,14 @@
           "data/wild/kanto_grass.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Remove impossible Route 17 grass encounters (#1349). Battle logic/animation, trainer battle portraits, party-menu actions or wild encounter tables only. Atlas has no battle simulator or encounter-table display; shared overworld graphics, palettes, movement and map scripts are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/112a6dfcc3374fdffd1fdaf78908de67ce25b034",
+        "Batch 3: screened subject and complete changed-file inventory; category battle/encounters. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "54917bff05ec7236194844738566d5a5b762cd96",
@@ -18221,10 +18279,14 @@
           "data/wild/johto_grass.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Revise Silver Cave wildmons. Battle logic/animation, trainer battle portraits, party-menu actions or wild encounter tables only. Atlas has no battle simulator or encounter-table display; shared overworld graphics, palettes, movement and map scripts are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f084b9347bd953165b8f9fe1ccb3667a46208599",
+        "Batch 3: screened subject and complete changed-file inventory; category battle/encounters. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "b5622b855ce5eec7f833e907523ac7d7653c7b4a",
@@ -18926,10 +18988,14 @@
           "engine/pokemon/tempmon.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Distinguish more PC Box errors. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/431b29fc6d3827995ddbf5c3f856f6375b333b74",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d4a90310ac828849caea56e1e952f800b4333a4c",
@@ -18947,10 +19013,14 @@
           "macros/scripts/events.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Adds No/Yes dialog command and shared yes/no return logic. It changes no map script or asset; atlas parses assembly source, not numeric ROM opcode offsets, and does not execute choice dialogs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d4a90310ac828849caea56e1e952f800b4333a4c",
+        "Full commit diff inspected in a batch; checked against atlas metadata/rendering and scripted-movement consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "06fee348a7f483f67f4159ade3d4dd52251e41cd",
@@ -19118,10 +19188,14 @@
           "engine/overworld/scripting.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Preserves and restores the item-give success flag around quantity/icon dialogue. No map/object/palette/movement changes; atlas does not execute item inventory mechanics.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8252bc5f7199d501d9ff560cfaa1aae03e0ba2f2",
+        "Full commit diff inspected in a batch; checked against atlas metadata/rendering and scripted-movement consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "88688ed6e8ceab72c82c0eec39f8615aa18aaba4",
@@ -19142,7 +19216,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Full diff screened: includes dialog control flow, event/item branch, interaction direction, wait timing or facing behavior. Retained for scripted-movement/interaction consumer check; not dismissed as text-only."
     },
     {
       "sha": "7e9cc0d6414a1cb91680713fb2e8e83a04ba5f46",
@@ -19184,7 +19259,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Full diff screened: includes dialog control flow, event/item branch, interaction direction, wait timing or facing behavior. Retained for scripted-movement/interaction consumer check; not dismissed as text-only."
     },
     {
       "sha": "bd39d1826031d1edbd07c33fe5420e386ee2987d",
@@ -26851,10 +26927,14 @@
           "gfx/battle_anims/custom.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Updated Animations for various moves and PAR/FRZ. Battle logic/animation, trainer battle portraits, party-menu actions or wild encounter tables only. Atlas has no battle simulator or encounter-table display; shared overworld graphics, palettes, movement and map scripts are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/25476a12ed2bdf85236c16a181d1b2825a71aaf9",
+        "Batch 3: screened subject and complete changed-file inventory; category battle/encounters. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "bfd1ad6da2c7d650d028a43cf2951e5d8ef08938",
@@ -26914,10 +26994,14 @@
           "engine/events/shiny_ditto.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Confined to item-maniac/gift/egg/happiness game mechanics. No map definitions, sprite assets, movement commands, palette or weather inputs change; atlas does not execute these game mechanics.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/259bef5257d325d3478578d1ceed7b244e2709dd",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "03c2b110a15f1720ff97ef9b746e3de2150db1bb",
@@ -26948,10 +27032,14 @@
           "engine/events/odd_egg.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Confined to item-maniac/gift/egg/happiness game mechanics. No map definitions, sprite assets, movement commands, palette or weather inputs change; atlas does not execute these game mechanics.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/dbd523e00bb5938a89273be0cc5c14c218906ea1",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "0497c0d7be486c635c2bc711e445cfef23eb8e69",
@@ -26994,10 +27082,14 @@
           "engine/battle/effect_commands.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Remove prompt for status problem texts. Battle logic/animation, trainer battle portraits, party-menu actions or wild encounter tables only. Atlas has no battle simulator or encounter-table display; shared overworld graphics, palettes, movement and map scripts are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0e040e96a160ddcbd12a0184b08d2458747c7f60",
+        "Batch 3: screened subject and complete changed-file inventory; category battle/encounters. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "4385527bb29b081675b1985c82b55e425d144105",
@@ -27446,10 +27538,14 @@
           "engine/movie/credits.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix wavy effect in credits Resolves #1389. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/faa672d761a0fd201bc25ca0d001217f058cb323",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "9eade388bc01654a284439686f09d2fb58816cda",
@@ -28659,10 +28755,14 @@
           "gfx/pack/pack_b5.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: New graphics for fourth player's Bag. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b59069743053a1dc9b0236cd484002641055c58e",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "38d847cf69eb0ca05144e8f32309c5e86a7893cc",
@@ -28704,10 +28804,14 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Implement nickname options in settings and related functionality (#1359). Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/38d847cf69eb0ca05144e8f32309c5e86a7893cc",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "65f40b0f2b423f870185e048b26967d7d66706a1",
@@ -28754,10 +28858,14 @@
           "gfx/trainers/euna.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Edit beta/Krys/Euna pic. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/254867ed4a663fea553893066b184e8332e713eb",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ba2a1e215a405a4a268c660b45c825da33e270d9",
@@ -30171,10 +30279,14 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Trace now displays a graphical effect for the ability replacement. Battle logic/animation, trainer battle portraits, party-menu actions or wild encounter tables only. Atlas has no battle simulator or encounter-table display; shared overworld graphics, palettes, movement and map scripts are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/507f1443c34754944b92c954baf30b2fb24000a2",
+        "Batch 3: screened subject and complete changed-file inventory; category battle/encounters. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d4d0eb642bb49df7ddae8748e9bea00b83f5b574",
@@ -30362,10 +30474,14 @@
           "maps/CeladonPokeCenter1F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Diff only changes dialogue/sign text content, not geometry, object definitions, palettes, movement or visibility. Atlas does not display game dialogue.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/394b048a334451b91743a022fba8eecb4b4c210d",
+        "Full commit diff inspected in a batch; checked against atlas metadata/rendering and scripted-movement consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "5c1f4f225d7b19fbc3495674c3f7e4f9613dc017",
@@ -31817,10 +31933,14 @@
           "engine/battle/abilities.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Drowzee and Hypno gets Bad Dreams. Battle logic/animation, trainer battle portraits, party-menu actions or wild encounter tables only. Atlas has no battle simulator or encounter-table display; shared overworld graphics, palettes, movement and map scripts are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b27a62679cb1083cab07f6f80bc2e95cfbac01b3",
+        "Batch 3: screened subject and complete changed-file inventory; category battle/encounters. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "2d29cd859688c17a51e0ba9874cb3df9c737d9ff",
@@ -31858,10 +31978,14 @@
           "home/battle.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Handle ability properties as a set of ability flags. Battle logic/animation, trainer battle portraits, party-menu actions or wild encounter tables only. Atlas has no battle simulator or encounter-table display; shared overworld graphics, palettes, movement and map scripts are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2d29cd859688c17a51e0ba9874cb3df9c737d9ff",
+        "Batch 3: screened subject and complete changed-file inventory; category battle/encounters. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "299c9e83d134b776b3835075a9463f52d6451513",
@@ -32069,10 +32193,14 @@
           "maps/Route15FuchsiaGate2F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Fixes binocular dialogue by inlining jumpthistext and its text. No background-event coordinates or map/object data change; dialogue execution is outside atlas rendering.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c831c9b9ef0574a7f6c113be9bb7a1ffe1def313",
+        "Full commit diff inspected in a batch; checked against atlas metadata/rendering and scripted-movement consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "cd470e22b86ea7fa88eb1be04bca9a239281c3ae",
@@ -32185,10 +32313,14 @@
           "ram/hram.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Simplify a nested `UNION`. ROM/RAM allocation, union layout, picture-animation buffer sizing or link-transfer state only. Atlas reads source assets and map definitions directly and does not emulate these memory addresses or game saves/link state.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4005eb4dce8aa31434228539274303ad4809048a",
+        "Batch 3: screened subject and complete changed-file inventory; category ROM/RAM bookkeeping. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "1e51f895c0e113e754e615d2e9be09ddce8cc89a",
@@ -32437,10 +32569,14 @@
           "engine/rtc/timeset.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Resolve issue with corrupted font graphics. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d5b9f194a87c500bde4b8511376dc7abd02a85c0",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "f5fc66cc274bf6af96b059719298f41e6f5da03d",
@@ -32487,10 +32623,14 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Remove a single-piece `UNION`. ROM/RAM allocation, union layout, picture-animation buffer sizing or link-transfer state only. Atlas reads source assets and map definitions directly and does not emulate these memory addresses or game saves/link state.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/cd72b66ff3ee01396d8797dbd0926c5eea70880b",
+        "Batch 3: screened subject and complete changed-file inventory; category ROM/RAM bookkeeping. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "99ff90f89d4519d7692916c50fedb6ebf282ab9a",
@@ -34501,10 +34641,14 @@
           "gfx/stats/pink_page.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use a consistent palette for Pokérus icons, and comment some duplicate palettes. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3ae6cdb4acef149a1254aac2c6e844594082a08d",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "14c897c50f339ba25c29c378c28ff86fa732a965",
@@ -34589,10 +34733,14 @@
           "gfx/pc/bags.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Add sprite for Beta player's Bag icon in PC. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b29d79e53366ae2b40d69efeed5ddcf17fdb39c6",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "2fc581f88787939e7bd508b8932e44f38860701e",
@@ -34643,10 +34791,14 @@
           "engine/pokegear/pokegear.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Some naming screen refactoring and optimization. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/161a5f223622a085a02287efe3aa471e752350b6",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "14e1f3b68cfd40bc5cd74a9d6fc72c634de9ac9c",
@@ -37218,10 +37370,14 @@
           "data/music_player/song_origins.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Remove the unused Megalovania song as the music player's final bonus Easter egg. Audio, game credits, phone dialogue, unused reference art or obsolete release patches only. These are outside atlas input/rendering and publication dependencies.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1efda06e56fc30d73657e56709a7258ba75054c4",
+        "Batch 3: screened subject and complete changed-file inventory; category audio/credits/reference. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "05cf2a86217532fe4cd757c0b5f919451228e036",
@@ -37996,10 +38152,14 @@
           "maps/BattleTower2F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Only trainer party selection/identifier changes in battle scripts; object declarations and movement/visibility are unchanged. Atlas does not simulate trainer parties.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/241ef19813f0f3461b24c463e77be15fb1089372",
+        "Full commit diff inspected in a batch; checked against atlas metadata/rendering and scripted-movement consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "407be6afb3a7400c0d050e5d4a273465d698c2de",
@@ -38297,7 +38457,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Full diff screened: includes dialog control flow, event/item branch, interaction direction, wait timing or facing behavior. Retained for scripted-movement/interaction consumer check; not dismissed as text-only."
     },
     {
       "sha": "f34c35f2ca0342324cfde420a6f9a402d8964e15",
@@ -38311,10 +38472,14 @@
           "maps/GoldenrodPokecomCenterOffice.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Diff only changes dialogue/sign text content, not geometry, object definitions, palettes, movement or visibility. Atlas does not display game dialogue.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f34c35f2ca0342324cfde420a6f9a402d8964e15",
+        "Full commit diff inspected in a batch; checked against atlas metadata/rendering and scripted-movement consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "9ca8418c54d34d75a5f2ff971bc52b4de1052124",
@@ -39407,10 +39572,14 @@
           "engine/events/mint_tea.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Confined to item-maniac/gift/egg/happiness game mechanics. No map definitions, sprite assets, movement commands, palette or weather inputs change; atlas does not execute these game mechanics.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e79f8ae6f58b2b5bebf52b0407627dbfa360f445",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "c76651c1f50a091746a951951ce55edee4b7efcc",
@@ -39532,10 +39701,14 @@
           "home/menu.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Refactor and simplify the party menu drawing code. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6f46211a51d45473fc90288f45484504c20684db",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "9009ab51d52b66994f17cb24b7cfec5bbf323b2c",
@@ -40285,10 +40458,14 @@
           "Makefile"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Title-screen rendering/build targets only; the atlas does not build or display the ROM title screen.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f94886a081924302ea11596946d0cd35a81cd565",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ab1907ecfeb87bcdbf5963ad4cc4662dd0496337",
@@ -40426,10 +40603,14 @@
           "Makefile"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Title-screen rendering/build targets only; the atlas does not build or display the ROM title screen.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/64b7e1d023a3ac8be52ea44dc2afe61af2ba322e",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "a02e81e380143db9f9eef93aede4dfbd90e0223e",
@@ -40693,10 +40874,14 @@
           "engine/items/pack.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Verify item pocket data. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/38860f70226085c4a042dccfcdc4a039ca6a2f93",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "7908791082117fe94988bb7d7e0e3fb6df831071",
@@ -40710,10 +40895,14 @@
           "engine/items/tmhm2.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use bold \"H\" for HMs in Bag. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7908791082117fe94988bb7d7e0e3fb6df831071",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "79c9043441734f19593a6b03e24370be36d999b0",
@@ -40956,10 +41145,14 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Move `wColoredMaleFemaleShinyTiles` outside of \"Misc 1300\" so it does not corrupt `wOverworldMapBlocks`. ROM/RAM allocation, union layout, picture-animation buffer sizing or link-transfer state only. Atlas reads source assets and map definitions directly and does not emulate these memory addresses or game saves/link state.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/08fee08542196f2467db92cae6d2a5b0803db889",
+        "Batch 3: screened subject and complete changed-file inventory; category ROM/RAM bookkeeping. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "bfe6b2c863189abbfa9fe597b8fb93f887c4aec4",
@@ -41035,10 +41228,14 @@
           "utils/unused_blocks.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Standalone unused-block reporting or ROM binary visualization utility only. Atlas does not invoke this utility; its colormaps/reporting are not game terrain or NPC palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/fb2507ae29c576895c24274329343f06df2f5ced",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "deb32e994ae68c76bfa44bec124f13b2e565584e",
@@ -41381,10 +41578,14 @@
           "home/battle.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Implement Mega Sol as currently understood.. Battle logic/animation, trainer battle portraits, party-menu actions or wild encounter tables only. Atlas has no battle simulator or encounter-table display; shared overworld graphics, palettes, movement and map scripts are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/12fdadbea128f73d294b2fec905fa6dbca515199",
+        "Batch 3: screened subject and complete changed-file inventory; category battle/encounters. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "bac6497473aeaac9a3daf5fefda15a50b2e01ae2",
@@ -41559,10 +41760,14 @@
           "engine/items/poke_balls.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Moon Ball Fix V2 Final For Real This Time Maybe. Battle logic/animation, trainer battle portraits, party-menu actions or wild encounter tables only. Atlas has no battle simulator or encounter-table display; shared overworld graphics, palettes, movement and map scripts are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/483de7e9f4c78f551c759c9fe501d8b09b9ede8a",
+        "Batch 3: screened subject and complete changed-file inventory; category battle/encounters. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "9850ce4d6db4a80b111f2dd3a599fd06e0393869",
@@ -41968,10 +42173,14 @@
           "maps/BeautifulBeach.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Diff only changes dialogue/sign text content, not geometry, object definitions, palettes, movement or visibility. Atlas does not display game dialogue.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/bf5d83e6e9cada08f3c2e98a0b5dc1843fd67eca",
+        "Full commit diff inspected in a batch; checked against atlas metadata/rendering and scripted-movement consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "42176df67705c416f6794f0a6e946c39ff6f4650",
@@ -42224,10 +42433,14 @@
           "maps/UnionCave1F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Only trainer party selection/identifier changes in battle scripts; object declarations and movement/visibility are unchanged. Atlas does not simulate trainer parties.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c6170dddeda2c1d141b1dc584ba8a2c1c5d87db0",
+        "Full commit diff inspected in a batch; checked against atlas metadata/rendering and scripted-movement consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "b20864414714656838560af67d791c9370df6b11",
@@ -42470,10 +42683,14 @@
           "gfx/trainers/firebreather_ashes.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use a burned-out Firebreather pic too. Battle logic/animation, trainer battle portraits, party-menu actions or wild encounter tables only. Atlas has no battle simulator or encounter-table display; shared overworld graphics, palettes, movement and map scripts are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b2900e79687a510e86e92855a911917582a56d19",
+        "Batch 3: screened subject and complete changed-file inventory; category battle/encounters. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "efb0ec3ca17bd08f20966f845bbd3666beb88f9b",
@@ -42524,10 +42741,14 @@
           "engine/pokemon/party_menu.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use `PARTYMENUACTION_*` constants for `wPartyMenuActionText`. Battle logic/animation, trainer battle portraits, party-menu actions or wild encounter tables only. Atlas has no battle simulator or encounter-table display; shared overworld graphics, palettes, movement and map scripts are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/fd4ca056479a0ccdbdcab00aaed6740902adc8ff",
+        "Batch 3: screened subject and complete changed-file inventory; category battle/encounters. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "3d873239d11bbf67066c95e385863ddda25df6a5",
@@ -42608,10 +42829,14 @@
           "maps/BurnedTower1F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Moves the existing trainer load before encountermusic and replaces the hardcoded encounter track. Same object movement and disappear path; atlas has no music consumer.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6712cf7dffc318fe38d806e6ddbb7a33681ea5c9",
+        "Full commit diff inspected in a batch; checked against atlas metadata/rendering and scripted-movement consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "341c0682689a2da4fed93fa3e4416966249260a6",
@@ -42667,10 +42892,14 @@
           "tools/fine_print.c"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "ROM build helper for title lettering, patch generation, DED audio encoding or assembler include scanning. Atlas builds do not invoke these tools; no atlas source format or asset changes in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/11b3a87417460a5c4dfd828507bd8f8d520cee48",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e35e92473d8fc9857cd7636b80a8fab21b9e1f92",
@@ -43091,10 +43320,14 @@
           "home/battle.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix Solarbeam chargeup. Battle logic/animation, trainer battle portraits, party-menu actions or wild encounter tables only. Atlas has no battle simulator or encounter-table display; shared overworld graphics, palettes, movement and map scripts are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/33c4fab6964556a3e999d3baa3286e6c3c6f1a39",
+        "Batch 3: screened subject and complete changed-file inventory; category battle/encounters. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "3d858a8c15dee3903ecd4170c637ac1e6da1a5fd",
@@ -43766,10 +43999,14 @@
           "tools/make_patch.c"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "ROM build helper for title lettering, patch generation, DED audio encoding or assembler include scanning. Atlas builds do not invoke these tools; no atlas source format or asset changes in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/dc874e2958facc42be6801ea74d6e75f39d00bff",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "bd6e7aaa6d18fcdec7eff4e7a9ae57e1f8fce334",
@@ -44257,10 +44494,14 @@
           "gfx/trainer_card/johto_badges.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Correct designs for some Johto badges. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1414947382fce3be9625e4c8d60948ed61851cb9",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "df5bd9209a2faac33d46fca2bcbc5b547d19b5bf",
@@ -44994,10 +45235,14 @@
           "data/tileset_anims.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Animation-table alignment whitespace only. git diff --ignore-all-space between parent and commit is empty; command order, arguments and timing unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6b29f086ee07d407b3707f80c7c239d169a5e19f",
+        "Full commit diff inspected in a batch; checked against atlas metadata/rendering and scripted-movement consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "08a96514a63b4aeb2013eb2dff4bb131ca6d579b",
@@ -45716,10 +45961,14 @@
           "material/trainers/twins.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Remove some `material/` graphics that won't be used. Audio, game credits, phone dialogue, unused reference art or obsolete release patches only. These are outside atlas input/rendering and publication dependencies.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3f96552d72f4d588c04d9fa954bc1aff0c01f289",
+        "Batch 3: screened subject and complete changed-file inventory; category audio/credits/reference. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6a59d88b5f28b3cb8b0016ed6821606ae4657fe2",
@@ -45758,10 +46007,14 @@
           "maps/GoldenrodPokecomCenterOffice.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Diff only changes dialogue/sign text content, not geometry, object definitions, palettes, movement or visibility. Atlas does not display game dialogue.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8bf3ae02a6961221789e3ce60d2989ed84d879f6",
+        "Full commit diff inspected in a batch; checked against atlas metadata/rendering and scripted-movement consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "3b47050651a7d174b6cec6a1f8f1b5689241777a",
@@ -45938,10 +46191,14 @@
           "data/credits_strings.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Compress credits strings. Audio, game credits, phone dialogue, unused reference art or obsolete release patches only. These are outside atlas input/rendering and publication dependencies.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/169075e920bdde59bdfcdd3f3caad88abb106d48",
+        "Batch 3: screened subject and complete changed-file inventory; category audio/credits/reference. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "a674fb3b00873c4bb4b5f401f5b18eb4da09d57d",
@@ -45959,10 +46216,14 @@
           "engine/events/battle_tower/load_trainer.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Battle Tower trainer loading or wild encounter selection mechanics only. Does not alter rendered terrain, object placement/appearance, movement, map topology or weather.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a674fb3b00873c4bb4b5f401f5b18eb4da09d57d",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "77c0ed857ddad9734181c1c06a3384382e711dab",
@@ -46138,10 +46399,14 @@
           "engine/games/unown_puzzle.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use 1bpp instead of 2bpp for Unown puzzle tile borders. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c3ad65ac146308ea4e3ae2bc51c49e0e8128d2c0",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "bc914cb59d186bd8088d5ca8f01f02c262d6cd4b",
@@ -46155,10 +46420,14 @@
           "engine/games/unown_puzzle.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use 1bpp instead of 2bpp for Unown puzzle cursor. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/bc914cb59d186bd8088d5ca8f01f02c262d6cd4b",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "847327cb22c98528e31e4e9a3639553de1b23cb9",
@@ -46991,10 +47260,14 @@
           "tools/dedenc.c"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "ROM build helper for title lettering, patch generation, DED audio encoding or assembler include scanning. Atlas builds do not invoke these tools; no atlas source format or asset changes in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2003737a50a74ffc999d5ef16daeef269aa78828",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e2838182a881aaeb19fa35d459cd0f1330deb5f4",
@@ -47008,10 +47281,14 @@
           "tools/dedenc.c"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "ROM build helper for title lettering, patch generation, DED audio encoding or assembler include scanning. Atlas builds do not invoke these tools; no atlas source format or asset changes in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e2838182a881aaeb19fa35d459cd0f1330deb5f4",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "71d73c62e896ea1f4cbfc61b9e35bbc213ceebc8",
@@ -47054,10 +47331,14 @@
           "home/string.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Factor out a shared `PrepareToDecompressRadioText` subroutine. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8c782c01433febc7d0f9a1d9e0454f6cad94bc4d",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "bd653175486dc83a87bbec85a6d46109e2cb7a5a",
@@ -47091,10 +47372,14 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Remove the Pokédex Show radio channel. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/bd653175486dc83a87bbec85a6d46109e2cb7a5a",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "f1090e368e06a426f68f6898a6a74fe6fe0828b8",
@@ -47162,10 +47447,14 @@
           ".github/workflows/dev-rolling-release.yml"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Upstream ROM CI/dependency/tooling configuration only. Atlas uses its own pinned-source build and publication workflows; no rendering input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e25f2951b8062cd8425473c4476d90728a1c2ddb",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "9f4f022b9074ff0b2fd05961ba00fb8e63214d7b",
@@ -47447,10 +47736,14 @@
           "home/text.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Comment correction only; executable instructions and data are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/04ee0edcb030d766ba2bd018678544359be453e8",
+        "Full commit diff inspected in a batch; checked against atlas metadata/rendering and scripted-movement consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "358e32441a1a538ddfa92f2ac6c6aa84e5ea427a",
@@ -47844,10 +48137,14 @@
           ".github/workflows/build.yml"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Upstream ROM CI/dependency/tooling configuration only. Atlas uses its own pinned-source build and publication workflows; no rendering input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c6943d72fb1f7aa5519d2b20ef7f7f40151850d3",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "87be3858d8a62cf004b7148dee02660b8be1acf0",
@@ -47930,10 +48227,14 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Remove ShowPotentialSpecialAbilityActivation. Battle logic/animation, trainer battle portraits, party-menu actions or wild encounter tables only. Atlas has no battle simulator or encounter-table display; shared overworld graphics, palettes, movement and map scripts are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a9b96c4e1aa2b2bcd60a0bf8fc96497f6ca35c24",
+        "Batch 3: screened subject and complete changed-file inventory; category battle/encounters. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ae6fe366501e79e2d80803fdc4f64e6f1740a184",
@@ -47964,10 +48265,14 @@
           "home/battle.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: jp can be jr. Battle logic/animation, trainer battle portraits, party-menu actions or wild encounter tables only. Atlas has no battle simulator or encounter-table display; shared overworld graphics, palettes, movement and map scripts are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/45d4e41d43650f5f246019fb7bf62b18c919e95e",
+        "Batch 3: screened subject and complete changed-file inventory; category battle/encounters. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "94dd3533b85dd1d5b368e08322f28f2314188cdf",
@@ -47998,10 +48303,14 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Comment correction only; executable instructions and data are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0306aa3942c6abd970b8c3d74ac0bc1f67e2ae43",
+        "Full commit diff inspected in a batch; checked against atlas metadata/rendering and scripted-movement consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "a9e654651b9a067d35ace8769355bf818d224153",
@@ -48086,10 +48395,14 @@
           "engine/overworld/wildmons.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Battle Tower trainer loading or wild encounter selection mechanics only. Does not alter rendered terrain, object placement/appearance, movement, map topology or weather.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4f200bb1149a460b249b4db6a413aa328397d271",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "59e02d12ecdf307afbc2325f1f8db0f510645cb1",
@@ -49450,10 +49763,14 @@
           "tools/make_patch.c"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "ROM build helper for title lettering, patch generation, DED audio encoding or assembler include scanning. Atlas builds do not invoke these tools; no atlas source format or asset changes in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b165a946073b2bdd28eaa944a58078ce70c2a86c",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "88a14b0c91771026e9b85288b7465962d992e3f2",
@@ -52389,10 +52706,14 @@
           "maps/VermilionCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Diff only changes dialogue/sign text content, not geometry, object definitions, palettes, movement or visibility. Atlas does not display game dialogue.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a2ca48f2bc16d6bdeac2688aeee6fe3e7dfbc4e1",
+        "Full commit diff inspected in a batch; checked against atlas metadata/rendering and scripted-movement consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "1a671a3fdb3abaeb00c6e5e16cbad472c3d2c8aa",
@@ -53683,10 +54004,14 @@
           "maps/FuchsiaAquarium1F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Diff only changes dialogue/sign text content, not geometry, object definitions, palettes, movement or visibility. Atlas does not display game dialogue.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/bd927ec3e1d93c7920bc7a29eaf72e1aaa7a0df5",
+        "Full commit diff inspected in a batch; checked against atlas metadata/rendering and scripted-movement consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "76a8d4426e3de71cc79d9fd4e8853c263beb411a",
@@ -54838,10 +55163,14 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Correct `wPokeAnimBitmaskBuffer` size. ROM/RAM allocation, union layout, picture-animation buffer sizing or link-transfer state only. Atlas reads source assets and map definitions directly and does not emulate these memory addresses or game saves/link state.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/de359533c9abfe016c18f1380804646d9dc72bd0",
+        "Batch 3: screened subject and complete changed-file inventory; category ROM/RAM bookkeeping. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "7d1f7827a2f4fa73782b134384a4466d761f293c",
@@ -54922,10 +55251,14 @@
           "home/print_text.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Move `FastPrintNum` out of ROM0. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1cc751673a7559319ec9a5aeace2a1f5837e59df",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d56bcc89b6fcf467abdbbacb4de4184adba1955f",
@@ -54951,10 +55284,14 @@
           "home/vba.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Move `CheckVBA` (home/vba.asm) out of ROM0. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d56bcc89b6fcf467abdbbacb4de4184adba1955f",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "89d65968ef6c8bc15a2a78ca289914b57beb1919",
@@ -54972,10 +55309,14 @@
           "home/trainers.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Move `PrintWinLossText` out of ROM0. Battle logic/animation, trainer battle portraits, party-menu actions or wild encounter tables only. Atlas has no battle simulator or encounter-table display; shared overworld graphics, palettes, movement and map scripts are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/89d65968ef6c8bc15a2a78ca289914b57beb1919",
+        "Batch 3: screened subject and complete changed-file inventory; category battle/encounters. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "5a866cafffdf162305562ca0052bcd2ff24cb2a1",
@@ -55054,10 +55395,14 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Restore WRAM0 \"Video\" space removed by b263ca1e00795487dd8bcf0925039d2ccacec540. ROM/RAM allocation, union layout, picture-animation buffer sizing or link-transfer state only. Atlas reads source assets and map definitions directly and does not emulate these memory addresses or game saves/link state.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/735e34b166b8d82b4d7179b7ec991b22a92b8b33",
+        "Batch 3: screened subject and complete changed-file inventory; category ROM/RAM bookkeeping. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "c1762bb7b59e88f541fa2ac55b9b6605b61f5a0d",
@@ -55286,10 +55631,14 @@
           "data/music_player/song_info.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix music player song info order. Audio, game credits, phone dialogue, unused reference art or obsolete release patches only. These are outside atlas input/rendering and publication dependencies.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ba6c7e64c9660e7516e39269353bb39802618b23",
+        "Batch 3: screened subject and complete changed-file inventory; category audio/credits/reference. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "90b8c6d262ca9424c822380e0fa580e220e99a43",
@@ -55876,10 +56225,14 @@
           "home/battle.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use a `farcall` in ROMX to save a `homecall` in ROM0. Battle logic/animation, trainer battle portraits, party-menu actions or wild encounter tables only. Atlas has no battle simulator or encounter-table display; shared overworld graphics, palettes, movement and map scripts are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/eb6ef6c826f320b37f85b9320fb95bc48bce4a6b",
+        "Batch 3: screened subject and complete changed-file inventory; category battle/encounters. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "3b7e485ff83be7ccbc4b8a7d9d2b56403cbd8a0b",
@@ -55893,10 +56246,14 @@
           "engine/items/tmhm2.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Factor out shared `GetMoveDesc` subroutine. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3b7e485ff83be7ccbc4b8a7d9d2b56403cbd8a0b",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "85728020518be106dc080429187845c9c7dc41e5",
@@ -56233,10 +56590,14 @@
           "gfx/trainers/jasmine.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use latest sprites from SourApple's spritebase. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/dc81fb9b7912b9de2933d87c5c709ed809203d6f",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ef98e5f37b6c5b1c9bed2223a4295e14df36c2a0",
@@ -56381,10 +56742,14 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Move a WRAM0 variable for more contiguous unused space. ROM/RAM allocation, union layout, picture-animation buffer sizing or link-transfer state only. Atlas reads source assets and map definitions directly and does not emulate these memory addresses or game saves/link state.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7e177a0f5fcdf4dd6d13b08f1919990028d7164d",
+        "Batch 3: screened subject and complete changed-file inventory; category ROM/RAM bookkeeping. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d29786275e90f9ee8ba3f06731a0ba1dea64e7b8",
@@ -56562,10 +56927,14 @@
           "ram/hram.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Make unused HRAM space contiguous. ROM/RAM allocation, union layout, picture-animation buffer sizing or link-transfer state only. Atlas reads source assets and map definitions directly and does not emulate these memory addresses or game saves/link state.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0d2dd71cc6cf0ace281a81edf867370196ffc680",
+        "Batch 3: screened subject and complete changed-file inventory; category ROM/RAM bookkeeping. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e01cf18bb66436de799c36ac8ef9a2d640e4e338",
@@ -56583,10 +56952,14 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Remove `wUnusedTradeAnimPlayEvolutionMusic` and inline `.TradeAnimLayout`. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e01cf18bb66436de799c36ac8ef9a2d640e4e338",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "5a25e694f73c25bf769f2d3dacb1daa14f02bd5f",
@@ -56804,10 +57177,14 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Remove the unused WRAM0 section. ROM/RAM allocation, union layout, picture-animation buffer sizing or link-transfer state only. Atlas reads source assets and map definitions directly and does not emulate these memory addresses or game saves/link state.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a6bf991f357b1d5c4ff6dd9a29ee2ffa545b0c2c",
+        "Batch 3: screened subject and complete changed-file inventory; category ROM/RAM bookkeeping. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d02973e66ccaeb959800cd71ce774f4c59ee4d9e",
@@ -57384,10 +57761,14 @@
           "ram/hram.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Let unused HRAM space be properly unused. ROM/RAM allocation, union layout, picture-animation buffer sizing or link-transfer state only. Atlas reads source assets and map definitions directly and does not emulate these memory addresses or game saves/link state.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ff719a7c449070ff16769993331fc5419c54d037",
+        "Batch 3: screened subject and complete changed-file inventory; category ROM/RAM bookkeeping. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "b79ce6982aaa82e9506b53c3a5b13dd7335cdd7b",
@@ -57468,10 +57849,14 @@
           "engine/pokemon/learn.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Prevent TM and HM reuse from restoring PP (#1624). Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/882c921394156af597cfbacae2601ba7bcabb261",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6bf2def28150e078ce87117e84ee2d19f948e5f9",
@@ -57992,10 +58377,14 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Limit the Pokégear phone scrolling to your number of contacts. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c54af78a8b00b96e6f07cfba382c9a39d6f992d8",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ff1c42bb1f33c8a2fe1e01db684d6ef07947d0fa",
@@ -58259,10 +58648,14 @@
           "engine/events/wonder_trade.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Wonder Trade game exchange code only; atlas does not execute trades or their battle-ball animation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d60d881025635f662a3fd0916395ba182e8847ca",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d95ce9bd2b6d793266a9e9d93307b8e081f8e179",
@@ -58657,10 +59050,14 @@
           "INSTALL.md"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Upstream ROM CI/dependency/tooling configuration only. Atlas uses its own pinned-source build and publication workflows; no rendering input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/31c123342f0a97aa8e7624659ad842386e27beb6",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "4f9aa040e2166a2545ab73599fb7096c3b0d63aa",
@@ -58846,10 +59243,14 @@
           "data/pokemon/cries.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Add Gen 3+ cries generated by mauvesea's Siren converter (#1646). Audio, game credits, phone dialogue, unused reference art or obsolete release patches only. These are outside atlas input/rendering and publication dependencies.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4f9aa040e2166a2545ab73599fb7096c3b0d63aa",
+        "Batch 3: screened subject and complete changed-file inventory; category audio/credits/reference. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "62b12a473009738da02a6bd5ba8dda4d61774537",
@@ -58973,10 +59374,14 @@
           "data/pokemon/cries.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use five custom cries by Regen from Pokémon Orange. Audio, game credits, phone dialogue, unused reference art or obsolete release patches only. These are outside atlas input/rendering and publication dependencies.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9b16605d620a4ad54d5cc3cf9dcc68af8fe6047a",
+        "Batch 3: screened subject and complete changed-file inventory; category audio/credits/reference. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e38edae7f16257e7084c7c52a984193af4f56fe3",
@@ -59150,10 +59555,14 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix link party corruption from unescaped trainer ID bytes (#1634). ROM/RAM allocation, union layout, picture-animation buffer sizing or link-transfer state only. Atlas reads source assets and map definitions directly and does not emulate these memory addresses or game saves/link state.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f7745f128030c2ba8b0bd7ec8c3f161b58791d07",
+        "Batch 3: screened subject and complete changed-file inventory; category ROM/RAM bookkeeping. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "695a033119f680860733088d1ff57499e80f4727",
@@ -59230,10 +59639,14 @@
           "data/phone/text/elm.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Have Prof. Elm mention what Pokérus does (#1549). Audio, game credits, phone dialogue, unused reference art or obsolete release patches only. These are outside atlas input/rendering and publication dependencies.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e3f4ae96a55355261a2c4dc4c9097d0f317d358b",
+        "Batch 3: screened subject and complete changed-file inventory; category audio/credits/reference. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "c6b78648c3c20b991033dc665812d1f7d6789759",
@@ -59377,10 +59790,14 @@
           "engine/pokegear/pokegear.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix `AnimateTownMapFly` freeze during search through `Flypoints`. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8b2bbb076731cec99c399809015043d6a2f2a51c",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "84acd5a45e32b368755254cee44e6df8344ddfaf",
@@ -59541,10 +59958,14 @@
           "utils/optimize.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Upstream ROM CI/dependency/tooling configuration only. Atlas uses its own pinned-source build and publication workflows; no rendering input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0aa83fae241d62a62f2d05c19fcc2d1f4bce8b36",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "31b57a4a2f06ab83d3ba8cbc615d7ac929354aa1",
@@ -59731,10 +60152,14 @@
           "engine/events/wonder_trade.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Wonder Trade game exchange code only; atlas does not execute trades or their battle-ball animation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/435bb9061592246dec0c5c5cf813389e7d17de4a",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e65343198fcdad0ad95063b8e2a0ba5ba615d227",
@@ -59748,10 +60173,14 @@
           "tools/scan_includes.c"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "ROM build helper for title lettering, patch generation, DED audio encoding or assembler include scanning. Atlas builds do not invoke these tools; no atlas source format or asset changes in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e65343198fcdad0ad95063b8e2a0ba5ba615d227",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "a4e38e100ee8cba1bccf627121b6ff650abc40e3",
@@ -59765,10 +60194,14 @@
           "engine/events/item_maniacs.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Confined to item-maniac/gift/egg/happiness game mechanics. No map definitions, sprite assets, movement commands, palette or weather inputs change; atlas does not execute these game mechanics.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a4e38e100ee8cba1bccf627121b6ff650abc40e3",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d3e1a20f23b1f5ba47999e438cdbc37f9042ec9d",
@@ -60747,10 +61180,14 @@
           "data/music_player/song_info.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use Cosmic's X/Y Gym Leader battle music instead of Pum's. Audio, game credits, phone dialogue, unused reference art or obsolete release patches only. These are outside atlas input/rendering and publication dependencies.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a08a9639faaec06b92a767bc1ec304f503a8ed0d",
+        "Batch 3: screened subject and complete changed-file inventory; category audio/credits/reference. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "bd535b89f8e1337151b715f76a235296c26a60c7",
@@ -60818,10 +61255,14 @@
           "utils/view_rom.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Standalone unused-block reporting or ROM binary visualization utility only. Atlas does not invoke this utility; its colormaps/reporting are not game terrain or NPC palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e425f5c2c7c843a2aca0297fb996b88c5fb0a5ae",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "3b581f9321dfa82cbbd29c1c629af3b9d37afcb9",
@@ -60835,10 +61276,14 @@
           "utils/view_rom.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Standalone unused-block reporting or ROM binary visualization utility only. Atlas does not invoke this utility; its colormaps/reporting are not game terrain or NPC palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3b581f9321dfa82cbbd29c1c629af3b9d37afcb9",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "c268c3e93c37094c36dfbfab045625c51635d77f",
@@ -60852,10 +61297,14 @@
           "utils/view_rom.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Standalone unused-block reporting or ROM binary visualization utility only. Atlas does not invoke this utility; its colormaps/reporting are not game terrain or NPC palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c268c3e93c37094c36dfbfab045625c51635d77f",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "9713c55c1af74e04f768d9db95608cf0d70380fb",
@@ -60869,10 +61318,14 @@
           "utils/view_rom.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Standalone unused-block reporting or ROM binary visualization utility only. Atlas does not invoke this utility; its colormaps/reporting are not game terrain or NPC palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9713c55c1af74e04f768d9db95608cf0d70380fb",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "c5d42d33b8ff3c4bbb8090b048b945ec078ef14c",
@@ -60886,10 +61339,14 @@
           "utils/view_rom.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Standalone unused-block reporting or ROM binary visualization utility only. Atlas does not invoke this utility; its colormaps/reporting are not game terrain or NPC palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c5d42d33b8ff3c4bbb8090b048b945ec078ef14c",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "f9423df38fea10d96fa32a8e2c8148edecaf94c4",
@@ -60903,10 +61360,14 @@
           "utils/view_rom.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Standalone unused-block reporting or ROM binary visualization utility only. Atlas does not invoke this utility; its colormaps/reporting are not game terrain or NPC palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f9423df38fea10d96fa32a8e2c8148edecaf94c4",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "b041686b4a0a4304ac3948104e91534c80440b49",
@@ -60920,10 +61381,14 @@
           "utils/view_rom.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Standalone unused-block reporting or ROM binary visualization utility only. Atlas does not invoke this utility; its colormaps/reporting are not game terrain or NPC palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b041686b4a0a4304ac3948104e91534c80440b49",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "c1c715bd730342cc4f2eb2a30665b65219904f4a",
@@ -60937,10 +61402,14 @@
           "utils/view_rom.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Standalone unused-block reporting or ROM binary visualization utility only. Atlas does not invoke this utility; its colormaps/reporting are not game terrain or NPC palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c1c715bd730342cc4f2eb2a30665b65219904f4a",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "cccc5cc6aa61eb3b460227f51ee364428af5cee5",
@@ -61053,10 +61522,14 @@
           "macros/scripts/audio.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Audio engine/music encoding only; the atlas has no ROM audio consumer.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8ceb94e0a36e7bee8d779484e7cf71e2e705cd1f",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "46b0954e5da77a7d9aecc93098112f9f992ff31b",
@@ -61078,10 +61551,14 @@
           "macros/scripts/audio.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Audio engine/music encoding only; the atlas has no ROM audio consumer.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/46b0954e5da77a7d9aecc93098112f9f992ff31b",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e3893d25d1141326b545b07f0a429e478426f4f2",
@@ -61103,10 +61580,14 @@
           "macros/scripts/audio.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Audio engine/music encoding only; the atlas has no ROM audio consumer.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e3893d25d1141326b545b07f0a429e478426f4f2",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "3f219423e5d5c74e290e5be43a51b53bc86f6b87",
@@ -61187,10 +61668,14 @@
           "macros/scripts/battle_anims.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Battle-animation script encoding only; atlas overworld movement and tileset animation use separate parsers/data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/fd953b812feaf07423725208c752a0cd02f358cd",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d57c9d47c0ae7d31a0c8462ed4f9abd0949dcc98",
@@ -61666,10 +62151,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/04a803bdb5abfec6151f63295c6e70a2457cfa67",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "063f5ab3485f8e0624e8422dd87e9512b70baf4d",
@@ -61683,10 +62172,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/063f5ab3485f8e0624e8422dd87e9512b70baf4d",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "4fb4d35ef1a3929e2233034179158de3e9ef5422",
@@ -61700,10 +62193,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4fb4d35ef1a3929e2233034179158de3e9ef5422",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "461f7116231fb9b5dbccb933114d59f284181a35",
@@ -61717,10 +62214,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/461f7116231fb9b5dbccb933114d59f284181a35",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "9fcefc478b40569f39b09d193c8bf9097e9b40c8",
@@ -61734,10 +62235,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9fcefc478b40569f39b09d193c8bf9097e9b40c8",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d2c8c71ef6812031f8b2837fc7e196dbfaf55a5b",
@@ -61751,10 +62256,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d2c8c71ef6812031f8b2837fc7e196dbfaf55a5b",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "72ab2d65b789b4d91e921d1fa7834383e8c919a4",
@@ -61768,10 +62277,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/72ab2d65b789b4d91e921d1fa7834383e8c919a4",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "fbd46c7ad794005ac8e86028c46ed4ba219a5f44",
@@ -61785,10 +62298,14 @@
           "tools/Makefile"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Compiler warning/sanitizer flags for upstream C/C++ tools only. Atlas does not compile these tools.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/fbd46c7ad794005ac8e86028c46ed4ba219a5f44",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d8b2a592d9b72ce3262855cf9da0b63ce016fb8d",
@@ -61986,10 +62503,14 @@
           "patches/polishedcrystal-faithful-2.2.0.ips"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Remove outdated patches. Audio, game credits, phone dialogue, unused reference art or obsolete release patches only. These are outside atlas input/rendering and publication dependencies.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0e73a0d5f13b4cc97d924c17ee2e239f20318aef",
+        "Batch 3: screened subject and complete changed-file inventory; category audio/credits/reference. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "fb71b4080af9b51d51aaba7570a03d8be725e68d",
@@ -62006,7 +62527,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Full diff screened: includes dialog control flow, event/item branch, interaction direction, wait timing or facing behavior. Retained for scripted-movement/interaction consumer check; not dismissed as text-only."
     },
     {
       "sha": "bdba262357b1b4d1d5c15f8df7730731ed39a2d9",
@@ -62079,10 +62601,14 @@
           "engine/overworld/wildmons.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Battle Tower trainer loading or wild encounter selection mechanics only. Does not alter rendered terrain, object placement/appearance, movement, map topology or weather.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/59a8aec2e6acb1e3b75aa8a7055a77d945fb3286",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6c9708c502a5dcdb63438a9ab08ff6bbb2179dec",
@@ -62211,10 +62737,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/72d00e21d40d4f5af79fd1bfc69e6c9a063912f0",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "aab4d69770495f45096646f90f17e94baa23cf5b",
@@ -62265,10 +62795,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/cccf1dc5d5a31d3aff0008e3deebc074fc4fe76e",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6462bbdbe734331b8f59fcb212483dda8dd3e635",
@@ -62282,10 +62816,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6462bbdbe734331b8f59fcb212483dda8dd3e635",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "c97fcb6456bdd9ee6de54371763ec3b20ab088b1",
@@ -62299,10 +62837,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c97fcb6456bdd9ee6de54371763ec3b20ab088b1",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6b69758e7534c689336f86df1f6e6672e243ad0e",
@@ -62316,10 +62858,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6b69758e7534c689336f86df1f6e6672e243ad0e",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "0803a291cf7d3d9779c205113a01eebfe5a42ed7",
@@ -62333,10 +62879,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0803a291cf7d3d9779c205113a01eebfe5a42ed7",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "acdfc8e36b5e22c451a618ad7d066dc14b1be8a4",
@@ -62350,10 +62900,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/acdfc8e36b5e22c451a618ad7d066dc14b1be8a4",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d409a0c990be16584ad3436dbd17667e8c72e65e",
@@ -62367,10 +62921,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d409a0c990be16584ad3436dbd17667e8c72e65e",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "345a8fa8f722abb716d3bdd3a5686dc3c58d68ed",
@@ -62384,10 +62942,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/345a8fa8f722abb716d3bdd3a5686dc3c58d68ed",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e5e3a64b96c0819b80f28eb069ea569e0e3044de",
@@ -62401,10 +62963,14 @@
           "tools/Makefile"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Compiler warning/sanitizer flags for upstream C/C++ tools only. Atlas does not compile these tools.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e5e3a64b96c0819b80f28eb069ea569e0e3044de",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "0de5e2004bedae2f8ffa9471f2d1002cafe3aa6b",
@@ -62418,10 +62984,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0de5e2004bedae2f8ffa9471f2d1002cafe3aa6b",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "732a2f98a228e27378fd1710cf744c8fbc85135f",
@@ -62435,10 +63005,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/732a2f98a228e27378fd1710cf744c8fbc85135f",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "3622487168e96dd5bf98edc94025d376884b28c3",
@@ -62452,10 +63026,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3622487168e96dd5bf98edc94025d376884b28c3",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "43fa10949a354173ceb7aba01cc0539fa5384498",
@@ -62469,10 +63047,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/43fa10949a354173ceb7aba01cc0539fa5384498",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "a30148503b86b36cf17e79fe302f1d791e2604c5",
@@ -62522,10 +63104,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d4f4a7001e7ba47d027ef7281646b1641dce1f54",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "a75a5a7b494d4f40af50acf7f950d456af510c3f",
@@ -62539,10 +63125,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a75a5a7b494d4f40af50acf7f950d456af510c3f",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "83e3464b10dcb121dab4e02477398d6511e4c8b3",
@@ -62556,10 +63146,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/83e3464b10dcb121dab4e02477398d6511e4c8b3",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "14c45ab8612153480e3fdd79a4714ed7c3e22dc9",
@@ -62573,10 +63167,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/14c45ab8612153480e3fdd79a4714ed7c3e22dc9",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "29d9b30a3d71942bb0df5e333c4c8740aaa25d64",
@@ -62590,10 +63188,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/29d9b30a3d71942bb0df5e333c4c8740aaa25d64",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6bf946a62324310473ef43e37636421ff40fe46c",
@@ -62607,10 +63209,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6bf946a62324310473ef43e37636421ff40fe46c",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "23fd011434560deefff8246bf5c52c45e06df7c5",
@@ -62624,10 +63230,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/23fd011434560deefff8246bf5c52c45e06df7c5",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e9f17b439f96d5e5997022b20c668b8edcf0d76b",
@@ -62641,10 +63251,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e9f17b439f96d5e5997022b20c668b8edcf0d76b",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "307b81dabc1ea473c4697cab85559fb585e9a9ad",
@@ -62658,10 +63272,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/307b81dabc1ea473c4697cab85559fb585e9a9ad",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "7fa22fe74137759ceb67dfa752664ac7494c1216",
@@ -63191,10 +63809,14 @@
           "engine/movie/intro.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Give each intro scene a proper name. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/eeb33801bd801188c6e04c9215bee9872bfee914",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "012867fb19aa7ff9cee15a848408be93e57b4016",
@@ -63208,10 +63830,14 @@
           "engine/movie/intro.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use a better name for the \"cut to black\" function. Confined to game title/intro, party/summary/PC/Pokédex/Bag/Pokégear UI, minigame graphics or battle portraits. Atlas displays world maps and source-based overworld objects; it does not render these screens or execute their menu state. No atlas-consumed map, tileset, NPC/icon palette, weather or animation-command input changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/012867fb19aa7ff9cee15a848408be93e57b4016",
+        "Batch 3: screened subject and complete changed-file inventory; category menu/picture/UI. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "70116a3a36f6256747b1741f8408897c2c57b0ac",
@@ -63487,10 +64113,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7e031f9303dca776ab10d33cd91e077e84c83d27",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "4f7e0f8aa1a191b2541585756d68aa299cf0d30b",
@@ -63525,10 +64155,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/463f8a9ad7d182c9b0395587d311a11fc3accfff",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "df808634dae7c34be481f520762c3e3e8b5ddc63",
@@ -63712,10 +64346,14 @@
           "data/text/battle.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix `IsTormentedText` to print correct Pokémon. Battle logic/animation, trainer battle portraits, party-menu actions or wild encounter tables only. Atlas has no battle simulator or encounter-table display; shared overworld graphics, palettes, movement and map scripts are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0d6a5be3dab23b79f15f9013dfcac822587b795f",
+        "Batch 3: screened subject and complete changed-file inventory; category battle/encounters. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "fc450ce01709d07f3848cd9b448ffc5a60f663a5",
@@ -63729,10 +64367,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LZP compressor implementation/CLI/build flags only; no asset declarations or raw source bytes change. Atlas read_sprite_graphics, _read_block_bytes and tileset graphics resolution use checked-in uncompressed/PNG sources for .lzp references and never invoke this compressor. Compressed-only LZP input explicitly fails; supporting new LZP asset declarations remains a separate relevant audit item.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/fc450ce01709d07f3848cd9b448ffc5a60f663a5",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e3e952f9e75fd94ee0431627edcca3dd9ac8de06",
@@ -63881,10 +64523,14 @@
           "data/music_player/song_info.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use FRLG Lavender Town music by TriteHexagon. Audio, game credits, phone dialogue, unused reference art or obsolete release patches only. These are outside atlas input/rendering and publication dependencies.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/00677057ff76a9ad1e2505ecd87247967651136d",
+        "Batch 3: screened subject and complete changed-file inventory; category audio/credits/reference. This is a relevance skip, not a full diff or image review. Shared rendering, palette, map identity, decompressor and trainer-sight changes retained for inspection."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "1078faec49c313479a9dea808db20e11756fc447",
@@ -64014,10 +64660,14 @@
           "utils/unused_blocks.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Standalone unused-block reporting or ROM binary visualization utility only. Atlas does not invoke this utility; its colormaps/reporting are not game terrain or NPC palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c11396b4f9c58bfa1347b0867db92aa777a03d02",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "b19cb7815188c6e8a0962a0403cf9caa5e395200",
@@ -64031,10 +64681,14 @@
           "utils/unused_blocks.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Standalone unused-block reporting or ROM binary visualization utility only. Atlas does not invoke this utility; its colormaps/reporting are not game terrain or NPC palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b19cb7815188c6e8a0962a0403cf9caa5e395200",
+        "Complete subject/file-list screen against atlas source consumers; no full diff review claimed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "38b7bc39b3297aa44ceb12488192937a81341861",

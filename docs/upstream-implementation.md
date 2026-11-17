@@ -85,12 +85,18 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   are covered by tests. Goldenrod City and Route 7 static previews are available
   locally in `.build/palette-preview/`; Goldenrod's composite was visually inspected.
 - 17 Python tests pass, including the locally available upstream palette-swap corpus.
-- Forty-five commits have received detailed review: twenty-six are resolved as no
+- Sixty-one commits have received detailed review: forty-two are resolved as no
   atlas impact, one with an adaptation, and eighteen retain open validation work.
-  Two accelerated batches additionally skipped 158 unrelated commits after subject,
+  Accelerated batches additionally skipped 304 unrelated commits after subject,
   complete file-scope and consumer screening. These are explicitly marked
-  `scope-screen`, not full reviews. There are 185 resolved commits in total and
-  848 still pending. Inventory generation does not constitute review.
+  `scope-screen`, not full reviews. There are 347 resolved commits in total and
+  686 still pending. Inventory generation does not constitute review.
+- The latest screening batches cover menu/battle/audio/RAM changes, standalone ROM
+  analysis/build tools and LZP compressor maintenance. Atlas consumes checked-in
+  raw/PNG sources for LZP references; it does not invoke the compressor. New asset
+  declarations and shared rendering changes remain relevant. Small map-script
+  diffs were reviewed together: pure dialogue changes can be resolved, while
+  changes to branches, event flags, timing or facing remain open for consumer checks.
 - The frontend consumes palette-swap regions for background-derived NPC colors,
   including movement, and supports special WHITE/GRASS background color mapping.
   Full generated-site visual verification remains outstanding.
@@ -175,7 +181,7 @@ commit/file inventory. Never skip a change solely because it is undocumented.
 - A complete dev build now validates its generated bundle before reporting success.
   It includes all 612 maps, four time variants and 29 neighborhoods. Dirty build
   asset versions include the generation time to prevent stale force-cached previews.
-  The publication audit gate still rejects 866 unresolved commits: 848 pending
+  The publication audit gate still rejects 704 unresolved commits: 686 pending
   and eighteen reviewed with open validation. Nothing has been pushed or published.
 - Exhaustive review, remaining dev compatibility, complete visual verification,
   pushing branches, CI execution, and publication remain incomplete.

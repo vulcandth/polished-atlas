@@ -85,13 +85,13 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   are covered by tests. Goldenrod City and Route 7 static previews are available
   locally in `.build/palette-preview/`; Goldenrod's composite was visually inspected.
 - 17 Python tests pass, including the locally available upstream palette-swap corpus.
-- One hundred eighteen commits have received detailed review: ninety-two are resolved as no
-  atlas impact, five with adaptations, one already supported, and twenty retain
+- One hundred forty commits have received detailed review: 112 are resolved as no
+  atlas impact, five with adaptations, one already supported, and twenty-two retain
   open validation work.
-  Accelerated batches additionally skipped 308 unrelated commits after subject,
+  Accelerated batches additionally skipped 325 unrelated commits after subject,
   complete file-scope and consumer screening. These are explicitly marked
-  `scope-screen`, not full reviews. There are 406 resolved commits in total and
-  625 still pending. Inventory generation does not constitute review.
+  `scope-screen`, not full reviews. There are 443 resolved commits in total and
+  586 still pending. Inventory generation does not constitute review.
 - The latest screening batches cover menu/battle/audio/RAM changes, standalone ROM
   analysis/build tools and LZP compressor maintenance. Atlas consumes checked-in
   raw/PNG sources for LZP references; it does not invoke the compressor. New asset
@@ -242,6 +242,19 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   non-default rainy event-state browser scenarios still need focused verification.
 - Exhaustive review, remaining dev compatibility, complete visual verification,
   pushing branches, CI execution, and publication remain incomplete.
+- The next accelerated batch processed 39 commits: twenty detailed no-impact
+  resolutions, seventeen explicit scope skips, and two relevant changes retained
+  for validation. Title/splash screens, item illustrations, audio scores and unused
+  ROM tools were screened by their complete file lists and atlas consumers;
+  shared-file diffs were inspected where needed. The changelog still supplies no
+  comprehensive master feature summary. The ledger now has 608 unresolved commits
+  (586 pending and 22 reviewed with open work); this is not a completed audit.
+- Two additional checks emerged from that batch: `half2` NPC steps now last
+  sixteen frames instead of eight, and block `$00` is a normal metatile rather
+  than an alias for the map border. The raster renderer already indexes zero
+  directly; movement timing, connected borders and collision behavior still need
+  validation. These findings expand the requirements rather than replace the
+  explicit palette-swap and NPC-glow work.
 
 ## Immediate remaining implementation work
 

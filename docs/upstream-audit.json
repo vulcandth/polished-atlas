@@ -15419,10 +15419,14 @@
           "gfx/title/version.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Title-screen art and animation only. Shared Makefile diff only changes title graphics composition; atlas does not build or render title-screen assets.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e192f3a5814e2a3a22a19be4f0f6a2c3c6b289ab",
+        "Subject and complete changed-file list screened against atlas consumers; selected shared-file diffs inspected where stated. Not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "2d11b5b39b4d1ddec04aaacadb01eddf4d7422e6",
@@ -16903,10 +16907,14 @@
           "gfx/title/unowns.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Title-screen hover animation and title graphics only. Shared Makefile and ignore-file diffs only configure generated title assets; atlas does not consume them.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/052b22324ffed1af0b05e094bf90f0b12f749791",
+        "Subject and complete changed-file list screened against atlas consumers; selected shared-file diffs inspected where stated. Not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "5068cdc9c303bcc03679e84a8d345aed2a9fdc13",
@@ -17743,10 +17751,14 @@
           "home/map.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Makes the generic ObjectEvent interaction end without facing the player or displaying placeholder dialogue. Atlas does not execute this home/map.asm interaction routine; object definitions and autonomous movement are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f23b42856f54edb99170a79e4e6e755dddb22d99",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff",
       "triage_note": "Full diff screened: includes dialog control flow, event/item branch, interaction direction, wait timing or facing behavior. Retained for scripted-movement/interaction consumer check; not dismissed as text-only."
     },
     {
@@ -27708,10 +27720,14 @@
           "home.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Wind Rider battle ability, descriptions and Pokemon base stats. Shared home.asm diff only includes the wind-move list. Atlas does not simulate battle abilities or read base stats.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6a9f4c1cdc57ed6f2ebb48d5ae16e760b644e297",
+        "Subject and complete changed-file list screened against atlas consumers; selected shared-file diffs inspected where stated. Not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "9d7b637104f1c66179f2833700eb697c07d2612a",
@@ -28884,10 +28900,14 @@
           "engine/overworld/player_object.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Reorders nickname options and renames their displayed choices. The only player-object change is an equivalent immediate store of OBJECTTYPE_SCRIPT; no atlas object format changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/65f40b0f2b423f870185e048b26967d7d66706a1",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "254867ed4a663fea553893066b184e8332e713eb",
@@ -35138,8 +35158,8 @@
         "https://github.com/Rangi42/polishedcrystal/commit/80b77bc88fd5fc555eaacfc3e3777235af9af9cc",
         "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
       ],
-      "triage_note": "Judge Machine EV/IV colors may be shared with overworld graphics; trace consumers before resolving.",
-      "review_method": "full-diff"
+      "review_method": "full-diff",
+      "triage_note": "Judge Machine EV/IV colors may be shared with overworld graphics; trace consumers before resolving."
     },
     {
       "sha": "1c69513eafedd940d91e630650a3b4637ba6af77",
@@ -35228,10 +35248,14 @@
           "gfx/items/pokedex.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Three item-menu/dialogue icons and their loader. Full loader diff inspected: removes unreachable return and reuses item-corner loading. Atlas does not render these item illustrations; binary art intentionally skipped.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8ca0cc3254d6ecd367bcedb942cd87821985bbb2",
+        "Subject and complete changed-file list screened against atlas consumers; selected shared-file diffs inspected where stated. Not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "eeb7ed06129acf506051116c40f4f4f59afff3cb",
@@ -35270,10 +35294,14 @@
           "engine/events/overworld.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Adds a retry prompt and factors fishing encounter attempts into a helper. Atlas does not simulate fishing encounters or dialogue; map data and autonomous NPC movement are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/41e9e8432c4bf7e0ca5832772885e3c078de6acb",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "3bbf79fc9048fbcebee85a676c405bb4e03d579b",
@@ -35444,10 +35472,14 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Compresses the Super Game Boy border tilemap, loads it into temporary RAM and rearranges RAM sections. Atlas renders source map assets, not SGB borders or physical WRAM layouts; the shared graphics declaration only adds SGBBorderMap.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ac4471d42efad862c7fade58c300881c0282b0c7",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "9fe1ce600a386574dd3e98070fdd002d9bbb2e18",
@@ -35473,10 +35505,14 @@
           "engine/items/item_effects.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Complete scope is item-effect constants, item/key-item effect tables and item-effect dispatch. Atlas does not execute inventory item effects or consume these tables; table migration intentionally scope-screened, not exhaustively diff-reviewed.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9fe1ce600a386574dd3e98070fdd002d9bbb2e18",
+        "Subject and complete changed-file list screened against atlas consumers; selected shared-file diffs inspected where stated. Not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "1300786d7555090c1c1c3c4e64608a64d9677621",
@@ -37365,10 +37401,14 @@
           "gfx/items/zoom_lens.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Item-menu and dialogue item-icon corners, not overworld object sprites. Complete 269-path scope and item_icons.asm diff inspected; atlas has no gfx/items consumer. Binary item art intentionally skipped.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0e22ddca3b3c34dcb9e9cfd8237293e6d21a1e66",
+        "Subject and complete changed-file list screened against atlas consumers; selected shared-file diffs inspected where stated. Not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "a8c737481eb2137e307ef2e251d39fca047a8ec5",
@@ -37390,10 +37430,14 @@
           "gfx/items/pokedex.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "All three changed paths are item-menu/dialogue icon PNGs under gfx/items. Atlas uses map object sprite graphics and has no consumer of these item illustrations.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a8c737481eb2137e307ef2e251d39fca047a8ec5",
+        "Subject and complete changed-file list screened against atlas consumers; selected shared-file diffs inspected where stated. Not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d87661b459c455f3181dba5e1044477e1cf551e1",
@@ -38989,10 +39033,14 @@
           "home/lcd.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Factors equivalent tilemap backup copies and summary-screen LCD dispatch. Source map pixels, palettes, animation tables and copy sizes are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6f91858a8774532a76304ed24b313898267dcafe",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "e8f55c93421464e2de9b4077e722754af46e30b5",
@@ -39141,10 +39189,14 @@
           "home/pokemon.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Equivalent branch/return simplifications in scene lookup and Pokemon nature extraction. No scene table, map script or source format changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2e2041cd665a234c66782375897615d0d829b020",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "5cfc8dde33c14f1d1103e9fa5d22ecf3f0a2e591",
@@ -39786,10 +39838,14 @@
           "home/map.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Replaces the player-facing coordinate lookup with smaller equivalent arithmetic and derives collision-address offsets from direction. Direction vectors and collision results are unchanged; atlas does not execute this ROM routine.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c1fb619f9749fe7e37af11b92b8c381af2eac953",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "5735400084db96bd5a816c5bc7d181f5410a1462",
@@ -40543,10 +40599,14 @@
           "tools/gfx.c"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Title-screen faithful indicator change. Inspected shared Makefile and tools/gfx.c diffs: removal of a title concatenation rule and newline in an error message. Atlas does not consume title assets or invoke this C tool.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0945d7d1e5499777c2f9117d3b585177ef912ebc",
+        "Subject and complete changed-file list screened against atlas consumers; selected shared-file diffs inspected where stated. Not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "f92620e37fff1dd97056e3d338c38268080e30f7",
@@ -40580,10 +40640,14 @@
           "tools/fine_print.c"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Generates title copyright/version pixels with a new native tool. Shared build-file diffs only register that tool and title output; atlas does not compile the ROM or use title assets.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f92620e37fff1dd97056e3d338c38268080e30f7",
+        "Subject and complete changed-file list screened against atlas consumers; selected shared-file diffs inspected where stated. Not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "f94886a081924302ea11596946d0cd35a81cd565",
@@ -40651,10 +40715,14 @@
           "tools/fine_print.c"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Splash copyright graphics generation. Shared Makefile diff only adds the splash rule; atlas does not render splash screens or invoke fine_print.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/cf86259267565dec1d15f8c5f8264690b96d37c9",
+        "Subject and complete changed-file list screened against atlas consumers; selected shared-file diffs inspected where stated. Not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "56f0cbe5fa16964901e799459cd5e8884ef80556",
@@ -40684,10 +40752,14 @@
           "tools/fine_print.c"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Faithful/debug labels in title copyright/version output. Shared Makefile diff only changes PRINTVERSION and generated title cleanup; atlas provenance is produced independently.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/56f0cbe5fa16964901e799459cd5e8884ef80556",
+        "Subject and complete changed-file list screened against atlas consumers; selected shared-file diffs inspected where stated. Not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "3d4274e553de1d883c6d702d057e3258320333d2",
@@ -40725,10 +40797,14 @@
           "tools/fine_print.c"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Complete file scope is copyright/credits text, intro/credits presentation, title logo and fine_print. Atlas has no consumer of these screens or upstream native tool; title binary art intentionally skipped.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3d4274e553de1d883c6d702d057e3258320333d2",
+        "Subject and complete changed-file list screened against atlas consumers; selected shared-file diffs inspected where stated. Not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "64b7e1d023a3ac8be52ea44dc2afe61af2ba322e",
@@ -41146,10 +41222,14 @@
           "engine/overworld/scripting.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Replaces numeric bit positions with the corresponding named noclip/swimming/big-object/emote/background-priority constants and renames local branches. No flag value, object data or movement rule changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d17d23d6452949c998bec4005cf3a4b6efe7931e",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "e92d31e403cb59931dcf11fe7171889dc1a061de",
@@ -42182,10 +42262,14 @@
           "macros/scripts/movement.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Deletes unused movement commands and renumbers later ROM opcodes. Atlas scripted-movement parsing consumes textual command names, not encoded opcode values; surviving command names and behavior are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/63f1187495d80fe490aaed59e520be722ba1ffaf",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "7968d58888eae363943656cb1d41ce9d44506e8e",
@@ -42505,10 +42589,14 @@
           "engine/overworld/map_objects.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Full diff reviewed: half2 player and NPC steps now take 16 frames rather than 8, with half-step offset updates on alternating frames. Retain open to reconcile atlas scripted movement timing and affected callers; a movement-engine refactor is not automatically irrelevant.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/34964da25711259567de4af168f7287e9a1f3440",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "c132c8481a08ad5b9f453f57e769a2cf68f8819c",
@@ -44183,10 +44271,14 @@
           "tools/scan_includes.c"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "All changed files are standalone upstream native tools and their common header. Atlas does not invoke bpp2png, fine_print, make_patch or scan_includes; stdin/stdout CLI support is outside its build path.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/bd6e7aaa6d18fcdec7eff4e7a9ae57e1f8fce334",
+        "Subject and complete changed-file list screened against atlas consumers; selected shared-file diffs inspected where stated. Not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "8f18362a9823159bc9a02bc77a67880d5708ca99",
@@ -44624,10 +44716,14 @@
           "tools/pokemon_animation.c"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "All changed files are upstream native tools and their Makefile. Atlas uses its own source decoding and animation parser, not these C binaries; tool fixes intentionally scope-screened.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8ae2e8dee8b7034cecdb560f7b9cd052ce8bf6b7",
+        "Subject and complete changed-file list screened against atlas consumers; selected shared-file diffs inspected where stated. Not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "1414947382fce3be9625e4c8d60948ed61851cb9",
@@ -46404,10 +46500,14 @@
           "engine/events/wonder_trade.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Trade NPC record packing, trade data and trade execution only. Atlas displays map objects but does not parse NPC trade records or execute trades.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/77c0ed857ddad9734181c1c06a3384382e711dab",
+        "Subject and complete changed-file list screened against atlas consumers; selected shared-file diffs inspected where stated. Not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "7d9a0ba64ebcafae6db441a151033a7bfea2885e",
@@ -47916,10 +48016,14 @@
           "engine/events/judge_machine.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Replaces multiplication in the interactive Judge radar chart. The overworld Judge tileset animation and its palette cycle are unchanged; atlas does not render this modal chart.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/358e32441a1a538ddfa92f2ac6c6aa84e5ea427a",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "f477d808edea2198ce5540af414f8bb67fa4cac6",
@@ -48811,10 +48915,14 @@
           "home/map.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Replaces comparison against -1 with an increment and assertion that SCENE_ALWAYS is -1. Coordinate-event matching semantics and data are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/93414c053614fed5d040d85e9cdcb8bfb83424b5",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "695652062756aea1313ba117867ad344f25f5c87",
@@ -55596,10 +55704,14 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Corrects the OAM count hidden during player Fly animation and removes unused RAM padding. Atlas does not execute Fly cutscenes or depend on WRAM addresses.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c1762bb7b59e88f541fa2ac55b9b6605b61f5a0d",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "e035debe8474b09ec8df1700b8922bbe27a6a36c",
@@ -59728,10 +59840,14 @@
           "gfx/stats/ev_iv_cycle.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Changes only the MONOCHROME branches of single-object palettes and Judge palette cycles. The supported color build is unchanged; monochrome builds are explicitly outside scope.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9dfcd39459a505f2cd0901de2d878cb93f9e4773",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "0e074ed8650fd153124225e75974be8c56ba8d42",
@@ -59993,10 +60109,14 @@
           "engine/events/field_moves.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Stops a Fly leaf animation write when allocation fails. Atlas does not simulate the Fly cutscene or allocate Game Boy sprite-animation structs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e86068d5b94da4d01a06073af30c5b03b1d04554",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "8b2bbb076731cec99c399809015043d6a2f2a51c",
@@ -60052,10 +60172,14 @@
           "engine/overworld/scripting.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Defers ReloadSpriteIndex while battle text disables sprite updates, preserving the variable sprite assignment itself. Atlas resolves variable sprites from source and does not render battle text or that transient VRAM state.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f260cbe19d29f71603ac7ba21b843648d463e787",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "6d39b3d45d7da8ba8787d6916cf9f25037b4bf81",
@@ -60069,10 +60193,14 @@
           "engine/gfx/cgb_layouts.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Copies one extra color for the box naming-screen palette. No overworld palette routine or source data changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6d39b3d45d7da8ba8787d6916cf9f25037b4bf81",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "aff9285473a13dd7946e4f689cc29071012cf397",
@@ -60889,10 +61017,14 @@
           "engine/gfx/item_icons.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Complete scope is nine music/cry files plus item_icons.asm. Inspected the shared graphics diff: whitespace only. Atlas has no audio consumer; score refactors intentionally skipped.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/325a015269b931ff6c601150b62c73017e1ec013",
+        "Subject and complete changed-file list screened against atlas consumers; selected shared-file diffs inspected where stated. Not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "bcd89dc6120b2c39fe9efab510e0c1a62e4ab853",
@@ -61358,10 +61490,14 @@
           "utils/music_optimize.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Complete 114-path list consists of music scores and utils/music_optimize.py. Atlas neither plays game audio nor invokes the upstream music optimizer; individual score diffs intentionally skipped.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/bcd89dc6120b2c39fe9efab510e0c1a62e4ab853",
+        "Subject and complete changed-file list screened against atlas consumers; selected shared-file diffs inspected where stated. Not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "b4093007b5b90756419ffd8a8d81b6ff77a94071",
@@ -62782,10 +62918,14 @@
           "engine/overworld/map_objects.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Removes the unused UNDER_TILES flag and its OAM-priority branch while retaining the bit position with const_skip. Atlas has no consumer of UNDER_TILES; no object data or tile-priority attributes change.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/bdba262357b1b4d1d5c15f8df7730731ed39a2d9",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "b2112459f25d584598c1aa6858566c79b148a546",
@@ -62816,10 +62956,14 @@
           "engine/overworld/player_movement.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Changes player running/biking speed on long grass and simplifies player movement returns. No NPC movement, collision definition or map data changes; atlas has no player movement simulation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/204df63f876cf67d9c2c2dc4f5de7244f039fbc6",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "59a8aec2e6acb1e3b75aa8a7055a77d945fb3286",
@@ -64225,10 +64369,14 @@
           "home/map_objects.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Removes the redundant sprite-update gate before UpdateMapObjectDataAndSprites. Atlas uses its own display lifecycle, not this CPU dispatch; source object data and motion/palette rules are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f0896b8e9913a51140ae484f5b26549936816991",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "e41e4911b6af926a09ee177eec9c65156ef995b9",
@@ -64457,10 +64605,14 @@
           "engine/overworld/player_movement.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Adds a player-only STEP_BIKE_LEDGE dispatch to existing fast-jump commands. Existing step IDs and NPC movement definitions are unchanged; atlas does not simulate player biking.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/22c209d088f3b93fbc44bd7bf04e80a3799b6cf8",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "0ea0a9fc1c33a0fa8a6e0ee3825f2e03bb059001",
@@ -64891,10 +65043,14 @@
           "home/map.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Full diff reviewed: block $00 is now rendered normally and the off-map buffer is initialized with the actual border block. Atlas _render_map already indexes metatile 0 directly, but retain open for connected-map/border and collision validation against the new block-zero assets (d213221f668e).",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/616a497cb1733c2d0f14e86a33c472c7cea62c9e",
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "c11396b4f9c58bfa1347b0867db92aa777a03d02",

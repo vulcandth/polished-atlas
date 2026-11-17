@@ -25,6 +25,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 
 import atlas_common
 import render_map
+from map_palette import palette_time
 
 RGB = Tuple[int, int, int]
 TIME_OF_DAY_SLOTS = ("morn", "day", "nite", "eve")
@@ -121,12 +122,11 @@ def _apply_roof_override_if_applicable(
     weekday: int,
     events: Optional[Sequence[str]],
 ) -> List[List[RGB]]:
-    allows_roof = map_info.map_type in {"TOWN", "ROUTE", "ISOLATED"}
-    if not allows_roof or map_info.tileset == "TILESET_SNOWTOP_MOUNTAIN":
+    if not repo.uses_roof_palette(map_info):
         return _ensure_palette_rows(base, 8)
     overcast_index = repo.get_overcast_index(map_info, weekday=weekday, events=set(events or []))
     if overcast_index is not None:
-        roof_override = repo.overcast_roof_palette(overcast_index, time_of_day=time_of_day)
+        roof_override = repo.overcast_roof_palette(overcast_index, time_of_day=time_of_day, group=map_info.group)
     else:
         roof_override = repo.roof_palette(map_info.group, time_of_day=time_of_day)
     out = _ensure_palette_rows(base, 8)
@@ -152,6 +152,7 @@ def compute_map_palettes(
 ) -> Dict[str, List[List[RGB]]]:
     result: Dict[str, List[List[RGB]]] = {}
     for time_index, time_slug in enumerate(TIME_OF_DAY_SLOTS):
+        time_index = palette_time(map_info.palette_flags, time_index)
         # Prefer special palettes if present
         special = repo.special_background_palette(
             map_info,
@@ -219,6 +220,9 @@ def build_payload(opts: Options) -> Dict[str, object]:
             "map_constant": info.constant,
             "map_type": info.map_type,
             "palettes": palettes_by_time,
+            "palette_times": {name: TIME_OF_DAY_SLOTS[palette_time(info.palette_flags, i)]
+                              for i, name in enumerate(TIME_OF_DAY_SLOTS)},
+            "darkness": "IN_DARKNESS" in info.palette_flags,
             "palette_swaps": repo.palette_swaps.metadata(label),
             "overcast": repo.get_overcast_index(info, weekday=opts.weekday, events=initial_flags) is not None,
         }

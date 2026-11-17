@@ -17,6 +17,7 @@ from types import ModuleType
 from typing import Dict, Optional, Set, Tuple
 
 import render_map
+from map_palette import palette_time
 
 ROOT_DIR: Path = Path(__file__).resolve().parent.parent
 DEFAULT_POLISHED_PATH: Path = Path(os.environ.get("POLISHED_DIR", str(ROOT_DIR / "external/polishedcrystal")))
@@ -80,22 +81,7 @@ def _palette_signature(
     weekday: int,
     events: Set[str],
 ) -> Tuple[Optional[int], Tuple[Tuple[Tuple[int, int, int], ...], ...]]:
-    # Honor per-map palette overrides from data/maps/maps.asm (e.g., PALETTE_DAY).
-    effective_time = time_of_day & 0x03
-    try:
-        flags = set(map_info.palette_flags)
-    except Exception:
-        flags = set()
-    forced_time_map = {
-        "PALETTE_MORN": 0,
-        "PALETTE_DAY": 1,
-        "PALETTE_NITE": 2,
-        "PALETTE_EVE": 3,
-    }
-    for flag, forced in forced_time_map.items():
-        if flag in flags:
-            effective_time = forced
-            break
+    effective_time = palette_time(map_info.palette_flags, time_of_day)
 
     overcast_index = repo_index.get_overcast_index(map_info, weekday=weekday, events=events)
     palette = repo_index.special_background_palette(
@@ -108,15 +94,11 @@ def _palette_signature(
         palette = repo_index.environment_palette(map_info, effective_time)
     palette_copy = [list(row) for row in palette]
     render_map._ensure_palette_rows(palette_copy)
-    allows_roof_palette = map_info.map_type in {"TOWN", "ROUTE", "ISOLATED"}
-    if (
-        allows_roof_palette
-        and map_info.tileset != "TILESET_SNOWTOP_MOUNTAIN"
-    ):
+    if repo_index.uses_roof_palette(map_info):
         if overcast_index is not None:
-            roof_override = repo_index.overcast_roof_palette(overcast_index, time_of_day=time_of_day)
+            roof_override = repo_index.overcast_roof_palette(overcast_index, time_of_day=effective_time, group=map_info.group)
         else:
-            roof_override = repo_index.roof_palette(map_info.group, time_of_day=time_of_day)
+            roof_override = repo_index.roof_palette(map_info.group, time_of_day=effective_time)
         render_map._apply_roof_color_override(palette_copy, roof_override)
     signature = tuple(
         tuple(tuple(int(channel) for channel in color) for color in row)

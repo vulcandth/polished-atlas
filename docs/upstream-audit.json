@@ -17133,7 +17133,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Relevant: hidden-grotto green/roof colors depend on the entering map (Bellchime Trail; later Cherrygrove Bay and Yellow Forest). Generic day/night grotto tables now load, but entering-map context and corresponding overlay assets remain to implement/verify."
     },
     {
       "sha": "9250527e0c95a7b09297d599c3b46bd92a562e67",
@@ -17184,10 +17185,14 @@
           "gfx/tilesets/hidden_grotto.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Full four-file diff: HiddenTreeGrotto/HiddenCaveGrotto become PALETTE_AUTO; hidden-grotto source adds a night block selected only at NITE, with monochrome changes outside scope. Modern subset loader selects the target seven-palette night block, and NPC context respects automatic map time. Known day/night raw RGB values are checked. Entrance-specific color substitutions from separate commits remain open and are not claimed resolved here.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/aa03b0c01633764b65852a2e92b8189d2133d618",
+        "scripts/tests/test_map_palette.py; scripts/tests/test_tile_animation.py; 40 Python tests pass; full .build/dev-verified build and generated-bundle validation pass."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "436715f8789c9ea346b4f99123d2daeecb7a100f",
@@ -35108,10 +35113,14 @@
           "data/maps/maps.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Full one-file diff: GoldenrodUnderground, its entrances and DeptStoreB1F change PALETTE_AUTO to PALETTE_DAY. Shared palette_time now feeds terrain, BG metadata, animation gates and NPC palette context. All-map brightness-table comparison plus four-time renderer/metadata checks cover all three changed maps.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/42ea6a936212b6c151e3ac46a184a6d3c375a148",
+        "scripts/tests/test_map_palette.py; scripts/tests/test_tile_animation.py; 40 Python tests pass; full .build/dev-verified build and generated-bundle validation pass."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "8ca0cc3254d6ecd367bcedb942cd87821985bbb2",
@@ -48066,10 +48075,14 @@
           "engine/tilesets/tileset_anims.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Full one-file diff adds NITE/EVE gating to AnimateLampLightTiles. Machine already executes this command only for effective palette times 2/3; shared map_palette context now matches upstream brightness rules across every map. test_state_gates_and_palette_writes checks all four times; full dev export passes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7c89f77048d1f8075b9efed2efa6a0cd3877009e",
+        "scripts/tests/test_map_palette.py; scripts/tests/test_tile_animation.py; 40 Python tests pass; full .build/dev-verified build and generated-bundle validation pass."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "f864a8b97dd4486d479e3a93b313137b8be6aa62",
@@ -54672,7 +54685,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Relevant breaking format confirmed: inspected full engine/gfx/color.asm and engine/tilesets/tileset_palettes.asm diffs plus target macro/table. Adapted subset slot/count, TIMEWEATHER stride, nested if 0 reference palettes, aliases, special routines and copied BG slots. All 93 target declarations parse; every declared variant and representative raw RGB values tested. Entire 85-file commit and binary attribute change still require reconciliation; not counted as a complete commit review."
     },
     {
       "sha": "c6ed0a1aacf8608980d465605afeb75c19b3179a",

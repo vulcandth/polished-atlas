@@ -49,4 +49,12 @@ describe("palette-swap composite", () => {
   it("fails explicitly for a referenced but missing palette table", () => {
     expect(() => resolveSpatialBgPalettes({ ...metadata, paletteSwapPalettes: {} }, "GoldenrodCity", "day", 22, 7)).toThrow("Invalid palette swap");
   });
+  it("uses the map palette time for swaps without changing the clock-time base lookup", () => {
+    const forced = { ...metadata, maps: { GoldenrodCity: {
+      ...metadata.maps.GoldenrodCity, palette_times: { day: "nite" }, overcast: true,
+    } } };
+    const colors = resolveSpatialBgPalettes(forced, "GoldenrodCity", "day", 22, 7);
+    expect(colors?.[3]).toEqual(palette(26));
+    expect(colors?.[2]).toEqual(metadata.maps.GoldenrodCity.palettes.day[2]);
+  });
 });

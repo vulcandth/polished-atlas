@@ -14,7 +14,8 @@ export function resolveSpatialBgPalettes(
   const base = map?.palettes[time];
   if (!base) return null;
   const result = base.slice();
-  const index = (TIME_INDEX[time] ?? 1) + (map.overcast ? 4 : 0);
+  const paletteTime = map.palette_times?.[time] ?? time;
+  const index = (TIME_INDEX[paletteTime] ?? 1) + (map.overcast ? 4 : 0);
   for (const swap of map.palette_swaps ?? []) {
     const inside = x >= swap.min_x && x < swap.max_x && y >= swap.min_y && y < swap.max_y;
     const name = inside ? swap.inside : swap.outside;

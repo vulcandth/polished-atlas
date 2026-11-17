@@ -449,6 +449,8 @@ export interface BgPalettesMapEntry {
   palettes: Record<string, RgbTuple[][]>; // timeOfDay -> 8 palettes of 4 RGB tuples
   palette_swaps?: PaletteSwapEntry[];
   overcast?: boolean;
+  palette_times?: Record<string, string>; // clock time -> effective map palette time
+  darkness?: boolean;
 }
 
 export interface BgPalettesPayloadDTO {

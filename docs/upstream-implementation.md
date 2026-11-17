@@ -85,12 +85,13 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   are covered by tests. Goldenrod City and Route 7 static previews are available
   locally in `.build/palette-preview/`; Goldenrod's composite was visually inspected.
 - 17 Python tests pass, including the locally available upstream palette-swap corpus.
-- Sixty-one commits have received detailed review: forty-two are resolved as no
-  atlas impact, one with an adaptation, and eighteen retain open validation work.
+- Sixty-four commits have received detailed review: forty-two are resolved as no
+  atlas impact, three with adaptations, one already supported, and eighteen retain
+  open validation work.
   Accelerated batches additionally skipped 304 unrelated commits after subject,
   complete file-scope and consumer screening. These are explicitly marked
-  `scope-screen`, not full reviews. There are 347 resolved commits in total and
-  686 still pending. Inventory generation does not constitute review.
+  `scope-screen`, not full reviews. There are 350 resolved commits in total and
+  683 still pending. Inventory generation does not constitute review.
 - The latest screening batches cover menu/battle/audio/RAM changes, standalone ROM
   analysis/build tools and LZP compressor maintenance. Atlas consumes checked-in
   raw/PNG sources for LZP references; it does not invoke the compressor. New asset
@@ -181,8 +182,28 @@ commit/file inventory. Never skip a change solely because it is undocumented.
 - A complete dev build now validates its generated bundle before reporting success.
   It includes all 612 maps, four time variants and 29 neighborhoods. Dirty build
   asset versions include the generation time to prevent stale force-cached previews.
-  The publication audit gate still rejects 704 unresolved commits: 686 pending
+  The publication audit gate still rejects 701 unresolved commits: 683 pending
   and eighteen reviewed with open validation. Nothing has been pushed or published.
+- Shared map palette time now follows upstream's brightness table, including forced
+  MORN/DAY/NITE/EVE and the pre-Flash darkness mapping. Terrain, roof colors, animation
+  gates, palette-swap regions and NPC context use the same policy; object schedules
+  still use actual clock time. Explicit darkness metadata covers Rock Tunnel and
+  Scary Cave Shipwreck rather than relying on map-name guesses.
+- Found and adapted a major parser gap: modern `special_bg_pal` specifies a starting
+  slot and palette count. All 93 declarations now parse instead of being silently
+  skipped. The renderer overlays the selected subset on environment colors, handles
+  TIMEWEATHER's eight variants, palette aliases, copied BG slots, PokeCenter/Mart/
+  Magnet Train/generic grotto routines, and excludes `if 0` reference palettes.
+  Overcast roofs now use map-group indexing; forest/Faraway roof exceptions apply.
+- Current verification: 40 Python tests and 28 frontend tests pass; TypeScript and
+  the complete 612-map dev build pass, including bundle validation. Tests compare
+  every map's palette time to the upstream table, exercise every declared special
+  palette variant, and assert known upstream RGB values and subset positions.
+  ESLint retains one existing hook-dependency warning and no errors.
+- The rebuilt production preview was inspected at day/night in Ecruteak City.
+  Dance Theater entrance/exit warps work, and the forced-day interior and NPCs
+  retain their colors when entered at night. This limited browser pass recorded
+  no console errors; it does not complete full-site glow or loader verification.
 - Exhaustive review, remaining dev compatibility, complete visual verification,
   pushing branches, CI execution, and publication remain incomplete.
 
@@ -192,7 +213,7 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   consumes swap metadata and rebuilds background-derived NPC frames when movement
   crosses a color boundary; focused tests cover selection and boundary changes.
 - Finish animation integration with animated background-derived object colors,
-  shared event state and forced map time. Modern GIF output still fails explicitly
+  shared event state. Forced map time is now shared across terrain and objects. Modern GIF output still fails explicitly
   on modern tables and needs adaptation. Backport compact-asset validation into
   main's shared publication tooling, then verify combined deployment.
 - Complete NPC glow effects, shared event state, fixed-weather rules/cherry blossoms, dual object
@@ -200,7 +221,9 @@ commit/file inventory. Never skip a change solely because it is undocumented.
 - Finish glow validation on Dragon Shrine, cave mouths, underground lamps and lava
   ladders, including directional walls/warps and secondary palettes. Verify
   `SPRITE_AQUARIUM_MON` handling (also used for volcano Moltres), and reconcile
-  forced map time palettes with the existing indoor/day heuristic.
+  all remaining dynamic-palette rules; explicit map time now replaces the indoor/day
+  heuristic for current metadata. Implement hidden-grotto entrance-dependent colors
+  for Bellchime Trail, Cherrygrove Bay and Yellow Forest.
 - Audit dual connections and the shortened FakeRoute36 border alias used by
   RuinsOfAlphOutside; a complete parsed inventory alone does not validate layout.
 - Validate Route23North/South's seam, officer placement and Victory Road/League

@@ -40,6 +40,8 @@ function normalizeMapEntry(
     palettes: {},
     palette_swaps: entry?.palette_swaps ?? [],
     overcast: typeof entry?.overcast === "boolean" ? entry.overcast : undefined,
+    palette_times: entry?.palette_times,
+    darkness: typeof entry?.darkness === "boolean" ? entry.darkness : undefined,
   } as BgPalettesMapEntry;
   const src = entry?.palettes ?? {};
   for (const [time, rows] of Object.entries(src)) {

@@ -281,4 +281,25 @@ describe("NPC glow sprite colors", () => {
     expect(pixel("PAL_OW_STATIC")).toEqual([99, 123, 156, 255]);
     cache.destroy();
   });
+
+  it("uses explicit map palette time indoors and restores it during movement refresh", () => {
+    const { cache, pixel } = fixture();
+    cache.setTimeOfDay("day");
+    cache.setPaletteContext({ indoor: true, paletteTime: "nite" });
+    const aquariumContext = cache.getPaletteContext();
+    expect(pixel()).toEqual([41, 41, 41, 255]);
+    cache.setPaletteContext({ indoor: true, paletteTime: "day" });
+    expect(pixel()).toEqual([82, 82, 82, 255]);
+    cache.setPaletteContext(aquariumContext);
+    expect(pixel()).toEqual([41, 41, 41, 255]);
+    cache.setGlowState({ previous: "OBJ_GLOW_DAY", current: "OBJ_GLOW_DAY", steps: 15 });
+    expect(pixel()).toEqual([82, 82, 82, 255]);
+    cache.setPaletteContext({ indoor: true, paletteTime: "nite", overcast: true });
+    expect(pixel()).toEqual([25, 25, 25, 255]);
+    cache.setPaletteContext({ indoor: true, paletteTime: "nite", darkness: true, overcast: true });
+    expect(pixel()).toEqual([16, 16, 16, 255]);
+    cache.setPaletteContext({ indoor: true }); // old bundle fallback
+    expect(pixel()).toEqual([82, 82, 82, 255]);
+    cache.destroy();
+  });
 });

@@ -2742,7 +2742,8 @@ export default function MapCanvas({
       const isOverworld = Boolean(mapMeta?.isOverworld);
       const isIndoor = !isOverworld;
       const weatherType = computeMapWeather(state.mapLabel);
-      const isOvercast = bgPalettes?.maps[state.mapLabel]?.overcast ??
+      const paletteMap = bgPalettes?.maps[state.mapLabel];
+      const isOvercast = paletteMap?.overcast ??
         (weatherType === "rain" || weatherType === "thunderstorm");
       const constant = (mapMeta?.mapConstant || "").toUpperCase();
       const label = (mapMeta?.label || state.mapLabel || "").toUpperCase();
@@ -2751,7 +2752,12 @@ export default function MapCanvas({
         label.includes("DARKCAVE") ||
         constant.includes("WHIRL_ISLANDS") ||
         label.includes("WHIRLISLANDS");
-      cache.setPaletteContext({ indoor: isIndoor, overcast: isOvercast && isOverworld, darkness: isDarkness });
+      cache.setPaletteContext({
+        indoor: isIndoor,
+        overcast: paletteMap?.overcast ?? (isOvercast && isOverworld),
+        darkness: paletteMap?.darkness ?? isDarkness,
+        paletteTime: paletteMap?.palette_times?.[timeOfDay],
+      });
     } catch {
       cache.setPaletteContext({ indoor: false, overcast: false, darkness: false });
     }
@@ -3640,19 +3646,25 @@ export default function MapCanvas({
         const isOverworld = Boolean(mapMeta?.isOverworld);
         const isIndoor = !isOverworld;
         const weatherType = computeMapWeather(entry.placement.label);
-        const isOvercast = bgPalettes?.maps[entry.placement.label]?.overcast ??
+        const paletteMap = bgPalettes?.maps[entry.placement.label];
+        const isOvercast = paletteMap?.overcast ??
           (weatherType === "rain" || weatherType === "thunderstorm");
-        // Heuristic for darkness: prefer explicit Dark Cave variants; extendable later
+        // Fallback only for older bundles without explicit darkness metadata.
         const constant = (mapMeta?.mapConstant || "").toUpperCase();
         const label = (mapMeta?.label || entry.placement.label || "").toUpperCase();
         const isDarkness =
-          // Known darkness maps
+          // Legacy darkness heuristic
           constant.includes("DARK_CAVE") ||
           label.includes("DARKCAVE") ||
-          // Some multi-map areas that are dark in-game; broaden gently
+          // Legacy area-name fallback
           constant.includes("WHIRL_ISLANDS") ||
           label.includes("WHIRLISLANDS");
-        cache.setPaletteContext({ indoor: isIndoor, overcast: isOvercast && isOverworld, darkness: isDarkness });
+        cache.setPaletteContext({
+          indoor: isIndoor,
+          overcast: paletteMap?.overcast ?? (isOvercast && isOverworld),
+          darkness: paletteMap?.darkness ?? isDarkness,
+          paletteTime: paletteMap?.palette_times?.[timeOfDay],
+        });
       } catch {
         cache.setPaletteContext({ indoor: false, overcast: false, darkness: false });
       }

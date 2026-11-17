@@ -3,6 +3,7 @@ from functools import lru_cache
 import json
 from pathlib import Path
 
+from map_palette import palette_time
 from tile_animation import Context, FRAME_MS, Machine, capture_cycle, encode_tiles, judge_palette, parse_tables, repository_sources
 
 
@@ -12,10 +13,7 @@ def _sources(root: Path):
 
 
 def context_for_map(map_info, time: int, events: set[str]) -> Context:
-    for flag, value in (("PALETTE_MORN", 0), ("PALETTE_DAY", 1), ("PALETTE_NITE", 2), ("PALETTE_EVE", 3)):
-        if flag in map_info.palette_flags:
-            time = value
-            break
+    time = palette_time(map_info.palette_flags, time)
     return Context(0, 0, time=time,
                    forest_restless="EVENT_FOREST_IS_RESTLESS" in events,
                    judge_active="ENGINE_JUDGE_MACHINE" in events,

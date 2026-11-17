@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
+from map_palette import palette_time
 import palette_swaps
 
 RGB = Tuple[int, int, int]
@@ -160,6 +161,9 @@ class SpecialPaletteEntry:
     identifier: Optional[str]
     palette_type: str
     source: str
+    start: int = 0
+    count: int = 7
+    subset: bool = False
 
 
 @dataclass
@@ -427,6 +431,7 @@ class RepositoryIndex:
         self._tileset_assets = self._parse_tileset_assets()
         self._block_assets = self._parse_block_assets()
         self._special_bg_palettes = self._parse_special_bg_palettes()
+        self.has_subset_palettes = any(entry.subset for entry in self._special_bg_palettes)
         self._constant_to_tileset_label = {
             constant: label
             for constant, label in zip(self._tileset_constants, self._tileset_labels)
@@ -474,12 +479,24 @@ class RepositoryIndex:
             return palettes[palette_index]
         return None
 
+    def uses_roof_palette(self, info: MapInfo) -> bool:
+        excluded = {"TILESET_SNOWTOP_MOUNTAIN"}
+        if self.has_subset_palettes:
+            excluded.update({"TILESET_FOREST", "TILESET_FARAWAY_ISLAND"})
+        return info.map_type in {"TOWN", "ROUTE", "ISOLATED"} and info.tileset not in excluded
+
     def roof_constant(self, group: int) -> Optional[str]:
         if 0 <= group < len(self._map_roofs):
             return self._map_roofs[group]
         return None
 
-    def overcast_roof_palette(self, index: int, time_of_day: int = 1) -> Optional[Tuple[RGB, RGB]]:
+    def overcast_roof_palette(self, index: int, time_of_day: int = 1, *, group: Optional[int] = None) -> Optional[Tuple[RGB, RGB]]:
+        # Modern weather is a boolean palette switch; roofs still use map group.
+        if len(self._overcast_roof_palettes) == len(self._roof_palettes):
+            if group is None or not 0 <= group < len(self._overcast_roof_palettes):
+                raise ValueError("Modern overcast roof palettes require a map group")
+            palettes = self._overcast_roof_palettes[group]
+            return palettes[self._time_of_day_palette_index(time_of_day)]
         if index <= 0 or index > len(self._overcast_roof_palettes):
             return None
         palettes = self._overcast_roof_palettes[index - 1]
@@ -899,17 +916,38 @@ class RepositoryIndex:
             if not line.startswith("special_bg_pal"):
                 continue
             parts = [part.strip() for part in line[len("special_bg_pal") :].split(",")]
-            if len(parts) != 4:
-                continue
-            trigger, identifier, palette_type, source = parts
+            subset = len(parts) in (5, 6)
+            start, count = 0, 7
+            if subset:
+                trigger = parts.pop(0)
+                identifier = parts.pop(0) if trigger in {"map", "landmark", "tileset"} else ""
+                if len(parts) != 4:
+                    raise ValueError(f"Malformed special_bg_pal: {line}")
+                palette_type, first, amount, source = parts
+                slots = {name: i for i, name in enumerate(("GRAY", "RED", "GREEN", "WATER", "YELLOW", "BROWN", "ROOF", "TEXT"))}
+                start, count = slots[first], int(amount)
+                if count < 1 or start + count > 7:
+                    raise ValueError(f"Invalid special palette range: {line}")
+                palette_type = "PAL_" + palette_type
+            elif len(parts) == 4:
+                trigger, identifier, palette_type, source = parts
+            else:
+                raise ValueError(f"Malformed special_bg_pal: {line}")
+            if trigger not in {"map", "landmark", "tileset", "darkness", "overcast"} or palette_type not in {"PAL_SINGLE", "PAL_TIMEOFDAY", "PAL_TIMEWEATHER", "PAL_SPECIAL"}:
+                raise ValueError(f"Unsupported special_bg_pal: {line}")
             entries.append(
                 SpecialPaletteEntry(
                     trigger=trigger,
                     identifier=self._normalize_special_identifier(identifier),
                     palette_type=palette_type,
                     source=source,
+                    start=start,
+                    count=count,
+                    subset=subset,
                 )
             )
+        if not in_table or not entries:
+            raise ValueError("Missing or empty SpecialBGPalettes table")
         return entries
 
     @staticmethod
@@ -1029,6 +1067,48 @@ class RepositoryIndex:
             return self._palette_from_special_case(entry.source, map_info)
         return None
 
+    def _subset_background_palette(
+        self, entry: SpecialPaletteEntry, map_info: MapInfo, time: int, overcast: bool,
+    ) -> Optional[List[List[RGB]]]:
+        colors = self.environment_palette(map_info, time)
+        source, variant = entry.source, 0
+        special = entry.palette_type == "PAL_SPECIAL"
+        if special:
+            sources = {"PokeCenterSpecialCase": "PokeCenterPalette", "MartSpecialCase": "MartPalette",
+                       "MagnetTrainSpecialCase": "MartPalette", "HiddenGrottoSpecialCase": "HiddenGrottoPalette"}
+            if source not in sources:
+                raise ValueError(f"Unsupported special palette routine: {source}")
+            if source == "MagnetTrainSpecialCase" and map_info.map_type == "TOWN":
+                return None
+            if source == "HiddenGrottoSpecialCase":
+                variant = int(time == 2)
+            source = sources[source]
+        elif entry.palette_type in {"PAL_TIMEOFDAY", "PAL_TIMEWEATHER"}:
+            variant = (time & 3) + (4 if entry.palette_type == "PAL_TIMEWEATHER" and overcast else 0)
+
+        copied = re.fullmatch(r"wBGPals1 palette PAL_BG_(\w+)", source)
+        if copied:
+            slots = ("GRAY", "RED", "GREEN", "WATER", "YELLOW", "BROWN", "ROOF", "TEXT")
+            first = slots.index(copied[1])
+            selected = self._clone_palette_list(colors[first:first + entry.count])
+        else:
+            data = self._load_palette_by_label(source)
+            first = variant * entry.count
+            selected = self._clone_palette_list(data[first:first + entry.count])
+        if len(selected) != entry.count or any(len(row) != 4 for row in selected):
+            raise ValueError(f"Incomplete {source} palette variant {variant} for {map_info.label}")
+        colors[entry.start:entry.start + entry.count] = selected
+        if special and entry.source == "PokeCenterSpecialCase" and map_info.region != 2:
+            slot = 3 if map_info.region == 1 else 5 if map_info.location == "SNOWTOP_MOUNTAIN" else 1
+            colors[6] = list(colors[slot])
+        elif special and entry.source == "MartSpecialCase":
+            asset = self.block_asset(map_info.block_label)
+            if asset and re.search(r"(?:^|/)Mart\.ablk(?:\.lz[p]?)?$", asset.replace("\\", "/")):
+                colors[2] = self._load_palette_by_label("MartBluePalette")[0]
+        # Hidden grottos use the generic table here. Entrance-dependent green/roof
+        # overrides require the entering map's context and are tracked in the audit.
+        return colors
+
     def _palette_from_special_case(self, label: str, map_info: MapInfo) -> Optional[List[List[RGB]]]:
         if label == "PokeCenterSpecialCase":
             base = self._load_palette_by_label("PokeCenterPalette")
@@ -1086,39 +1166,17 @@ class RepositoryIndex:
             raise KeyError(f"Palette label '{label}' not found")
         include_paths: List[str] = []
         rgb_values: List[Tuple[int, int, int]] = []
-        depth = 0
-        using_target_branch = True
-        within_monochrome_guard = False
-        for index in range(start_index, len(lines)):
-            raw_line = lines[index]
-            stripped = raw_line.split(";", 1)[0].strip()
-            if not stripped:
-                continue
-            if re.match(r"^[A-Za-z0-9_]+::?", stripped):
-                break
-            if stripped.startswith("if"):
-                depth += 1
-                if stripped.startswith("if !DEF(MONOCHROME)"):
-                    using_target_branch = True
-                    within_monochrome_guard = True
-                elif depth == 1:
-                    using_target_branch = False
-                continue
-            if stripped.startswith("else"):
-                if within_monochrome_guard and depth == 1:
-                    using_target_branch = False
-                continue
-            if stripped.startswith("endc"):
-                if depth > 0:
-                    if within_monochrome_guard and depth == 1:
-                        using_target_branch = False
-                        within_monochrome_guard = False
-                    depth -= 1
-                if depth <= 0:
+        body = []
+        started = False
+        for raw_line in lines[start_index:]:
+            code = raw_line.split(";", 1)[0].strip()
+            if re.match(r"^[A-Za-z0-9_]+::?", code):
+                if started:
                     break
-                continue
-            if not using_target_branch:
-                continue
+                continue  # Adjacent labels alias the same palette bytes.
+            started = started or bool(code)
+            body.append(raw_line)
+        for stripped in _active_palette_lines(body):
             if stripped.startswith("INCLUDE") or stripped.startswith("INCBIN"):
                 match = re.search(r'"([^"]+)"', stripped)
                 if match:
@@ -1180,7 +1238,8 @@ class RepositoryIndex:
                 overcast_index=overcast_index,
             ):
                 continue
-            palettes = self._palette_from_entry(entry, map_info, time_of_day)
+            palettes = (self._subset_background_palette(entry, map_info, time_of_day, overcast_index is not None)
+                        if entry.subset else self._palette_from_entry(entry, map_info, time_of_day))
             if palettes is not None:
                 return palettes
         return None
@@ -1538,10 +1597,34 @@ def _decode_tiles_from_png(image_path: Path, png_module) -> List[List[int]]:
     return tiles
 
 
+def _active_palette_lines(lines: Iterable[str]) -> Iterable[str]:
+    """Select color-build source, excluding nested `if 0` reference palettes."""
+    stack: List[Tuple[bool, bool]] = []
+    active = True
+    for raw_line in lines:
+        line = raw_line.split(";", 1)[0].strip()
+        if line.startswith("if "):
+            condition = line[3:].strip()
+            values = {"0": False, "1": True, "!DEF(MONOCHROME)": True, "DEF(MONOCHROME)": False}
+            if active and condition not in values:
+                raise ValueError(f"Unsupported palette condition: {condition}")
+            selected = values.get(condition, False)
+            stack.append((active, selected))
+            active = active and selected
+        elif line == "else":
+            parent, selected = stack[-1]
+            active = parent and not selected
+        elif line == "endc":
+            active, _ = stack.pop()
+        elif active:
+            yield line
+    if stack:
+        raise ValueError("Unterminated palette condition")
+
+
 def _load_palette(pal_path: Path) -> List[List[RGB]]:
     channels: List[int] = []
-    for raw_line in pal_path.read_text().splitlines():
-        line = raw_line.split(";", 1)[0].strip()
+    for line in _active_palette_lines(pal_path.read_text().splitlines()):
         if not line.startswith("RGB "):
             continue
         values = [int(part.strip()) for part in line[4:].split(",")]
@@ -2209,6 +2292,7 @@ def _build_renderer(
     events: Optional[Set[str]] = None,
 ) -> RendererData:
     map_info = repo_index.map_info(map_label)
+    time_of_day = palette_time(map_info.palette_flags, time_of_day)
     tileset_resources = repo_index.tileset_resources(map_info.tileset)
     overcast_index = repo_index.get_overcast_index(map_info, weekday=weekday, events=events)
     block_asset = repo_index.block_asset(map_info.block_label)
@@ -2237,12 +2321,9 @@ def _build_renderer(
     else:
         palette = repo_index.environment_palette(map_info, time_of_day)
     _ensure_palette_rows(palette)
-    if (
-        allows_roof_palette
-        and map_info.tileset != "TILESET_SNOWTOP_MOUNTAIN"
-    ):
+    if repo_index.uses_roof_palette(map_info):
         if overcast_index is not None:
-            roof_override = repo_index.overcast_roof_palette(overcast_index, time_of_day=time_of_day)
+            roof_override = repo_index.overcast_roof_palette(overcast_index, time_of_day=time_of_day, group=map_info.group)
         else:
             roof_override = repo_index.roof_palette(map_info.group, time_of_day=time_of_day)
         _apply_roof_color_override(palette, roof_override)

@@ -104,6 +104,10 @@ export function buildAtlasLayout(
   }
 
   const placementList = [...placements.values()];
+  const missing = Object.keys(graph.maps).filter((label) => !placements.has(label));
+  if (missing.length > 0) {
+    throw new Error(`Connection graph contains unplaced maps: ${missing.join(", ")}`);
+  }
   const minX = Math.min(...placementList.map((p) => p.xBlocks));
   const minY = Math.min(...placementList.map((p) => p.yBlocks));
   const maxX = Math.max(...placementList.map((p) => p.xBlocks + p.widthBlocks));

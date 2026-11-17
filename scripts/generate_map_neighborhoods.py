@@ -30,6 +30,7 @@ from generate_map_connections import (
     MapConnection,
     _augment_with_repo,
     _collect_reachable,
+    _layout_graph,
     _normalise_asset_prefix,
     _serialise_connections,
     _to_pixels,
@@ -300,6 +301,9 @@ def _build_layout(component: Dict[str, MapAttributes], root: str) -> Tuple[Dict[
 
     if not placements:
         raise ValueError(f"No placements calculated for component rooted at {root}")
+    missing = sorted(set(component) - set(placements))
+    if missing:
+        raise ValueError(f"Unplaced maps in component rooted at {root}: {missing}")
 
     min_x = min(place.x for place in placements.values())
     min_y = min(place.y for place in placements.values())
@@ -570,6 +574,7 @@ def main() -> None:
         raise ValueError(f"Map attributes inventory mismatch: missing={missing}, extra={extra}")
     invariant_labels = atlas_common.time_invariant_maps(repo_index)
     _augment_with_repo(raw_graph, repo_index)
+    raw_graph, border_proxies = _layout_graph(raw_graph, polished_path)
 
     adjacency = _build_adjacency(raw_graph)
     global_seen: Set[str] = set()
@@ -604,6 +609,9 @@ def main() -> None:
         reachable = _collect_reachable(raw_graph, root_label)
         # Filter out excluded labels from the reachable subgraph
         filtered = {k: v for k, v in reachable.items() if k not in excluded_labels}
+        missing = sorted(set(allowed_members) - set(filtered))
+        if missing:
+            raise ValueError(f"Unreachable maps in neighborhood {root_label}: {missing}")
         if not filtered:
             continue
         filename = _connection_filename(root_label)
@@ -656,10 +664,16 @@ def main() -> None:
 
     if not neighborhoods:
         raise ValueError("No neighborhoods generated; refusing to write an empty atlas manifest")
+    expected = {label for label, entry in raw_graph.items()
+                if entry.map_type in target_types and label not in excluded_labels}
+    placed = {label for neighborhood in neighborhoods for label in neighborhood.map_labels}
+    if expected - placed:
+        raise ValueError(f"Outdoor maps missing from atlas: {sorted(expected - placed)}")
     neighborhoods.sort(key=lambda record: (record.z_offset, record.root))
     _build_manifest(manifest_path, neighborhoods)
 
     print(f"Generated {len(neighborhoods)} neighborhoods into {output_dir}")
+    print(f"Replaced dual border proxies: {sorted(border_proxies)}")
     print(f"Manifest written to {manifest_path}")
 
 

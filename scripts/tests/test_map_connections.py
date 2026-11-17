@@ -7,12 +7,41 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from generate_map_connections import AttributesParser, _augment_with_repo
-from generate_map_neighborhoods import _build_adjacency, _component_members
+from generate_map_connections import AttributesParser, MapAttributes, MapConnection, _augment_with_repo, _layout_graph, _collect_reachable
+from generate_map_neighborhoods import _build_adjacency, _component_members, _build_layout, _select_root, TARGET_TYPES
 import atlas_common
 
 
 class MapConnectionTests(unittest.TestCase):
+    def test_reverse_constraints_preserve_one_way_geometry(self):
+        graph = {
+            'Town': MapAttributes('Town', 'TOWN', '$0', ['0'], width=10, height=8),
+            'Route': MapAttributes('Route', 'ROUTE', '$0', ['east'],
+                [MapConnection('east', 'Town', 'TOWN', -3)], width=4, height=12),
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            layout, proxies = _layout_graph(graph, Path(directory))
+        self.assertEqual(proxies, set())
+        self.assertEqual(graph['Town'].connections, [])
+        self.assertTrue(layout['Town'].connections[0].layout_only)
+        placements, _ = _build_layout(layout, 'Town')
+        self.assertEqual((placements['Route'].x, placements['Route'].y), (-4, 3))
+        with self.assertRaisesRegex(ValueError, 'Unplaced maps'):
+            _build_layout(graph, 'Town')
+
+    def test_malformed_dual_connection_fails(self):
+        graph = {'Town': MapAttributes('Town', 'TOWN', '$0', ['0'], width=10, height=8)}
+        for record in ['dual_connection south, TOWN, 5',
+                       'dual_connection south, TOWN, 99, Town, TOWN, 0, Town, TOWN, 0',
+                       'dual_connection south, MISSING, 5, Town, TOWN, 0, Town, TOWN, 0']:
+            with self.subTest(record=record), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                path = root / 'data/maps/dual_connections.asm'
+                path.parent.mkdir(parents=True)
+                path.write_text(record, encoding='utf-8')
+                with self.assertRaises(ValueError):
+                    _layout_graph(graph, root)
+
     def parse(self, source):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "attributes.asm"
@@ -69,6 +98,38 @@ map_attributes Room, ROOM, $1, 0
         connected = _component_members("NewBarkTown", _build_adjacency(graph))
         self.assertIn("GoldenrodCity", connected)
         self.assertIn("OlivineCity", connected)
+        layout_graph, proxies = _layout_graph(graph, root)
+        self.assertEqual(proxies, {'Route14LuckyIslandDual', 'OlivineCityRoute35CoastDual'})
+        self.assertIn('CherrygroveTrainTrackDual', layout_graph)
+        route13 = [c for c in layout_graph['Route13'].connections if c.direction == 'south']
+        self.assertEqual([(c.label, c.offset, c.split_range) for c in route13],
+                         [('Route14', 0, (None, 18)), ('LuckyIsland', 9, (18, None))])
+        adjacency = _build_adjacency(layout_graph)
+        visited = set()
+        for label in sorted(layout_graph):
+            if label in visited:
+                continue
+            members = _component_members(label, adjacency)
+            visited.update(members)
+            selected = _select_root(members, layout_graph, TARGET_TYPES)
+            reachable = _collect_reachable(layout_graph, selected)
+            self.assertEqual(set(reachable), members, selected)
+            placements, _ = _build_layout(reachable, selected)
+            self.assertEqual(set(placements), members)
+            if 'Route13' in placements:
+                route, west, east = [placements[k] for k in ('Route13', 'Route14', 'LuckyIsland')]
+                self.assertEqual((west.x, west.y), (route.x, route.y + route.height))
+                self.assertEqual((east.x, east.y), (west.x + west.width, west.y))
+                self.assertIn('FuchsiaCity', placements)
+                self.assertIn('PalletTown', placements)
+            if 'Route35CoastSouth' in placements:
+                south, city, north = [placements[k] for k in ('Route35CoastSouth', 'OlivineCity', 'Route35CoastNorth')]
+                self.assertEqual((city.x, city.y + city.height), (south.x - 7, south.y))
+                self.assertEqual((north.x, north.y + north.height), (south.x + 15, south.y))
+                bay, track, cherry = [placements[k] for k in ('CherrygroveBay', 'CherrygroveTrainTrackDual', 'CherrygroveCity')]
+                self.assertEqual((track.x, track.y), (bay.x + bay.width, bay.y))
+                self.assertEqual((cherry.x, cherry.y), (track.x, bay.y + 15))
+                self.assertIn('RuinsOfAlphOutside', placements)
         # The attributes macro reuses 3F dimensions, but the header order and
         # warp IDs still identify distinct third and fourth floors.
         self.assertEqual(repo.maps["LavRadioTower3F"].constant, "LAV_RADIO_TOWER_3F")

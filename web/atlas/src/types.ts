@@ -6,6 +6,10 @@ export interface ConnectionDTO {
   map_constant: string;
   offset: number;
   target_present: boolean;
+  /** Reverse constraint for static placement, not an in-game exit. */
+  layout_only?: boolean;
+  /** Source-edge cell coordinates: inclusive minimum, exclusive maximum. */
+  split_range?: [number | null, number | null];
 }
 
 export interface MapDTO {

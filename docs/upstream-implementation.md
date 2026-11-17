@@ -273,19 +273,35 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   Source-based browser samples cover both large-bird frames, Exeggutor, Marill,
   aquarium fish and volcano Moltres at day/night without console errors. Packed
   glow combinations have focused pixel tests; full-world glow validation remains.
-- **New world-layout defect:** Fuchsia City and nearby southwestern Kanto routes
+- **World-layout defect found during NPC verification:** Fuchsia City and nearby southwestern Kanto routes
   have generated assets but are absent from the connected neighborhood. The
   generator marks an undirected component as consumed after traversing only its
-  outgoing connections; the Route14/LuckyIsland synthetic dual connection leaves
-  real maps unreachable in that traversal. Fix dual-connection geometry and add
-  outdoor placement coverage checks before claiming complete world support.
-  This currently prevents normal world navigation to the aquarium for placement
-  verification. Passing map counts and bundle checks did not detect the omission.
+  outgoing connections; the Route14/LuckyIsland synthetic dual connection left
+  real maps unreachable in that traversal. Passing map counts and bundle checks
+  did not detect the omission. The following adaptation restores these maps.
 - The ledger still has 608 unresolved commits: 585 pending and 23 reviewed with
   open work. Five partially inspected feature commits retain pending status with
   adaptation notes; the three-file object-flag change received a full diff review
   and stays open for integration validation. Implementation tests do not substitute
   for the remaining commit audit.
+- Dual connection tables now expand into both actual destinations at upstream's
+  offsets, with the source-edge split recorded in cell coordinates. Replaced
+  Route14/LuckyIsland and Olivine/coast border strips are omitted from world
+  placement; the playable Cherrygrove track remains. Derived reverse constraints
+  place maps with one-way connections without changing the parsed game exits.
+  Generation checks every eligible outdoor map and component, and the frontend
+  rejects connection graphs containing unplaced maps. Current source constraints
+  have no coordinate conflicts. The world now contains 125 maps in 29 neighborhoods,
+  compared with 102 before the fix; all 612 individual map assets remain available.
+- Verification: 56 Python tests, 39 frontend tests, TypeScript and the full
+  four-time dev build/bundle validation pass. Lint has no errors and the existing
+  hook-dependency warning. Browser verification confirms restored Fuchsia and
+  nearby routes, aquarium 1F entry at day/night, and the exit back to Fuchsia.
+  Screenshots: `.build/fuchsia-aquarium-day.jpg`,
+  `.build/fuchsia-aquarium-night.jpg`, `.build/fuchsia-restored-night.jpg`.
+  No console errors occurred; opening an overlay emits an existing Pixi
+  `interactive` deprecation warning. This verifies access and displayed sprites,
+  not every aquarium floor, animation phase, dual seam or glow transition.
 
 ## Immediate remaining implementation work
 
@@ -304,8 +320,10 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   all remaining dynamic-palette rules; explicit map time now replaces the indoor/day
   heuristic for current metadata. Implement hidden-grotto entrance-dependent colors
   for Bellchime Trail, Cherrygrove Bay and Yellow Forest.
-- Audit dual connections and the shortened FakeRoute36 border alias used by
-  RuinsOfAlphOutside; a complete parsed inventory alone does not validate layout.
+- Finish dual-connection commit review and visual seam checks, including the
+  Cherrygrove track/city overlap. Resolve the shortened FakeRoute36 border alias
+  used by RuinsOfAlphOutside; the ruins now place via their Route32 connection,
+  but their north connection still needs explicit alias handling/validation.
 - Validate Route23North/South's seam, officer placement and Victory Road/League
   Gate warp round trips. The split commit's text and binary changes are reviewed;
   its two block arrays exactly concatenate to the old map, but visual checks remain.

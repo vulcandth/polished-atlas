@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+from copy import deepcopy
 from collections import deque
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -35,6 +36,8 @@ class MapConnection:
     label: str
     constant: str
     offset: int
+    layout_only: bool = False
+    split_range: Optional[Tuple[Optional[int], Optional[int]]] = None
 
 
 @dataclass
@@ -141,6 +144,80 @@ def _collect_reachable(graph: Dict[str, MapAttributes], root: str) -> Dict[str, 
     return dict(sorted(visited.items()))
 
 
+def _layout_graph(graph: Dict[str, MapAttributes], root: Path) -> Tuple[Dict[str, MapAttributes], Set[str]]:
+    """Expand runtime dual destinations and derive reverse placement constraints.
+
+    Reverse edges locate maps in the static atlas; they are not player exits.
+    Keep the parsed game graph unchanged for callers that need actual exits.
+    """
+    result = deepcopy(graph)
+    by_constant = {data.constant: data for data in result.values()}
+    path = root / "data/maps/dual_connections.asm"
+    replaced: Set[str] = set()
+    seen: Set[Tuple[str, str]] = set()
+    if path.exists():
+        pending = ""
+        for raw in path.read_text(encoding="utf-8").splitlines():
+            line = raw.split(";", 1)[0].strip()
+            if not line:
+                continue
+            pending += line.removesuffix("\\").strip() + " "
+            if line.endswith("\\"):
+                continue
+            line, pending = pending.strip(), ""
+            if not line.startswith("dual_connection "):
+                continue
+            args = [arg.strip() for arg in line[len("dual_connection "):].split(",")]
+            if len(args) != 9:
+                raise ValueError(f"Invalid dual connection: {line}")
+            direction, constant, split_text = args[:3]
+            if direction not in {"north", "south", "west", "east"} or constant not in by_constant:
+                raise ValueError(f"Unknown dual connection source/direction: {line}")
+            source = by_constant[constant]
+            key = (constant, direction)
+            if key in seen:
+                raise ValueError(f"Duplicate dual connection: {key}")
+            seen.add(key)
+            split = int(split_text)
+            dimension = source.width if direction in {"north", "south"} else source.height
+            if dimension is None or not 0 < split < dimension * 2:
+                raise ValueError(f"Dual split outside source edge: {line}")
+            original = [c for c in source.connections if c.direction == direction]
+            if len(original) != 1:
+                raise ValueError(f"Dual connection requires one border connection: {key}")
+            branches = []
+            for index, bounds in [(3, (None, split)), (6, (split, None))]:
+                label, target_constant, offset = args[index:index + 3]
+                if label not in result or result[label].constant != target_constant:
+                    raise ValueError(f"Unknown dual connection destination: {line}")
+                branches.append(MapConnection(direction, label, target_constant, int(offset), split_range=bounds))
+            replaced.add(original[0].label)
+            position = source.connections.index(original[0])
+            source.connections[position:position + 1] = branches
+        if pending:
+            raise ValueError("Unterminated dual connection continuation")
+
+    # A replaced border strip with no remaining incoming edge is only a visual
+    # proxy. CherrygroveTrainTrackDual is retained because a real branch uses it.
+    incoming = {c.label for data in result.values() for c in data.connections}
+    proxies = replaced - incoming
+    for label in proxies:
+        if label not in result:
+            raise ValueError(f"Unknown dual border proxy: {label}")
+        del result[label]
+
+    opposite = {"north": "south", "south": "north", "west": "east", "east": "west"}
+    for source in list(result.values()):
+        for connection in list(source.connections):
+            if connection.layout_only or connection.label not in result:
+                continue
+            target = result[connection.label]
+            if not any(c.label == source.label for c in target.connections):
+                target.connections.append(MapConnection(opposite[connection.direction], source.label,
+                    source.constant, -connection.offset, layout_only=True))
+    return result, proxies
+
+
 def _augment_with_repo(
     attributes: Dict[str, MapAttributes],
     repo_index: Optional[render_map.RepositoryIndex],
@@ -197,6 +274,8 @@ def _serialise_connections(
                     "map_constant": conn.constant,
                     "offset": conn.offset,
                     "target_present": conn.label in attributes,
+                    **({"layout_only": True} if conn.layout_only else {}),
+                    **({"split_range": conn.split_range} if conn.split_range is not None else {}),
                 }
                 for conn in data.connections
             ],
@@ -303,8 +382,10 @@ def main() -> None:
 
     parser = AttributesParser(attributes_path)
     graph = parser.parse()
+    _augment_with_repo(graph, repo_index)
+    if repo_index:
+        graph, _ = _layout_graph(graph, polished_path)
     reachable = _collect_reachable(graph, args.root)
-    _augment_with_repo(reachable, repo_index)
     time_of_day = args.time_of_day
     time_slug = render_map.time_of_day_slug(time_of_day)
     asset_prefix = _normalise_asset_prefix(args.asset_prefix or f"maps/{time_slug}/animated")

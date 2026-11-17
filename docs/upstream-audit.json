@@ -45694,7 +45694,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Partial source inspection and adaptation: expand both Route13 south destinations from dual_connections.asm, omit its replaced border proxy, and retain source split coordinates. Layout tests verify Route14/LuckyIsland adjacency and coverage through Fuchsia/Pallet; full-world browser confirms restored Fuchsia and aquarium entry/exit. Full 17-file commit review and broader visual seam validation remain pending."
     },
     {
       "sha": "bd7b638d03912689d3b0e84ab8bb1d34810c3855",
@@ -45788,7 +45789,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Current-source geometry validation confirms Route14 width 9, LuckyIsland offset 9 and split coordinate 18 cells. Both destinations now participate in world layout. Full coastline commit text/binary review and visual seam validation remain pending."
     },
     {
       "sha": "53c6aefc9a2aebd07e6fac0f27e2b16b74fb64a4",
@@ -51787,7 +51789,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Partial source inspection: CherrygroveBay east dual destinations now include both the playable CherrygroveTrainTrackDual and CherrygroveCity. Corpus tests verify offsets 0/15 blocks and retained track map; its lower city overlap and complete 16-file commit review remain pending."
     },
     {
       "sha": "85c057f0bacda96118dd82a1ff3baeb9a5fabbf6",
@@ -54249,7 +54252,7 @@
       "disposition": null,
       "reason": "",
       "evidence": [],
-      "triage_note": "Partial source inspection and adaptation: SPRITE_AQUARIUM_MON resolves species/form, uses ordinary NPC palette overrides and the icon renderer. All 15 current objects resolve; fish and volcano Moltres source samples inspected. Complete commit review, source animation fidelity and full-world placement validation remain pending. Fuchsia is currently omitted by neighborhood connection traversal."
+      "triage_note": "Partial source inspection and adaptation: SPRITE_AQUARIUM_MON resolves species/form, uses ordinary NPC palette overrides and the icon renderer. All 15 current objects resolve; fish and volcano Moltres source samples inspected. Complete commit review, source animation fidelity and full-world placement validation remain pending. Fuchsia is currently omitted by neighborhood connection traversal. Follow-up: dual-connection traversal now restores Fuchsia. Browser verification covers aquarium 1F entry, visible fish at day/night and exit to Fuchsia without console errors. Other floors, all animation phases and full commit review remain pending."
     },
     {
       "sha": "915f3fb6d8545caffe9f473572137303844381e2",

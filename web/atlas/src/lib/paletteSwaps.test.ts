@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createSpatialPaletteSelector, resolveSpatialBgPalettes } from "./paletteSwaps";
+import { createSpatialPaletteSelector, resolveEntranceVariant, resolveSpatialBgPalettes } from "./paletteSwaps";
 import type { BgPalettesMetadata, RgbTuple } from "@/types";
 
 const palette = (n: number): RgbTuple[] => Array.from({ length: 4 }, () => [n, n, n]);
@@ -23,6 +23,31 @@ const metadata: BgPalettesMetadata = {
 };
 
 describe("palette-swap composite", () => {
+  it("keeps entrance-specific terrain and NPC palettes paired across time and movement", () => {
+    const original = metadata.maps.GoldenrodCity;
+    const variants = {
+      BELLCHIME_TRAIL: { asset_label: "Grotto--BELLCHIME_TRAIL", palettes: {
+        day: Array.from({ length: 8 }, () => palette(248)),
+        nite: Array.from({ length: 8 }, () => palette(192)),
+      } },
+      CHERRYGROVE_BAY: { asset_label: "Grotto--CHERRYGROVE_BAY", palettes: {
+        day: Array.from({ length: 8 }, () => palette(176)),
+      } },
+    };
+    const data = { ...metadata, maps: { Grotto: {
+      ...original, label: "Grotto", palette_swaps: [], entrance_variants: variants,
+    } } };
+    expect(resolveEntranceVariant(data, "Grotto", "BELLCHIME_TRAIL")?.asset_label).toBe("Grotto--BELLCHIME_TRAIL");
+    expect(resolveSpatialBgPalettes(data, "Grotto", "day", 3, 3, "BELLCHIME_TRAIL")?.[2]).toEqual(palette(248));
+    expect(resolveSpatialBgPalettes(data, "Grotto", "nite", 3, 3, "BELLCHIME_TRAIL")?.[2]).toEqual(palette(192));
+    expect(resolveSpatialBgPalettes(data, "Grotto", "day", 3, 3, "CHERRYGROVE_BAY")?.[2]).toEqual(palette(176));
+    expect(resolveEntranceVariant(data, "Grotto", "ROUTE_32")).toBeUndefined();
+    expect(resolveSpatialBgPalettes(data, "Grotto", "day", 3, 3, "ROUTE_32")).toEqual(original.palettes.day);
+    const select = createSpatialPaletteSelector(data, "Grotto", "day", "BELLCHIME_TRAIL");
+    expect(select(3, 3)?.[2]).toEqual(palette(248));
+    expect(select(4, 3)).toBeUndefined();
+    expect(data.maps.Grotto.palettes.day).toEqual(original.palettes.day);
+  });
   it("preserves the previous slot through NULL and excludes maximum boundaries", () => {
     expect(resolveSpatialBgPalettes(metadata, "GoldenrodCity", "day", 22, 7)?.[3]).toEqual(palette(21));
     expect(resolveSpatialBgPalettes(metadata, "GoldenrodCity", "day", 39, 7)?.[3]).toEqual(palette(11));

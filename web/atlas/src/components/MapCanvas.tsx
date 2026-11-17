@@ -14,7 +14,7 @@ import { WeatherSystem } from "@/lib/weather";
 import { weatherType } from "@/lib/weatherState";
 import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
 import { channelStorageKey } from "@/lib/channel";
-import { createSpatialPaletteSelector } from "@/lib/paletteSwaps";
+import { createSpatialPaletteSelector, resolveEntranceVariant } from "@/lib/paletteSwaps";
 import {
   AtlasLayout,
   MapPlacement,
@@ -56,6 +56,7 @@ type WarpBacklink = {
   mapLabel: string;
   mapConstant: string | null;
   warpIndex: number;
+  entranceMap?: string | null;
   previous: WarpBacklink | null;
 };
 
@@ -406,6 +407,7 @@ type SyncedAnimation = {
 type OverlayState = {
   weather?: WeatherSystem | null;
   mapLabel: string;
+  entranceMap?: string | null;
   sprite: AnimatedSprite;
   resource: MapAnimationResource;
   background: Graphics;
@@ -1495,15 +1497,17 @@ function spatialPaletteRefresher(
   facingKey: string,
   glow: ObjectMetadata["glow"],
   collision: CollisionHelper | null,
+  entranceMap?: string | null,
 ): ObjectMarkerEntry["refreshPalette"] {
   const hasSwaps = Boolean(metadata?.maps[label]?.palette_swaps?.length && paletteName?.startsWith("PAL_OW_COPY_BG_"));
   if (!hasSwaps && !(glow && collision)) {
     return undefined;
   }
-  const select = hasSwaps && metadata ? createSpatialPaletteSelector(metadata, label, time) : null;
+  const select = hasSwaps && metadata ? createSpatialPaletteSelector(metadata, label, time, entranceMap) : null;
   const transition = glow ? createGlowTransition(glow, cache.glowFadeClock) : null;
   const context = cache.getPaletteContext();
-  let colors = metadata?.maps[label]?.palettes[time] ?? null;
+  let colors = resolveEntranceVariant(metadata, label, entranceMap)?.palettes[time]
+    ?? metadata?.maps[label]?.palettes[time] ?? null;
   let previousGlow = "";
   return (marker, dx, dy, collisionDx, collisionDy) => {
     const nextColors = select?.(marker.object.xTiles + dx, marker.object.yTiles + dy);
@@ -2732,7 +2736,8 @@ export default function MapCanvas({
 
     // Provide BG palettes for this overlay map to the cache (if available)
     try {
-      const bg = bgPalettes?.maps?.[state.mapLabel]?.palettes?.[timeOfDay] ?? null;
+      const bg = resolveEntranceVariant(bgPalettes, state.mapLabel, state.entranceMap)?.palettes[timeOfDay]
+        ?? bgPalettes?.maps?.[state.mapLabel]?.palettes?.[timeOfDay] ?? null;
       cache.setBgPalettes(bg ?? null);
     } catch {
       cache.setBgPalettes(null);
@@ -2962,7 +2967,7 @@ export default function MapCanvas({
       }
       const stepCount = animator?.kind === "path" ? animator.stepCount : null;
       state.objectMarkers.push({
-        refreshPalette: spatialPaletteRefresher(cache, bgPalettes, state.mapLabel, timeOfDay, spriteKey, spriteDef, paletteName, facingKey, metadata.glow, state.collisionHelper),
+        refreshPalette: spatialPaletteRefresher(cache, bgPalettes, state.mapLabel, timeOfDay, spriteKey, spriteDef, paletteName, facingKey, metadata.glow, state.collisionHelper, state.entranceMap),
         object: objectEntry,
         sprite: spriteInstance,
         movementSummary,
@@ -3028,6 +3033,7 @@ export default function MapCanvas({
         xCells?: number | null;
         yCells?: number | null;
       },
+      originMap?: string | null,
     ): Promise<void> => {
       if (!resolveAssetHref) {
         return;
@@ -3038,8 +3044,10 @@ export default function MapCanvas({
         return;
       }
       // Fast path: if the requested overlay is already open for this map, reuse it
+      const variant = resolveEntranceVariant(bgPalettes, mapLabel, originMap);
+      const entranceMap = variant ? originMap : undefined;
       const existing = overlayStateRef.current;
-      if (existing && existing.mapLabel === mapLabel) {
+      if (existing && existing.mapLabel === mapLabel && existing.entranceMap === entranceMap) {
         overlay.visible = true;
         const world = worldRef.current;
         if (world) world.visible = false;
@@ -3076,7 +3084,7 @@ export default function MapCanvas({
         positionOverlayContents();
         return;
       }
-      const assetUrl = resolveAssetHref(mapLabel);
+      const assetUrl = resolveAssetHref(variant?.asset_label ?? mapLabel);
       if (!assetUrl) {
         return;
       }
@@ -3230,6 +3238,7 @@ export default function MapCanvas({
         overlayStateRef.current = {
           weather: configureMapWeather(sprite, mapLabel, baseWidth, baseHeight),
           mapLabel,
+          entranceMap,
           sprite,
           resource,
           background,
@@ -3287,6 +3296,7 @@ export default function MapCanvas({
       positionOverlayContents,
       refreshOverlayObjects,
       resolveAssetHref,
+      bgPalettes,
       maybeRender,
     ],
   );
@@ -3320,7 +3330,7 @@ export default function MapCanvas({
         void openOverlay(targetLabel, {
           xCells: target.xCells,
           yCells: target.yCells,
-        });
+        }, sourceMeta?.mapConstant);
         return;
       }
       focusEntryOnWarp(entry, warp);
@@ -3403,7 +3413,7 @@ export default function MapCanvas({
         void openOverlay(fallbackLabel, {
           xCells: fallbackWarp?.xCells ?? null,
           yCells: fallbackWarp?.yCells ?? null,
-        });
+        }, backlink.entranceMap);
         return;
       }
 
@@ -3427,12 +3437,13 @@ export default function MapCanvas({
           mapLabel: currentMapLabel,
           mapConstant: sourceMeta?.mapConstant ?? null,
           warpIndex: warp.index,
+          entranceMap: state.entranceMap,
           previous: backlinkRef.current,
         };
         void openOverlay(targetLabel, {
           xCells: target.xCells,
           yCells: target.yCells,
-        });
+        }, sourceMeta?.mapConstant);
         return;
       }
 

@@ -17168,12 +17168,16 @@
           "gfx/tilesets/hidden_grotto.pal"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "Adds Bellchime Trail entrance-dependent hidden-grotto colors: copy RED to GREEN and GREEN colors 1-3 to ROOF while retaining ROOF color 0. Full assembly/palette diffs reviewed. Target generic grotto palette selection does not carry the origin map; keep open for navigation context, day/night terrain variants and consistent background-derived NPC palettes.",
+      "reason": "Bellchime Trail entrance-dependent grotto palettes are implemented. Renderer and BG metadata share the origin-aware GREEN/ROOF copy with preserved ROOF color 0; all four times use the source day/night colors. Generated entrance assets are selected using the entering map constant, with matching NPC background colors, glow-refresh context and origin-aware overlay reuse. Generic/unknown origins retain the base palette. Browser entry/exit verified at this origin; Bellchime additionally verified at night. This resolves the palette change, not randomized grotto-content simulation or unrelated glow validation.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/88567c3d3ca2c0b6d1484d530b6b0ba7cdb34e75",
-        "Compared complete changed-file scope and all text patches; current source HiddenGrottoSpecialCase and scripts/render_map.py generic-grotto handling checked."
+        "Compared complete changed-file scope and all text patches; current source HiddenGrottoSpecialCase and scripts/render_map.py generic-grotto handling checked.",
+        "scripts/tests/test_map_palette.py checks exact source RGB5 values, preserved roof color 0, generic-origin isolation and terrain/NPC metadata agreement for both grotto maps at all four times.",
+        "web/atlas/src/lib/paletteSwaps.test.ts checks origin/time selection, shared asset identity and movement color selection; MapCanvas carries origin through entrance, overlay state and return backlinks.",
+        "Full 612-map/four-time build and bundle validation pass, including all 24 entrance assets. 58 Python tests, 40 frontend tests and TypeScript pass. Stable v3.2.2 emits no variants and keeps identical grotto colors at all four times.",
+        "Browser evidence: .build/grotto-bellchime-day.jpg, .build/grotto-bellchime-night.jpg, .build/grotto-yellow-day.jpg, .build/grotto-cherrygrove-day.jpg; all three return warps verified; no console errors."
       ],
       "review_method": "full-diff",
       "triage_note": "Relevant: hidden-grotto green/roof colors depend on the entering map (Bellchime Trail; later Cherrygrove Bay and Yellow Forest). Generic day/night grotto tables now load, but entering-map context and corresponding overlay assets remain to implement/verify."
@@ -27633,13 +27637,17 @@
           "maps/CherrygroveBay.ablk"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "Adds Cherrygrove Bay entrance-dependent hidden-grotto colors: copy GRAY to GREEN and GREEN colors 1-3 to ROOF while retaining ROOF color 0. Full assembly/palette diffs reviewed. Target generic grotto palette selection does not carry the origin map; keep open for navigation context, day/night terrain variants and consistent background-derived NPC palettes. CherrygroveBay block data also changes without changing dimensions.",
+      "reason": "Cherrygrove Bay entrance-dependent grotto palettes are implemented. Renderer and BG metadata share the origin-aware GREEN/ROOF copy with preserved ROOF color 0; all four times use the source day/night colors. Generated entrance assets are selected using the entering map constant, with matching NPC background colors, glow-refresh context and origin-aware overlay reuse. Generic/unknown origins retain the base palette. Browser entry/exit verified at this origin; Bellchime additionally verified at night. This resolves the palette change, not randomized grotto-content simulation or unrelated glow validation. The accompanying fixed-size CherrygroveBay block edit is consumed by normal regeneration; the updated pink-tree entrance and return location were inspected in the full site.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/d543a9389cf036bbdcd6c06dabba66d20f7b95ba",
         "Compared complete changed-file scope and all text patches; current source HiddenGrottoSpecialCase and scripts/render_map.py generic-grotto handling checked.",
-        "CherrygroveBay.ablk: both versions 390 bytes; all 13 changed offsets inspected: 3,4,5,6,15,16,18,19,20,21,30,31,35. No additional changed files."
+        "CherrygroveBay.ablk: both versions 390 bytes; all 13 changed offsets inspected: 3,4,5,6,15,16,18,19,20,21,30,31,35. No additional changed files.",
+        "scripts/tests/test_map_palette.py checks exact source RGB5 values, preserved roof color 0, generic-origin isolation and terrain/NPC metadata agreement for both grotto maps at all four times.",
+        "web/atlas/src/lib/paletteSwaps.test.ts checks origin/time selection, shared asset identity and movement color selection; MapCanvas carries origin through entrance, overlay state and return backlinks.",
+        "Full 612-map/four-time build and bundle validation pass, including all 24 entrance assets. 58 Python tests, 40 frontend tests and TypeScript pass. Stable v3.2.2 emits no variants and keeps identical grotto colors at all four times.",
+        "Browser evidence: .build/grotto-bellchime-day.jpg, .build/grotto-bellchime-night.jpg, .build/grotto-yellow-day.jpg, .build/grotto-cherrygrove-day.jpg; all three return warps verified; no console errors."
       ],
       "review_method": "full-diff"
     },
@@ -52115,12 +52123,16 @@
           "gfx/tilesets/hidden_grotto.pal"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "Adds Yellow Forest entrance-dependent hidden-grotto colors: copy WATER to GREEN and GREEN colors 1-3 to ROOF while retaining ROOF color 0. Full assembly/palette diffs reviewed. Target generic grotto palette selection does not carry the origin map; keep open for navigation context, day/night terrain variants and consistent background-derived NPC palettes.",
+      "reason": "Yellow Forest entrance-dependent grotto palettes are implemented. Renderer and BG metadata share the origin-aware GREEN/ROOF copy with preserved ROOF color 0; all four times use the source day/night colors. Generated entrance assets are selected using the entering map constant, with matching NPC background colors, glow-refresh context and origin-aware overlay reuse. Generic/unknown origins retain the base palette. Browser entry/exit verified at this origin; Bellchime additionally verified at night. This resolves the palette change, not randomized grotto-content simulation or unrelated glow validation.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/87d5a5ebff6007cf3c4fde2619314922e849d3c3",
-        "Compared complete changed-file scope and all text patches; current source HiddenGrottoSpecialCase and scripts/render_map.py generic-grotto handling checked."
+        "Compared complete changed-file scope and all text patches; current source HiddenGrottoSpecialCase and scripts/render_map.py generic-grotto handling checked.",
+        "scripts/tests/test_map_palette.py checks exact source RGB5 values, preserved roof color 0, generic-origin isolation and terrain/NPC metadata agreement for both grotto maps at all four times.",
+        "web/atlas/src/lib/paletteSwaps.test.ts checks origin/time selection, shared asset identity and movement color selection; MapCanvas carries origin through entrance, overlay state and return backlinks.",
+        "Full 612-map/four-time build and bundle validation pass, including all 24 entrance assets. 58 Python tests, 40 frontend tests and TypeScript pass. Stable v3.2.2 emits no variants and keeps identical grotto colors at all four times.",
+        "Browser evidence: .build/grotto-bellchime-day.jpg, .build/grotto-bellchime-night.jpg, .build/grotto-yellow-day.jpg, .build/grotto-cherrygrove-day.jpg; all three return warps verified; no console errors."
       ],
       "review_method": "full-diff"
     },

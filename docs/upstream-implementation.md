@@ -340,6 +340,30 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   a triage aid, not a complete account of master changes. No new full-site visual
   verification or publication is claimed by this asset batch.
 
+- Hidden-grotto entrance palettes now carry the entering map constant through
+  overlay selection, NPC background-color context and return backlinks. The
+  renderer and background metadata apply the same GREEN/ROOF copies for Bellchime
+  Trail, Cherrygrove Bay and Yellow Forest, preserving ROOF color 0. Generic
+  entrances retain the original palette. Overlay reuse distinguishes origins.
+  The build emits all 24 origin/time/map assets, and publication validation rejects
+  missing variants, mismatched dimensions or missing palette rows. Cave-grotto
+  terrain uses only slots 4/5, so its three origin images correctly remain identical;
+  the changed slots 2/6 remain available to background-derived object colors.
+- Verification: 58 Python tests, 40 frontend tests, TypeScript and the complete
+  612-map/four-time build pass. Lint has no errors and retains the existing hook
+  dependency warning. Exact source RGB5 expectations, terrain/NPC metadata equality
+  and origin isolation are checked at all four times for both grotto maps. The
+  stable v3.2.2 grotto policy remains identical and emits no entrance variants.
+  Browser verification shows orange, yellow and pink grottos entered from the
+  respective maps, with correct return warps; Bellchime also passes at night.
+  No console errors occurred. Screenshots are `.build/grotto-bellchime-day.jpg`,
+  `.build/grotto-bellchime-night.jpg`, `.build/grotto-yellow-day.jpg` and
+  `.build/grotto-cherrygrove-day.jpg`. This does not validate randomized grotto
+  contents or complete the broader NPC glow checks.
+- The three entrance-palette commits are resolved. Current ledger: **559 resolved,
+  463 pending and 29 reviewed/open commits** (**492 unresolved**). The audit and
+  publication work remain incomplete; nothing has been pushed or published.
+
 ## Immediate remaining implementation work
 
 - Verify palette-swap NPC colors in the full generated site. The frontend now
@@ -358,8 +382,8 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   ladders, including directional walls/warps and secondary palettes. Verify
   `SPRITE_AQUARIUM_MON` handling (also used for volcano Moltres), and reconcile
   all remaining dynamic-palette rules; explicit map time now replaces the indoor/day
-  heuristic for current metadata. Implement hidden-grotto entrance-dependent colors
-  for Bellchime Trail, Cherrygrove Bay and Yellow Forest.
+  heuristic for current metadata. Hidden-grotto entrance-dependent terrain and
+  background palettes are implemented and verified as recorded above.
 - Finish dual-connection commit review and visual seam checks, including the
   Cherrygrove track/city overlap. Resolve the shortened FakeRoute36 border alias
   used by RuinsOfAlphOutside; the ruins now place via their Route32 connection,

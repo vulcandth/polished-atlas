@@ -58,6 +58,7 @@ def validate_bundle(root: Path, channel: str, *, require_clean: bool = True) -> 
         elif animation.get("version") != 1:
             raise ValueError(f"Unsupported animation version: {path}")
     warp_maps = json.loads((root / "maps/warp_metadata.json").read_text(encoding="utf-8")).get("maps", {})
+    palette_maps = json.loads((root / "maps/bg_palette_metadata.json").read_text(encoding="utf-8")).get("maps", {})
     if not warp_maps:
         raise ValueError("Empty warp map inventory")
     for label, item in warp_maps.items():
@@ -77,6 +78,17 @@ def validate_bundle(root: Path, channel: str, *, require_clean: bool = True) -> 
             animation = json.loads(path.read_text(encoding="utf-8"))
             if animation["frameWidth"] != width * 32 or animation["frameHeight"] != height * 32:
                 raise ValueError(f"Map render dimensions do not match metadata: {path}")
+            for origin, variant in palette_maps.get(label, {}).get("entrance_variants", {}).items():
+                asset_label = variant["asset_label"]
+                path = (root / "maps" / slug / "animated" / f"{asset_label}.animation.json").resolve()
+                if root not in path.parents or not path.is_file():
+                    raise ValueError(f"Missing {slug} entrance variant for {label} from {origin}")
+                animation = json.loads(path.read_text(encoding="utf-8"))
+                if animation["frameWidth"] != width * 32 or animation["frameHeight"] != height * 32:
+                    raise ValueError(f"Entrance render dimensions do not match metadata: {path}")
+                rows = variant.get("palettes", {}).get(slug, [])
+                if len(rows) != 8 or any(len(row) != 4 for row in rows):
+                    raise ValueError(f"Missing {slug} entrance palettes for {label} from {origin}")
     return info
 
 

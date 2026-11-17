@@ -1062,6 +1062,7 @@ class RepositoryIndex:
 
     def _subset_background_palette(
         self, entry: SpecialPaletteEntry, map_info: MapInfo, time: int, overcast: bool,
+        entrance_map: Optional[str] = None,
     ) -> Optional[List[List[RGB]]]:
         colors = self.environment_palette(map_info, time)
         source, variant = entry.source, 0
@@ -1098,8 +1099,11 @@ class RepositoryIndex:
             asset = self.block_asset(map_info.block_label)
             if asset and re.search(r"(?:^|/)Mart\.ablk(?:\.lz[p]?)?$", asset.replace("\\", "/")):
                 colors[2] = self._load_palette_by_label("MartBluePalette")[0]
-        # Hidden grottos use the generic table here. Entrance-dependent green/roof
-        # overrides require the entering map's context and are tracked in the audit.
+        elif special and entry.source == "HiddenGrottoSpecialCase":
+            slot = self.entrance_palette_slots(map_info).get(entrance_map)
+            if slot is not None:
+                colors[2] = list(colors[slot])
+                colors[6] = [colors[6][0], *colors[2][1:]]
         return colors
 
     def _palette_from_special_case(self, label: str, map_info: MapInfo) -> Optional[List[List[RGB]]]:
@@ -1220,6 +1224,7 @@ class RepositoryIndex:
         time_of_day: int,
         weekday: Optional[int] = None,
         events: Optional[Set[str]] = None,
+        entrance_map: Optional[str] = None,
     ) -> Optional[List[List[RGB]]]:
         overcast_index = self.get_overcast_index(map_info, weekday=weekday, events=events)
         for entry in self._special_bg_palettes:
@@ -1231,11 +1236,23 @@ class RepositoryIndex:
                 overcast_index=overcast_index,
             ):
                 continue
-            palettes = (self._subset_background_palette(entry, map_info, time_of_day, overcast_index is not None)
+            palettes = (self._subset_background_palette(entry, map_info, time_of_day, overcast_index is not None, entrance_map)
                         if entry.subset else self._palette_from_entry(entry, map_info, time_of_day))
             if palettes is not None:
                 return palettes
         return None
+
+    def entrance_palette_slots(self, map_info: MapInfo) -> dict[str, int]:
+        """Origin-dependent copies in the pinned HiddenGrottoSpecialCase routine.
+
+        Stable v3.2.2 has a single grotto palette and must not emit variants.
+        Keys are map constants, matching the game's backup map identity.
+        """
+        if any(entry.subset and entry.source == "HiddenGrottoSpecialCase"
+               and self._special_entry_applies(entry, map_info)
+               for entry in self._special_bg_palettes):
+            return {"BELLCHIME_TRAIL": 1, "CHERRYGROVE_BAY": 0, "YELLOW_FOREST": 3}
+        return {}
 
     def _build_map_infos(self) -> dict[str, MapInfo]:
         maps: dict[str, MapInfo] = {}
@@ -2283,6 +2300,7 @@ def _build_renderer(
     weekday: Optional[int] = None,
     time_of_day: int = 1,
     events: Optional[Set[str]] = None,
+    entrance_map: Optional[str] = None,
 ) -> RendererData:
     map_info = repo_index.map_info(map_label)
     time_of_day = palette_time(map_info.palette_flags, time_of_day)
@@ -2308,6 +2326,7 @@ def _build_renderer(
         time_of_day,
         weekday=weekday,
         events=events,
+        entrance_map=entrance_map,
     )
     if special_palette is not None:
         palette = special_palette

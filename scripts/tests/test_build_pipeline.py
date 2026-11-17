@@ -128,6 +128,15 @@ class PublicationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Missing day render for Missing"):
                 assemble_pages.validate_bundle(root, "stable")
 
+    def test_omitted_entrance_variant_cannot_publish(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = fixture(Path(folder) / "bundle", "dev")
+            (root / "maps/bg_palette_metadata.json").write_text(json.dumps({"maps": {
+                "Test": {"entrance_variants": {"ORIGIN": {"asset_label": "Test--ORIGIN"}}}
+            }}), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "Missing day entrance variant for Test from ORIGIN"):
+                assemble_pages.validate_bundle(root, "dev")
+
 
 if __name__ == "__main__":
     unittest.main()

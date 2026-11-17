@@ -149,6 +149,7 @@ def compute_map_palettes(
     *,
     weekday: int,
     events: Optional[Sequence[str]] = None,
+    entrance_map: Optional[str] = None,
 ) -> Dict[str, List[List[RGB]]]:
     result: Dict[str, List[List[RGB]]] = {}
     for time_index, time_slug in enumerate(TIME_OF_DAY_SLOTS):
@@ -159,6 +160,7 @@ def compute_map_palettes(
             time_index,
             weekday=weekday,
             events=set(events or []),
+            entrance_map=entrance_map,
         )
         if special is not None:
             # Special palettes usually provide 7 rows; derive slot 7 (text) from environment
@@ -212,6 +214,16 @@ def build_payload(opts: Options) -> Dict[str, object]:
             "palette_swaps": repo.palette_swaps.metadata(label),
             "overcast": repo.get_overcast_index(info, weekday=opts.weekday, events=initial_flags) is not None,
         }
+        origins = repo.entrance_palette_slots(info)
+        if origins:
+            maps_payload[label]["entrance_variants"] = {
+                origin: {
+                    "asset_label": f"{label}--{origin}",
+                    "palettes": compute_map_palettes(repo, info, weekday=opts.weekday,
+                                                     events=initial_flags, entrance_map=origin),
+                }
+                for origin in origins
+            }
 
     return {
         "version": 2,

@@ -8,7 +8,7 @@ import os
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, Iterable, List, Optional, Tuple
 
 import render_map
 
@@ -123,7 +123,7 @@ def _ensure_worker_state(polished_path: Path) -> Tuple[object, render_map.Reposi
     return png, repo
 
 
-def _render_single(
+def _render_variant(
     png_module,
     polished_path: Path,
     repo_index: render_map.RepositoryIndex,
@@ -132,6 +132,7 @@ def _render_single(
     format_choice: str,
     time_of_day: int,
     weekday: int,
+    entrance_map: Optional[str] = None,
 ) -> Tuple[str, Path]:
     # Keep the heavy work in a helper so the thread pool stays focused on rendering.
     events = atlas_common.effective_flags(repo_index.initial_event_flags)
@@ -143,7 +144,9 @@ def _render_single(
         weekday=weekday,
         time_of_day=time_of_day,
         events=events,
+        entrance_map=entrance_map,
     )
+    asset_label = f"{map_label}--{entrance_map}" if entrance_map else map_label
     if format_choice == "gif":
         animations = render_map._load_tileset_animations(polished_path, renderer, png_module)
         period = render_map._animation_period(animations)
@@ -154,18 +157,18 @@ def _render_single(
         # Deduplicate consecutive identical frames to reduce output size
         if frames:
             frames, _ = render_map._dedupe_animation_frames(frames, render_map._GIF_FRAME_DURATION_MS)
-        destination = output_dir / f"{renderer.map_label}.gif"
+        destination = output_dir / f"{asset_label}.gif"
         render_map._write_gif(destination, frames, render_map._GIF_FRAME_DURATION_MS)
         return map_label, destination
 
     if format_choice == "png":
         width, height, rows = render_map._render_with_tiles(renderer, renderer.bank0_tiles, renderer.bank1_tiles)
-        destination = output_dir / f"{renderer.map_label}.png"
+        destination = output_dir / f"{asset_label}.png"
         render_map._write_png(destination, width, height, rows, png_module)
         return map_label, destination
 
     if (polished_path / "data/tileset_anims.asm").exists():
-        metadata_path = output_dir / f"{renderer.map_label}.animation.json"
+        metadata_path = output_dir / f"{asset_label}.animation.json"
         render_map._write_modern_animation(polished_path, renderer, png_module, repo_index, time_of_day, events, metadata_path)
         return map_label, metadata_path
     animations = render_map._load_tileset_animations(polished_path, renderer, png_module)
@@ -180,10 +183,22 @@ def _render_single(
     frames, frame_durations = render_map._dedupe_animation_frames(
         frames, render_map._ANIMATION_FRAME_DURATION_MS
     )
-    metadata_path = output_dir / f"{renderer.map_label}.animation.json"
+    metadata_path = output_dir / f"{asset_label}.animation.json"
     image_path = metadata_path.with_suffix(".png")
     render_map._write_animation_sheet(metadata_path, image_path, frames, frame_durations, png_module)
     return map_label, metadata_path
+
+
+def _render_single(
+    png_module, polished_path: Path, repo_index: render_map.RepositoryIndex,
+    map_label: str, output_dir: Path, format_choice: str, time_of_day: int, weekday: int,
+) -> Tuple[str, Path]:
+    result = _render_variant(png_module, polished_path, repo_index, map_label,
+                             output_dir, format_choice, time_of_day, weekday)
+    for origin in repo_index.entrance_palette_slots(repo_index.map_info(map_label)):
+        _render_variant(png_module, polished_path, repo_index, map_label,
+                        output_dir, format_choice, time_of_day, weekday, origin)
+    return result
 
 
 def _render_single_task(task: _RenderTask) -> Tuple[str, Path]:

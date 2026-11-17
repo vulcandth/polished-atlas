@@ -458,6 +458,10 @@ export interface BgPalettesMapEntry {
   overcast?: boolean;
   palette_times?: Record<string, string>; // clock time -> effective map palette time
   darkness?: boolean;
+  entrance_variants?: Record<string, {
+    asset_label: string;
+    palettes: Record<string, RgbTuple[][]>;
+  }>;
 }
 
 export interface BgPalettesPayloadDTO {

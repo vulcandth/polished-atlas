@@ -43,6 +43,16 @@ function normalizeMapEntry(
     palette_times: entry?.palette_times,
     darkness: typeof entry?.darkness === "boolean" ? entry.darkness : undefined,
   } as BgPalettesMapEntry;
+  if (entry?.entrance_variants) {
+    normalized.entrance_variants = Object.fromEntries(
+      Object.entries(entry.entrance_variants).map(([origin, variant]) => [origin, {
+        asset_label: variant.asset_label,
+        palettes: normalizeMapEntry(label, {
+          label, palettes: variant.palettes,
+        }).palettes,
+      }]),
+    );
+  }
   const src = entry?.palettes ?? {};
   for (const [time, rows] of Object.entries(src)) {
     if (!Array.isArray(rows)) continue;

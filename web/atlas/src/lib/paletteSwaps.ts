@@ -2,6 +2,13 @@ import type { BgPalettesMetadata, RgbTuple } from "@/types";
 
 const TIME_INDEX: Record<string, number> = { morn: 0, day: 1, nite: 2, eve: 3 };
 
+/** Terrain and object colors must select the same origin-specific variant. */
+export function resolveEntranceVariant(
+  metadata: BgPalettesMetadata | null | undefined, label: string, entranceMap?: string | null,
+) {
+  return entranceMap ? metadata?.maps[label]?.entrance_variants?.[entranceMap] : undefined;
+}
+
 /** Match the generator's composite at map-local event-cell coordinates. */
 export function resolveSpatialBgPalettes(
   metadata: BgPalettesMetadata | null | undefined,
@@ -9,9 +16,11 @@ export function resolveSpatialBgPalettes(
   time: string,
   x: number,
   y: number,
+  entranceMap?: string | null,
 ): RgbTuple[][] | null {
   const map = metadata?.maps[label];
-  const base = map?.palettes[time];
+  if (!map) return null;
+  const base = resolveEntranceVariant(metadata, label, entranceMap)?.palettes[time] ?? map?.palettes[time];
   if (!base) return null;
   const result = base.slice();
   const paletteTime = map.palette_times?.[time] ?? time;
@@ -34,10 +43,11 @@ export function createSpatialPaletteSelector(
   metadata: BgPalettesMetadata,
   label: string,
   time: string,
+  entranceMap?: string | null,
 ): (x: number, y: number) => RgbTuple[][] | undefined {
   let previous: string | undefined;
   return (x, y) => {
-    const colors = resolveSpatialBgPalettes(metadata, label, time, x, y);
+    const colors = resolveSpatialBgPalettes(metadata, label, time, x, y, entranceMap);
     if (!colors) return undefined;
     const signature = JSON.stringify(colors);
     if (signature === previous) return undefined;

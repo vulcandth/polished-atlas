@@ -122,6 +122,37 @@ class MapPaletteTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Unsupported palette condition"):
                 _load_palette(path)
 
+    def test_hidden_grotto_origin_colors_match_terrain_and_object_metadata(self):
+        # Expected RGB5 colors are from the pinned source, independent of the
+        # copy routine. ROOF color 0 must survive all three variants.
+        expected = {
+            "BELLCHIME_TRAIL": ((31,21,14), (24,15,14)),
+            "CHERRYGROVE_BAY": ((31,22,25), (17,11,19)),
+            "YELLOW_FOREST": ((31,31,10), (15,16,9)),
+        }
+        png = atlas_common.png_module(self.root)
+        payload = build_payload(Options(self.root, Path("unused.json"), 1, None))
+        variant_maps = {label for label, entry in payload["maps"].items() if entry.get("entrance_variants")}
+        self.assertEqual(variant_maps, {"HiddenTreeGrotto", "HiddenCaveGrotto"})
+        for label in variant_maps:
+            info = self.repo.map_info(label)
+            entry = payload["maps"][label]
+            for time, slug in enumerate(TIME_NAMES):
+                generic = self.repo.special_background_palette(info, time)
+                for origin, colors in expected.items():
+                    with self.subTest(map=label, time=slug, origin=origin):
+                        variant = entry["entrance_variants"][origin]
+                        self.assertEqual(variant["asset_label"], f"{label}--{origin}")
+                        rows = variant["palettes"][slug]
+                        self.assertEqual(rows[2][0], tuple(c * 8 for c in colors[time == 2]))
+                        self.assertEqual(rows[6][0], generic[6][0])
+                        self.assertEqual(rows[6][1:], rows[2][1:])
+                        renderer = _build_renderer(png, self.root, self.repo, label,
+                                                   time_of_day=time, entrance_map=origin)
+                        self.assertEqual(renderer.attributes.colors[:7], rows[:7])
+                self.assertEqual(self.repo.special_background_palette(info, time), generic)
+                self.assertEqual(self.repo.special_background_palette(info, time, entrance_map="ROUTE_32"), generic)
+
 
 if __name__ == "__main__":
     unittest.main()

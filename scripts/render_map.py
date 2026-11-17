@@ -1494,7 +1494,7 @@ def _decode_2bpp_tiles(data: bytes) -> List[List[int]]:
 
 
 def _decode_tiles_from_png(image_path: Path, png_module) -> List[List[int]]:
-    reader = png_module.Reader(filename=str(image_path))
+    reader = png_module.Reader(bytes=image_path.read_bytes())
     width, height, pixel_data, metadata = reader.read_flat()
     tiles_per_row = width // Tileset.TILE_SIZE
     stride = 1 if "palette" in metadata else metadata.get("planes", 1)

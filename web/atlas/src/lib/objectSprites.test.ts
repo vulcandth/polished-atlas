@@ -228,3 +228,57 @@ describe("background-derived object palettes", () => {
     expect(resolvePalette("PAL_OW_COPY_BG_GRASS")).toEqual([rows[2][0], rows[2][0], rows[2][1], rows[2][2]]);
   });
 });
+
+describe("NPC glow sprite colors", () => {
+  function fixture() {
+    const { metadata } = loadMetadataSubset();
+    metadata.glow = { collision_types: {}, adjustments: { OBJ_GLOW_AQUARIUM: [2, 5, 9] }, fade_steps: 15, fade_step_frames: 2 };
+    const row = (n: number): RgbTuple[] => [[255, 255, 255], [n, n, n], [8, 8, 8], [0, 0, 0]];
+    metadata.palettes.PAL_OW_RED = { timeVariants: { day: row(82), nite: row(41) }, overcast: { nite: row(25) }, darkness: row(16) };
+    metadata.palettes.PAL_OW_STATIC = { static: row(82), darkness: row(16) };
+    metadata.sprites.TEST = { id: 1, gfxPointer: "Test", spriteType: "STANDING_SPRITE", defaultPalette: "PAL_OW_RED", tilePath: "test", tileCount: 1, tiles2bppBase64: Buffer.from([255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0]).toString("base64") };
+    metadata.facings.TEST = { label: "Test", tiles: [{ dx: 0, dy: 0, tile: 0, attributes: 0 }] };
+    const cache = new ObjectSpriteCache(metadata, "nite");
+    const pixel = (palette?: string) => {
+      const record = cache.getFacingTexture("TEST", "TEST", palette);
+      expect(record).not.toBeNull();
+      const resource = record!.texture.baseTexture.resource as unknown as { data: Uint8Array };
+      return Array.from(resource.data.slice(0, 4));
+    };
+    return { cache, pixel, row };
+  }
+
+  it("uses day/night endpoints despite darkness and overcast, without stale cached colors", () => {
+    const { cache, pixel } = fixture();
+    cache.setPaletteContext({ darkness: true, overcast: true });
+    expect(pixel()).toEqual([16, 16, 16, 255]);
+    cache.setGlowState({ previous: "OBJ_GLOW_DAY", current: "OBJ_GLOW_DAY", steps: 15 });
+    expect(pixel()).toEqual([82, 82, 82, 255]);
+    cache.setGlowState({ previous: "OBJ_GLOW_NITE", current: "OBJ_GLOW_NITE", steps: 15 });
+    expect(pixel()).toEqual([41, 41, 41, 255]);
+    cache.destroy();
+  });
+
+  it("applies RGB glow after selecting local background colors and preserves fade endpoints", () => {
+    const { cache, pixel, row } = fixture();
+    cache.setBgPalettes(Array.from({ length: 8 }, () => row(82)));
+    cache.setGlowState({ previous: "OBJ_GLOW_AQUARIUM", current: "OBJ_GLOW_AQUARIUM", steps: 15 });
+    expect(pixel("PAL_OW_COPY_BG_GREEN")).toEqual([99, 123, 156, 255]);
+    cache.setBgPalettes(Array.from({ length: 8 }, () => row(41)));
+    expect(pixel("PAL_OW_COPY_BG_GREEN")).toEqual([58, 82, 115, 255]);
+    cache.setGlowState({ previous: "OBJ_GLOW_NONE", current: "OBJ_GLOW_AQUARIUM", steps: 0 });
+    expect(pixel("PAL_OW_COPY_BG_GREEN")).toEqual([41, 41, 41, 255]);
+    cache.setGlowState({ previous: "OBJ_GLOW_NONE", current: "OBJ_GLOW_AQUARIUM", steps: 15 });
+    expect(pixel("PAL_OW_COPY_BG_GREEN")).toEqual([58, 82, 115, 255]);
+    cache.destroy();
+  });
+
+  it("preserves individual palette sources in darkness and adds RGB glow afterwards", () => {
+    const { cache, pixel } = fixture();
+    cache.setPaletteContext({ darkness: true, overcast: true });
+    expect(pixel("PAL_OW_STATIC")).toEqual([82, 82, 82, 255]);
+    cache.setGlowState({ previous: "OBJ_GLOW_AQUARIUM", current: "OBJ_GLOW_AQUARIUM", steps: 15 });
+    expect(pixel("PAL_OW_STATIC")).toEqual([99, 123, 156, 255]);
+    cache.destroy();
+  });
+});

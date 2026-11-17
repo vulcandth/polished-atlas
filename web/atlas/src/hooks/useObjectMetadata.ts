@@ -5,6 +5,7 @@ import type {
   ObjectEventEntry,
   ObjectFacingEntry,
   ObjectMetadata,
+  ObjectGlowMetadata,
   ObjectMovementDefinition,
   ObjectPaletteEntry,
   ObjectSpriteDefinition,
@@ -121,6 +122,7 @@ type RawObjectMetadata = {
   facings?: Record<string, RawFacingEntry>;
   maps?: Record<string, RawMapObjectEntry>;
   pokemon_icons?: RawPokemonIconMetadata;
+  glow?: ObjectGlowMetadata | null;
 };
 
 type RawPokemonIconPalette = {
@@ -444,7 +446,7 @@ function sanitizeMapEntry(
   };
 }
 
-function convertObjectMetadata(payload: RawObjectMetadata): ObjectMetadata {
+export function convertObjectMetadata(payload: RawObjectMetadata): ObjectMetadata {
   const blockPixelSize = Number.isFinite(payload.block_pixel_size)
     ? Math.max(1, Math.trunc(payload.block_pixel_size as number))
     : DEFAULT_OBJECT_BLOCK_SIZE;
@@ -506,6 +508,7 @@ function convertObjectMetadata(payload: RawObjectMetadata): ObjectMetadata {
     facings,
     maps,
     pokemonIcons,
+    glow: payload.glow ?? null,
   };
 }
 

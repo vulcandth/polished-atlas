@@ -7,6 +7,7 @@ import type {
   RgbTuple,
 } from "@/types";
 import { decodeBase64 } from "@/lib/base64";
+import { applyGlowAdjustment, fadeGlowPalette, GlowFadeClock, NO_GLOW, UNLIT, type GlowState } from "@/lib/objectGlow";
 
 type FacingTextureRecord = {
   texture: Texture;
@@ -76,6 +77,17 @@ export class ObjectSpriteCache {
   private isIndoor = false;
   private isOvercast = false;
   private isDarkness = false;
+  private glowState: GlowState = UNLIT;
+  readonly glowFadeClock = new GlowFadeClock();
+
+  setGlowState(state: GlowState): void {
+    this.glowState = state;
+  }
+
+  private glowSignature(): string {
+    const { previous, current, steps } = this.glowState;
+    return previous === current ? current : `${previous}>${current}:${steps}`;
+  }
 
   constructor(metadata: ObjectMetadata, timeOfDay: string) {
     this.metadata = metadata;
@@ -125,6 +137,7 @@ export class ObjectSpriteCache {
   // these flags, so we do not clear the cache here; switching maps will naturally generate
   // distinct textures as needed.
   setPaletteContext(options: { indoor?: boolean; overcast?: boolean; darkness?: boolean }): void {
+    this.glowState = UNLIT;
     const nextIndoor = Boolean(options.indoor);
     const nextOvercast = Boolean(options.overcast);
     const nextDarkness = Boolean(options.darkness);
@@ -166,7 +179,7 @@ export class ObjectSpriteCache {
     const effectivePalette = paletteName ?? spriteDef.defaultPalette;
     // Include bgSignature for copy-from-BG palettes so textures are unique per map palette
     const isCopy = effectivePalette ? this.resolveCopyBgIndex(effectivePalette) !== null : false;
-    const cacheKey = `${spriteName}|${facingKey}|${effectivePalette ?? ""}|${this.timeOfDay}` +
+    const cacheKey = `${spriteName}|${facingKey}|${effectivePalette ?? ""}|${this.timeOfDay}|glow=${this.glowSignature()}` +
       `${this.isIndoor ? "|indoor" : ""}${this.isOvercast ? "|overcast" : ""}${this.isDarkness ? "|dark" : ""}` +
       `${isCopy ? `|bg=${this.bgSignature ?? ""}` : ""}`;
     const cached = this.textureCache.get(cacheKey);
@@ -280,8 +293,9 @@ export class ObjectSpriteCache {
     }
     const paletteKey = overridePalette ?? variant.palette?.normal ?? null;
     const cacheKey =
-      `icon|${speciesConstant}|${normalizedForm}|${paletteKey ?? ""}|${this.timeOfDay}` +
-      `${this.isIndoor ? "|indoor" : ""}${this.isOvercast ? "|overcast" : ""}${this.isDarkness ? "|dark" : ""}`;
+      `icon|${speciesConstant}|${normalizedForm}|${paletteKey ?? ""}|${this.timeOfDay}|glow=${this.glowSignature()}` +
+      `${this.isIndoor ? "|indoor" : ""}${this.isOvercast ? "|overcast" : ""}${this.isDarkness ? "|dark" : ""}` +
+      `${paletteKey && this.resolveCopyBgIndex(paletteKey) !== null ? `|bg=${this.bgSignature ?? ""}` : ""}`;
     const cachedFrames = this.pokemonIconTextureCache.get(cacheKey);
     if (cachedFrames) {
       const durationFrames = Math.max(
@@ -414,6 +428,15 @@ export class ObjectSpriteCache {
   }
 
   private resolvePalette(name: string | null | undefined): RgbTuple[] {
+    const { previous, current, steps } = this.glowState;
+    const endpoint = (glow: string) => applyGlowAdjustment(
+      this.resolvePaletteSource(name, glow), this.metadata.glow?.adjustments[glow]);
+    const target = endpoint(current);
+    if (previous === current || !this.metadata.glow) return target;
+    return fadeGlowPalette(endpoint(previous), target, steps, this.metadata.glow.fade_steps);
+  }
+
+  private resolvePaletteSource(name: string | null | undefined, glow = NO_GLOW): RgbTuple[] {
     if (!name) {
       return DEFAULT_PALETTE;
     }
@@ -435,6 +458,17 @@ export class ObjectSpriteCache {
     if (!entry) {
       return DEFAULT_PALETTE;
     }
+    const variants = entry.timeVariants ?? {};
+    // Individual palettes bypass time, darkness and overcast in LookupOBPalette.
+    if (!Object.values(variants).some((colors) => colors?.length) && entry.static?.length) {
+      return clampPalette(entry.static);
+    }
+    // LookupOBPalette bypasses darkness/overcast for day/night glow. Static
+    // palettes and copy-BG palettes keep their sources, as in the engine.
+    const glowTime = glow === "OBJ_GLOW_DAY" ? "day" : glow === "OBJ_GLOW_NITE" ? "nite" : null;
+    if (glowTime && entry.timeVariants?.[glowTime]?.length) {
+      return clampPalette(entry.timeVariants[glowTime]!);
+    }
     // Darkness takes precedence over time-of-day/overcast/indoor.
     if (this.isDarkness && Array.isArray(entry.darkness) && entry.darkness.length) {
       return clampPalette(entry.darkness as RgbTuple[]);
@@ -443,7 +477,6 @@ export class ObjectSpriteCache {
     if (this.isOvercast && entry.overcast && entry.overcast[this.timeOfDay]?.length) {
       return clampPalette(entry.overcast[this.timeOfDay]!);
     }
-    const variants = entry.timeVariants ?? {};
     // Indoors force day palettes unless in darkness (handled above).
     if (this.isIndoor && variants.day?.length) {
       return clampPalette(variants.day);

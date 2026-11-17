@@ -31,6 +31,7 @@ import { loadMapAnimation, type MapAnimationResource } from "@/lib/loadMapAnimat
 import { ObjectSpriteCache } from "@/lib/objectSprites";
 import { computeObjectPosition, type PlacementContext } from "@/lib/objectPlacement";
 import { createCollisionHelper, type CollisionHelper } from "@/lib/collision";
+import { createGlowTransition, NO_GLOW, UNLIT } from "@/lib/objectGlow";
 import { getMovementModel } from "@/lib/movementModel";
 import { simulateNpcMovement } from "@/lib/movementSimulation";
 import {
@@ -144,7 +145,8 @@ type ObjectMarkerEntry = {
   currentStepIndex: number | null;
   stepProgress: number;
   stepCount: number | null;
-  refreshPalette?: (marker: ObjectMarkerEntry, dx: number, dy: number) => void;
+  animationElapsedMs?: number;
+  refreshPalette?: (marker: ObjectMarkerEntry, dx: number, dy: number, collisionDx: number, collisionDy: number) => void;
 };
 
 interface MapCanvasProps {
@@ -1477,22 +1479,41 @@ function spatialPaletteRefresher(
   spriteDef: ObjectSpriteDefinition,
   paletteName: string | null | undefined,
   facingKey: string,
+  glow: ObjectMetadata["glow"],
+  collision: CollisionHelper | null,
 ): ObjectMarkerEntry["refreshPalette"] {
-  if (!metadata?.maps[label]?.palette_swaps?.length || !paletteName?.startsWith("PAL_OW_COPY_BG_")) {
+  const hasSwaps = Boolean(metadata?.maps[label]?.palette_swaps?.length && paletteName?.startsWith("PAL_OW_COPY_BG_"));
+  if (!hasSwaps && !(glow && collision)) {
     return undefined;
   }
-  const select = createSpatialPaletteSelector(metadata, label, time);
+  const select = hasSwaps && metadata ? createSpatialPaletteSelector(metadata, label, time) : null;
+  const transition = glow ? createGlowTransition(glow, cache.glowFadeClock) : null;
   const context = cache.getPaletteContext();
-  return (marker, dx, dy) => {
-    const colors = select(marker.object.xTiles + dx, marker.object.yTiles + dy);
-    if (!colors) return;
+  let colors = metadata?.maps[label]?.palettes[time] ?? null;
+  let previousGlow = "";
+  return (marker, dx, dy, collisionDx, collisionDy) => {
+    const nextColors = select?.(marker.object.xTiles + dx, marker.object.yTiles + dy);
+    if (nextColors) colors = nextColors;
+    const cell = collision?.getValue(marker.object.xTiles + collisionDx, marker.object.yTiles + collisionDy);
+    const type = cell == null ? NO_GLOW : glow?.collision_types[cell] ?? NO_GLOW;
+    const state = marker.animationElapsedMs === undefined
+      ? { previous: type, current: type, steps: glow?.fade_steps ?? 0 }
+      : transition?.(type, marker.animationElapsedMs) ?? UNLIT;
+    const signature = state.previous === state.current ? state.current : `${state.previous}>${state.current}:${state.steps}`;
+    if (!nextColors && signature === previousGlow) return;
+    previousGlow = signature;
     // The cache is shared by maps. Restore this object's map context before
     // constructing its new frames, including when a moving NPC crosses a region.
     cache.setPaletteContext(context);
     cache.setBgPalettes(colors);
-    const record = cache.getFacingTexture(spriteKey, facingKey, paletteName);
-    if (!record) throw new Error(`Missing palette-swapped sprite ${spriteKey}`);
-    marker.frameSet = buildMovementFrameSet(cache, spriteKey, spriteDef, paletteName, facingKey, record);
+    cache.setGlowState(state);
+    if (spriteKey === "SPRITE_MON_ICON") {
+      marker.frameSet = buildPokemonIconFrameSet(cache, marker.object, spriteDef, facingKey, paletteName ?? null, "palette-refresh").frameSet;
+    } else {
+      const record = cache.getFacingTexture(spriteKey, facingKey, paletteName);
+      if (!record) throw new Error(`Missing spatially colored sprite ${spriteKey}`);
+      marker.frameSet = buildMovementFrameSet(cache, spriteKey, spriteDef, paletteName ?? null, facingKey, record);
+    }
     marker.currentFrameKey = null;
   };
 }
@@ -1503,8 +1524,10 @@ function applySpriteFrame(
   frameIndex: number,
   dx = 0,
   dy = 0,
+  collisionDx = dx,
+  collisionDy = dy,
 ): void {
-  marker.refreshPalette?.(marker, dx, dy);
+  marker.refreshPalette?.(marker, dx, dy, collisionDx, collisionDy);
   const frameSet = marker.frameSet;
   if (!frameSet) {
     if (direction) {
@@ -1565,6 +1588,7 @@ function applySpriteFrame(
 }
 
 function updateMarkerAnimation(marker: ObjectMarkerEntry, elapsedMs: number): void {
+  marker.animationElapsedMs = elapsedMs;
   const baseX = marker.basePosition.x;
   const baseY = marker.basePosition.y;
   const cellSize = marker.cellPixelSize;
@@ -1620,7 +1644,8 @@ function updateMarkerAnimation(marker: ObjectMarkerEntry, elapsedMs: number): vo
       const baseFrameIndex = parity === 0 ? 0 : 2;
       const strideFrameIndex = parity === 0 ? 1 : 3;
       const frameIndex = inStride ? strideFrameIndex : baseFrameIndex;
-      applySpriteFrame(marker, activeSegment.direction, frameIndex, interpDx, interpDy);
+      // InitStep caches the destination collision before pixel movement begins.
+      applySpriteFrame(marker, activeSegment.direction, frameIndex, interpDx, interpDy, activeSegment.to.dx, activeSegment.to.dy);
       marker.sprite.x = baseX + marker.spriteOffset.x + interpDx * cellSize;
       marker.sprite.y = baseY + marker.spriteOffset.y + interpDy * cellSize;
       marker.currentStepIndex = activeSegment.stepIndex;
@@ -2923,7 +2948,7 @@ export default function MapCanvas({
       }
       const stepCount = animator?.kind === "path" ? animator.stepCount : null;
       state.objectMarkers.push({
-        refreshPalette: spatialPaletteRefresher(cache, bgPalettes, state.mapLabel, timeOfDay, spriteKey, spriteDef, paletteName, facingKey),
+        refreshPalette: spatialPaletteRefresher(cache, bgPalettes, state.mapLabel, timeOfDay, spriteKey, spriteDef, paletteName, facingKey, metadata.glow, state.collisionHelper),
         object: objectEntry,
         sprite: spriteInstance,
         movementSummary,
@@ -3766,7 +3791,7 @@ export default function MapCanvas({
         }
         const stepCount = animator?.kind === "path" ? animator.stepCount : null;
         entry.objectMarkers.push({
-          refreshPalette: spatialPaletteRefresher(cache, bgPalettes, entry.placement.label, timeOfDay, spriteKey, spriteDef, paletteName, facingKey),
+          refreshPalette: spatialPaletteRefresher(cache, bgPalettes, entry.placement.label, timeOfDay, spriteKey, spriteDef, paletteName, facingKey, metadata.glow, entry.collisionHelper),
           object: objectEntry,
           sprite,
           movementSummary,
@@ -4467,6 +4492,7 @@ export default function MapCanvas({
         }
         for (const marker of entry.objectMarkers) {
           if (disableObjectAnimations) {
+            marker.animationElapsedMs = undefined;
             applySpriteFrame(
               marker,
               marker.lastDirection ?? marker.frameSet?.defaultDirection ?? null,
@@ -4511,6 +4537,7 @@ export default function MapCanvas({
         }
         for (const marker of overlayState.objectMarkers) {
           if (disableObjectAnimations) {
+            marker.animationElapsedMs = undefined;
             applySpriteFrame(
               marker,
               marker.lastDirection ?? marker.frameSet?.defaultDirection ?? null,

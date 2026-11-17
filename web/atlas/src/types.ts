@@ -413,6 +413,14 @@ export interface ObjectMetadata {
   facings: Record<string, ObjectFacingEntry>;
   maps: Record<string, MapObjectMetadataEntry>;
   pokemonIcons: PokemonIconMetadata | null;
+  glow?: ObjectGlowMetadata | null;
+}
+
+export interface ObjectGlowMetadata {
+  collision_types: Record<string, string>;
+  adjustments: Record<string, RgbTuple>;
+  fade_steps: number;
+  fade_step_frames: number;
 }
 
 export interface PaletteSwapEntry {

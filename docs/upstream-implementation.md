@@ -76,8 +76,8 @@ passing this structural check alone does not prove compatibility.
   are covered by tests. Goldenrod City and Route 7 static previews are available
   locally in `.build/palette-preview/`; Goldenrod's composite was visually inspected.
 - 17 Python tests pass, including the locally available upstream palette-swap corpus.
-- Twenty-four commits have been individually reviewed: twenty are resolved as no atlas
-  impact and four retain open adaptation/validation work. Another 1,027 commits
+- Thirty-seven commits have been individually reviewed: twenty are resolved as no atlas
+  impact and seventeen retain open adaptation/validation work. Another 1,014 commits
   have not been reviewed. Inventory generation does not constitute review.
 - The frontend consumes palette-swap regions for background-derived NPC colors,
   including movement, and supports special WHITE/GRASS background color mapping.
@@ -92,7 +92,31 @@ passing this structural check alone does not prove compatibility.
   Relevant sources are `data/collision/glow_collisions.asm`,
   `data/collision/glow_adjustments.asm`, `engine/gfx/dynamic_pals.asm` and
   `engine/gfx/sprite_palettes.asm`. This source inspection is not yet a completed
-  review of every glow-related commit, nor an implementation of the feature.
+  review of every glow-related commit.
+- Initial NPC glow implementation exports collision and RGB rules from the pinned
+  source, applies DAY/NITE overrides and saturated 5-bit adjustments, and tracks
+  moving objects' previous/current glow with a shared fade clock. Texture caches
+  distinguish glow states and local background colors. Disabling object animations
+  settles the palette at the object's displayed location.
+- Real upstream sprite previews were inspected in the browser at day and night:
+  Fuchsia Aquarium schoolboy, Ecruteak Gym Morty, Route 11 Youngster, Rugged Road
+  Hiker and a Cinnabar Volcano boulder, including entering/leaving fade samples.
+  These focused previews do not verify full MapCanvas movement or all interactions.
+- This verification exposed missing `.lzp` sprite source fallbacks and the renamed
+  boulder/rock sprite. Both are adapted; the corpus now checks every ordinary sprite
+  header with a source path produces nonempty, tile-aligned graphics. PNG decoding
+  closes source files instead of leaving reader-owned handles open.
+- Thirteen additional glow-related commits have been reviewed, including byte-level
+  inspection of changed metatile, attribute and map block data. Their compatibility
+  dispositions remain open for full-site validation. Some additional glow changes
+  (volcano introduction, Fire Island and Indigo Plateau windows) are only partially
+  reviewed and still count as pending.
+- Current glow checks: 20 Python tests and 23 frontend tests pass, including all
+  ordinary sprite source decoding, both RGB metadata encodings, cache separation,
+  palette endpoints and exact 5-bit fade convergence. TypeScript checking passes;
+  ESLint reports one existing hook-dependency warning and no errors. The audit
+  publication gate correctly fails with 1,031 unresolved commits (1,014 pending
+  review plus 17 reviewed with outstanding adaptation/validation).
 - Exhaustive review, remaining dev compatibility, complete visual verification,
   pushing branches, CI execution, and publication remain incomplete.
 
@@ -105,6 +129,10 @@ passing this structural check alone does not prove compatibility.
   decoder remains and must not be treated as master-compatible.
 - Complete NPC glow effects, shared event state, fixed-weather rules/cherry blossoms, dual object
   palettes, all map/object/movement findings from the audit, and full dev generation.
+- Finish glow validation on Dragon Shrine, cave mouths, underground lamps and lava
+  ladders, including directional walls/warps and secondary palettes. Verify
+  `SPRITE_AQUARIUM_MON` handling (also used for volcano Moltres), and reconcile
+  forced map time palettes with the existing indoor/day heuristic.
 - Dev builds now require upstream corpus tests after source checkout, checking
   the exact pinned SHA. Extend that corpus coverage alongside further adaptations.
 - Finish the commit ledger, then run full combined-site/browser tests and publish.

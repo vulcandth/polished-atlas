@@ -22,6 +22,7 @@ from typing import Dict, Iterable, Iterator, List, Optional, Sequence, Set, Tupl
 import render_map
 
 import atlas_common
+from object_glow import load_object_glow
 
 RGB = Tuple[int, int, int]
 
@@ -1092,6 +1093,19 @@ def read_sprite_graphics(root: Path, relative_path: Optional[str]) -> bytes:
     if not relative_path:
         return b""
     target = root / relative_path
+    # LZP is a build artifact. Prefer the checked-in 2bpp/PNG source instead
+    # of treating compressed bytes as tile pixels.
+    if target.suffix == ".lzp":
+        raw = target.with_suffix("")
+        if raw.exists():
+            return raw.read_bytes()
+        fallback = raw.with_suffix(".png")
+        if not fallback.exists():
+            raise FileNotFoundError(f"Missing sprite source for {relative_path}")
+        png_module = _load_png_module(root)
+        if png_module is None:
+            raise RuntimeError(f"PNG decoder unavailable for {fallback}")
+        return encode_tiles_to_2bpp(render_map._decode_tiles_from_png(fallback, png_module))
     if target.exists():
         data = target.read_bytes()
         if target.suffix == ".lz":
@@ -1627,6 +1641,9 @@ def parse_map_objects(
             except Exception:
                 continue
             object_args, extra_payload = expanded_args, dict(extra)
+            if macro_name in {"strengthboulder_event", "smashrock_event"} and "SPRITE_BOULDER_ROCK" in sprite_lookup:
+                # Master split fossils/ice boulders into a separate sprite.
+                object_args[2] = "SPRITE_BOULDER_ROCK"
             index += 1
             entry = build_object_entry(
                 index=index,
@@ -1881,6 +1898,7 @@ def main() -> None:
         pokemon_icons=pokemon_icons,
     )
     output_path = args.output.resolve()
+    payload["glow"] = load_object_glow(polished_root)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2, sort_keys=True)

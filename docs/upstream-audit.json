@@ -14992,7 +14992,7 @@
       "parents": [
         "09f6f2fadf0625389e982359b529b005b4a07050"
       ],
-      "subject": "Facade's damage is no longer halved for burned Pokémon",
+      "subject": "Facade's damage is no longer halved for burned Pok\u00c3\u00a9mon",
       "changes": [
         [
           "M",
@@ -27292,7 +27292,7 @@
       "parents": [
         "faa672d761a0fd201bc25ca0d001217f058cb323"
       ],
-      "subject": "Make Ecruteaĸ Gym taller, and fix some Gym floor logos",
+      "subject": "Make Ecrutea\u00c4\u00b8 Gym taller, and fix some Gym floor logos",
       "changes": [
         [
           "M",
@@ -34234,7 +34234,7 @@
       "parents": [
         "838cf9ee5c5ba6e323974e78f6f0f9e019701cf1"
       ],
-      "subject": "Use a consistent palette for Pokérus icons, and comment some duplicate palettes",
+      "subject": "Use a consistent palette for Pok\u00c3\u00a9rus icons, and comment some duplicate palettes",
       "changes": [
         [
           "M",
@@ -34305,7 +34305,7 @@
       "parents": [
         "4de503fc0ea66f206963145785b62c0b274831f5"
       ],
-      "subject": "Use `'<SHINY>'` light-gray star for Summary screen shiny icon, not `'★'` black star",
+      "subject": "Use `'<SHINY>'` light-gray star for Summary screen shiny icon, not `'\u00e2\u02dc\u2026'` black star",
       "changes": [
         [
           "M",
@@ -34488,7 +34488,7 @@
       "parents": [
         "c781d83a7fe06ba619fcc4a886347061832c49e1"
       ],
-      "subject": "Renaming a PC Box uses white for the Poké Ball icon",
+      "subject": "Renaming a PC Box uses white for the Pok\u00c3\u00a9 Ball icon",
       "changes": [
         [
           "M",
@@ -35375,7 +35375,7 @@
       "parents": [
         "17d8b179a6dcfb076f0f537ff3ce900f14616259"
       ],
-      "subject": "Use Pokémon Center roof for Goldenrod Pokécom Center",
+      "subject": "Use Pok\u00c3\u00a9mon Center roof for Goldenrod Pok\u00c3\u00a9com Center",
       "changes": [
         [
           "M",
@@ -38262,7 +38262,7 @@
       "parents": [
         "3f77e34dfa68cae9f843c3f3c94ecaa3507fee69"
       ],
-      "subject": "Remove the Pokéathlon construction site",
+      "subject": "Remove the Pok\u00c3\u00a9athlon construction site",
       "changes": [
         [
           "M",
@@ -38323,7 +38323,7 @@
       "parents": [
         "3d478b20bb53e35d8f31a8e38b93a9d8b48ab0a4"
       ],
-      "subject": "Turn the Trainer House Poké Ball sideways like Lance's",
+      "subject": "Turn the Trainer House Pok\u00c3\u00a9 Ball sideways like Lance's",
       "changes": [
         [
           "M",
@@ -39009,7 +39009,7 @@
       "parents": [
         "a127fcdfd8351260abfb513b4d5e78e88ce5c266"
       ],
-      "subject": "Allow picking a Pokémon when checking happiness in Goldenrod (#1496)",
+      "subject": "Allow picking a Pok\u00c3\u00a9mon when checking happiness in Goldenrod (#1496)",
       "changes": [
         [
           "M",
@@ -39034,7 +39034,7 @@
       "parents": [
         "c6f7cd15db1727a699c53f8e75588742abaa2ea9"
       ],
-      "subject": "Add a flypoint for Pokémon League Gate (#1489)",
+      "subject": "Add a flypoint for Pok\u00c3\u00a9mon League Gate (#1489)",
       "changes": [
         [
           "M",
@@ -39806,7 +39806,7 @@
       "parents": [
         "f7e45d7aa3e49925fec7baf1dbb19b32382b9949"
       ],
-      "subject": "Update many Gen 4 Pokémon sprites by bloodless",
+      "subject": "Update many Gen 4 Pok\u00c3\u00a9mon sprites by bloodless",
       "changes": [
         [
           "M",
@@ -39863,7 +39863,7 @@
       "parents": [
         "53fa68c74cd802e338f0ffc515cecfc6104ee3e6"
       ],
-      "subject": "Move the faithful-only \"F\" indicator from the copyright line to beside the \"Pokémon\" logo (replacing the \"TM\")",
+      "subject": "Move the faithful-only \"F\" indicator from the copyright line to beside the \"Pok\u00c3\u00a9mon\" logo (replacing the \"TM\")",
       "changes": [
         [
           "M",
@@ -40108,7 +40108,7 @@
       "parents": [
         "a02e81e380143db9f9eef93aede4dfbd90e0223e"
       ],
-      "subject": "Add a floating Poké Ball sprite (so far used only for a key item)",
+      "subject": "Add a floating Pok\u00c3\u00a9 Ball sprite (so far used only for a key item)",
       "changes": [
         [
           "M",
@@ -42167,7 +42167,7 @@
       "parents": [
         "fcdf2c14fabafa5e6aa1f31ebc5afb658f75c443"
       ],
-      "subject": "Fix Trainer Card money near ¥1,000,000",
+      "subject": "Fix Trainer Card money near \u00c2\u00a51,000,000",
       "changes": [
         [
           "M",
@@ -43698,7 +43698,7 @@
       "parents": [
         "cd2ac371482d915c1910e4442f0f3e5c18eeb574"
       ],
-      "subject": "Use per-trainer palettes for the Kanto Pokémon Federation bikers",
+      "subject": "Use per-trainer palettes for the Kanto Pok\u00c3\u00a9mon Federation bikers",
       "changes": [
         [
           "M",
@@ -43919,7 +43919,7 @@
       "parents": [
         "df5bd9209a2faac33d46fca2bcbc5b547d19b5bf"
       ],
-      "subject": "Pokémon League gates are all wide with a \"League\" sign",
+      "subject": "Pok\u00c3\u00a9mon League gates are all wide with a \"League\" sign",
       "changes": [
         [
           "M",
@@ -44195,7 +44195,7 @@
       "parents": [
         "dfe4cac308e3a90fafb5440fab081a8fff36e5cf"
       ],
-      "subject": "Red roofs for Pokémon League buildings",
+      "subject": "Red roofs for Pok\u00c3\u00a9mon League buildings",
       "changes": [
         [
           "M",
@@ -44272,7 +44272,7 @@
       "parents": [
         "452800ddaecc78eb3104962d60f847eb76e5d134"
       ],
-      "subject": "Pokémon League side entrances are sideways",
+      "subject": "Pok\u00c3\u00a9mon League side entrances are sideways",
       "changes": [
         [
           "M",
@@ -46587,7 +46587,7 @@
       "parents": [
         "8c782c01433febc7d0f9a1d9e0454f6cad94bc4d"
       ],
-      "subject": "Remove the Pokédex Show radio channel",
+      "subject": "Remove the Pok\u00c3\u00a9dex Show radio channel",
       "changes": [
         [
           "M",
@@ -46624,7 +46624,7 @@
       "parents": [
         "bd653175486dc83a87bbec85a6d46109e2cb7a5a"
       ],
-      "subject": "Compress Pokédex entry text",
+      "subject": "Compress Pok\u00c3\u00a9dex entry text",
       "changes": [
         [
           "M",
@@ -48090,7 +48090,7 @@
       "parents": [
         "6344316c00997c86b486b36c161aeab228a2acb3"
       ],
-      "subject": "Use shared roof tiles for Snowtop Mountain's Pokémon Center",
+      "subject": "Use shared roof tiles for Snowtop Mountain's Pok\u00c3\u00a9mon Center",
       "changes": [
         [
           "M",
@@ -49456,7 +49456,7 @@
       "parents": [
         "1867f0c66e14b60b2c74d3c0cef582cd1599c018"
       ],
-      "subject": "Pokémon League gates all use its dark red roofs",
+      "subject": "Pok\u00c3\u00a9mon League gates all use its dark red roofs",
       "changes": [
         [
           "M",
@@ -49628,7 +49628,7 @@
       "parents": [
         "16e58eb740090f54af614ee53b66fa5ec0f2e472"
       ],
-      "subject": "Double door for Pokémon League reception gate",
+      "subject": "Double door for Pok\u00c3\u00a9mon League reception gate",
       "changes": [
         [
           "M",
@@ -51238,7 +51238,7 @@
       "parents": [
         "ddde0a46545e48e10202291e1b9920ec6136c63b"
       ],
-      "subject": "Fix Pokémon League roof to be flat",
+      "subject": "Fix Pok\u00c3\u00a9mon League roof to be flat",
       "changes": [
         [
           "M",
@@ -51422,7 +51422,7 @@
       "parents": [
         "21204436c39ec80101dcad8a995c48ea9be05ddc"
       ],
-      "subject": "Mr. Pokémon's house has a teal roof, not the same purple as Mr. Psychic",
+      "subject": "Mr. Pok\u00c3\u00a9mon's house has a teal roof, not the same purple as Mr. Psychic",
       "changes": [
         [
           "M",
@@ -51902,7 +51902,7 @@
       "parents": [
         "a2ca48f2bc16d6bdeac2688aeee6fe3e7dfbc4e1"
       ],
-      "subject": "Add chimney to Olivine Café, like Celadon Café",
+      "subject": "Add chimney to Olivine Caf\u00c3\u00a9, like Celadon Caf\u00c3\u00a9",
       "changes": [
         [
           "M",
@@ -52635,7 +52635,7 @@
       "parents": [
         "16704c8b32df01c7d9712d2f187bde0678b557fb"
       ],
-      "subject": "Improve some tiles in Pokémon Mansion, including GSC cables",
+      "subject": "Improve some tiles in Pok\u00c3\u00a9mon Mansion, including GSC cables",
       "changes": [
         [
           "M",
@@ -54172,10 +54172,13 @@
           "data/tilesets/museum_collision.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Adds campfire/aquarium collision constants and assigns glow cells in Johto Outlands and Museum. Source-driven collision export preserves IDs; object glow rules now consume them.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/982c80d0cf8880b63108e1120825ed076b1c5f97",
+        "Three complete text diffs read; pinned glow table corpus and real Fuchsia/Rugged Road sprite preview pass. Open: generated-site boundary movement validation."
+      ]
     },
     {
       "sha": "55057e6a2964b0d254fa508310aafb5c67878353",
@@ -54227,17 +54230,20 @@
           "data/tilesets/johto_outlands_metatiles.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Changes Johto Outlands block f1, tile offset 6, from tile 5a to 30 and attribute 05 to 0d, selecting bank 1 while retaining palette 5. Existing bank-aware terrain loader must retain this glow-adjacent rock artwork.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/683f5b3bde648d9ddcb6d5a36300a6102c4b5c6e",
+        "Both binary files compared byte-for-byte: exactly one changed byte in each, with unchanged lengths of 4000. Open: full terrain animation/visual validation."
+      ]
     },
     {
       "sha": "b22fa2a84707d7a0de3835e55bfa414fa0243e15",
       "parents": [
         "683f5b3bde648d9ddcb6d5a36300a6102c4b5c6e"
       ],
-      "subject": "Make the Snowtop Mountain Pokémon Center simpler",
+      "subject": "Make the Snowtop Mountain Pok\u00c3\u00a9mon Center simpler",
       "changes": [
         [
           "M",
@@ -54601,10 +54607,13 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Adds per-object collision glow states, previous/current palette identity, cache separation, and shared overworld fade catch-up; aquarium adds saturated RGB and campfire selects daytime. Non-object weather effects clear glow. Implemented table export, per-object selection, cache keys, 5-bit adjustment and fade; weather/map fade integration and dual palettes remain open.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e035debe8474b09ec8df1700b8922bbe27a6a36c",
+        "Read all five changed files in two bounded patch calls. Focused frontend tests cover saturation, fades, shared NPC fade clock, cache identity and COPY_BG composition. Browser inspected 25 actual sprite samples each at day and night. Open: full-map movement, weather and dual-palette interaction."
+      ]
     },
     {
       "sha": "930ef831113b5cdf3c3543eaf8887c7d6aafc5e6",
@@ -54651,10 +54660,13 @@
           "maps/FuchsiaAquarium1F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Extends aquarium collision cells along tank sides and changes the stationary schoolboy from dark purple to purple. Generator reads updated collision tables and object override; aquarium glow produces adjusted purple sprite colors.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b67dd9fdfa10188616e9c0fd5940d43aff328bc6",
+        "Both complete text patches read. Real FuchsiaAquarium1F schoolboy at 4,4 renders aquarium glow in browser. Open: neighboring unlit objects and walking boundary validation in full site."
+      ]
     },
     {
       "sha": "ae70f877b72625b2a5c1f757de7b21c1c1ac53c5",
@@ -54701,10 +54713,13 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Replaces hardcoded aquarium RGB addition with ordered adjustment table, temporary RGB storage and per-channel saturated application. Parser follows current enum/table ordering and excludes non-adjustment DAY/NITE types.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9689951667358a01a2a678ea5eea5ff8cb659379",
+        "All four complete text patches read. Pinned corpus verifies all four adjustment triples; frontend tests cover saturated 5-bit RGB and preservation of color 3. Open: full-site glow integration validation."
+      ]
     },
     {
       "sha": "f7389906bc8ff3e385d5a918f96d59f33972b122",
@@ -54750,10 +54765,13 @@
           "maps/EcruteakGym.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Adds lantern glow constants, land permission, RGB adjustment and collision mapping plus Sprout Tower blocks aa-ac and Ecruteak Gym placements. Later target adjustment is 5,4,2. Data-driven loader covers current values.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f7389906bc8ff3e385d5a918f96d59f33972b122",
+        "All text changes read, including separate dynamic_pals patch after truncation. Binary diff: 48 bytes appended to each tile/attribute table, Gym offsets 2/6/8 changed to ac/aa/ab. Morty lantern sample inspected day/night. Open: complete Gym terrain/movement validation."
+      ]
     },
     {
       "sha": "ba6c7e64c9660e7516e39269353bb39802618b23",
@@ -54788,10 +54806,13 @@
           "engine/gfx/dynamic_pals.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Factors collision-to-glow lookup into a zero-terminated table; unknown collision returns no glow. Exporter parses exact numeric collision IDs with validation and frontend defaults to NONE.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/90b8c6d262ca9424c822380e0fa580e220e99a43",
+        "Both complete text patches read. Pinned corpus checks nine mappings and RGB types. Open: generated-map coverage and full-site transitions."
+      ]
     },
     {
       "sha": "257a6babacc3dce3ef3e0f47e7f3b3304e527ac0",
@@ -54821,10 +54842,13 @@
           "data/tilesets/lab_collision.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Adds right/left wall glow collision codes, Dragon Shrine RGB 0,4,4 and lab block 28 assignments. Glow must coexist with directional collision semantics.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/257a6babacc3dce3ef3e0f47e7f3b3304e527ac0",
+        "All five complete text patches read. Pinned corpus verifies adjustment table. Open: directional wall behavior and Dragon Shrine full-map preview; current collision helper only uses medium permissions."
+      ]
     },
     {
       "sha": "d0b373e6b4d78fa1029fb2535fe257ad816cdf20",
@@ -54922,10 +54946,13 @@
           "maps/WhirlIslandSW.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Adds cave-mouth night glow and separate DAY/NITE endpoint types, preserves directional exit behavior, and substitutes cave/tunnel entrance blocks. The introduced DAY endpoint typo is corrected by 7f30a0c1e. Frontend selects current target DAY/NITE colors independently of overcast/darkness.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d0b373e6b4d78fa1029fb2535fe257ad816cdf20",
+        "All text changes read; all binary changes inspected by offset: added cave f2/tunnel 71 blocks and ten entrance substitutions across eight maps. Open: full cave entrance warp/movement validation and map palette policy."
+      ]
     },
     {
       "sha": "322ba506f2071a066b8798f7bfdcf86c3f05ef8b",
@@ -54964,10 +54991,13 @@
           "engine/gfx/sprite_palettes.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Adds floorlight glow cells in Kanto Urban and corrects DAY glow endpoint from NITE to DAY. Pic-animation change is comment-only. Current glow resolver uses day variant and collision metadata identifies Route 11 floorlights.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7f30a0c1e33ac9c460f9dbc2c37b43cf68dab825",
+        "All three complete text patches read. Real Route11 Youngster at 32,14 inspected in browser at day/night including fade samples. Open: full-map movement across floorlights."
+      ]
     },
     {
       "sha": "a6dd9387b726411bde0d2013821a38906104f11d",
@@ -55086,10 +55116,13 @@
           "data/tilesets/underground_collision.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Updates lantern RGB from 4,3,2 to 5,4,2 and marks fluorescent underground floor cells. Table-driven exporter uses target adjustment rather than historical literals.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/dc9c110c81dea6a171b1a9e736a6b8ae504fcba5",
+        "Both complete text patches read. Pinned corpus asserts 5,4,2. Open: generated underground map preview and neighboring NPC transition coverage."
+      ]
     },
     {
       "sha": "c1f3ca99cbe2a8242cd138297a1330c33cc1bf81",
@@ -55769,10 +55802,13 @@
           "maps/CinnabarVolcanoB1F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Moves volcano ladder tiles/collisions to glowing ladder positions and adjusts B1F warp coordinates to 19,3 and 20,9. Terrain, warp destinations and glow collision cells must agree.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ab4bc7995fd05c31026ac7ff93c10fd5bd1a1871",
+        "Both text patches read and all 16 binary changes inspected in volcano metatiles 16 and 69. Open: full volcano warp/collision validation alongside glow."
+      ]
     },
     {
       "sha": "4a62aeea7a2d8c877db6ec1a5af72ab99d141776",
@@ -56845,7 +56881,7 @@
       "parents": [
         "ff719a7c449070ff16769993331fc5419c54d037"
       ],
-      "subject": "Refresh PC preview after depositing or withdrawing a Pokémon (#1625)",
+      "subject": "Refresh PC preview after depositing or withdrawing a Pok\u00c3\u00a9mon (#1625)",
       "changes": [
         [
           "M",
@@ -57420,7 +57456,7 @@
       "parents": [
         "af4099f28b29f9adcf555b6975acbdcc5ca3defd"
       ],
-      "subject": "Limit the Pokégear phone scrolling to your number of contacts",
+      "subject": "Limit the Pok\u00c3\u00a9gear phone scrolling to your number of contacts",
       "changes": [
         [
           "M",
@@ -57666,7 +57702,7 @@
       "parents": [
         "7ade18b7689b25241d12ac823d4a90328de368e6"
       ],
-      "subject": "Remove `RELEASE_HM` enum since c5794a3c37f676eb0003f26431470dc0413aac7c allowed releasing Pokémon with HM moves",
+      "subject": "Remove `RELEASE_HM` enum since c5794a3c37f676eb0003f26431470dc0413aac7c allowed releasing Pok\u00c3\u00a9mon with HM moves",
       "changes": [
         [
           "M",
@@ -57763,7 +57799,7 @@
       "parents": [
         "cfd36dc095ecaa4afc683e166ecc96ad1171caff"
       ],
-      "subject": "Correct text since releasing Pokémon with HM moves is allowed",
+      "subject": "Correct text since releasing Pok\u00c3\u00a9mon with HM moves is allowed",
       "changes": [
         [
           "M",
@@ -58341,7 +58377,7 @@
       "parents": [
         "4772cb4c70cf0cd9387a884c41601a1a4eca4c57"
       ],
-      "subject": "Use five custom cries by Regen from Pokémon Orange",
+      "subject": "Use five custom cries by Regen from Pok\u00c3\u00a9mon Orange",
       "changes": [
         [
           "M",
@@ -58594,7 +58630,7 @@
       "parents": [
         "9b25b5273f11942ef7013b28ce04272035a24da8"
       ],
-      "subject": "Have Prof. Elm mention what Pokérus does (#1549)",
+      "subject": "Have Prof. Elm mention what Pok\u00c3\u00a9rus does (#1549)",
       "changes": [
         [
           "M",
@@ -60117,7 +60153,7 @@
       "parents": [
         "bd535b89f8e1337151b715f76a235296c26a60c7"
       ],
-      "subject": "Encode Pokémon pic animations more efficiently in ROM, decompressing them to RAM (#1680)",
+      "subject": "Encode Pok\u00c3\u00a9mon pic animations more efficiently in ROM, decompressing them to RAM (#1680)",
       "changes": [
         [
           "M",
@@ -60545,7 +60581,7 @@
       "parents": [
         "d57c9d47c0ae7d31a0c8462ed4f9abd0949dcc98"
       ],
-      "subject": "Fix attribute clash on Pokémon League entrance in Indigo Plateau",
+      "subject": "Fix attribute clash on Pok\u00c3\u00a9mon League entrance in Indigo Plateau",
       "changes": [
         [
           "M",
@@ -60582,7 +60618,7 @@
       "parents": [
         "7271087459a781cc1be971472237b86a507c5d65"
       ],
-      "subject": "Use FRLG roof color for Pokémon League HQ",
+      "subject": "Use FRLG roof color for Pok\u00c3\u00a9mon League HQ",
       "changes": [
         [
           "M",
@@ -60657,7 +60693,7 @@
       "parents": [
         "840bae97651172e2706c9da5fd7b0f9c228a0cd1"
       ],
-      "subject": "Recolor the edge of Pokémon League building",
+      "subject": "Recolor the edge of Pok\u00c3\u00a9mon League building",
       "changes": [
         [
           "M",
@@ -61821,10 +61857,13 @@
           "maps/FuchsiaAquarium2F.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Extends aquarium glow along left tank sides, adds blocks a5/a6 and replaces map blocks in both floors. No new glow algorithm; current table/map readers consume endpoint data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a30148503b86b36cf17e79fe302f1d791e2604c5",
+        "Text collision patch and every binary byte change read: two 16-byte tile/attribute records appended, 1F offset23 -> a6, 2F offsets15/24 -> a5/a6. Open: both aquarium floors full-map visual/movement checks."
+      ]
     },
     {
       "sha": "d4f4a7001e7ba47d027ef7281646b1641dce1f54",
@@ -62910,7 +62949,7 @@
       "parents": [
         "0ea0a9fc1c33a0fa8a6e0ee3825f2e03bb059001"
       ],
-      "subject": "Add green roof to Pokémon Fan Club",
+      "subject": "Add green roof to Pok\u00c3\u00a9mon Fan Club",
       "changes": [
         [
           "M",
@@ -63009,7 +63048,7 @@
       "parents": [
         "11f68c6f38bbe1f8990835ce2436ac53c46b1933"
       ],
-      "subject": "Fix `IsTormentedText` to print correct Pokémon",
+      "subject": "Fix `IsTormentedText` to print correct Pok\u00c3\u00a9mon",
       "changes": [
         [
           "M",

@@ -15440,10 +15440,14 @@
           "engine/gfx/color.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Changes only battle move-info type selection and its palette; the shared color file has no overworld changes in this diff.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2d11b5b39b4d1ddec04aaacadb01eddf4d7422e6",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "88d2bb6e46cbf387070b0b166d03cb4127be1e2c",
@@ -15992,10 +15996,14 @@
           "data/sprite_anims/framesets.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Removes unused party-menu fast framesets and their enum entries. Atlas uses overworld facing/movement tables, not party-menu sprite animation framesets.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/24312f9eb7fa16d19440e658564e3a4ef5d6108b",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "a38b8a2b35188ccaced45c738eb53388db8a1851",
@@ -16696,10 +16704,14 @@
           "engine/overworld/wildmons.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Removes the zero-valued trainer-party type and corrects a phone-mon comment. Atlas does not decode ROM trainer-party records or simulate phone calls.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e8130326beb4c6377fc30cf6019d76ceced8467e",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "9ba19c54695a75291218eb97a7ce9b15cbf9ac3a",
@@ -17383,10 +17395,14 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Full diff reviewed: fixed rain/thunder intensities differ by location; generated weather still uses hash-based thunder selection. Adapt shared weather policy and test terrain/NPC/particles together. Pal-state name/constants changes preserve previous/current semantics.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4e8493b706f40164552cd92d2f236911bf79ef4e",
+        "Full commit diff inspected; unresolved work is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "36a0238543cc9e109426b7ded1dc191e921c331f",
@@ -17919,10 +17935,14 @@
           "engine/overworld/map_setup.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Reorders player surf/bike state reset conditions. Atlas has no controllable player or surf/bike state machine; map attributes and NPC state are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1ccbf7d23d754461ebb13a9f0abecdc3f0ede7fd",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "ff06d6472719e16044069e9bb6b40e73bd65eefb",
@@ -17936,10 +17956,14 @@
           "engine/overworld/player_movement.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Refactors player input, running, surfing and Strength interaction checks. Atlas does not simulate player input or pushing boulders; no collision data or NPC movement tables change.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ff06d6472719e16044069e9bb6b40e73bd65eefb",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "7adff46aed6014552773ef8ceb0b5fd292f72f33",
@@ -18523,10 +18547,14 @@
           "engine/overworld/player_movement.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Restores player-triggered Strength boulder state updates removed by the earlier player movement refactor. Atlas displays the map objects but does not execute player pushing interactions.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/83a39b35ccbd6fbcf79288b1213fc5bd5f4e14e2",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "6680be2adee2c7c8a1ffc0272fc690890fc36d15",
@@ -18791,10 +18819,14 @@
           "engine/events/overcast.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Full diff reviewed: Route 10 North thunder and Route 9 rain until Zapdos event set, index 4. Current atlas overcast policy omits both. Adapt shared weather policy and palette selection.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a693ba7c5e71658a9c83bdb8ff03c978efa8553e",
+        "Full commit diff inspected; unresolved work is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "85155c0ba1d459ab4d721887a5ef99ac72f59e84",
@@ -18922,10 +18954,14 @@
           "engine/overworld/map_object_action.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Removes redundant AND before the Big Gyarados fixed-facing branch; facing IDs, animation selection and source graphics remain unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6083379b634205dbb4bd66e3c9aa8ad5563d39df",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "6e53162adce7495ad50dbd2d5a03ecd48edce413",
@@ -27020,10 +27056,14 @@
           "Makefile"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Changes only a Makefile prerequisite for LZP generation. Atlas reads checked-in raw/PNG sources and does not invoke this ROM build rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/03c2b110a15f1720ff97ef9b746e3de2150db1bb",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "dbd523e00bb5938a89273be0cc5c14c218906ea1",
@@ -31665,10 +31705,14 @@
           "home/vblank.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Full diff reviewed: consistent VBlank AnimateTileset execution is represented by the one-command-per-VBlank engine. Retain open with animation integration/visual verification; timing is not cycle-accurate.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/034de7c65c856f654fa0560c81729c665d784bcb",
+        "Full commit diff inspected; unresolved work is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "08de4d722d2ac80195831dcf76a922e352477335",
@@ -32347,10 +32391,14 @@
           "ram/hram.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Renames HRAM function/operand labels for Judge radar-chart drawing and startup initialization. Atlas does not execute the interactive Judge UI; overworld animation commands are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1e51f895c0e113e754e615d2e9be09ddce8cc89a",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "ceae2e4e1afcb9b31a5f0d67ef3d4d4a2404f6e6",
@@ -32372,10 +32420,14 @@
           "ram/hram.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Moves Judge radar-chart call targets into a dedicated HRAM buffer. No overworld Judge graphics, palettes, animation data or event conditions change.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ceae2e4e1afcb9b31a5f0d67ef3d4d4a2404f6e6",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "4503188770a8a96915651771657300f596c1e573",
@@ -32557,10 +32609,14 @@
           "macros/rst.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Changes bank-call macros to quiet MACRO? declarations. Atlas parses source tables without assembling or executing these call macros.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ca58e3f3a24269c688fb0574b2e45a8a30dba588",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "d5b9f194a87c500bde4b8511376dc7abd02a85c0",
@@ -34767,10 +34823,14 @@
           "engine/pokemon/summary_screen.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Relocates summary-screen HP palette/attribute initialization out of the CGB-layout dispatch table. The moved code is summary UI only; overworld palettes are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2fc581f88787939e7bd508b8932e44f38860701e",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "161a5f223622a085a02287efe3aa471e752350b6",
@@ -34891,10 +34951,14 @@
           "engine/menus/naming_screen.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Changes naming-screen gender and shiny icon palette slots. Atlas does not render the naming screen.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c781d83a7fe06ba619fcc4a886347061832c49e1",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "fbfd7a0816d493d95778284c1fb2437f37b92a3f",
@@ -34908,10 +34972,14 @@
           "engine/gfx/cgb_layouts.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Changes the PC-box naming-screen ball icon to white and adjusts WRAM bank restore placement. No overworld object palette data changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/fbfd7a0816d493d95778284c1fb2437f37b92a3f",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "e64cc9c5755bdec7d9f313cf567e141e0ff1d41d",
@@ -35061,11 +35129,15 @@
           "gfx/stats/iv_chart.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Judge Machine EV/IV colors may be shared with overworld graphics; trace consumers before resolving."
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Changes interactive EV/IV chart palettes only. Atlas overworld Judge animation reads ev_iv_cycle.pal, not these chart palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/80b77bc88fd5fc555eaacfc3e3777235af9af9cc",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "triage_note": "Judge Machine EV/IV colors may be shared with overworld graphics; trace consumers before resolving.",
+      "review_method": "full-diff"
     },
     {
       "sha": "1c69513eafedd940d91e630650a3b4637ba6af77",
@@ -35079,10 +35151,14 @@
           "engine/overworld/weather.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Full diff reviewed: immediate weather clearing prevents stale particles during sprite refresh. Verify atlas weather disable, overlay teardown and time/map transitions before resolving.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1c69513eafedd940d91e630650a3b4637ba6af77",
+        "Full commit diff inspected; unresolved work is stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "64d4594a09cc93cf123b83ac225409f10b56b86e",
@@ -35096,10 +35172,14 @@
           "engine/overworld/weather.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Uses an auto-increment store when hiding weather OAM. This is an equivalent instruction sequence; weather clearing behavior is unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/64d4594a09cc93cf123b83ac225409f10b56b86e",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "42ea6a936212b6c151e3ac46a184a6d3c375a148",
@@ -35163,10 +35243,14 @@
           "engine/gfx/mon_icons.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Selects party versus temporary-mon palette for a move-menu/Name Rater mini icon. Overworld mon icon data and object palette selection are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/eeb7ed06129acf506051116c40f4f4f59afff3cb",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "41e9e8432c4bf7e0ca5832772885e3c078de6acb",
@@ -35425,10 +35509,14 @@
           "engine/overworld/weather.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Optimizes weather OAM scanline-overlap counting. Atlas uses Pixi containers rather than Game Boy scanline/OAM allocation; weather type, graphics and particle motion are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2d9cf5f5a74e1a097b1310ce98e275726129107f",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "a50f1758b8526aafe611f91e9908c342a38a5ff7",
@@ -35442,10 +35530,14 @@
           "engine/overworld/weather.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Removes unnecessary BC save/restore from weather sprite-limit checking. No weather selection or particle-motion changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a50f1758b8526aafe611f91e9908c342a38a5ff7",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "823713cf63da7bafef3f6ff5b0234465418c8bac",
@@ -35459,10 +35551,14 @@
           "engine/overworld/weather.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Corrects comments only in weather OAM counting and removal routines.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/823713cf63da7bafef3f6ff5b0234465418c8bac",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "a2cf19af6dfc99143bbd1d50fa03415afc368f63",
@@ -35476,10 +35572,14 @@
           "engine/overworld/weather.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Removes unnecessary AF save/restore from weather sprite-limit checking. No weather selection, graphics or motion changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a2cf19af6dfc99143bbd1d50fa03415afc368f63",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "68d93d3799bf417a7d2fe01eac467999aa4d4353",
@@ -35493,10 +35593,14 @@
           "engine/overworld/weather.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Moves splash cleanup into rain-fall handling and converts calls to fallthroughs, preserving spawn counts and cleanup timing. Atlas runs its own particle loop; no new particle data or selection rules.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/68d93d3799bf417a7d2fe01eac467999aa4d4353",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "dc2204ac7d7a664bf95753b9b6a7c491fd95e8c0",
@@ -35510,10 +35614,14 @@
           "engine/overworld/weather.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Replaces stack dispatch with an explicit called table for weather cooldown updates. The same weather-specific fall functions and cooldown semantics remain.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/dc2204ac7d7a664bf95753b9b6a7c491fd95e8c0",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "6bd2a029c0cd951d15b0cf203d86cc8e59207cd6",
@@ -35527,10 +35635,14 @@
           "engine/overworld/weather.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Replaces an unrolled weather OAM limit loop with a counted loop. Atlas does not model the Game Boy hardware scanline sprite limit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6bd2a029c0cd951d15b0cf203d86cc8e59207cd6",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "b0bd34eb1d9f07c66a78159a353ef905e9f23aef",
@@ -38977,10 +39089,14 @@
           "home/pokedex_flags.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Repositions Pokedex flag code in ROM0 and removes an unused result load. No map source, rendering data, event defaults or weekday behavior change.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c46369ac4240496357db6cf494796559f1d700c1",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "5a628f38f79712bbfbe2c9354b493fb66841de84",
@@ -38998,10 +39114,14 @@
           "home/text.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Moves ClearText and ContChar into unused ROM0 bytes. Atlas does not link ROM sections or render game dialogue.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5a628f38f79712bbfbe2c9354b493fb66841de84",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "2e2041cd665a234c66782375897615d0d829b020",
@@ -39606,10 +39726,14 @@
           "layout.link"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Co-locates egg hatching and dynamic palettes in a ROM bank, replacing three farcalls with calls. Palette semantics and atlas-consumed data are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c76651c1f50a091746a951951ce55edee4b7efcc",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "9d02585d3f2050a70901d18ae36d0ec9149758a6",
@@ -39731,10 +39855,14 @@
           "macros/asserts.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Refactors assembler table/bit-array label assertions. Atlas reads table entries directly and does not expand these assembler bookkeeping macros.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9009ab51d52b66994f17cb24b7cfec5bbf323b2c",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "517660a47bc796fd8bbccd5c8051f32c20e17b8c",
@@ -41220,10 +41348,14 @@
           "gfx/stats/shiny.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "New shiny icon and its font-loader declaration are used by menu/status text graphics, not overworld sprites. Inspected both text-file diffs and complete file scope; binary menu icon intentionally skipped.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f7375dd6ec01fdc1920f3869f4938b06bcdd6ce6",
+        "Subject, complete changed-file list and relevant shared-file consumers screened; this is not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "fb2507ae29c576895c24274329343f06df2f5ced",
@@ -43375,10 +43507,14 @@
           "engine/overworld/scripting.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Corrects register transfer of the random16 script result. Atlas does not simulate random16; no script call sites, event/object definitions or movement data change.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/10fb5bca97455ac6882d84be84342f26f3881008",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "b1ae77664b076c3caf7b4c61efffa546be801ca3",
@@ -45999,10 +46135,14 @@
           "data/pokemon/pic_sizes.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Adjusts assertions/comments in TM order, initial options and front-picture size generation. No atlas map/object data or parsed field format changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6a59d88b5f28b3cb8b0016ed6821606ae4657fe2",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "8bf3ae02a6961221789e3ce60d2989ed84d879f6",
@@ -47319,10 +47459,14 @@
           "tools/lz.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Deletes unused upstream Python graphics/LZ tools. Complete changed-file list and atlas consumer search show no calls/imports of these upstream tools; atlas has its own decoding helpers.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/71d73c62e896ea1f4cbfc61b9e35bbc213ceebc8",
+        "Subject, complete changed-file list and relevant shared-file consumers screened; this is not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "8c782c01433febc7d0f9a1d9e0454f6cad94bc4d",
@@ -47406,10 +47550,14 @@
           "macros/scripts/text.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Pokedex entry text compression is outside atlas display scope. Complete file scope inspected plus the shared page macro diff, which only changes Pokedex page termination/start; 668-line entry conversion intentionally skipped.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f1090e368e06a426f68f6898a6a74fe6fe0828b8",
+        "Subject, complete changed-file list and relevant shared-file consumers screened; this is not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "21436bf4d5b7bf21218926ef608f7177eb21bb27",
@@ -48171,10 +48319,14 @@
           "tools/common.h"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Standalone native build-tool memory allocation cleanup in tools/common.h. Atlas does not compile or invoke the upstream native tools.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/87be3858d8a62cf004b7148dee02660b8be1acf0",
+        "Subject, complete changed-file list and relevant shared-file consumers screened; this is not a full diff review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "a9b96c4e1aa2b2bcd60a0bf8fc96497f6ca35c24",
@@ -48562,10 +48714,14 @@
           "macros/asserts.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Improves debug warnings for absolute jumps crossing the HRAM/ROM0 boundary. Atlas does not assemble these CPU instructions.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6adafaed9542ae476d98f3470caef3fd9bd0196e",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "555cc026682ad9a7b5a096ee1820b2ac7436ccd6",
@@ -54987,10 +55143,14 @@
           "home/farcall.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Changes a summary-menu stack adjustment and comments on decompressor/farcall stacks. Compressed formats, source data and rendering semantics are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6d457dfd5d1fd559cdfe2084e5e860e5fbbb0f56",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "982c80d0cf8880b63108e1120825ed076b1c5f97",
@@ -55830,10 +55990,14 @@
           "engine/gfx/pic_animation.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Replaces front-picture animation bitmask-size lookup with equivalent arithmetic. Atlas overworld sprites/icons do not execute the front-picture animation engine.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/322ba506f2071a066b8798f7bfdcf86c3f05ef8b",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "7f30a0c1e33ac9c460f9dbc2c37b43cf68dab825",
@@ -56214,10 +56378,14 @@
           "home/video.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Loads video transfer source/destination pointers using stack pops rather than individual byte loads. Tile bytes, banks and transfer counts are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e0187b268e095fe760dd555483d63fdf2cb508fe",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "eb6ef6c826f320b37f85b9320fb95bc48bce4a6b",
@@ -56314,10 +56482,14 @@
           "home/names.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Moves GetCurTMHMName from ROM0 into the script engine. Atlas does not execute TM-name text display.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b6002eb0856b940583400ade96d8e52f71f3fa65",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "3b809054df210e7960f7639d13979610c16afdb0",
@@ -56924,10 +57096,14 @@
           "engine/events/overworld.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Removes redundant flag-setting in the Fly permission check. Atlas does not simulate field-move permissions; the map list is unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/84a863bdfa62e185d5eeef198fecc146ba4d78fa",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "0d2dd71cc6cf0ace281a81edf867370196ffc680",
@@ -57040,10 +57216,14 @@
           "home/video.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Reorders 1bpp/2bpp transfer routines to shorten a jump, preserving source/destination pointers and copy operations. Atlas decodes source graphics directly.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6daa3bca08a7e739072e32b4795e6a211c17b1dd",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "199643f7621a0d3b742dd2c9474bd4378c0ea211",
@@ -57057,10 +57237,14 @@
           "engine/events/overworld.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Optimizes iteration of the unchanged indoor-Fly list. Atlas does not execute Fly permission checks.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/199643f7621a0d3b742dd2c9474bd4378c0ea211",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "a2e22c71b12e45cb48bf906ac4710406b2dca2d0",
@@ -57074,10 +57258,14 @@
           "engine/events/overworld.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Moves the successful Fly-check return into a fallthrough path. No map list or rendering behavior changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a2e22c71b12e45cb48bf906ac4710406b2dca2d0",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "c922f2e2104e039b4e22a2903ffeb21dd0be9899",
@@ -57091,10 +57279,14 @@
           "home/video.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Replaces addition of a known-zero register with immediate zero in BG transfer pointer arithmetic. No tile, attribute or layout changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c922f2e2104e039b4e22a2903ffeb21dd0be9899",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "28f70e10850787f2dcb34c4e4569a8c7a338fbb8",
@@ -57404,10 +57596,14 @@
           "data/text/compressed_text.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Moves text Huffman-tree labels out of a macro. Atlas does not decode or render compressed game dialogue.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2c5059220706d2cd10878a68a16684a7b0c19615",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "2c320ebcce599d56d034dd18828099739016203b",
@@ -58370,10 +58566,14 @@
           "engine/events/pokepic.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Clears trainer palette selection for a modal fossil/trainer picture. Atlas displays map sprites rather than these modal pictures.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/af4099f28b29f9adcf555b6975acbdcc5ca3defd",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "c54af78a8b00b96e6f07cfba382c9a39d6f992d8",
@@ -58712,10 +58912,14 @@
           "engine/phone/phone.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Removes writes beyond the phone-call ID and names its record-size constant. Atlas does not execute phone-call queue logic.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/29b333d550732aa50cd1caf101158fa6044d4a65",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "cfd36dc095ecaa4afc683e166ecc96ad1171caff",
@@ -59930,10 +60134,14 @@
           "home/pokedex_flags.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Simplifies flag preservation for a Pokedex landmark update. GetWeekday and map/landmark data are unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/005261bac0fe083874cfe5a13d30b8e75e1cf384",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "9a1ef8ad774cdc4e50a5cff18313479f6c56eff4",
@@ -60287,10 +60495,14 @@
           "engine/events/weather.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Replaces call-plus-return with a tail jump to LoadWeatherGraphics. Weather selection and palette/graphics loading order remain unchanged.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c56337dafbef18e071a71636d327d9e06274b85d",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "7211ea67e982413dbc4efe17e8da4ed54352ab5f",
@@ -60618,10 +60830,14 @@
           "engine/gfx/vwf.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Optimizes variable-width font length lookup. Atlas uses browser UI fonts and does not render this game text engine.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/68ee7ee4412c53811cf1c6b98f99604f2c634327",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "325a015269b931ff6c601150b62c73017e1ec013",
@@ -62333,10 +62549,14 @@
           "Makefile"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Adds cable-car cutscene build products to make clean. Atlas neither builds nor invokes the ROM clean target.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d8b2a592d9b72ce3262855cf9da0b63ce016fb8d",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "a3f4544cdef75f2917aa6aad99ecad90155044fd",
@@ -63982,10 +64202,14 @@
           "engine/gfx/copy_tilemap_at_once.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Names copy-row constants and generates the equivalent HBlank tilemap copy calls with an assembler loop. No source-map geometry or attributes change.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/41da4f7c68db50edd2d5350b0bb65fce02b55f33",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "f0896b8e9913a51140ae484f5b26549936816991",
@@ -64016,10 +64240,14 @@
           "engine/gfx/copy_tilemap_at_once.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Relocates the unchanged CopyTilemapAtOnce routine within its source file. Atlas does not depend on ROM instruction addresses.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e41e4911b6af926a09ee177eec9c65156ef995b9",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "ec9db1dc3debba862edf9d9e173c1597d0ec9dcd",
@@ -64106,10 +64334,14 @@
           "engine/events/pokepic.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Supplies the missing palette-copy argument for a modal trainer picture. Atlas does not execute this picture UI.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6f8baac2a7049506d490f6a751199e4c0c97349e",
+        "Full text diff inspected in an accelerated batch; checked against atlas source consumers."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "7e031f9303dca776ab10d33cd91e077e84c83d27",

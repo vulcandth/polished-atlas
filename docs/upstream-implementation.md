@@ -85,13 +85,13 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   are covered by tests. Goldenrod City and Route 7 static previews are available
   locally in `.build/palette-preview/`; Goldenrod's composite was visually inspected.
 - 17 Python tests pass, including the locally available upstream palette-swap corpus.
-- Sixty-four commits have received detailed review: forty-two are resolved as no
-  atlas impact, three with adaptations, one already supported, and eighteen retain
+- One hundred eighteen commits have received detailed review: ninety-two are resolved as no
+  atlas impact, three with adaptations, one already supported, and twenty-two retain
   open validation work.
-  Accelerated batches additionally skipped 304 unrelated commits after subject,
+  Accelerated batches additionally skipped 308 unrelated commits after subject,
   complete file-scope and consumer screening. These are explicitly marked
-  `scope-screen`, not full reviews. There are 350 resolved commits in total and
-  683 still pending. Inventory generation does not constitute review.
+  `scope-screen`, not full reviews. There are 404 resolved commits in total and
+  625 still pending. Inventory generation does not constitute review.
 - The latest screening batches cover menu/battle/audio/RAM changes, standalone ROM
   analysis/build tools and LZP compressor maintenance. Atlas consumes checked-in
   raw/PNG sources for LZP references; it does not invoke the compressor. New asset
@@ -182,8 +182,8 @@ commit/file inventory. Never skip a change solely because it is undocumented.
 - A complete dev build now validates its generated bundle before reporting success.
   It includes all 612 maps, four time variants and 29 neighborhoods. Dirty build
   asset versions include the generation time to prevent stale force-cached previews.
-  The publication audit gate still rejects 701 unresolved commits: 683 pending
-  and eighteen reviewed with open validation. Nothing has been pushed or published.
+  The publication audit gate still rejects 647 unresolved commits: 625 pending
+  and twenty-two reviewed with open validation. Nothing has been pushed or published.
 - Shared map palette time now follows upstream's brightness table, including forced
   MORN/DAY/NITE/EVE and the pre-Flash darkness mapping. Terrain, roof colors, animation
   gates, palette-swap regions and NPC context use the same policy; object schedules
@@ -204,6 +204,18 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   Dance Theater entrance/exit warps work, and the forced-day interior and NPCs
   retain their colors when entered at night. This limited browser pass recorded
   no console errors; it does not complete full-site glow or loader verification.
+- Another accelerated pass processed 58 commits in batches: 50 detailed no-impact
+  resolutions, four explicit scope skips, and four relevant changes left open.
+  The cleared changes cover menu/text rendering, ROM layout and CPU bookkeeping,
+  unused tools, and equivalent weather-loop optimizations. Shared graphics files
+  were inspected at diff level rather than excluded by directory or commit title.
+  The open findings cover VBlank timing validation, immediate weather clearing,
+  fixed rain/thunder intensity, and Zapdos-dependent Route 9/10 overcast.
+- Target-source weather inspection also confirms the global Azalea Slowpoke gate
+  on rain/overcast, snow in Silver Cave Room 3, and guaranteed Cherrygrove City
+  blossoms before delivering the Mystery Egg. These findings require shared event
+  state and particle/palette integration; they are not completed compatibility work.
+  Random regional weather and random later blossoms remain intentionally omitted.
 - Exhaustive review, remaining dev compatibility, complete visual verification,
   pushing branches, CI execution, and publication remain incomplete.
 

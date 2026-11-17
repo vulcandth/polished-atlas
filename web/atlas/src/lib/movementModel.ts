@@ -175,6 +175,18 @@ export const MOVEMENT_MODEL_BY_CONSTANT = {
   SPRITEMOVEDATA_ALOLAN_EXEGGUTOR: {
     category: "object",
   },
+  SPRITEMOVEDATA_BIG_HO_OH: {
+    category: "object",
+  },
+  SPRITEMOVEDATA_BIG_LUGIA: {
+    category: "object",
+  },
+  SPRITEMOVEDATA_AQUARIUM_TOP: {
+    category: "object",
+  },
+  SPRITEMOVEDATA_AQUARIUM_BOTTOM: {
+    category: "object",
+  },
   SPRITEMOVEDATA_TINY_WINDOWS: {
     category: "effect",
   },

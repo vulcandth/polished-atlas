@@ -61,6 +61,7 @@ class ASMConstantParser:
     _RE_CONST_NEXT = re.compile(r"^const_next\s+(.+)$")
     _RE_DEF_EQU = re.compile(r"^(?:DEF|def|REDEF|redef)\s+([A-Za-z0-9_]+)\s+(?:EQU|equ)\s+(.+)$")
     _RE_OW_NPC_PAL_CONST = re.compile(r"^ow_npc_pal_const\s+([A-Za-z0-9_]+)$")
+    _RE_OW_MON_PAL_CONST = re.compile(r"^ow_mon_pal_const\s+([A-Za-z0-9_]+)$")
 
     def __init__(self) -> None:
         self.symbols: Dict[str, int] = {
@@ -82,13 +83,20 @@ class ASMConstantParser:
     def parse_file(self, path: Path) -> None:
         const_value = 0
         const_inc = 1
+        in_macro = False
+        mon_colors: List[str] = []
         for raw_line in path.read_text(encoding="utf-8").splitlines():
             code, *_ = raw_line.split(";", 1)
             line = code.strip()
             if not line:
                 continue
             if line.startswith("MACRO "):
-                # Macro bodies can contain const_def etc but we only care about top level.
+                in_macro = True
+                continue
+            if line == "ENDM":
+                in_macro = False
+                continue
+            if in_macro:
                 continue
             if line.startswith("ext_const_def"):
                 args_text = line[len("ext_const_def"):].strip()
@@ -102,7 +110,7 @@ class ASMConstantParser:
                     self.ext_const_value = 0
                 if len(args) >= 2:
                     self._define(args[1], self.ext_const_value)
-                self.ext_const_value += const_inc
+                    self.ext_const_value += const_inc
                 continue
             if line.startswith("ext_const"):
                 parts = line.split()
@@ -177,7 +185,20 @@ class ASMConstantParser:
                 self._define(pal_npc, const_value + 1)
                 const_value += const_inc
                 continue
+            match = self._RE_OW_MON_PAL_CONST.match(line)
+            if match:
+                name = match.group(1)
+                self._define(f"PAL_MON_{name}", const_value + 1)
+                mon_colors.append(name)
+                const_value += const_inc
+                continue
             # Ignore any other directives.
+        # Expand the RGBDS nested loop defining ordered light/dark combinations.
+        for light in mon_colors:
+            for dark in mon_colors:
+                if light != dark:
+                    value = (self.symbols[f"PAL_OW_{light}"] << 4) | self.symbols[f"PAL_OW_{dark}"]
+                    self._define(f"PAL_MON_{light}_{dark}", value + 1)
 
     def _define(self, name: str, value: int) -> None:
         if name not in self.symbols:
@@ -242,7 +263,7 @@ class SpriteHeader:
     sprite_id: int
     gfx_pointer: str
     sprite_type: str
-    default_palette: str
+    default_palette: Optional[str]
     tile_path: str
     tile_bytes: bytes
 
@@ -292,14 +313,15 @@ class ObjectEventEntry:
     event_flag: Optional[str]
     extra_payload: Dict[str, object] = field(default_factory=dict)
     event_flag_set: bool = False
+    sprite_y_offset: Optional[int] = None
 
     def to_payload(self, block_pixel_size: int, palette_lookup: Sequence[str]) -> Dict[str, object]:
         division = EVENT_CELLS_PER_BLOCK if EVENT_CELLS_PER_BLOCK > 0 else 1
         cell_pixel_size = max(1, block_pixel_size // division) if block_pixel_size > 0 else 1
         px = self.x_tiles * cell_pixel_size
         py = self.y_tiles * cell_pixel_size
-        palette_name = None
-        if self.palette_value is not None and self.palette_value > 0:
+        palette_name = self.palette_constant
+        if palette_name is None and self.palette_value is not None and self.palette_value > 0:
             index = self.palette_value - 1
             if 0 <= index < len(palette_lookup):
                 palette_name = palette_lookup[index]
@@ -349,6 +371,8 @@ class ObjectEventEntry:
             }
         if self.extra_payload:
             payload["extra"] = self.extra_payload
+        if self.sprite_y_offset is not None:
+            payload["sprite_y_offset"] = self.sprite_y_offset
         return payload
 
 
@@ -716,7 +740,7 @@ def _parse_dp_table(path: Path, label: str) -> List[Tuple[str, str]]:
     return results
 
 
-def _parse_mini_icon_block(lines: Sequence[str], constants: ASMConstantParser) -> List[str]:
+def _parse_mini_icon_block(lines: Sequence[str], constants: ASMConstantParser, directive: str = "mini_icon") -> List[str]:
     entries: List[str] = []
     index = 0
     total = len(lines)
@@ -745,15 +769,15 @@ def _parse_mini_icon_block(lines: Sequence[str], constants: ASMConstantParser) -
                         break
                 block.append(candidate)
             if repeat > 0 and block:
-                sub_entries = _parse_mini_icon_block(block, constants)
+                sub_entries = _parse_mini_icon_block(block, constants, directive)
                 for _ in range(repeat):
                     entries.extend(sub_entries)
             continue
         if line.startswith("endr"):
             break
-        if line.startswith("mini_icon"):
-            payload = line[len("mini_icon"):].strip()
-            token = payload.split(",", 1)[0].strip()
+        if line.startswith(directive + " ") or line.startswith(directive + "\t"):
+            payload = line[len(directive):].strip()
+            token = payload if directive == "iconpal" else payload.split(",", 1)[0].strip()
             if token:
                 entries.append(token)
             continue
@@ -767,20 +791,17 @@ def _parse_mini_icon_pointer_names(path: Path, constants: ASMConstantParser) -> 
     return _parse_mini_icon_block(lines, constants)
 
 
-def _parse_icon_palette_entries(path: Path) -> List[Tuple[Optional[str], Optional[str]]]:
+def _parse_icon_palette_entries(path: Path, constants: ASMConstantParser) -> List[Tuple[Optional[str], Optional[str]]]:
     palettes: List[Tuple[Optional[str], Optional[str]]] = []
     if not path.exists():
         return palettes
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
-        code, *_ = raw_line.split(";", 1)
-        line = code.strip()
-        if not line or not line.startswith("iconpal"):
-            continue
-        payload = line[len("iconpal"):].strip()
+    source = path.read_text(encoding="utf-8")
+    prefix = "PAL_MON_" if "db PAL_MON_" in source else "PAL_OW_"
+    for payload in _parse_mini_icon_block(source.splitlines(), constants, "iconpal"):
         tokens = [token.strip() for token in payload.split(",") if token.strip()]
         if len(tokens) >= 2:
-            shiny = f"PAL_OW_{tokens[0]}"
-            normal = f"PAL_OW_{tokens[1]}"
+            shiny = f"{prefix}{tokens[0]}"
+            normal = f"{prefix}{tokens[1]}"
             palettes.append((normal, shiny))
     return palettes
 
@@ -841,12 +862,12 @@ def gather_pokemon_icon_metadata(root: Path, constants: ASMConstantParser) -> Di
 
     num_cosmetic = len(cosmetic_forms)
     num_variant = len(variant_forms)
-    palette_entries = _parse_icon_palette_entries(root / "data/pokemon/overworld_icon_pals.asm")
+    palette_entries = _parse_icon_palette_entries(root / "data/pokemon/overworld_icon_pals.asm", constants)
     icon_sources = _parse_pokemon_icon_sources(root)
 
     total_required = num_species + num_cosmetic + num_variant
-    if len(palette_entries) < len(pointer_names):
-        palette_entries = palette_entries + [(None, None)] * (len(pointer_names) - len(palette_entries))
+    if len(palette_entries) != len(pointer_names):
+        raise ValueError(f"Icon palette/pointer count mismatch: {len(palette_entries)} != {len(pointer_names)}")
 
     spec_map: List[Tuple[Optional[str], str]] = []
     for index in range(num_species):
@@ -964,7 +985,7 @@ def parse_sprite_headers(root: Path, constants: ASMConstantParser) -> Tuple[List
                 sprite_id=sprite_id,
                 gfx_pointer="",
                 sprite_type="",
-                default_palette="",
+                default_palette=None,
                 tile_path="",
                 tile_bytes=b"",
             )
@@ -1150,19 +1171,14 @@ def parse_movement_table(root: Path, constants: ASMConstantParser) -> Dict[str, 
     mapping: Dict[str, MovementInfo] = {}
     if not path.exists():
         return mapping
-    movement_index = 0
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
-        code, _, comment = raw_line.partition(";")
-        stripped = code.strip()
-        if not stripped.startswith("sprite_movement_data"):
-            continue
-        args = split_arguments(stripped[len("sprite_movement_data") :].strip())
+    def add(identifier: str, args: List[str]) -> None:
         if len(args) != 6:
-            continue
-        identifier = comment.strip().split()[-1] if comment.strip() else f"SPRITEMOVEDATA_{movement_index:02X}"
+            raise ValueError(f"Incomplete movement record {identifier}: {args}")
+        if identifier in mapping:
+            raise ValueError(f"Duplicate movement record {identifier}")
         mapping[identifier] = MovementInfo(
             identifier=identifier,
-            movement_id=constants.get(identifier, movement_index),
+            movement_id=constants.get(identifier, len(mapping)),
             function=args[0],
             facing=args[1],
             action=args[2],
@@ -1170,7 +1186,28 @@ def parse_movement_table(root: Path, constants: ASMConstantParser) -> Dict[str, 
             flags2=constants.evaluate(args[4], fallback=0) if args[4] else 0,
             palette_flags=constants.evaluate(args[5], fallback=0) if args[5] else 0,
         )
-        movement_index += 1
+    identifier = None
+    fields: List[str] = []
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        code, _, comment = raw_line.partition(";")
+        stripped = code.strip()
+        if stripped.startswith("sprite_movement_data"):
+            args = split_arguments(stripped[len("sprite_movement_data"):].strip())
+            name = comment.strip().split()[-1] if comment.strip() else f"SPRITEMOVEDATA_{len(mapping):02X}"
+            add(name, args)
+        elif not stripped and re.fullmatch(r"SPRITEMOVEDATA_[A-Z0-9_]+", comment.strip()):
+            if identifier:
+                add(identifier, fields)
+            identifier, fields = comment.strip(), []
+        elif identifier and stripped.startswith("db "):
+            fields.extend(split_arguments(stripped[3:].strip()))
+        elif stripped.startswith("assert_table_length"):
+            break
+    if identifier:
+        add(identifier, fields)
+    expected = constants.get("NUM_SPRITEMOVEDATA")
+    if not mapping or (expected is not None and len(mapping) != expected):
+        raise ValueError(f"Movement table has {len(mapping)} entries; expected {expected}")
     return mapping
 
 
@@ -1264,7 +1301,7 @@ def evaluate_expression(expr: str, constants: ASMConstantParser) -> Optional[int
 
 def macro_object_event(args: List[str]) -> Tuple[List[str], Dict[str, object]]:
     extra: Dict[str, object] = {}
-    if len(args) >= 10 and args[2] == "SPRITE_MON_ICON":
+    if len(args) >= 10 and args[2] in {"SPRITE_MON_ICON", "SPRITE_AQUARIUM_MON"}:
         species = args[5]
         form = args[9] if len(args) > 9 else "NO_FORM"
         extra = {"species": species, "form": form}
@@ -1667,6 +1704,17 @@ def build_object_entry(
     species_id = resolve_constant(species_constant) if species_constant else None
     if palette_value is not None and palette_value < 0:
         palette_value = -1
+    palette_constant = None
+    # Pokemon sprite palettes are packed light/dark nybbles, except aquarium
+    # sprites (also used by volcano Moltres), which use ordinary NPC palettes.
+    if (constants.get("PAL_MON_RED") is not None and sprite_id is not None
+            and (constants.get("SPRITE_POKEMON") or 0) <= sprite_id < (constants.get("SPRITE_VARS") or 0)
+            and sprite_constant != "SPRITE_AQUARIUM_MON" and palette_value is not None and palette_value > 0):
+        matching = [name for name, value in constants.symbols.items()
+                    if name.startswith("PAL_MON_") and value == palette_value]
+        if not matching:
+            raise ValueError(f"Unknown packed Pokemon palette {palette_expr} in {raw_text}")
+        palette_constant = matching[0]
     script_command = None
     script_argument = None
     if object_type_constant == "OBJECTTYPE_COMMAND":
@@ -1696,7 +1744,7 @@ def build_object_entry(
         species_id=species_id,
         time_mask=time_mask,
         palette_value=palette_value,
-        palette_constant=None,
+        palette_constant=palette_constant,
         object_type_constant=object_type_constant,
         object_type_id=object_type_id,
         script_command=script_command,
@@ -1704,7 +1752,45 @@ def build_object_entry(
         event_flag=event_flag,
         extra_payload=extra_payload,
     )
+    movement = movement_lookup.get(movement_constant)
+    if movement and constants.get("BG_ALIGNED") is not None:
+        aligned = bool(movement.palette_flags & constants.get("BG_ALIGNED", 0))
+        offset = bool(movement.flags2 & constants.get("BG_OFFSET", 0))
+        entry.sprite_y_offset = (4 if offset else 0) if aligned else (-8 if offset else -4)
     return entry
+
+
+def mon_palette_components(constants: ASMConstantParser, palette_names: Sequence[str]) -> Dict[str, object]:
+    """CopyMonIconLightColor replaces dark palette color 1 with light color 2."""
+    result: Dict[str, object] = {}
+    for name, value in constants.symbols.items():
+        if not name.startswith("PAL_MON_") or value <= 0:
+            continue
+        packed = value - 1
+        light, dark = packed >> 4, packed & 15
+        if not (0 <= light < len(palette_names) and dark < len(palette_names)):
+            raise ValueError(f"Invalid Pokemon palette {name}: {value}")
+        result[name] = {"mon_components": [palette_names[light], palette_names[dark]]}
+    return result
+
+
+def parse_dual_object_palettes(root: Path, palette_names: Sequence[str]) -> Dict[str, List[str]]:
+    path = root / "data/maps/dual_obj_pals.asm"
+    if not path.exists():
+        return {}
+    result = {}
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        line = raw.split(";", 1)[0].strip()
+        if not line.startswith("dual_obj_pal "):
+            continue
+        args = split_arguments(line.split(None, 1)[1])
+        if len(args) != 3 or args[0] in result:
+            raise ValueError(f"Invalid dual object palette: {line}")
+        pair = [f"PAL_OW_{name}" for name in args[1:]]
+        if any(name not in palette_names for name in pair):
+            raise ValueError(f"Unknown dual object palette: {line}")
+        result[args[0]] = pair
+    return result
 
 
 def build_payload(
@@ -1849,6 +1935,8 @@ def main() -> None:
     )
     output_path = args.output.resolve()
     payload["glow"] = load_object_glow(polished_root)
+    payload["palettes"].update(mon_palette_components(constants, palette_names))
+    payload["dual_palettes"] = parse_dual_object_palettes(polished_root, palette_names)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2, sort_keys=True)

@@ -18,6 +18,7 @@ import type {
 type RawRgbTuple = [number, number, number];
 
 type RawPaletteEntry = {
+  mon_components?: [string, string];
   time_variants?: Record<string, RawRgbTuple[]>;
   overcast?: Record<string, RawRgbTuple[]>;
   darkness?: RawRgbTuple[] | null;
@@ -55,6 +56,7 @@ type RawFacingEntry = {
 };
 
 type RawObjectEventEntry = {
+  sprite_y_offset?: number;
   index?: number;
   macro?: string;
   x_tiles?: number;
@@ -123,6 +125,7 @@ type RawObjectMetadata = {
   maps?: Record<string, RawMapObjectEntry>;
   pokemon_icons?: RawPokemonIconMetadata;
   glow?: ObjectGlowMetadata | null;
+  dual_palettes?: Record<string, [string, string]>;
 };
 
 type RawPokemonIconPalette = {
@@ -206,6 +209,10 @@ function sanitizePaletteEntry(raw: RawPaletteEntry | undefined): ObjectPaletteEn
     entry.static = raw?.static.map((item) => sanitizeRgb(item));
   } else if (raw?.static != null) {
     entry.static = [];
+  }
+  if (Array.isArray(raw?.mon_components) && raw.mon_components.length === 2 &&
+      raw.mon_components.every((name) => typeof name === "string")) {
+    entry.monComponents = [raw.mon_components[0], raw.mon_components[1]];
   }
   return entry;
 }
@@ -369,6 +376,7 @@ function sanitizeObjectEvent(raw: RawObjectEventEntry | undefined): ObjectEventE
     ? raw!.time_of_day!.slots.filter((slot) => typeof slot === "string")
     : [];
   return {
+    spriteYOffset: Number.isFinite(raw?.sprite_y_offset) ? raw!.sprite_y_offset : undefined,
     index: Number.isFinite(raw?.index) ? Math.trunc(raw?.index ?? 0) : 0,
     macro: typeof raw?.macro === "string" ? raw!.macro : "object_event",
     xTiles: Number.isFinite(raw?.x_tiles) ? Math.trunc(raw?.x_tiles ?? 0) : 0,
@@ -509,6 +517,9 @@ export function convertObjectMetadata(payload: RawObjectMetadata): ObjectMetadat
     maps,
     pokemonIcons,
     glow: payload.glow ?? null,
+    dualPalettes: Object.fromEntries(Object.entries(payload.dual_palettes ?? {}).filter(
+      ([, pair]) => Array.isArray(pair) && pair.length === 2 && pair.every((name) => typeof name === "string"),
+    )),
   };
 }
 

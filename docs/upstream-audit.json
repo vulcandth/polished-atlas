@@ -18954,7 +18954,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Partial source inspection and adaptation: export per-map dual object palette pairs, select NEXT_PALETTE per facing tile, and render both large-bird frames. Source-based day/night browser samples checked. Complete commit review, map priority/placement and glow integration validation remain open; not a full-diff resolution."
     },
     {
       "sha": "6083379b634205dbb4bd66e3c9aa8ad5563d39df",
@@ -29943,7 +29944,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Partial source inspection and adaptation: expand packed PAL_MON constants and iconpal repetitions, correct extended form indexing, compose light color 2 into dark color 1 before glow/fade. Focused pixel tests and full current-source palette reference checks pass. Complete commit review remains pending."
     },
     {
       "sha": "034e5afa4ec0e311d80173211aeded3c7ceff1e5",
@@ -41179,7 +41181,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Movement-table format adaptation implemented: six db fields under SPRITEMOVEDATA headers are parsed strictly, preserving the legacy macro format. All 59 current movements and every object movement reference validate; stable metadata generation succeeds. This note does not assert complete review of the 466-line conversion diff."
     },
     {
       "sha": "6f2c9b5a7592da43bc4f839f22e249d25536c394",
@@ -41201,10 +41204,14 @@
           "maps/GoldenrodPokecomCenterOffice.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "All three text diffs reviewed: changes object movement/priority flags, a PokeCom WALL collision to COUNTER, and office Meowth from OBJECTTYPE_POKEMON to OBJECTTYPE_SCRIPT while removing a background event. Modern movement parsing now exports these flags, but priority, on-map placement and collision behavior remain open for validation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6f2c9b5a7592da43bc4f839f22e249d25536c394",
+        "Full three-file text diff inspected; current-source movement corpus checks and object metadata generation pass. Remaining integration validation stated in reason."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "d17d23d6452949c998bec4005cf3a4b6efe7931e",
@@ -42202,7 +42209,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Partial source inspection: export BG_ALIGNED/BG_OFFSET vertical offsets and consume them in object placement. Corpus and placement tests pass. Full diff review and on-map overlap/priority verification remain pending."
     },
     {
       "sha": "5e1a04dba3167cf5fa62223f313adebbb098337a",
@@ -54240,7 +54248,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Partial source inspection and adaptation: SPRITE_AQUARIUM_MON resolves species/form, uses ordinary NPC palette overrides and the icon renderer. All 15 current objects resolve; fish and volcano Moltres source samples inspected. Complete commit review, source animation fidelity and full-world placement validation remain pending. Fuchsia is currently omitted by neighborhood connection traversal."
     },
     {
       "sha": "915f3fb6d8545caffe9f473572137303844381e2",

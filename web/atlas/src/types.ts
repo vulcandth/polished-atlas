@@ -229,6 +229,7 @@ export interface WarpMetadata {
 export type RgbTuple = [number, number, number];
 
 export interface ObjectPaletteEntry {
+  monComponents?: [string, string];
   timeVariants?: Record<string, RgbTuple[]>;
   overcast?: Record<string, RgbTuple[]>;
   darkness?: RgbTuple[] | null;
@@ -355,6 +356,7 @@ export interface ObjectFacingEntry {
 }
 
 export interface ObjectEventEntry {
+  spriteYOffset?: number;
   index: number;
   macro: string;
   xTiles: number;
@@ -423,6 +425,7 @@ export interface ObjectMetadata {
   maps: Record<string, MapObjectMetadataEntry>;
   pokemonIcons: PokemonIconMetadata | null;
   glow?: ObjectGlowMetadata | null;
+  dualPalettes?: Record<string, [string, string]>;
 }
 
 export interface ObjectGlowMetadata {

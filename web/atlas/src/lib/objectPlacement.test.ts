@@ -2,6 +2,13 @@ import { describe, expect, it } from "vitest";
 import { computeObjectPosition, type PlacementContext } from "./objectPlacement";
 
 describe("computeObjectPosition", () => {
+  it("uses source BG_ALIGNED/BG_OFFSET offsets, including at doubled scale", () => {
+    for (const spriteYOffset of [-8, -4, 0, 4]) {
+      const entry = { xTiles: 1, yTiles: 4, xPixels: 16, yPixels: 64, spriteYOffset };
+      const context = { atlasBlockPixelSize: 64, metadataBlockPixelSize: 32, cellsPerBlock: 2, eventCellPixelSize: 16 };
+      expect(computeObjectPosition(entry, context)).toEqual({ x: 32, y: 128 + spriteYOffset * 2 });
+    }
+  });
   it("uses collision-cell units when tiles are provided", () => {
     const context: PlacementContext = {
       atlasBlockPixelSize: 32,

@@ -256,6 +256,37 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   validation. These findings expand the requirements rather than replace the
   explicit palette-swap and NPC-glow work.
 
+- Latest NPC adaptation: modern six-field `db` movement records now export all
+  59 entries; missing/truncated records fail instead of silently producing an
+  empty movement table. Pokémon palette constants, repeated icon palette entries
+  and extended form indices now resolve consistently. Packed light/dark palettes
+  compose before glow/fading; ordinary aquarium palettes remain distinct.
+- Dual object palettes now select colors per facing tile for Ho-Oh, Lugia and
+  Alolan Exeggutor. World and indoor contexts preserve the map pair during spatial
+  refresh. Aquarium Pokémon (including volcano Moltres) use the icon renderer,
+  and modern background alignment flags supply their vertical placement.
+- Verification for this adaptation: 54 Python tests, 37 frontend tests, TypeScript
+  and the complete 612-map/four-time dev build pass. The frontend was rebuilt and
+  the bundle validated after final source cleanup. Required frontend lint has no
+  errors and retains the existing hook-dependency warning. Stable-source object
+  metadata generation also succeeds; this is not a full stable regression pass.
+  Source-based browser samples cover both large-bird frames, Exeggutor, Marill,
+  aquarium fish and volcano Moltres at day/night without console errors. Packed
+  glow combinations have focused pixel tests; full-world glow validation remains.
+- **New world-layout defect:** Fuchsia City and nearby southwestern Kanto routes
+  have generated assets but are absent from the connected neighborhood. The
+  generator marks an undirected component as consumed after traversing only its
+  outgoing connections; the Route14/LuckyIsland synthetic dual connection leaves
+  real maps unreachable in that traversal. Fix dual-connection geometry and add
+  outdoor placement coverage checks before claiming complete world support.
+  This currently prevents normal world navigation to the aquarium for placement
+  verification. Passing map counts and bundle checks did not detect the omission.
+- The ledger still has 608 unresolved commits: 585 pending and 23 reviewed with
+  open work. Five partially inspected feature commits retain pending status with
+  adaptation notes; the three-file object-flag change received a full diff review
+  and stays open for integration validation. Implementation tests do not substitute
+  for the remaining commit audit.
+
 ## Immediate remaining implementation work
 
 - Verify palette-swap NPC colors in the full generated site. The frontend now
@@ -265,7 +296,7 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   shared event state. Forced map time is now shared across terrain and objects. Modern GIF output still fails explicitly
   on modern tables and needs adaptation. Backport compact-asset validation into
   main's shared publication tooling, then verify combined deployment.
-- Complete NPC glow effects, weather integration verification, dual object palettes,
+- Complete NPC glow effects, weather integration verification, dual-palette integration validation,
   and all map/object/movement findings from the audit.
 - Finish glow validation on Dragon Shrine, cave mouths, underground lamps and lava
   ladders, including directional walls/warps and secondary palettes. Verify

@@ -29,7 +29,7 @@ import {
 } from "@/types";
 import { registerPixiExtensions } from "@/pixi/registerExtensions";
 import { loadMapAnimation, type MapAnimationResource } from "@/lib/loadMapAnimation";
-import { ObjectSpriteCache } from "@/lib/objectSprites";
+import { ObjectSpriteCache, isPokemonIconSprite } from "@/lib/objectSprites";
 import { computeObjectPosition, type PlacementContext } from "@/lib/objectPlacement";
 import { createCollisionHelper, type CollisionHelper } from "@/lib/collision";
 import { createGlowTransition, NO_GLOW, UNLIT } from "@/lib/objectGlow";
@@ -458,6 +458,13 @@ function resolveFacingConstant(entry: ObjectEventEntry, metadata: ObjectMetadata
   const movementKey = entry.movement?.constant ?? "";
   const movement = movementKey ? metadata.movements[movementKey] : undefined;
   const movementAction = movement?.action ?? "";
+  const fixedActionFacing: Record<string, string> = {
+    OBJECT_ACTION_BIG_HO_OH: "FACING_BIG_HO_OH_1",
+    OBJECT_ACTION_BIG_LUGIA: "FACING_BIG_LUGIA_1",
+    OBJECT_ACTION_ALOLAN_EXEGGUTOR: "FACING_ALOLAN_EXEGGUTOR_0",
+  };
+  const fixedFacing = fixedActionFacing[movementAction];
+  if (fixedFacing && metadata.facings[fixedFacing]) return fixedFacing;
   if (movementAction === "OBJECT_ACTION_CUT_TREE" && metadata.facings["FACING_CUT_TREE"]) {
     return "FACING_CUT_TREE";
   }
@@ -787,10 +794,13 @@ function buildStaticAnimationFrames(
   paletteName: string | null,
   defaultDirection: CardinalDirection | null,
 ): { direction: CardinalDirection; frames: SpriteFrameRef[] } | null {
-  if (spriteKey !== "SPRITE_BIG_GYARADOS") {
-    return null;
-  }
-  const facingKeys = ["FACING_BIG_GYARADOS_1", "FACING_BIG_GYARADOS_2"];
+  const family: Record<string, string> = {
+    SPRITE_BIG_GYARADOS: "FACING_BIG_GYARADOS",
+    SPRITE_BIG_HO_OH: "FACING_BIG_HO_OH",
+    SPRITE_BIG_LUGIA: "FACING_BIG_LUGIA",
+  };
+  if (!family[spriteKey]) return null;
+  const facingKeys = [`${family[spriteKey]}_1`, `${family[spriteKey]}_2`];
   const frames: SpriteFrameRef[] = [];
   for (const facingKey of facingKeys) {
     const record = cache.getFacingTexture(spriteKey, facingKey, paletteName ?? null);
@@ -824,7 +834,7 @@ function buildMovementFrameSet(
   const availableDirections: CardinalDirection[] = [];
   let defaultDirection = resolveDirectionFromFacingKey(baseKey);
 
-  if (spriteDef.spriteType !== "WALKING_SPRITE") {
+  if (spriteDef.spriteType !== "WALKING_SPRITE" || spriteKey === "SPRITE_BIG_HO_OH") {
     const staticFrames = buildStaticAnimationFrames(
       cache,
       spriteKey,
@@ -899,7 +909,7 @@ function buildPokemonIconFrameSet(
   frameSet: MovementFrameSet | null;
   frameDurationMs: number | null;
 } {
-  const spriteKey = "SPRITE_MON_ICON";
+  const spriteKey = objectEntry.sprite.constant ?? "SPRITE_MON_ICON";
   const { species, form } = resolvePokemonSpecies(objectEntry);
   const palette = paletteName ?? null;
   const direction = resolveDirectionFromFacingKey(facingKey) ?? "down";
@@ -1401,7 +1411,8 @@ function createIdleAnimator(
   if (!frames || frames.length <= 1) {
     return null;
   }
-  const frameDuration = Math.max(260, movementSpeedToIdleDuration(summary.model.speed));
+  // These large Pokemon use AlternateStepFrame's 16-VBlank phases.
+  const frameDuration = 16 * FRAME_DURATION_MS;
   const seed =
     ((objectEntry.index ?? 0) * 2147483647 +
       summary.startCell.x * 2654435761 +
@@ -1463,7 +1474,7 @@ function createMovementAnimator(
   }
   if (
     summary.model.category === "object" &&
-    objectEntry.movement?.constant === "SPRITEMOVEDATA_BIG_GYARADOS"
+    ["SPRITEMOVEDATA_BIG_GYARADOS", "SPRITEMOVEDATA_BIG_HO_OH", "SPRITEMOVEDATA_BIG_LUGIA"].includes(objectEntry.movement?.constant ?? "")
   ) {
     const idleAnimator = createIdleAnimator(summary, objectEntry, frameSet);
     if (idleAnimator) {
@@ -1510,7 +1521,7 @@ function spatialPaletteRefresher(
     cache.setPaletteContext(context);
     cache.setBgPalettes(colors);
     cache.setGlowState(state);
-    if (spriteKey === "SPRITE_MON_ICON") {
+    if (isPokemonIconSprite(spriteKey)) {
       marker.frameSet = buildPokemonIconFrameSet(cache, marker.object, spriteDef, facingKey, paletteName ?? null, "palette-refresh").frameSet;
     } else {
       const record = cache.getFacingTexture(spriteKey, facingKey, paletteName);
@@ -2748,6 +2759,7 @@ export default function MapCanvas({
         overcast: paletteMap?.overcast ?? (isOvercast && isOverworld),
         darkness: paletteMap?.darkness ?? isDarkness,
         paletteTime: paletteMap?.palette_times?.[timeOfDay],
+        dualPalettes: metadata.dualPalettes?.[mapData.mapConstant ?? ""],
       });
     } catch {
       cache.setPaletteContext({ indoor: false, overcast: false, darkness: false });
@@ -2841,7 +2853,7 @@ export default function MapCanvas({
       let frameSet: MovementFrameSet | null = null;
       let iconFrameDurationMs: number | null = null;
 
-      if (spriteKey === "SPRITE_MON_ICON") {
+      if (isPokemonIconSprite(spriteKey)) {
         const iconResult = buildPokemonIconFrameSet(
           cache,
           objectEntry,
@@ -2940,7 +2952,7 @@ export default function MapCanvas({
       if (
         !disableObjectAnimations &&
         !animator &&
-        spriteKey === "SPRITE_MON_ICON" &&
+        isPokemonIconSprite(spriteKey) &&
         iconFrameDurationMs
       ) {
         const idleAnimator = createPokemonIconAnimator(objectEntry, frameSet, iconFrameDurationMs);
@@ -3657,6 +3669,7 @@ export default function MapCanvas({
           overcast: paletteMap?.overcast ?? (isOvercast && isOverworld),
           darkness: paletteMap?.darkness ?? isDarkness,
           paletteTime: paletteMap?.palette_times?.[timeOfDay],
+          dualPalettes: metadata.dualPalettes?.[mapData.mapConstant ?? ""],
         });
       } catch {
         cache.setPaletteContext({ indoor: false, overcast: false, darkness: false });
@@ -3689,7 +3702,7 @@ export default function MapCanvas({
         let frameSet: MovementFrameSet | null = null;
         let iconFrameDurationMs: number | null = null;
 
-        if (spriteKey === "SPRITE_MON_ICON") {
+        if (isPokemonIconSprite(spriteKey)) {
           const iconResult = buildPokemonIconFrameSet(
             cache,
             objectEntry,
@@ -3789,7 +3802,7 @@ export default function MapCanvas({
         if (
           !disableObjectAnimations &&
           !animator &&
-          spriteKey === "SPRITE_MON_ICON" &&
+          isPokemonIconSprite(spriteKey) &&
           iconFrameDurationMs
         ) {
           const idleAnimator = createPokemonIconAnimator(

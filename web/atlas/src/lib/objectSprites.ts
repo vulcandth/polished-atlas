@@ -17,6 +17,14 @@ type FacingTextureRecord = {
   height: number;
 };
 
+type PaletteContext = {
+  indoor?: boolean;
+  overcast?: boolean;
+  darkness?: boolean;
+  paletteTime?: string;
+  dualPalettes?: [string, string];
+};
+
 const DEFAULT_PALETTE: RgbTuple[] = [
   [255, 255, 255],
   [170, 170, 170],
@@ -25,6 +33,10 @@ const DEFAULT_PALETTE: RgbTuple[] = [
 ];
 
 const DEBUG_SPRITES = new Set(["SPRITE_SAILBOAT", "SPRITE_BIG_GYARADOS", "SPRITE_BIG_SNORLAX"]);
+
+export function isPokemonIconSprite(name: string | null): boolean {
+  return name === "SPRITE_MON_ICON" || name === "SPRITE_AQUARIUM_MON";
+}
 
 function decodeTilePixels(tileBytes: Uint8Array): Uint8Array[] {
   if (tileBytes.length % 16 !== 0) {
@@ -78,6 +90,7 @@ export class ObjectSpriteCache {
   private isOvercast = false;
   private isDarkness = false;
   private paletteTime: string | undefined;
+  private dualPalettes: [string, string] | undefined;
   private glowState: GlowState = UNLIT;
   readonly glowFadeClock = new GlowFadeClock();
 
@@ -137,8 +150,9 @@ export class ObjectSpriteCache {
   // Provide palette selection context for current map rendering. Textures are keyed by
   // these flags, so we do not clear the cache here; switching maps will naturally generate
   // distinct textures as needed.
-  setPaletteContext(options: { indoor?: boolean; overcast?: boolean; darkness?: boolean; paletteTime?: string }): void {
+  setPaletteContext(options: PaletteContext): void {
     this.glowState = UNLIT;
+    this.dualPalettes = options.dualPalettes;
     const nextIndoor = Boolean(options.indoor);
     const nextOvercast = Boolean(options.overcast);
     const nextDarkness = Boolean(options.darkness);
@@ -157,8 +171,8 @@ export class ObjectSpriteCache {
     // No texture clear; cacheKey includes these flags
   }
 
-  getPaletteContext(): { indoor: boolean; overcast: boolean; darkness: boolean; paletteTime?: string } {
-    return { indoor: this.isIndoor, overcast: this.isOvercast, darkness: this.isDarkness, paletteTime: this.paletteTime };
+  getPaletteContext(): PaletteContext {
+    return { indoor: this.isIndoor, overcast: this.isOvercast, darkness: this.isDarkness, paletteTime: this.paletteTime, dualPalettes: this.dualPalettes };
   }
 
   destroy(): void {
@@ -180,9 +194,10 @@ export class ObjectSpriteCache {
       return null;
     }
     const effectivePalette = paletteName ?? spriteDef.defaultPalette;
+    const secondaryName = this.dualPalettes?.[0] === effectivePalette ? this.dualPalettes[1] : effectivePalette;
     // Include bgSignature for copy-from-BG palettes so textures are unique per map palette
-    const isCopy = effectivePalette ? this.resolveCopyBgIndex(effectivePalette) !== null : false;
-    const cacheKey = `${spriteName}|${facingKey}|${effectivePalette ?? ""}|${this.timeOfDay}|glow=${this.glowSignature()}` +
+    const isCopy = [effectivePalette, secondaryName].some((name) => name && this.resolveCopyBgIndex(name) !== null);
+    const cacheKey = `${spriteName}|${facingKey}|${effectivePalette ?? ""}|next=${secondaryName ?? ""}|${this.timeOfDay}|glow=${this.glowSignature()}` +
       `${this.isIndoor ? "|indoor" : ""}${this.isOvercast ? "|overcast" : ""}${this.isDarkness ? "|dark" : ""}|paletteTime=${this.paletteTime ?? "legacy"}` +
       `${isCopy ? `|bg=${this.bgSignature ?? ""}` : ""}`;
     const cached = this.textureCache.get(cacheKey);
@@ -222,7 +237,7 @@ export class ObjectSpriteCache {
       }
       return fallback;
     }
-    const record = this.buildTexture(spriteName, spriteDef, facing, tiles, palette);
+    const record = this.buildTexture(spriteName, spriteDef, facing, tiles, palette, this.resolvePalette(secondaryName));
     if (!record) {
       const fallback = buildFallback();
       if (fallback) {
@@ -294,7 +309,7 @@ export class ObjectSpriteCache {
     if (!variant || !variant.tiles2bppBase64) {
       return null;
     }
-    const paletteKey = overridePalette ?? variant.palette?.normal ?? null;
+    const paletteKey = overridePalette || variant.palette?.normal || null;
     const cacheKey =
       `icon|${speciesConstant}|${normalizedForm}|${paletteKey ?? ""}|${this.timeOfDay}|glow=${this.glowSignature()}` +
       `${this.isIndoor ? "|indoor" : ""}${this.isOvercast ? "|overcast" : ""}${this.isDarkness ? "|dark" : ""}|paletteTime=${this.paletteTime ?? "legacy"}` +
@@ -439,9 +454,18 @@ export class ObjectSpriteCache {
     return fadeGlowPalette(endpoint(previous), target, steps, this.metadata.glow.fade_steps);
   }
 
-  private resolvePaletteSource(name: string | null | undefined, glow = NO_GLOW): RgbTuple[] {
+  private resolvePaletteSource(name: string | null | undefined, glow = NO_GLOW, allowMon = true): RgbTuple[] {
     if (!name) {
       return DEFAULT_PALETTE;
+    }
+    const components = allowMon ? this.metadata.palettes[name]?.monComponents : undefined;
+    if (components) {
+      const [light, dark] = components;
+      const colors = [...this.resolvePaletteSource(dark, glow, false)];
+      // Equal nybbles select an ordinary palette. Otherwise copy light color 2
+      // into dark color 1, before applying glow and fading the two endpoints.
+      if (light !== dark) colors[1] = this.resolvePaletteSource(light, glow, false)[2];
+      return colors;
     }
     // Copy-from-background palettes map to BG slots 0-7 in order
     const copyIndex = this.resolveCopyBgIndex(name);
@@ -532,6 +556,7 @@ export class ObjectSpriteCache {
     facing: ObjectFacingEntry,
     tiles: Uint8Array[],
     palette: RgbTuple[],
+    secondaryPalette: RgbTuple[],
   ): FacingTextureRecord | null {
     const shouldDebug = import.meta.env?.DEV && DEBUG_SPRITES.has(spriteName);
     let minX = 0;
@@ -553,6 +578,7 @@ export class ObjectSpriteCache {
     }
     const buffer = new Uint8Array(width * height * 4);
     const colors = clampPalette(palette);
+    const secondaryColors = clampPalette(secondaryPalette);
 
     for (const tileEntry of facing.tiles) {
       const dx = tileEntry.dx ?? 0;
@@ -569,6 +595,7 @@ export class ObjectSpriteCache {
       }
       const tilePixels = tiles[normalizedIndex];
       const attributes = tileEntry.attributes ?? 0;
+      const tileColors = (attributes & 0x08) !== 0 ? secondaryColors : colors;
       const flipX = (attributes & 0x20) !== 0;
       const flipY = (attributes & 0x40) !== 0;
       for (let row = 0; row < 8; row += 1) {
@@ -588,7 +615,7 @@ export class ObjectSpriteCache {
             continue;
           }
           const color =
-            colors[pixelValue] ?? DEFAULT_PALETTE[Math.min(pixelValue, DEFAULT_PALETTE.length - 1)];
+            tileColors[pixelValue] ?? DEFAULT_PALETTE[Math.min(pixelValue, DEFAULT_PALETTE.length - 1)];
           const offset = (destY * width + destX) * 4;
           buffer[offset] = color[0];
           buffer[offset + 1] = color[1];
@@ -726,7 +753,7 @@ export class ObjectSpriteCache {
     if (spriteDef.spriteType === "WALKING_SPRITE") {
       return Math.floor(limit / 2);
     }
-    if (spriteName === "SPRITE_BIG_GYARADOS" || spriteName === "SPRITE_SAILBOAT") {
+    if (spriteDef.spriteType === "BIG_GYARADOS_SPRITE" || spriteName === "SPRITE_SAILBOAT") {
       return Math.floor(limit / 2);
     }
     return 0;

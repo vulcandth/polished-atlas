@@ -14907,10 +14907,13 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Reviewed all nine full text patches. Interrupt register cleanup affects VBlank1/4/5 sound handling; the overworld tile-animation dispatch is unchanged. Music-player note buffers move from WRAMX to WRAM0, the Pokédex gets a dedicated bank-backup byte, and leaving the music menu restores map state. Atlas does not emulate these menus, interrupts or RAM allocation. No map data, source graphics, palette rules, or animation command timing changes are introduced.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/393a56320cb08760382a80f96c91c6f9f779dddb",
+        "Read the full diff of every changed file; checked scripts/ and web/atlas/src/ for relevant data consumers."
+      ]
     },
     {
       "sha": "fdc8e7901a655607dbef6cebf16bd0697c3be441",
@@ -14928,10 +14931,13 @@
           "engine/pokemon/summary_screen.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Reviewed both full patches. The summary screen computes Hidden Power type from the viewed Pokémon DVs; the contact-move list change is only a terminator comment. Atlas has no summary-screen or move-info consumer and neither patch alters overworld data or rendering.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/fdc8e7901a655607dbef6cebf16bd0697c3be441",
+        "Read the full diff of every changed file; checked scripts/ and web/atlas/src/ for relevant data consumers."
+      ]
     },
     {
       "sha": "4c8f8ea7bc1b347efc9b64ec8406ee13c3e52740",
@@ -14965,10 +14971,13 @@
           "engine/battle/abilities.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Reviewed all six full patches. Adds Fluffy to the ability enum/name/description lists, assigns it to non-Faithful Mareep/Flaaffy base stats, and implements battle Fire/contact damage modifiers. Atlas consumes neither ability tables nor these battle/base-stat fields; no overworld sprite assets or object definitions change.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4c8f8ea7bc1b347efc9b64ec8406ee13c3e52740",
+        "Read the full diff of every changed file; checked scripts/ and web/atlas/src/ for relevant data consumers."
+      ]
     },
     {
       "sha": "09f6f2fadf0625389e982359b529b005b4a07050",
@@ -14982,27 +14991,33 @@
           "data/abilities/mold_breaker_suppressed_abilities.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Reviewed the entire one-line table patch: FLUFFY joins MoldBreakerSuppressedAbilities. Only battle ability suppression changes; the atlas does not consume this list.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/09f6f2fadf0625389e982359b529b005b4a07050",
+        "Read the full diff of every changed file; checked scripts/ and web/atlas/src/ for relevant data consumers."
+      ]
     },
     {
       "sha": "946f6beb4bd07e672ef8176ca2c11ee47e32c7d1",
       "parents": [
         "09f6f2fadf0625389e982359b529b005b4a07050"
       ],
-      "subject": "Facade's damage is no longer halved for burned Pok\u00c3\u00a9mon",
+      "subject": "Facade's damage is no longer halved for burned Pokémon",
       "changes": [
         [
           "M",
           "engine/battle/effect_commands.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Reviewed the full battle damage-calculation patch. Facade skips the burn damage reduction alongside the existing Guts case. No atlas-rendered data, movement, weather or palette behavior changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/946f6beb4bd07e672ef8176ca2c11ee47e32c7d1",
+        "Read the full diff of every changed file; checked scripts/ and web/atlas/src/ for relevant data consumers."
+      ]
     },
     {
       "sha": "e93525f9b70641ce99a746010267fa1538cff883",
@@ -15032,10 +15047,14 @@
           "gfx/stats/summary.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Shift \"PP\" tiles 4px closer to their values. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e93525f9b70641ce99a746010267fa1538cff883",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "395315a3b25682135acc88024851e352660958be",
@@ -15118,10 +15137,14 @@
           "maps/VictoryRoad2F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "regeneration",
+      "reason": "Reviewed every text change and compared all changed map block bytes. Route23 (12x70) becomes Route23North (12x38) and Route23South (12x32); concatenating the new 456-byte and 384-byte block arrays exactly reproduces the old 840 bytes. Reciprocal north/south connections retain zero x offset. South warp/object/coordinate Y values subtract 76 cells; north keeps Victory Road warps, signs and four officers, while south keeps League Gate warps and five officers. Shared scene state remains wRoute23SceneID, scripts and badges are relabeled/split, and external warps plus music/encounter tables point to the new maps. Atlas regeneration includes both halves and resolves targets; visual seam, officer placement and Victory Road/League Gate round-trip validation remain open.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/395315a3b25682135acc88024851e352660958be",
+        "Full text diffs plus full parent Route23.asm; binary comparison of maps/Route23.ablk, Route23North.ablk and Route23South.ablk proves exact concatenation (840 = 456 + 384 bytes).",
+        "Generated dev neighborhood graph contains both halves; scripts/tests/test_map_connections.py verifies complete map and warp inventory. Specific seam/object/round-trip checks remain required."
+      ]
     },
     {
       "sha": "89f4fb572c37f26af9d39be2e7d445aca48fb8f6",
@@ -15225,10 +15248,13 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Reviewed all three full patches. The overworld block RAM buffer shrinks from 1326 to 1300 bytes and union/linker section names/order follow it, including PC LCD code and unused padding. Atlas decodes map block files using per-map dimensions and does not use ROM memory allocations. Navel Rock map/layout changes are in separate commits and remain pending; this commit changes no map blocks or dimensions.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/788f33bdf79fb11848708039bf3754819da5546d",
+        "Read the full diff of every changed file; checked scripts/ and web/atlas/src/ for relevant data consumers."
+      ]
     },
     {
       "sha": "5e7693af9d2fbc2568dedc02c2a2271c628c18c5",
@@ -15250,10 +15276,14 @@
           "gfx/pokemon/mewtwo_armored/front.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Give armored Mewtwo an actual anim_idle. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5e7693af9d2fbc2568dedc02c2a2271c628c18c5",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "0f5de27f7efbe42d60c2b3957af971f15f687554",
@@ -15311,10 +15341,14 @@
           "gfx/pokemon/ursaluna_bloodmoon/front.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Run gb-asm-tools/tools/dupeframes.py and optimize some pics. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0f5de27f7efbe42d60c2b3957af971f15f687554",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6383b89323c099314a9346afe646071519e13452",
@@ -15460,10 +15494,14 @@
           "engine/battle/move_effects/counter.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix message issues when Counter/Mirror Coat fails. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/873137d0e5969545dbcfca2a4ce7256374bc8b48",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6476ae9a622b9ade917e320449b8e0592633f348",
@@ -15477,10 +15515,14 @@
           "engine/battle/effect_commands.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Remove a comment that hasn't been correct in almost a decade. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6476ae9a622b9ade917e320449b8e0592633f348",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "298ac1f80a0c92251471837476d6a4a92369066d",
@@ -15494,10 +15536,14 @@
           "engine/battle/effect_commands.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix Metronome, Sleep Talk, Power Herb, etc.. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/298ac1f80a0c92251471837476d6a4a92369066d",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "7e1175fcc8dd8cfce0f81cd2d0ba7cf8f5583544",
@@ -15559,10 +15605,14 @@
           "gfx/stats/summary_sprites.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Correct monochrome palettes for summary screen. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7e1175fcc8dd8cfce0f81cd2d0ba7cf8f5583544",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "a3cb00095339e279dc88dd3c2e3a0c2e4ae6057f",
@@ -15593,10 +15643,14 @@
           "engine/pokemon/summary/blue_page.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Do not show 1/2/H when abilities are disabled. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d4165fd1c8340b9db3ba72945b240f25b7e3b7c3",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "33e6eed802cfd7958a15be2384f372a4f10ac737",
@@ -15669,10 +15723,14 @@
           "engine/battle/effect_commands.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix Power Herb and Solarbeam in sun. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e1ebe4679c7748736505ade7b8b609e9ee161a96",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "32b7f75b00379027792b12c18de982a6f30e3c03",
@@ -15730,7 +15788,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Overworld icon palette table changes: retain for icon color regeneration/verification."
     },
     {
       "sha": "2cba5f8eebc10e746a7870b513498958cf9f244d",
@@ -15784,7 +15843,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Overworld icon palette table changes: retain for icon color regeneration/verification."
     },
     {
       "sha": "88efa64840fd0b0f36386ae0f36db8af78616ff9",
@@ -16015,10 +16075,14 @@
           "engine/pc/bills_pc_ui.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix item icons in newbox Bill's PC. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1596331c20747f4b0637339c3017abd3ff142fba",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "be2d7b135f97f77d6dc6e116286be119d4983eef",
@@ -16344,10 +16408,14 @@
           "gfx/pokemon/wooper_plain/back.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use SourApple's latest spritebase updates. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/690c884791ac98983c2b2610d4fe4517e2874550",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "518c78781da81cf21d338e04b9c9b559456f9cb5",
@@ -16377,10 +16445,14 @@
           "gfx/pokemon/marowak_alolan/front.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Run palfix.py on non-grayscale PNGs. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/518c78781da81cf21d338e04b9c9b559456f9cb5",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "1d66890d422038ea2cae2e0189cab2fe0d1d0555",
@@ -16414,10 +16486,14 @@
           "gfx/pokemon/wyrdeer/front.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use Egg3ggEgg's sprite for Wyrdeer. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1d66890d422038ea2cae2e0189cab2fe0d1d0555",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "afc098a2ed365282e9a3103d1365ed891f72993d",
@@ -16617,10 +16693,14 @@
           "engine/battle/move_effects/transform.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Remove old minimize check. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9ba19c54695a75291218eb97a7ce9b15cbf9ac3a",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "1046416ddb78d34fa3269424d9a101ef99d99ab8",
@@ -16684,10 +16764,14 @@
           "gfx/stats/party_menu_ob.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use brighter yellow and red for party menu item icons. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/773628a90bc48d65c64fae2027d353c8b506d273",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "1ef93f2b5b91170e9403ef7748f855c4b0c6fd99",
@@ -16796,10 +16880,14 @@
           "CREDITS.md"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix credits. Documentation/credits only; no executable code or atlas-consumed assets change.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5068cdc9c303bcc03679e84a8d345aed2a9fdc13",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "35535f93cebeeab0885cc923ed023f3c52466e0a",
@@ -16817,10 +16905,14 @@
           "engine/battle/effect_commands.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Minor fix. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/35535f93cebeeab0885cc923ed023f3c52466e0a",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "29b1af1ce6c3050d356692fd87246350a7ece551",
@@ -16834,10 +16926,14 @@
           "data/moves/effects.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Will-O-Wisp does not have STAB. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/29b1af1ce6c3050d356692fd87246350a7ece551",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "268c2a98b6090be0848925ad08f9020fa2229a6f",
@@ -17212,10 +17308,14 @@
           "gfx/battle/status.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Don't reserve space forna \"Fainted\" status graphic+palette. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/88a64b73cddc97941742ea194340b31e33c79a30",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "4e8493b706f40164552cd92d2f236911bf79ef4e",
@@ -17597,10 +17697,14 @@
           "gfx/pokemon/swinub/shiny.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Recolor the Swinub->Pilowsine->Mamoswine shinies. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/cec82d75d56d23f39b0f4d52fac4d07865102ea7",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "46bb840fdd08667126d7f7870276bbbb17426679",
@@ -17639,10 +17743,14 @@
           "engine/battle/move_effects/sketch.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Pre-emptively fix a bug involving Sketch + Mimic. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/04f63bdc3a3df89f8b83cdf8444d49b92f9d1a30",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6b9929dd865aee791a15ae7e1925b9378e1b388f",
@@ -17656,10 +17764,14 @@
           "engine/battle/move_effects/sketch.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix the build. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6b9929dd865aee791a15ae7e1925b9378e1b388f",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "8d095196126e50eb6e435c15a8587524dc74381a",
@@ -17673,10 +17785,14 @@
           "engine/battle/core.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: If the Mold Breaker user faints, stop Mold Breaker from working.. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8d095196126e50eb6e435c15a8587524dc74381a",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "1b863cab2f760999efb9b4e4cc2c6626d0767afd",
@@ -17778,10 +17894,14 @@
           "gfx/pokemon/hoothoot/front.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Edit Hoothoot's sprite with SourApple's help. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7adff46aed6014552773ef8ceb0b5fd292f72f33",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "112a6dfcc3374fdffd1fdaf78908de67ce25b034",
@@ -18118,10 +18238,14 @@
           "data/trainers/parties.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Revise parties. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b5622b855ce5eec7f833e907523ac7d7653c7b4a",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "213ff7eb1e4f20c1ca0ad902496fc9853793aa84",
@@ -18135,10 +18259,14 @@
           "engine/battle/core.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Automatic Hail on Mt. Silver peak. Inspected the full AutomaticBattleWeather diff because hail could affect the atlas: it adds automatic in-battle hail on Silver Cave peak. It does not change overworld weather rules, palettes or particles.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/213ff7eb1e4f20c1ca0ad902496fc9853793aa84",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "2432b4a4657aea800e790f4c011a15dd781a9148",
@@ -18307,10 +18435,14 @@
           "engine/battle/endturn.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Document Affection levels. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7180a6959173b6d8844db558335165dadd44dcc1",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "83a39b35ccbd6fbcf79288b1213fc5bd5f4e14e2",
@@ -18757,10 +18889,14 @@
           "engine/pokemon/summary/pink_page.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix summary screen experience bar. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3a29f00b477c632271fdedd1afda4e14108e4c78",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "431b29fc6d3827995ddbf5c3f856f6375b333b74",
@@ -19020,10 +19156,14 @@
           "FAQ.md"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Update FAQ (#1348). Documentation/credits only; no executable code or atlas-consumed assets change.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7e9cc0d6414a1cb91680713fb2e8e83a04ba5f46",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "1dddde4630fd71de5b5ad93e6dcbd973fe7ea906",
@@ -26629,10 +26769,14 @@
           "engine/battle/move_effects/counter.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Counter now works if you take 0 damage.. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/49561f10fb3d728d5c1a9a364d74cf20793e82f3",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ce6cb0dc1c1afe0be2fdb1e1b6f61a66ed5b51a6",
@@ -26654,10 +26798,14 @@
           "gfx/pokemon/persian_plain/front.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Updated Persian Sprite. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ce6cb0dc1c1afe0be2fdb1e1b6f61a66ed5b51a6",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "25476a12ed2bdf85236c16a181d1b2825a71aaf9",
@@ -26720,10 +26868,14 @@
           "data/moves/animations.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fixed Blizzard Ice Buildup alignment. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/bfd1ad6da2c7d650d028a43cf2951e5d8ef08938",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "a6b829c5fd969576988af6e22e54ca79a413f9c5",
@@ -26737,10 +26889,14 @@
           "gfx/pokemon/persian_plain/front.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Run palfix.py on new Persian PNG to re-encode as 2-bit grayscale. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a6b829c5fd969576988af6e22e54ca79a413f9c5",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "259bef5257d325d3478578d1ceed7b244e2709dd",
@@ -26813,10 +26969,14 @@
           "docs/newbox_format.md"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Add quotes on top of more docs. Documentation/contributor guidance only; does not modify atlas inputs or behavior.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0497c0d7be486c635c2bc711e445cfef23eb8e69",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "0e040e96a160ddcbd12a0184b08d2458747c7f60",
@@ -26851,10 +27011,14 @@
           "TODO.md"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Move items from TODO.md to GitHub issues. Documentation/contributor guidance only; does not modify atlas inputs or behavior.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4385527bb29b081675b1985c82b55e425d144105",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "973ae6b847567e331fbc927345e2e9209274a2f4",
@@ -27292,7 +27456,7 @@
       "parents": [
         "faa672d761a0fd201bc25ca0d001217f058cb323"
       ],
-      "subject": "Make Ecrutea\u00c4\u00b8 Gym taller, and fix some Gym floor logos",
+      "subject": "Make Ecruteaĸ Gym taller, and fix some Gym floor logos",
       "changes": [
         [
           "M",
@@ -27344,10 +27508,14 @@
           "engine/pokemon/evolve.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Clarify comments on evolution items. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/14b4baa31ddfcf5eb5030c7f1d9d83b00d08e03a",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6a9f4c1cdc57ed6f2ebb48d5ae16e760b644e297",
@@ -27414,10 +27582,14 @@
           "data/trainers/parties.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Whitney's Miltank is nicknamed Milky. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9d7b637104f1c66179f2833700eb697c07d2612a",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "9b77ef6caf5958843ba6fb7ff0c2724ccf831ca9",
@@ -30020,10 +30192,14 @@
           "engine/battle/move_effects/skill_swap.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Skill Swap: display the abilities being swapped. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d4d0eb642bb49df7ddae8748e9bea00b83f5b574",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d3078ca353472a15bf4d280f8cc4ba30590802e7",
@@ -30733,10 +30909,14 @@
           "gfx/pokemon/gengar/front.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Updated Gengar's Sprite. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/278df4b0225b8d641e0ae2af8db6a642d0777c84",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e5e34801beb0e975f5a7386d7ff6d904e6cc5af8",
@@ -30839,10 +31019,14 @@
           "engine/battle/abilities.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Cursed Body no longer activates if the move hit a Substitute. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/40bd23f04bd03c24ccefdc855e3c4c33a7e22c86",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "dd1056beceb22bd97598baeb6bf7282de7a21f90",
@@ -30934,10 +31118,14 @@
           "gfx/pokemon/magikarp_patches/back.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Unique patterns for Magikarp Bubbles, Diamonds, and Patches. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/44ad1ffdbf3c45cd07c183760855c1a42e545844",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "daa1768713bd14a2b1b2aecd5f09b5b58ed4437b",
@@ -31687,10 +31875,14 @@
           "data/abilities/flags.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use table assertions for a table. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/299c9e83d134b776b3835075a9463f52d6451513",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "3fc3dbfbdcbf6420489709bd6eb4b3155626f724",
@@ -31704,10 +31896,14 @@
           "engine/battle/abilities.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix battle crash. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3fc3dbfbdcbf6420489709bd6eb4b3155626f724",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "78fa037a7faf1f3ce9294dd83b6cb91274359a31",
@@ -31721,10 +31917,14 @@
           "engine/battle/abilities.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix Intimidate and Neutralizing Gas. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/78fa037a7faf1f3ce9294dd83b6cb91274359a31",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "fcfaf030201cf57ec7bcbaf5153aa72d3f8eef1a",
@@ -31738,10 +31938,14 @@
           "data/abilities/flags.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Don't give cascading assertion failures for a single missing ability/similar. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/fcfaf030201cf57ec7bcbaf5153aa72d3f8eef1a",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d3f88b6479383b1dafb54d849f35977078d31e2b",
@@ -31844,10 +32048,14 @@
           "data/trainers/parties.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Give Petrel an Imposter Ditto. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0130dfe6e72af6ad72a3b7ae50ad25d393658b07",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "c831c9b9ef0574a7f6c113be9bb7a1ffe1def313",
@@ -31911,10 +32119,14 @@
           "TODO.md"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Remove some TODO.md items already made into GitHub issues. Documentation/contributor guidance only; does not modify atlas inputs or behavior.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8293e031856d3fbcc25da1ee658c678d52fcf8de",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e9de98f8bff63be5487a4bb201aee47e80aca0e9",
@@ -32093,10 +32305,14 @@
           "gfx/stats/summary.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use one tile for both Summary arrows. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4ffc5e4e0584277ae02ba3c2649fafce7822da40",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "dd65806ee731e4c542188e35b265e83b7ee4c450",
@@ -32451,10 +32667,14 @@
           "data/trainers/parties.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Heracross with Skill Link is a non-Faithful change. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/cf1bbf4a8dee0fcd3ae4373d5102b8f4dff0b7b4",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "087b878f299fb1268df731032d205ba11cce9c09",
@@ -32472,10 +32692,14 @@
           "data/trainers/parties.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Revert \"Heracross with Skill Link is a non-Faithful change\". Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/087b878f299fb1268df731032d205ba11cce9c09",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "0e52f5884ca3238153dee0045383dec3dacdda05",
@@ -33825,10 +34049,14 @@
           "data/pokemon/base_stats/zubat.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use a macro to verify BST totals instead of comments. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0e52f5884ca3238153dee0045383dec3dacdda05",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "9418cf9275c7da18601c46386c7374d6ac25451d",
@@ -33842,10 +34070,14 @@
           "data/pokemon/base_stats/meowth_galarian.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Correct Galarian Meowth's Defense stat. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9418cf9275c7da18601c46386c7374d6ac25451d",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "f01d808e8b085940e10af45f602d640d44d400eb",
@@ -33859,10 +34091,14 @@
           "data/pokemon/base_stats/raichu_alolan.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix Alolan Raichu's faithful BST. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f01d808e8b085940e10af45f602d640d44d400eb",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "838cf9ee5c5ba6e323974e78f6f0f9e019701cf1",
@@ -34224,17 +34460,21 @@
           "data/pokemon/base_stats/xatu.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use more recent non-Faithful base stat distributions from Blaze Black 2/Volt White 2 Redux. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/838cf9ee5c5ba6e323974e78f6f0f9e019701cf1",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "3ae6cdb4acef149a1254aac2c6e844594082a08d",
       "parents": [
         "838cf9ee5c5ba6e323974e78f6f0f9e019701cf1"
       ],
-      "subject": "Use a consistent palette for Pok\u00c3\u00a9rus icons, and comment some duplicate palettes",
+      "subject": "Use a consistent palette for Pokérus icons, and comment some duplicate palettes",
       "changes": [
         [
           "M",
@@ -34278,10 +34518,14 @@
           "gfx/stats/hp_bars.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Add more palette comments. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/14c897c50f339ba25c29c378c28ff86fa732a965",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "4de503fc0ea66f206963145785b62c0b274831f5",
@@ -34295,17 +34539,21 @@
           "gfx/battle/hp_bar.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Add more palette comments. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4de503fc0ea66f206963145785b62c0b274831f5",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d65ea2ad1448233bca80ba3cebd7a500ad4c5156",
       "parents": [
         "4de503fc0ea66f206963145785b62c0b274831f5"
       ],
-      "subject": "Use `'<SHINY>'` light-gray star for Summary screen shiny icon, not `'\u00e2\u02dc\u2026'` black star",
+      "subject": "Use `'<SHINY>'` light-gray star for Summary screen shiny icon, not `'★'` black star",
       "changes": [
         [
           "M",
@@ -34316,10 +34564,14 @@
           "gfx/stats/pink_page.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use `'<SHINY>'` light-gray star for Summary screen shiny icon, not `'★'` black star. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d65ea2ad1448233bca80ba3cebd7a500ad4c5156",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "b29d79e53366ae2b40d69efeed5ddcf17fdb39c6",
@@ -34420,10 +34672,14 @@
           "gfx/pokemon/venomoth/front.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use improved Venomoth sprite by SourApple. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/14e1f3b68cfd40bc5cd74a9d6fc72c634de9ac9c",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "dff6510afee4a5e569fb4b2a9fe9be3c79d8df52",
@@ -34488,7 +34744,7 @@
       "parents": [
         "c781d83a7fe06ba619fcc4a886347061832c49e1"
       ],
-      "subject": "Renaming a PC Box uses white for the Pok\u00c3\u00a9 Ball icon",
+      "subject": "Renaming a PC Box uses white for the Poké Ball icon",
       "changes": [
         [
           "M",
@@ -34651,7 +34907,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Judge Machine EV/IV colors may be shared with overworld graphics; trace consumers before resolving."
     },
     {
       "sha": "1c69513eafedd940d91e630650a3b4637ba6af77",
@@ -34787,10 +35044,14 @@
           "engine/battle/effect_commands.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix Lum Berry not activating in response to becoming confused. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3bbf79fc9048fbcebee85a676c405bb4e03d579b",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "c5bcf64b84300c9dc45226d158be2634a497c15c",
@@ -34808,10 +35069,14 @@
           "engine/battle/endturn.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Speed up ongoing Wrap animation. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c5bcf64b84300c9dc45226d158be2634a497c15c",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "9c7dff1b4faad86754dba2d018524b6916d8f087",
@@ -34829,10 +35094,14 @@
           "engine/battle/endturn.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Re-adjusted Wrap's animation. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9c7dff1b4faad86754dba2d018524b6916d8f087",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6df77791e305ce414557587b5ba54bb1103ee323",
@@ -34974,10 +35243,14 @@
           "constants/item_data_constants.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Correct comments. Full diff changes comments only around item-effect enum declarations.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1300786d7555090c1c1c3c4e64608a64d9677621",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "2d9cf5f5a74e1a097b1310ce98e275726129107f",
@@ -35375,7 +35648,7 @@
       "parents": [
         "17d8b179a6dcfb076f0f537ff3ce900f14616259"
       ],
-      "subject": "Use Pok\u00c3\u00a9mon Center roof for Goldenrod Pok\u00c3\u00a9com Center",
+      "subject": "Use Pokémon Center roof for Goldenrod Pokécom Center",
       "changes": [
         [
           "M",
@@ -35629,10 +35902,14 @@
           "engine/battle/effect_commands.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Display an item activation animation for Focus Sash/Band. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a5283b3befc575a04a9065b5d4bf51a9484d577b",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "c27dc8d4d2b9a5845c63d14863aaa8f72c526332",
@@ -35671,10 +35948,14 @@
           "data/pokemon/base_stats/dudunsparce.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Give Dudunsparce the same non-Faithful hidden ability as Dunsparce. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f97f27695567e863c852d9cd218e5941c6b61f3f",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "8c3e6682599c9a9bed9ffe57c09886b96c1b9d73",
@@ -36888,10 +37169,14 @@
           "data/pokemon/base_stats/nidoqueen.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Buff Nidoking's Attack and Nidoqueen's Special Attack. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/48095b6062da6082035d4707f7d6d623a7f3b48c",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "1efda06e56fc30d73657e56709a7258ba75054c4",
@@ -37285,10 +37570,14 @@
           "data/pokemon/evos_attacks.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Meganium learns Draining Kiss instead of Dazzling Gleam (which it can get from a TM). Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/cdbbd020ba0419a5a8199d77feaf3af686da3432",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "3ec007806b3c256f60dba463f089237f18d2cf8d",
@@ -37335,10 +37624,14 @@
           "engine/pokemon/move_mon.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Replace Meganium's Draining Kiss with Growth. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/cb3fdf2f7a433b77f95a9907281a2629f6a65a4b",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "15a12224233878c1e44f6e34b80be67c2698a64e",
@@ -37360,10 +37653,14 @@
           "gfx/pokemon/vaporeon/normal.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use updated Vaporeon sprite by SourApple. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/15a12224233878c1e44f6e34b80be67c2698a64e",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "3b166d9518cffcbae0ef4496872689268ce89e7f",
@@ -37778,10 +38075,14 @@
           "data/trainers/parties.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Bugsy sends out U-Turn Scyther first. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c9ff4753a3c6a7df7a78fdefe1cd74102ac90430",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ed557fcc6c9737ae354562fc06c6bd5043bbc1d7",
@@ -37795,10 +38096,14 @@
           "data/trainers/attributes.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Revise some trainer item use. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ed557fcc6c9737ae354562fc06c6bd5043bbc1d7",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "8eb5737af222e820774dbfbb389ccebc373e0fc1",
@@ -37812,10 +38117,14 @@
           "data/trainers/parties.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Remove Brightpowder from Fergus' Gyarados. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8eb5737af222e820774dbfbb389ccebc373e0fc1",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "11bf4f27e21fc5db1ffa8f9ab3344b49159556ec",
@@ -38031,10 +38340,14 @@
           "gfx/pokemon/dratini/shiny.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use updated Dratini by SourApple. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9ca8418c54d34d75a5f2ff971bc52b4de1052124",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "1e14e613a430476c302a78d9ed56dc5879bed1b4",
@@ -38262,7 +38575,7 @@
       "parents": [
         "3f77e34dfa68cae9f843c3f3c94ecaa3507fee69"
       ],
-      "subject": "Remove the Pok\u00c3\u00a9athlon construction site",
+      "subject": "Remove the Pokéathlon construction site",
       "changes": [
         [
           "M",
@@ -38323,7 +38636,7 @@
       "parents": [
         "3d478b20bb53e35d8f31a8e38b93a9d8b48ab0a4"
       ],
-      "subject": "Turn the Trainer House Pok\u00c3\u00a9 Ball sideways like Lance's",
+      "subject": "Turn the Trainer House Poké Ball sideways like Lance's",
       "changes": [
         [
           "M",
@@ -39009,7 +39322,7 @@
       "parents": [
         "a127fcdfd8351260abfb513b4d5e78e88ce5c266"
       ],
-      "subject": "Allow picking a Pok\u00c3\u00a9mon when checking happiness in Goldenrod (#1496)",
+      "subject": "Allow picking a Pokémon when checking happiness in Goldenrod (#1496)",
       "changes": [
         [
           "M",
@@ -39034,7 +39347,7 @@
       "parents": [
         "c6f7cd15db1727a699c53f8e75588742abaa2ea9"
       ],
-      "subject": "Add a flypoint for Pok\u00c3\u00a9mon League Gate (#1489)",
+      "subject": "Add a flypoint for Pokémon League Gate (#1489)",
       "changes": [
         [
           "M",
@@ -39186,10 +39499,14 @@
           "data/moves/slicing_moves.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Dragon Claw and Shadow Claw are slicing moves. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5735400084db96bd5a816c5bc7d181f5410a1462",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6f46211a51d45473fc90288f45484504c20684db",
@@ -39269,10 +39586,14 @@
           "gfx/pokemon/sunflora/front.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Update Dragonair, Kabutops, and Sunflora by SourApple. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/517660a47bc796fd8bbccd5c8051f32c20e17b8c",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e72ec2d7c2d42f39fe5ae240f7fd73556571c30c",
@@ -39659,10 +39980,14 @@
           "gfx/pokemon/kleavor/front.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Animate Egg's sprite of Kleavor. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8c7c521f75ede013c978655f2bf58b6d9c35abb3",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ab82bc2275bb5b21f290a2d54df587aafd989df2",
@@ -39688,10 +40013,14 @@
           "gfx/pokemon/rhyperior/front.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use updated Rhyperior animation by Scarlax. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ab82bc2275bb5b21f290a2d54df587aafd989df2",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "25c9d88db02e3b2228c4f0b9cd817a30303da1f4",
@@ -39709,10 +40038,14 @@
           "gfx/pokemon/mr__mime_galarian/front.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Update Galarian Mr. Mime by bloodless. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/25c9d88db02e3b2228c4f0b9cd817a30303da1f4",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "c4e2be5cba59266f30784b73fbe936fdb42f88ec",
@@ -39796,17 +40129,21 @@
           "gfx/pokemon/tauros_paldean_water/front.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Update Hisuian Sneasel and Paldean Tauros with Scarlax's new animations. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f7e45d7aa3e49925fec7baf1dbb19b32382b9949",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "53fa68c74cd802e338f0ffc515cecfc6104ee3e6",
       "parents": [
         "f7e45d7aa3e49925fec7baf1dbb19b32382b9949"
       ],
-      "subject": "Update many Gen 4 Pok\u00c3\u00a9mon sprites by bloodless",
+      "subject": "Update many Gen 4 Pokémon sprites by bloodless",
       "changes": [
         [
           "M",
@@ -39853,17 +40190,21 @@
           "gfx/pokemon/weavile/front.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Update many Gen 4 Pokémon sprites by bloodless. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/53fa68c74cd802e338f0ffc515cecfc6104ee3e6",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "0945d7d1e5499777c2f9117d3b585177ef912ebc",
       "parents": [
         "53fa68c74cd802e338f0ffc515cecfc6104ee3e6"
       ],
-      "subject": "Move the faithful-only \"F\" indicator from the copyright line to beside the \"Pok\u00c3\u00a9mon\" logo (replacing the \"TM\")",
+      "subject": "Move the faithful-only \"F\" indicator from the copyright line to beside the \"Pokémon\" logo (replacing the \"TM\")",
       "changes": [
         [
           "M",
@@ -39961,10 +40302,14 @@
           "engine/menus/intro_menu.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix flash of title screen tile. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ab1907ecfeb87bcdbf5963ad4cc4662dd0496337",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "cf86259267565dec1d15f8c5f8264690b96d37c9",
@@ -40108,7 +40453,7 @@
       "parents": [
         "a02e81e380143db9f9eef93aede4dfbd90e0223e"
       ],
-      "subject": "Add a floating Pok\u00c3\u00a9 Ball sprite (so far used only for a key item)",
+      "subject": "Add a floating Poké Ball sprite (so far used only for a key item)",
       "changes": [
         [
           "M",
@@ -40523,10 +40868,14 @@
           "engine/battle/effect_commands.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix Infiltrator and sound moves not bypassing Substitute for damage. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c93039d0ab6be2a2b93e696547b5ccffd8bc44dc",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "3912d52a5cb8c8a6f47389ac6a79cdd999ec5c93",
@@ -40871,10 +41220,14 @@
           "data/pokemon/base_stats/sandslash_plain.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Give both forms of Sandshrew+Sandslash Sharpness. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/59566fea36f9d486971f4573c716bd7a1aa2fb98",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "91057201c6f258531b5620e91fdef2320926dac8",
@@ -40888,10 +41241,14 @@
           "data/moves/moves.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: 95% accuracy Crabhammer is canon now. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/91057201c6f258531b5620e91fdef2320926dac8",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "b2027f5a3433e162a4e783f58aaa420fd4aa7f80",
@@ -40905,10 +41262,14 @@
           "data/moves/moves.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Nerf Iron Head and Moonblast secondary effect chance. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b2027f5a3433e162a4e783f58aaa420fd4aa7f80",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "de469094ad5622d2965759bf8424ec6a9ae440d6",
@@ -40922,10 +41283,14 @@
           "data/moves/moves.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Growth is now a Grass-type move. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/de469094ad5622d2965759bf8424ec6a9ae440d6",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6bfcabd02ca1927f5174e6c32e80376520904b3b",
@@ -40939,10 +41304,14 @@
           "data/moves/slicing_moves.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Metal Claw is also a slicing move. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6bfcabd02ca1927f5174e6c32e80376520904b3b",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "12fdadbea128f73d294b2fec905fa6dbca515199",
@@ -41029,10 +41398,14 @@
           "engine/battle/effect_commands.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix typo with Solar Beam. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/bac6497473aeaac9a3daf5fefda15a50b2e01ae2",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "3b274400439f42c0a845afa061fe2f350ba39d45",
@@ -41165,10 +41538,14 @@
           "engine/battle/move_effects/encore_disable.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Don't force the Encored move if it's cured with Mental Herb.. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1226ea17bb0bdf5de1bad706a688fe89af573981",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "483de7e9f4c78f551c759c9fe501d8b09b9ede8a",
@@ -41203,10 +41580,14 @@
           "engine/battle/endturn.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Tick Encore an extra time similar to Disable when applicable. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9850ce4d6db4a80b111f2dd3a599fd06e0393869",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "5f6c54f0b98b2c304925d8d44928e4bcc62e2572",
@@ -41220,10 +41601,14 @@
           "engine/battle/endturn.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix typo. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5f6c54f0b98b2c304925d8d44928e4bcc62e2572",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ebd88a3ea908094ff54f1392048c8b5309034e89",
@@ -41241,10 +41626,14 @@
           "audio/wave_samples.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Keep macros out of audio/wave_samples.asm for compatibility with Crystal Tracker. Audio playback data/engine only; the atlas does not play or emulate game audio.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ebd88a3ea908094ff54f1392048c8b5309034e89",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "37cb9795c46bccb0c9580fe97604b5c9bc8babff",
@@ -41533,10 +41922,14 @@
           "data/pokemon/base_stats/persian_plain.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Nonfaithful: Persian gets Super Luck instead of Limber. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/70852708dae6231ec2e590838d01d916854df120",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "1db72a09659d54d813fae15cee65a2f0fce1c787",
@@ -41554,10 +41947,14 @@
           "data/pokemon/base_stats/seaking.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Make Goldeen and Seaking be Water/Normal type in non-Faithful. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1db72a09659d54d813fae15cee65a2f0fce1c787",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "bf5d83e6e9cada08f3c2e98a0b5dc1843fd67eca",
@@ -41718,10 +42115,14 @@
           "data/pokemon/base_stats/weezing_galarian.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Adds Hyper Beam to Galarian Weezing's TM learnset (#1548). Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4a8267d3722bfd4d3f97d2c5ff57e9e40ddedba1",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "3e0ce1b40940000d3cabd29844ea8d424cdf5152",
@@ -42008,10 +42409,14 @@
           "gfx/trainers/firebreather_ashes.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Gray out Firebreather Dick's trainer pic as well as overworld sprite. Full diff confirms this adds a trainer battle portrait palette and assigns wTrainerPal during battle. The separate overworld ashes effect is not changed in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2b42d744e9bbe67103b0cf2e40f4350b060e6e59",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "b2900e79687a510e86e92855a911917582a56d19",
@@ -42140,10 +42545,14 @@
           "data/moves/descriptions.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Give X-Scissor a high critical hit ratio in non-faithful. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3d873239d11bbf67066c95e385863ddda25df6a5",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "fcdf2c14fabafa5e6aa1f31ebc5afb658f75c443",
@@ -42157,27 +42566,35 @@
           "data/moves/moves.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Iron Tail has 80% accuracy in non-faithful. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/fcdf2c14fabafa5e6aa1f31ebc5afb658f75c443",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d363ce84b7ca528cbfe18564191f9198c56f9c18",
       "parents": [
         "fcdf2c14fabafa5e6aa1f31ebc5afb658f75c443"
       ],
-      "subject": "Fix Trainer Card money near \u00c2\u00a51,000,000",
+      "subject": "Fix Trainer Card money near ¥1,000,000",
       "changes": [
         [
           "M",
           "engine/menus/trainer_card.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix Trainer Card money near ¥1,000,000. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d363ce84b7ca528cbfe18564191f9198c56f9c18",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6712cf7dffc318fe38d806e6ddbb7a33681ea5c9",
@@ -42208,10 +42625,14 @@
           "engine/battle/effect_commands.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix powder moves vs Sap Sipper. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/341c0682689a2da4fed93fa3e4416966249260a6",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "13bb2e39582a6cc35e2195430d061e977e5d93c3",
@@ -42225,10 +42646,14 @@
           "engine/battle/effect_commands.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: typo. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/13bb2e39582a6cc35e2195430d061e977e5d93c3",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "11b3a87417460a5c4dfd828507bd8f8d520cee48",
@@ -42308,10 +42733,14 @@
           "gfx/pokemon/mr__mime_galarian/shiny.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use Galarian Mr. Mime sprite by Sage Deoxys. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8a59866abb09c4b9ebecfd307a79a59ebaf7836a",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "2b06b733aace0dd6ff3eced693f4ec3419a01a64",
@@ -42683,10 +43112,14 @@
           "engine/battle/move_effects/false_swipe.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix #1563. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3d858a8c15dee3903ecd4170c637ac1e6da1a5fd",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "10fb5bca97455ac6882d84be84342f26f3881008",
@@ -43383,10 +43816,14 @@
           "data/pokemon/base_stats/kleavor.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Correct Kleavor's stats. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8f18362a9823159bc9a02bc77a67880d5708ca99",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "dd4dc1245694bf77ba3f8e09eaca68cd3689f747",
@@ -43400,10 +43837,14 @@
           "data/pokemon/base_stats/raichu_plain.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Mega Raichu abilities have been revealed. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/dd4dc1245694bf77ba3f8e09eaca68cd3689f747",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "8b449a1e86dff8df9025667882a6788b0ccaab98",
@@ -43487,10 +43928,14 @@
           "engine/battle/abilities.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Refactor on-faint ability handling. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2dcf9f9289fdfa9fb8fc82d5116079b408d0d692",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "63415bc08bf8ee7283ce953ccddd5cfd14b11cc7",
@@ -43541,10 +43986,14 @@
           "engine/battle/move_effects/false_swipe.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix enduring-related bugs. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/861fca491f7e959d255799bb54f5a545544dd17d",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d432df3daca488063f90ff1bb31383ea8b27647e",
@@ -43698,7 +44147,7 @@
       "parents": [
         "cd2ac371482d915c1910e4442f0f3e5c18eeb574"
       ],
-      "subject": "Use per-trainer palettes for the Kanto Pok\u00c3\u00a9mon Federation bikers",
+      "subject": "Use per-trainer palettes for the Kanto Pokémon Federation bikers",
       "changes": [
         [
           "M",
@@ -43919,7 +44368,7 @@
       "parents": [
         "df5bd9209a2faac33d46fca2bcbc5b547d19b5bf"
       ],
-      "subject": "Pok\u00c3\u00a9mon League gates are all wide with a \"League\" sign",
+      "subject": "Pokémon League gates are all wide with a \"League\" sign",
       "changes": [
         [
           "M",
@@ -44195,7 +44644,7 @@
       "parents": [
         "dfe4cac308e3a90fafb5440fab081a8fff36e5cf"
       ],
-      "subject": "Red roofs for Pok\u00c3\u00a9mon League buildings",
+      "subject": "Red roofs for Pokémon League buildings",
       "changes": [
         [
           "M",
@@ -44272,7 +44721,7 @@
       "parents": [
         "452800ddaecc78eb3104962d60f847eb76e5d134"
       ],
-      "subject": "Pok\u00c3\u00a9mon League side entrances are sideways",
+      "subject": "Pokémon League side entrances are sideways",
       "changes": [
         [
           "M",
@@ -44861,10 +45310,14 @@
           "engine/battle/endturn.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Binding Band increases wrap damage based on whether it's held when inflicted. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/53c6aefc9a2aebd07e6fac0f27e2b16b74fb64a4",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "f12a60513f627ee63225487e68fbc36b4e0695df",
@@ -45576,10 +46029,14 @@
           "engine/battle/abilities.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Give Alolan Sandslash Iron Barbs. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7d9a0ba64ebcafae6db441a151033a7bfea2885e",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "5f98da7996e738612dc67e7ff77e03967132c33b",
@@ -45593,10 +46050,14 @@
           "data/pokemon/base_stats/rapidash_plain.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Kanto Rapidash does not need to be Fire/Fairy since Galarian Rapidash is available. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5f98da7996e738612dc67e7ff77e03967132c33b",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "cea1167739113deec9b97d4148bf2ac6aec5c5ad",
@@ -45610,10 +46071,14 @@
           "data/abilities/descriptions.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Better description for Sand Force. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/cea1167739113deec9b97d4148bf2ac6aec5c5ad",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "f1849b42eee06ec654847a9ff4bc699c74fb50a6",
@@ -45627,10 +46092,14 @@
           "engine/battle/abilities.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix Neutralizing Gas. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f1849b42eee06ec654847a9ff4bc699c74fb50a6",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "52705216f0326966982452f36c6c153d5ffe8ccf",
@@ -45648,10 +46117,14 @@
           "engine/battle/move_effects/false_swipe.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix endurance messages. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/52705216f0326966982452f36c6c153d5ffe8ccf",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "c3ad65ac146308ea4e3ae2bc51c49e0e8128d2c0",
@@ -45757,10 +46230,14 @@
           "macros/scripts/maps.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Reviewed all three changed files. map_attributes drops its explicit connection flags and connection macros derive them while enforcing direction order; dual connections use a sentinel to bypass the order assertion. Adapted AttributesParser to accept both signatures, derive modern flags and reject malformed/empty input. Normalized every attributes line against the parent: only the reviewed macro header remains different. Parsed all 607 maps at parent and commit and confirmed identical graph records, offsets and flags. Target corpus covers all 612 map headers and every connection declaration. Neighborhood generation now rejects missing inventory and empty output; regenerated target produces 29 neighborhoods. Warp metadata uses canonical header identities to resolve every target.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a79dd2a36d00449b4961a119a1098e3aa318364f",
+        "Full patches of macros/scripts/maps.asm and data/maps/dual_connections.asm; complete data/maps/attributes.asm normalized-line diff plus exact parsed parent/commit graph equality (607 maps).",
+        "scripts/tests/test_map_connections.py: legacy/modern graph equivalence, malformed/empty failures, pinned 612-map corpus and all warp target resolution; production dev bundle validation and rendered 29-neighborhood world."
+      ]
     },
     {
       "sha": "fb0786b6584603a8d91472070c15142c4fc74a6d",
@@ -46587,7 +47064,7 @@
       "parents": [
         "8c782c01433febc7d0f9a1d9e0454f6cad94bc4d"
       ],
-      "subject": "Remove the Pok\u00c3\u00a9dex Show radio channel",
+      "subject": "Remove the Pokédex Show radio channel",
       "changes": [
         [
           "M",
@@ -46624,7 +47101,7 @@
       "parents": [
         "bd653175486dc83a87bbec85a6d46109e2cb7a5a"
       ],
-      "subject": "Compress Pok\u00c3\u00a9dex entry text",
+      "subject": "Compress Pokédex entry text",
       "changes": [
         [
           "M",
@@ -46764,10 +47241,14 @@
           "data/pokemon/base_stats/mr__mime_galarian.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use hatch rate constant for Galarian Mr. Mime. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f2e15d2bb424fe09eb9a314bce6a280df3062f99",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "166c99b0ae9bf994a2433757d31fcd95008a497e",
@@ -47542,10 +48023,14 @@
           "engine/battle/effect_commands.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Get rid of the last \"percent\" checks in the battle engine. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a9e654651b9a067d35ace8769355bf818d224153",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d375e6b85320265c194f09f8a9f5437b44aefdaf",
@@ -47559,10 +48044,14 @@
           "engine/battle/abilities.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Effect Spore sleep now stops multihit moves. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d375e6b85320265c194f09f8a9f5437b44aefdaf",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "5fa273e8c639d0e9b91eaaea35f1ceeec94a2c1d",
@@ -47576,10 +48065,14 @@
           "engine/battle/effect_commands.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix typo (75% -> 25% to be fully paralyzed). Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5fa273e8c639d0e9b91eaaea35f1ceeec94a2c1d",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "4f200bb1149a460b249b4db6a413aa328397d271",
@@ -48090,7 +48583,7 @@
       "parents": [
         "6344316c00997c86b486b36c161aeab228a2acb3"
       ],
-      "subject": "Use shared roof tiles for Snowtop Mountain's Pok\u00c3\u00a9mon Center",
+      "subject": "Use shared roof tiles for Snowtop Mountain's Pokémon Center",
       "changes": [
         [
           "M",
@@ -48974,10 +49467,14 @@
           "data/pokemon/base_stats/sirfetch_d.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Give Sirfetch'd Inner Focus in non-Faithful. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/88a14b0c91771026e9b85288b7465962d992e3f2",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "9d49d20b1151726d3740786e4af81010d91dc3eb",
@@ -49456,7 +49953,7 @@
       "parents": [
         "1867f0c66e14b60b2c74d3c0cef582cd1599c018"
       ],
-      "subject": "Pok\u00c3\u00a9mon League gates all use its dark red roofs",
+      "subject": "Pokémon League gates all use its dark red roofs",
       "changes": [
         [
           "M",
@@ -49628,7 +50125,7 @@
       "parents": [
         "16e58eb740090f54af614ee53b66fa5ec0f2e472"
       ],
-      "subject": "Double door for Pok\u00c3\u00a9mon League reception gate",
+      "subject": "Double door for Pokémon League reception gate",
       "changes": [
         [
           "M",
@@ -51238,7 +51735,7 @@
       "parents": [
         "ddde0a46545e48e10202291e1b9920ec6136c63b"
       ],
-      "subject": "Fix Pok\u00c3\u00a9mon League roof to be flat",
+      "subject": "Fix Pokémon League roof to be flat",
       "changes": [
         [
           "M",
@@ -51422,7 +51919,7 @@
       "parents": [
         "21204436c39ec80101dcad8a995c48ea9be05ddc"
       ],
-      "subject": "Mr. Pok\u00c3\u00a9mon's house has a teal roof, not the same purple as Mr. Psychic",
+      "subject": "Mr. Pokémon's house has a teal roof, not the same purple as Mr. Psychic",
       "changes": [
         [
           "M",
@@ -51902,7 +52399,7 @@
       "parents": [
         "a2ca48f2bc16d6bdeac2688aeee6fe3e7dfbc4e1"
       ],
-      "subject": "Add chimney to Olivine Caf\u00c3\u00a9, like Celadon Caf\u00c3\u00a9",
+      "subject": "Add chimney to Olivine Café, like Celadon Café",
       "changes": [
         [
           "M",
@@ -52635,7 +53132,7 @@
       "parents": [
         "16704c8b32df01c7d9712d2f187bde0678b557fb"
       ],
-      "subject": "Improve some tiles in Pok\u00c3\u00a9mon Mansion, including GSC cables",
+      "subject": "Improve some tiles in Pokémon Mansion, including GSC cables",
       "changes": [
         [
           "M",
@@ -52836,10 +53333,14 @@
           "engine/pokemon/move_mon.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix `BATTLETYPE_NEVER_SHINY` to be *not* shiny. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2d2dbd7128148bf74dc4e7d459f50b86b05cc4c3",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "3615288963c319e2ee66aec16a39b44d29fcde5c",
@@ -54243,7 +54744,7 @@
       "parents": [
         "683f5b3bde648d9ddcb6d5a36300a6102c4b5c6e"
       ],
-      "subject": "Make the Snowtop Mountain Pok\u00c3\u00a9mon Center simpler",
+      "subject": "Make the Snowtop Mountain Pokémon Center simpler",
       "changes": [
         [
           "M",
@@ -56220,10 +56721,14 @@
           "audio/music_player.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Write in-bounds BG map halves in music player. Audio playback data/engine only; the atlas does not play or emulate game audio.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/28f70e10850787f2dcb34c4e4569a8c7a338fbb8",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "58740029d5cf9ab5fc42e86747214dca10ed27b5",
@@ -56409,10 +56914,14 @@
           "engine/battle_anims/pokeball_wobble.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Calculate `.WobbleProbabilities` lookup table with `for` loop. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0863255c5a78f4113f04c5d2b5f06cbfd59f796e",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "779d86202c3d04d1765376e62953ec62445680e3",
@@ -56426,10 +56935,14 @@
           "gfx/pokemon/nidoqueen/front.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Slight update to Nidoqueen by SourApple. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/779d86202c3d04d1765376e62953ec62445680e3",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "329217e409455ee224fbc4ba01de249ad83abdfa",
@@ -56881,17 +57394,21 @@
       "parents": [
         "ff719a7c449070ff16769993331fc5419c54d037"
       ],
-      "subject": "Refresh PC preview after depositing or withdrawing a Pok\u00c3\u00a9mon (#1625)",
+      "subject": "Refresh PC preview after depositing or withdrawing a Pokémon (#1625)",
       "changes": [
         [
           "M",
           "engine/pc/bills_pc_ui.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Refresh PC preview after depositing or withdrawing a Pokémon (#1625). Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b79ce6982aaa82e9506b53c3a5b13dd7335cdd7b",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "7dd7b0fa76ff9e34ac169f36c6c4b49b82322c9e",
@@ -56905,10 +57422,14 @@
           "engine/pokedex/pokedex.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix shiny palettes for Pokedex list minis (#1623). Full diff changes the Pokédex list caller to pass wPokedex_Shiny to GetMonPalInBCDE. Shared palette data and overworld icon behavior do not change.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7dd7b0fa76ff9e34ac169f36c6c4b49b82322c9e",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "a7aa95462cbccc6b768d017213206206623f9af5",
@@ -56922,10 +57443,14 @@
           "engine/pc/bills_pc_ui.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix \"jp can be jr\" warning by making it a fallthrough. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a7aa95462cbccc6b768d017213206206623f9af5",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "882c921394156af597cfbacae2601ba7bcabb261",
@@ -57456,7 +57981,7 @@
       "parents": [
         "af4099f28b29f9adcf555b6975acbdcc5ca3defd"
       ],
-      "subject": "Limit the Pok\u00c3\u00a9gear phone scrolling to your number of contacts",
+      "subject": "Limit the Pokégear phone scrolling to your number of contacts",
       "changes": [
         [
           "M",
@@ -57702,7 +58227,7 @@
       "parents": [
         "7ade18b7689b25241d12ac823d4a90328de368e6"
       ],
-      "subject": "Remove `RELEASE_HM` enum since c5794a3c37f676eb0003f26431470dc0413aac7c allowed releasing Pok\u00c3\u00a9mon with HM moves",
+      "subject": "Remove `RELEASE_HM` enum since c5794a3c37f676eb0003f26431470dc0413aac7c allowed releasing Pokémon with HM moves",
       "changes": [
         [
           "M",
@@ -57713,10 +58238,14 @@
           "engine/pc/bills_pc_ui.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Remove `RELEASE_HM` enum since c5794a3c37f676eb0003f26431470dc0413aac7c allowed releasing Pokémon with HM moves. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/90d40be19d82922fd02a47b04a45898cf8dde2e5",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d60d881025635f662a3fd0916395ba182e8847ca",
@@ -57747,10 +58276,14 @@
           "constants/pokemon_data_constants.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Comment noting the unused caught data bit. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d95ce9bd2b6d793266a9e9d93307b8e081f8e179",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "29b333d550732aa50cd1caf101158fa6044d4a65",
@@ -57789,27 +58322,35 @@
           "engine/pc/bills_pc_ui.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix hypothetical future case where an extspecies 9-bit mon shares its low byte with a legendary beast. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/cfd36dc095ecaa4afc683e166ecc96ad1171caff",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "40b22331829123221bebd11542ec3d70f1e6dfca",
       "parents": [
         "cfd36dc095ecaa4afc683e166ecc96ad1171caff"
       ],
-      "subject": "Correct text since releasing Pok\u00c3\u00a9mon with HM moves is allowed",
+      "subject": "Correct text since releasing Pokémon with HM moves is allowed",
       "changes": [
         [
           "M",
           "engine/pc/bills_pc_ui.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Correct text since releasing Pokémon with HM moves is allowed. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/40b22331829123221bebd11542ec3d70f1e6dfca",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "f27896d8945c57c7fda660a8bb1bedee4293f1a8",
@@ -57827,10 +58368,14 @@
           "engine/pc/bills_pc_ui.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Allow releasing Eggs after the Mystery Egg hatches (#1631). Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f27896d8945c57c7fda660a8bb1bedee4293f1a8",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "bd848a8370904fdda1887de6901a7693f8e1439f",
@@ -57844,10 +58389,14 @@
           "AGENTS.md"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Start an AGENTS.md file. Documentation/contributor guidance only; does not modify atlas inputs or behavior.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/bd848a8370904fdda1887de6901a7693f8e1439f",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ac02b1f27ccb69d237b07d5f302d11c03ddc4d39",
@@ -57861,10 +58410,14 @@
           "AGENTS.md"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Guidance is useful for both human and AI agents/contributors. Documentation/contributor guidance only; does not modify atlas inputs or behavior.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ac02b1f27ccb69d237b07d5f302d11c03ddc4d39",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "79db6f5c5e048bf191ac586a5e2197ce33e7001f",
@@ -57878,10 +58431,14 @@
           "AGENTS.md"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Rephrase points to address human contributors. Documentation/contributor guidance only; does not modify atlas inputs or behavior.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/79db6f5c5e048bf191ac586a5e2197ce33e7001f",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6960e56b4e552a12e734dd546d6a8e69228cca10",
@@ -57896,10 +58453,14 @@
           "CONTRIBUTIONS.md"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Replace AGENTS.md with CONTRIBUTIONS.md. Documentation/contributor guidance only; does not modify atlas inputs or behavior.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6960e56b4e552a12e734dd546d6a8e69228cca10",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e1ebe1337393bdcf6f583a9ac70d0c9faf4faf06",
@@ -58377,7 +58938,7 @@
       "parents": [
         "4772cb4c70cf0cd9387a884c41601a1a4eca4c57"
       ],
-      "subject": "Use five custom cries by Regen from Pok\u00c3\u00a9mon Orange",
+      "subject": "Use five custom cries by Regen from Pokémon Orange",
       "changes": [
         [
           "M",
@@ -58429,10 +58990,14 @@
           "data/pokemon/evos_attacks.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Remove Sing from Pichu. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e38edae7f16257e7084c7c52a984193af4f56fe3",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ece14b955510ef1b154a6fbc073f10be33d4a14c",
@@ -58446,10 +59011,14 @@
           "engine/battle/abilities.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix Wind Rider silently rejecting a move if Attack is maxed. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ece14b955510ef1b154a6fbc073f10be33d4a14c",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "82a50b0aa4db1c82222dd268d34cbadcc2266b92",
@@ -58463,10 +59032,14 @@
           "engine/battle/core.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Remove Faithful check for Run Away. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/82a50b0aa4db1c82222dd268d34cbadcc2266b92",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "411e5913abd6dc3e2366668e4327ee85331a21a9",
@@ -58488,10 +59061,14 @@
           "engine/battle/endturn.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Moody will now invoke Eject Pack if applicable. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/411e5913abd6dc3e2366668e4327ee85331a21a9",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "71d404a84326e0bc3b2f86d17ce34ecff1f1c40b",
@@ -58544,10 +59121,14 @@
           "CONTRIBUTING.md"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Rename CONTRIBUTIONS.md to CONTRIBUTING.md. Documentation/contributor guidance only; does not modify atlas inputs or behavior.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0e074ed8650fd153124225e75974be8c56ba8d42",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "f7745f128030c2ba8b0bd7ec8c3f161b58791d07",
@@ -58586,10 +59167,14 @@
           "data/battle_tower/parties.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Add Bloodmoon Ursaluna party configurations. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/695a033119f680860733088d1ff57499e80f4727",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d5ca4a2010b28f7f094d6cc213fdb2618044c56b",
@@ -58603,10 +59188,14 @@
           "data/battle_tower/parties.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Correct formatting error to BM Ursaluna inclusion. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d5ca4a2010b28f7f094d6cc213fdb2618044c56b",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "9b25b5273f11942ef7013b28ce04272035a24da8",
@@ -58620,17 +59209,21 @@
           "data/battle_tower/parties.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix URSALUNA form reference in battle facilities. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9b25b5273f11942ef7013b28ce04272035a24da8",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e3f4ae96a55355261a2c4dc4c9097d0f317d358b",
       "parents": [
         "9b25b5273f11942ef7013b28ce04272035a24da8"
       ],
-      "subject": "Have Prof. Elm mention what Pok\u00c3\u00a9rus does (#1549)",
+      "subject": "Have Prof. Elm mention what Pokérus does (#1549)",
       "changes": [
         [
           "M",
@@ -58654,10 +59247,14 @@
           "engine/battle/move_effects/healinglight.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Display ability slideout for Mega Sol + HealingLight. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c6b78648c3c20b991033dc665812d1f7d6789759",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "1f8c1c4b4c5ec6ee1583f8b7119663ec95eefeb1",
@@ -58671,10 +59268,14 @@
           "engine/battle/move_effects/healinglight.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Mega Sol should not display a slideout if weather is already sunny. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1f8c1c4b4c5ec6ee1583f8b7119663ec95eefeb1",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e0dd6436ed30e0d7e64771dce5915022b5ea5547",
@@ -58688,10 +59289,14 @@
           "engine/pokemon/summary/egg_page.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix Egg summary animation RAM bank (#1653). Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e0dd6436ed30e0d7e64771dce5915022b5ea5547",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "f8aab19f73487886897c7e8a2156d1d56e35652b",
@@ -58734,10 +59339,14 @@
           "engine/pokedex/lcd.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix post-capture Pokedex frontpic flicker (#1655). Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8f3c7e9651e988d876e32a4c7ad9ef1bb76702a8",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e86068d5b94da4d01a06073af30c5b03b1d04554",
@@ -58785,10 +59394,14 @@
           "constants/misc_constants.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: bump save version. Full diff changes SAVE_VERSION from 10 to 11; atlas does not read ROM saves.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/84acd5a45e32b368755254cee44e6df8344ddfaf",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "f260cbe19d29f71603ac7ba21b843648d463e787",
@@ -58903,10 +59516,14 @@
           "engine/battle/abilities.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix #1669. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9a1ef8ad774cdc4e50a5cff18313479f6c56eff4",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "0aa83fae241d62a62f2d05c19fcc2d1f4bce8b36",
@@ -60097,10 +60714,14 @@
           "engine/battle/read_trainer_party.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Use one fewer byte per EV spread to save 213 bytes. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b4093007b5b90756419ffd8a8d81b6ff77a94071",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "a08a9639faaec06b92a767bc1ec304f503a8ed0d",
@@ -60143,17 +60764,21 @@
           "CREDITS.md"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Update credits. Documentation/credits only; no executable code or atlas-consumed assets change.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/bd535b89f8e1337151b715f76a235296c26a60c7",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "61c8897c92543d4e87ed50480f1dd2ca51685c37",
       "parents": [
         "bd535b89f8e1337151b715f76a235296c26a60c7"
       ],
-      "subject": "Encode Pok\u00c3\u00a9mon pic animations more efficiently in ROM, decompressing them to RAM (#1680)",
+      "subject": "Encode Pokémon pic animations more efficiently in ROM, decompressing them to RAM (#1680)",
       "changes": [
         [
           "M",
@@ -60329,10 +60954,14 @@
           "data/moves/descriptions.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix Thunder Wave move description. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/cccc5cc6aa61eb3b460227f51ee364428af5cee5",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "2b7590bc4e77ab16bbe1577ea07cee3949f9f7af",
@@ -60491,10 +61120,14 @@
           "engine/battle_anims/anim_commands.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Consolidate some identical battle animation code. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3f219423e5d5c74e290e5be43a51b53bc86f6b87",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "0c2b1e8704ecd86b1f715dec8c8e932140dc19e5",
@@ -60508,10 +61141,14 @@
           "data/moves/animations.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Move some battle anims closer together to allow fallthrough. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0c2b1e8704ecd86b1f715dec8c8e932140dc19e5",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "acf77ca6821b548b4a6d28e191a57c21a3d1d91d",
@@ -60525,10 +61162,14 @@
           "engine/battle/move_effects/magnitude.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Correct aliased variable name in magnitude.asm. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/acf77ca6821b548b4a6d28e191a57c21a3d1d91d",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "fd953b812feaf07423725208c752a0cd02f358cd",
@@ -60571,17 +61212,21 @@
           "gfx/pokemon/ursaluna_bloodmoon/front.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Update Dave.K's Bloodmoon Ursaluna sprite. Battle/Pokédex front/back pictures, picture animations and their palettes. Atlas overworld NPCs use gfx/sprites and gfx/minis/icons plus overworld_icon_pals; SPRITE_AQUARIUM_MON also uses icon graphics. No overworld icon palette/form/pointer files change in this commit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d57c9d47c0ae7d31a0c8462ed4f9abd0949dcc98",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "7271087459a781cc1be971472237b86a507c5d65",
       "parents": [
         "d57c9d47c0ae7d31a0c8462ed4f9abd0949dcc98"
       ],
-      "subject": "Fix attribute clash on Pok\u00c3\u00a9mon League entrance in Indigo Plateau",
+      "subject": "Fix attribute clash on Pokémon League entrance in Indigo Plateau",
       "changes": [
         [
           "M",
@@ -60618,7 +61263,7 @@
       "parents": [
         "7271087459a781cc1be971472237b86a507c5d65"
       ],
-      "subject": "Use FRLG roof color for Pok\u00c3\u00a9mon League HQ",
+      "subject": "Use FRLG roof color for Pokémon League HQ",
       "changes": [
         [
           "M",
@@ -60693,7 +61338,7 @@
       "parents": [
         "840bae97651172e2706c9da5fd7b0f9c228a0cd1"
       ],
-      "subject": "Recolor the edge of Pok\u00c3\u00a9mon League building",
+      "subject": "Recolor the edge of Pokémon League building",
       "changes": [
         [
           "M",
@@ -62638,10 +63283,14 @@
           "INSTALL.md"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Update the INSTALL.md instructions (#1401). Documentation/credits only; no executable code or atlas-consumed assets change.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/721013612b73928e5a1213afef0d93b2ee732a78",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d0f0a5c6b99ab446cc436abb84bb78dbb5e98b3b",
@@ -62672,10 +63321,14 @@
           "engine/pc/bills_pc_ui.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Small optimization to `BillsPC_MoveItem`. Confined to battle data/animations, species stats/learnsets, summary/party UI, trainer card, title menu or PC/Pokédex UI. Shared overworld palettes, icon/form tables, map/event definitions and engine rendering are not changed; these specific files are not atlas inputs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f419aa17a4d9003a8e4cfaba3a21957684df17a9",
+        "Batch subject/file-scope screen against atlas consumers; ambiguous shared-palette/overworld cases retained separately. Not a line-by-line or binary-pixel review."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "41da4f7c68db50edd2d5350b0bb65fce02b55f33",
@@ -62949,7 +63602,7 @@
       "parents": [
         "0ea0a9fc1c33a0fa8a6e0ee3825f2e03bb059001"
       ],
-      "subject": "Add green roof to Pok\u00c3\u00a9mon Fan Club",
+      "subject": "Add green roof to Pokémon Fan Club",
       "changes": [
         [
           "M",
@@ -63038,17 +63691,21 @@
           "engine/battle/abilities.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix `TraceActivationText` to print correct ability name. Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/11f68c6f38bbe1f8990835ce2436ac53c46b1933",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "0d6a5be3dab23b79f15f9013dfcac822587b795f",
       "parents": [
         "11f68c6f38bbe1f8990835ce2436ac53c46b1933"
       ],
-      "subject": "Fix `IsTormentedText` to print correct Pok\u00c3\u00a9mon",
+      "subject": "Fix `IsTormentedText` to print correct Pokémon",
       "changes": [
         [
           "M",
@@ -63089,10 +63746,14 @@
           "engine/battle/abilities.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Accelerated relevance screen: Fix Bad Dreams to not damage against Magic Guard (#1687). Battle mechanics, battle animations, trainer parties, species battle stats/learnsets, abilities or Pokémon summary UI only. These files are not consumed by the atlas renderers or frontend; overworld sprite/icon/form data are outside this skip rule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e3e952f9e75fd94ee0431627edcca3dd9ac8de06",
+        "Screened subject and complete changed-file list in batch; checked atlas source consumers. Not a line-by-line implementation review. Changelog/FEATURES endpoint diff checked separately; undocumented changes are not assumed irrelevant."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "3e0018a5af77c877a4d3b00fa33fede968d95aba",

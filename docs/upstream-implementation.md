@@ -18,9 +18,12 @@ is implementation work. The known requirements below are not a closed list.**
 
 - Capture stable regression evidence; create dev; share deployment infrastructure
   from main while keeping master-specific adaptations on dev.
-- Review every commit's changes, including merges and reverts, and reconcile the
-  complete endpoint diff. Record reason, disposition, fix, and validation evidence
-  for every SHA in `docs/upstream-audit.json` on dev.
+- Account for every commit, including merges and reverts, and reconcile the
+  complete endpoint diff. Per the requested accelerated approach, screen subjects
+  and complete changed-file lists in batches; skip clearly unrelated commits with
+  an explicit scope reason. Read relevant or ambiguous diffs and validate required
+  adaptations. Record the method, disposition and evidence for every SHA in
+  `docs/upstream-audit.json` on dev; scope screening is not a full diff review.
 - Implement `usepaletteswap` and ordered `paletteswap` tables. Display a spatial
   composite, evaluating each local coordinate with inclusive minimum/exclusive
   maximum boundaries and NULL preserving the previous effective slot selection.
@@ -52,10 +55,16 @@ python scripts/audit_upstream.py --repo external/polishedcrystal --output docs/u
 ```
 
 Inventory generation starts every commit as `pending`. It does not review or
-classify code automatically. Re-running preserves recorded reviews. The check
+classify code automatically. Re-running preserves recorded reviews and triage. The check
 requires exact commit/file coverage and a resolved disposition, explanation,
-and evidence for each commit. Review quality still requires reading the changes;
-passing this structural check alone does not prove compatibility.
+and evidence for each commit. A `review_method: scope-screen` resolution records
+an explicit relevance-based skip, not a line-by-line review. Relevant/ambiguous
+changes still require diff inspection and validation. Passing this structural
+check alone does not prove compatibility.
+
+The pinned changelog only adds the v3.2.3 battle-crash hotfix after v3.2.2; it does
+not summarize the major master changes. It informs triage but cannot replace the
+commit/file inventory. Never skip a change solely because it is undocumented.
 
 ## Progress
 
@@ -76,9 +85,12 @@ passing this structural check alone does not prove compatibility.
   are covered by tests. Goldenrod City and Route 7 static previews are available
   locally in `.build/palette-preview/`; Goldenrod's composite was visually inspected.
 - 17 Python tests pass, including the locally available upstream palette-swap corpus.
-- Thirty-seven commits have been individually reviewed: twenty are resolved as no atlas
-  impact and seventeen retain open adaptation/validation work. Another 1,014 commits
-  have not been reviewed. Inventory generation does not constitute review.
+- Forty-five commits have received detailed review: twenty-six are resolved as no
+  atlas impact, one with an adaptation, and eighteen retain open validation work.
+  Two accelerated batches additionally skipped 158 unrelated commits after subject,
+  complete file-scope and consumer screening. These are explicitly marked
+  `scope-screen`, not full reviews. There are 185 resolved commits in total and
+  848 still pending. Inventory generation does not constitute review.
 - The frontend consumes palette-swap regions for background-derived NPC colors,
   including movement, and supports special WHITE/GRASS background color mapping.
   Full generated-site visual verification remains outstanding.
@@ -129,11 +141,42 @@ passing this structural check alone does not prove compatibility.
   in `.build/tile-animation-corpus.json`. Hardware-divider samples use a fixed
   CGB double-speed phase for reproducibility; actual CPU execution can shift the
   Judge machine's samples. This is not a cycle-accurate ROM emulator.
-- Modern animated output is deliberately rejected by the legacy sheet exporter,
-  which previously silently omitted these effects. Static PNG previews remain
-  available. Compact tile-delta asset export and frontend playback are still
-  required before the dev build can succeed; the command engine alone is not
-  completed animation support.
+- Modern sheet export now writes a base map plus a compact 8px tile atlas and
+  independently timed tracks. This preserves blank VBlanks, both tile banks,
+  flips, spatial palette swaps and palette-animation commands without duplicating
+  the entire map for every frame. The frontend composites the tracks below objects
+  and markers. Disabling map animation displays the baked initial frame.
+- Synthetic export reconstruction matches the full raster renderer at every
+  captured VBlank, including both banks, all flips and a spatial palette swap.
+  Metadata validation rejects missing images, bad dimensions/indices/durations,
+  out-of-bounds positions and overlapping tracks. Focused browser previews show
+  Goldenrod, National Park and a static Ecruteak Gym through the actual loader.
+- The first full-site preview exposed empty neighborhoods and unresolved warps:
+  upstream removed map_attributes' fourth argument. The parser now accepts both
+  forms, derives modern connection flags and fails malformed/empty input. Complete
+  map inventory and nonempty neighborhood checks prevent a silent empty world.
+  Parent/commit graph comparison for a79dd2a36 proves all 607 records unchanged;
+  the target corpus checks all 612 headers and every connection declaration.
+- Canonical map identities now follow header-table group/index order. Upstream's
+  LavRadioTower4F attribute declaration reuses the 3F constant for dimensions;
+  treating that as its identity broke tower warps. All declared warp targets now
+  resolve while dimensions still follow the attribute declaration.
+- The generated production preview renders 29 neighborhoods and switches day/night
+  (the initial check produced no console errors). Full static mode exposed stale visibility after ticker
+  shutdown; on-demand rendering now refreshes culling and animation state first.
+  The rebuilt preview remains visible with both animation toggles disabled.
+  Indoor navigation is not yet visually verified. A later initial-load check
+  reported failures for several map assets that subsequently loaded after toggling;
+  investigate loader/cancellation behavior before calling browser verification complete.
+- Current checks: 35 Python tests, 26 frontend tests, TypeScript checking and the
+  production build pass. ESLint reports the existing hook-dependency warning and
+  no errors. Complete generated-bundle validation passes locally with dirty-build
+  provenance preserved. These checks are not complete upstream compatibility proof.
+- A complete dev build now validates its generated bundle before reporting success.
+  It includes all 612 maps, four time variants and 29 neighborhoods. Dirty build
+  asset versions include the generation time to prevent stale force-cached previews.
+  The publication audit gate still rejects 866 unresolved commits: 848 pending
+  and eighteen reviewed with open validation. Nothing has been pushed or published.
 - Exhaustive review, remaining dev compatibility, complete visual verification,
   pushing branches, CI execution, and publication remain incomplete.
 
@@ -142,17 +185,21 @@ passing this structural check alone does not prove compatibility.
 - Verify palette-swap NPC colors in the full generated site. The frontend now
   consumes swap metadata and rebuilds background-derived NPC frames when movement
   crosses a color boundary; focused tests cover selection and boundary changes.
-- Connect modern banked animation streams to compact tile-delta export and
-  frontend playback, including palette swaps and object background colors.
-  Avoid multiplying large map textures by every VBlank frame. Extend bundle
-  validation, common/time asset deduplication and combined publication for the
-  new format. Legacy animated output now fails explicitly on modern tables.
+- Finish animation integration with animated background-derived object colors,
+  shared event state and forced map time. Modern GIF output still fails explicitly
+  on modern tables and needs adaptation. Backport compact-asset validation into
+  main's shared publication tooling, then verify combined deployment.
 - Complete NPC glow effects, shared event state, fixed-weather rules/cherry blossoms, dual object
-  palettes, all map/object/movement findings from the audit, and full dev generation.
+  palettes, and all map/object/movement findings from the audit.
 - Finish glow validation on Dragon Shrine, cave mouths, underground lamps and lava
   ladders, including directional walls/warps and secondary palettes. Verify
   `SPRITE_AQUARIUM_MON` handling (also used for volcano Moltres), and reconcile
   forced map time palettes with the existing indoor/day heuristic.
+- Audit dual connections and the shortened FakeRoute36 border alias used by
+  RuinsOfAlphOutside; a complete parsed inventory alone does not validate layout.
+- Validate Route23North/South's seam, officer placement and Victory Road/League
+  Gate warp round trips. The split commit's text and binary changes are reviewed;
+  its two block arrays exactly concatenate to the old map, but visual checks remain.
 - Dev builds now require upstream corpus tests after source checkout, checking
   the exact pinned SHA. Extend that corpus coverage alongside further adaptations.
 - Finish the commit ledger, then run full combined-site/browser tests and publish.

@@ -40,9 +40,10 @@ def inventory(repo: Path, output: Path, base: str, head: str) -> dict:
                 parent: [line.split("\t") for line in git(repo, "diff", "--name-status", parent, sha).splitlines()]
                 for parent in entry["parents"]
             }
-        for key in ("status", "disposition", "reason", "evidence"):
+        for key in ("status", "disposition", "reason", "evidence", "review_method", "triage_note"):
             if sha in reviews:
-                entry[key] = reviews[sha].get(key, entry[key])
+                if key in reviews[sha]:
+                    entry[key] = reviews[sha][key]
         commits.append(entry)
     files = git(repo, "diff", "--name-status", "--find-renames", base, head).splitlines()
     result = dict(base=base, head=head, commit_count=len(commits),

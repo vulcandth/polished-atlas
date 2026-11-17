@@ -16547,10 +16547,16 @@
           "gfx/sprites/boarder.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use FrenchOrange's Boarder overworld sprite. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/afc098a2ed365282e9a3103d1365ed891f72993d",
+        "CREDITS.md: Full text patch adds/updates artist attribution only.",
+        "gfx/sprites/boarder.png: PNG decoded to RGBA: [16, 96] -> [16, 96]; modes L -> L; 4 resulting colors. 553 changed pixels; bounding box [1, 9, 16, 96]. Target source consumer(s): SPRITE_BOARDER.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "f2f92ff4d83788afc8c627730aa9c71faf3410ed",
@@ -17162,10 +17168,14 @@
           "gfx/tilesets/hidden_grotto.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Adds Bellchime Trail entrance-dependent hidden-grotto colors: copy RED to GREEN and GREEN colors 1-3 to ROOF while retaining ROOF color 0. Full assembly/palette diffs reviewed. Target generic grotto palette selection does not carry the origin map; keep open for navigation context, day/night terrain variants and consistent background-derived NPC palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/88567c3d3ca2c0b6d1484d530b6b0ba7cdb34e75",
+        "Compared complete changed-file scope and all text patches; current source HiddenGrottoSpecialCase and scripts/render_map.py generic-grotto handling checked."
+      ],
+      "review_method": "full-diff",
       "triage_note": "Relevant: hidden-grotto green/roof colors depend on the entering map (Bellchime Trail; later Cherrygrove Bay and Yellow Forest). Generic day/night grotto tables now load, but entering-map context and corresponding overlay assets remain to implement/verify."
     },
     {
@@ -17618,10 +17628,17 @@
           "gfx/tilesets/forest.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Update the Ilex Forest shrine design. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/644f24bfe29dbd385c23bb6c9db32d086ec8aacc",
+        "data/tilesets/forest_attributes.bin: Raw binary comparison: 2944 bytes unchanged in length, 6 changed bytes. XOR masks [8, 15, 32]; 0 priority-bit changes. Target source consumer(s): IlexForest, MurkySwamp, ViridianForest.",
+        "data/tilesets/forest_metatiles.bin: Raw binary comparison: 2944 bytes unchanged in length, 7 changed bytes. Target source consumer(s): IlexForest, MurkySwamp, ViridianForest.",
+        "gfx/tilesets/forest.png: PNG decoded to RGBA: [128, 96] -> [128, 104]; modes L -> L; 4 resulting colors. Target source consumer(s): IlexForest, MurkySwamp.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "fd8ef471d829fcc0cd5c0b34fadb50cffb0ca740",
@@ -17826,10 +17843,17 @@
           "gfx/tilesets/forest.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use smaller Ilex Forest shrine by Jace. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/46bb840fdd08667126d7f7870276bbbb17426679",
+        "data/tilesets/forest_attributes.bin: Raw binary comparison: 2944 bytes unchanged in length, 6 changed bytes. XOR masks [7, 8]; 0 priority-bit changes. Target source consumer(s): IlexForest, MurkySwamp, ViridianForest.",
+        "data/tilesets/forest_metatiles.bin: Raw binary comparison: 2944 bytes unchanged in length, 30 changed bytes. Target source consumer(s): IlexForest, MurkySwamp, ViridianForest.",
+        "gfx/tilesets/forest.png: PNG decoded to RGBA: [128, 104] -> [128, 104]; modes L -> L; 4 resulting colors. 1434 changed pixels; bounding box [0, 72, 64, 104]. Target source consumer(s): IlexForest, MurkySwamp.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "04f63bdc3a3df89f8b83cdf8444d49b92f9d1a30",
@@ -18870,10 +18894,15 @@
           "maps/Route34.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix Route 34. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/85155c0ba1d459ab4d721887a5ef99ac72f59e84",
+        "maps/Route34.ablk: Raw binary comparison: 270 bytes unchanged in length, 3 changed bytes. Target source consumer(s): Route34.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "b780afd95434e085ea6253f5fc48ff4c350953a5",
@@ -19209,10 +19238,16 @@
           "gfx/stats/balls.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add a specular highlight to item balls. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements. The one-pixel ball_cut_tree change is relevant; the separate nine-pixel menu ball-sheet edit has no atlas consumer.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b59632901b0c186a2cb09b3a30ebd03f25c05fc9",
+        "gfx/sprites/ball_cut_tree.png: PNG decoded to RGBA: [16, 48] -> [16, 48]; modes L -> L; 4 resulting colors. 1 changed pixels; bounding box [6, 6, 7, 7]. Target source consumer(s): SPRITE_BALL_CUT_TREE.",
+        "gfx/stats/balls.png: PNG decoded to RGBA: [40, 40] -> [40, 40]; modes L -> L; 4 resulting colors. 9 changed pixels; bounding box [2, 1, 35, 34].",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "89941d4af3ae5ec65a479db8db129a042c07ac27",
@@ -26907,10 +26942,15 @@
           "gfx/sprites/slowpoketail.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Updated Slowpoke OW with cut tail. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements. The temporary RGBA encoding is later normalized by 2d7b262f0a1d without changing any decoded pixels.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ea79a7bcc27f8e5a05e1635def0f351d6f33a583",
+        "gfx/sprites/slowpoketail.png: PNG decoded to RGBA: [16, 48] -> [16, 48]; modes L -> RGBA; 4 resulting colors. 18 changed pixels; bounding box [3, 2, 12, 27]. Target source consumer(s): SPRITE_SLOWPOKETAIL.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "2d7b262f0a1d85f88fe2a43aedccf99440147d0f",
@@ -26928,10 +26968,16 @@
           "gfx/tilesets/cave.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Re-encodes Slowpoke-tail and cave PNGs as grayscale. Both complete images are exactly equal after RGBA decoding, with zero changed pixels and unchanged dimensions. Current loaders decode the normalized target PNGs; no visual or format adaptation is needed.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2d7b262f0a1d85f88fe2a43aedccf99440147d0f",
+        "gfx/sprites/slowpoketail.png: PNG decoded to RGBA: [16, 48] -> [16, 48]; modes RGBA -> L; 4 resulting colors. 0 changed pixels; bounding box None. Target source consumer(s): SPRITE_SLOWPOKETAIL.",
+        "gfx/tilesets/cave.png: PNG decoded to RGBA: [128, 88] -> [128, 88]; modes P -> L; 4 resulting colors. 0 changed pixels; bounding box None. Target source consumer(s): BurnedTowerB1F, UnionCave1F.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "normalized-diff"
     },
     {
       "sha": "49561f10fb3d728d5c1a9a364d74cf20793e82f3",
@@ -27587,10 +27633,15 @@
           "maps/CherrygroveBay.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Adds Cherrygrove Bay entrance-dependent hidden-grotto colors: copy GRAY to GREEN and GREEN colors 1-3 to ROOF while retaining ROOF color 0. Full assembly/palette diffs reviewed. Target generic grotto palette selection does not carry the origin map; keep open for navigation context, day/night terrain variants and consistent background-derived NPC palettes. CherrygroveBay block data also changes without changing dimensions.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d543a9389cf036bbdcd6c06dabba66d20f7b95ba",
+        "Compared complete changed-file scope and all text patches; current source HiddenGrottoSpecialCase and scripts/render_map.py generic-grotto handling checked.",
+        "CherrygroveBay.ablk: both versions 390 bytes; all 13 changed offsets inspected: 3,4,5,6,15,16,18,19,20,21,30,31,35. No additional changed files."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "d220005e641355a1da2199950eb8caf5ffb1923a",
@@ -27629,10 +27680,16 @@
           "gfx/tilesets/ruins_of_alph.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use a tile from the SW97 Ruins of Alph tileset. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/31aea92972132dd6b434160cee84c21d476f4abe",
+        "data/tilesets/ruins_of_alph_metatiles.bin: Raw binary comparison: 2912 bytes unchanged in length, 7 changed bytes. Target source consumer(s): RuinsOfAlphHoOhChamber, RuinsOfAlphKabutoChamber, RuinsOfAlphOmanyteChamber.",
+        "gfx/tilesets/ruins_of_alph.png: PNG decoded to RGBA: [128, 128] -> [128, 128]; modes L -> L; 4 resulting colors. 64 changed pixels; bounding box [32, 40, 40, 48]. Target source consumer(s): RuinsOfAlphHoOhChamber, RuinsOfAlphKabutoChamber.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "faa672d761a0fd201bc25ca0d001217f058cb323",
@@ -31059,10 +31116,15 @@
           "data/tilesets/johto_traditional_attributes.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Give Dragon Shrine a red roof. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ffcfec6f5ce7e7339e5591ca84f19fcdab9b4814",
+        "data/tilesets/johto_traditional_attributes.bin: Raw binary comparison: 3968 bytes unchanged in length, 40 changed bytes. XOR masks [4]; 0 priority-bit changes. Target source consumer(s): Route42, Route44, MahoganyTown.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "ee274d9dd6c7149556329f31a64d4e86dc9dc98c",
@@ -31076,10 +31138,15 @@
           "data/tilesets/johto_traditional_metatiles.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "More varied moss texture. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ee274d9dd6c7149556329f31a64d4e86dc9dc98c",
+        "data/tilesets/johto_traditional_metatiles.bin: Raw binary comparison: 3968 bytes unchanged in length, 6 changed bytes. Target source consumer(s): Route42, Route44, MahoganyTown.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "6a501e43ca245a97cd41f59f1aad5a9dba5f52f0",
@@ -31715,10 +31782,17 @@
           "gfx/tilesets/gym.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Different back wall for Violet Gym. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9cec1887d9217db4f4043a49c56bac148471d6f6",
+        "data/tilesets/gym_attributes.bin: Raw binary comparison: 1440 bytes unchanged in length, 12 changed bytes. XOR masks [5, 13]; 0 priority-bit changes. Target source consumer(s): OlivineGym, MahoganyGym, BlackthornGym1F.",
+        "data/tilesets/gym_metatiles.bin: Raw binary comparison: 1440 bytes unchanged in length, 16 changed bytes. Target source consumer(s): OlivineGym, MahoganyGym, BlackthornGym1F.",
+        "gfx/tilesets/gym.png: PNG decoded to RGBA: [128, 72] -> [128, 80]; modes L -> L; 4 resulting colors. Target source consumer(s): OlivineGym.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "fba391b9c3203e64b6ee0d002249ad3ab83c52b7",
@@ -32919,10 +32993,16 @@
           "gfx/tilesets/ruins_of_alph.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use half-closed eyes for Unown !, ?, and non-standard ones like digits. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements. Ruins tiles are relevant; the separate Unown text-font edit has no atlas text-rendering consumer.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ebfc7e1358974ccce7920c693178c09e866bd5e3",
+        "gfx/font/unown.png: PNG decoded to RGBA: [128, 64] -> [128, 64]; modes L -> L; 2 resulting colors. 84 changed pixels; bounding box [4, 12, 125, 55].",
+        "gfx/tilesets/ruins_of_alph.png: PNG decoded to RGBA: [128, 128] -> [128, 128]; modes L -> L; 4 resulting colors. 14 changed pixels; bounding box [38, 37, 117, 123]. Target source consumer(s): RuinsOfAlphHoOhChamber, RuinsOfAlphKabutoChamber.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "cf1bbf4a8dee0fcd3ae4373d5102b8f4dff0b7b4",
@@ -35834,10 +35914,16 @@
           "data/tilesets/johto_modern_metatiles.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix Mart block. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5bfb31194abaf3295ac4fc9997c89214edc1046f",
+        "data/tilesets/johto_modern_attributes.bin: Raw binary comparison: 4032 bytes unchanged in length, 4 changed bytes. XOR masks [5]; 0 priority-bit changes. Target source consumer(s): Route34, Route34Coast, StormyBeach.",
+        "data/tilesets/johto_modern_metatiles.bin: Raw binary comparison: 4032 bytes unchanged in length, 4 changed bytes. Target source consumer(s): Route34, Route34Coast, StormyBeach.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "17d8b179a6dcfb076f0f537ff3ce900f14616259",
@@ -36246,10 +36332,15 @@
           "data/tilesets/sprout_tower_metatiles.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use correct tile in Ecruteak Gym. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2538e8f3d1473fb76b2fbe35f4f2362a95616356",
+        "data/tilesets/sprout_tower_metatiles.bin: Raw binary comparison: 2496 bytes unchanged in length, 6 changed bytes. Target source consumer(s): SproutTower1F, SproutTower2F, SproutTower3F.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "a5283b3befc575a04a9065b5d4bf51a9484d577b",
@@ -37826,10 +37917,17 @@
           "gfx/tilesets/hideout.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use GSC cable/wire tiles in Team Rocket hideout. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5a91e5ba05058fc34849b62a91e770d118a122e0",
+        "data/tilesets/hideout_attributes.bin: Raw binary comparison: 2368 bytes unchanged in length, 26 changed bytes. XOR masks [1]; 0 priority-bit changes. Target source consumer(s): TeamRocketBaseB1F, TeamRocketBaseB2F, TeamRocketBaseB3F.",
+        "data/tilesets/hideout_metatiles.bin: Raw binary comparison: 2368 bytes unchanged in length, 39 changed bytes. Target source consumer(s): TeamRocketBaseB1F, TeamRocketBaseB2F, TeamRocketBaseB3F.",
+        "gfx/tilesets/hideout.png: PNG decoded to RGBA: [128, 80] -> [128, 80]; modes L -> L; 4 resulting colors. 129 changed pixels; bounding box [72, 32, 88, 48]. Target source consumer(s): TeamRocketBaseB1F, TeamRocketBaseB2F.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "18d6abb09dc8be116bcdfe491fb0ba976d200020",
@@ -38356,10 +38454,17 @@
           "gfx/tilesets/sprout_tower.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Tweak coloring of Bellsprout statues. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e652cf7de975f85f3d606ffaff9cf0916a9512e2",
+        "data/tilesets/sprout_tower_attributes.bin: Raw binary comparison: 2496 bytes unchanged in length, 12 changed bytes. XOR masks [1, 8]; 0 priority-bit changes. Target source consumer(s): SproutTower1F, SproutTower2F, SproutTower3F.",
+        "data/tilesets/sprout_tower_metatiles.bin: Raw binary comparison: 2496 bytes unchanged in length, 4 changed bytes. Target source consumer(s): SproutTower1F, SproutTower2F, SproutTower3F.",
+        "gfx/tilesets/sprout_tower.png: PNG decoded to RGBA: [128, 120] -> [128, 120]; modes L -> L; 4 resulting colors. 171 changed pixels; bounding box [0, 32, 112, 120]. Target source consumer(s): SproutTower1F, SproutTower2F.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "241ef19813f0f3461b24c463e77be15fb1089372",
@@ -38398,10 +38503,16 @@
           "gfx/tilesets/sprout_tower.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use correct tiles for statues in front of posts. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/407be6afb3a7400c0d050e5d4a273465d698c2de",
+        "data/tilesets/sprout_tower_metatiles.bin: Raw binary comparison: 2496 bytes unchanged in length, 4 changed bytes. Target source consumer(s): SproutTower1F, SproutTower2F, SproutTower3F.",
+        "gfx/tilesets/sprout_tower.png: PNG decoded to RGBA: [128, 120] -> [128, 120]; modes L -> L; 4 resulting colors. 4 changed pixels; bounding box [18, 33, 31, 36]. Target source consumer(s): SproutTower1F, SproutTower2F.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "3df707854301b0cac853a3b5aa1c72ec7bb0693e",
@@ -38523,10 +38634,16 @@
           "gfx/tilesets/kanto_gym.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Edit the stairs in Viridian Gym. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/11bf4f27e21fc5db1ffa8f9ab3344b49159556ec",
+        "data/tilesets/kanto_gym_metatiles.bin: Raw binary comparison: 3152 bytes unchanged in length, 123 changed bytes. Target source consumer(s): CeruleanGym, VermilionGym, PewterGym.",
+        "gfx/tilesets/kanto_gym.png: PNG decoded to RGBA: [128, 96] -> [128, 96]; modes L -> L; 4 resulting colors. 320 changed pixels; bounding box [64, 65, 112, 88]. Target source consumer(s): CeruleanGym, VermilionGym.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "b481c30250cbe1a862cf134c272b06561e0d47d3",
@@ -38955,10 +39072,16 @@
           "gfx/tilesets/facility.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "More texture on the Trainer House arena. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3f77e34dfa68cae9f843c3f3c94ecaa3507fee69",
+        "data/tilesets/facility_metatiles.bin: Raw binary comparison: 1568 bytes unchanged in length, 40 changed bytes. Target source consumer(s): PowerPlant, TrainerHouseB1F, SilphCo1F.",
+        "gfx/tilesets/facility.png: PNG decoded to RGBA: [128, 64] -> [128, 64]; modes L -> L; 4 resulting colors. 7 changed pixels; bounding box [112, 56, 120, 63]. Target source consumer(s): PowerPlant, TrainerHouseB1F.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "3d478b20bb53e35d8f31a8e38b93a9d8b48ab0a4",
@@ -39041,10 +39164,17 @@
           "maps/TrainerHouseB1F.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Turn the Trainer House Poké Ball sideways like Lance's. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a61b060ee7af925e31d989350064e7084402eb12",
+        "data/tilesets/facility_attributes.bin: Raw binary comparison: 1568 bytes unchanged in length, 40 changed bytes. XOR masks [1]; 0 priority-bit changes. Target source consumer(s): PowerPlant, TrainerHouseB1F, SilphCo1F.",
+        "data/tilesets/facility_metatiles.bin: Raw binary comparison: 1568 bytes unchanged in length, 24 changed bytes. Target source consumer(s): PowerPlant, TrainerHouseB1F, SilphCo1F.",
+        "maps/TrainerHouseB1F.ablk: Raw binary comparison: 40 bytes unchanged in length, 2 changed bytes. Target source consumer(s): TrainerHouseB1F.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "9fe5dc89ac2956063c12e52c7596b725f1677714",
@@ -40530,10 +40660,16 @@
           "gfx/tilesets/port.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Color the carpet edge dark, not light. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c7ed65443a267a8d33be94503a9586a2b3e83da7",
+        "data/tilesets/port_attributes.bin: Raw binary comparison: 976 bytes unchanged in length, 2 changed bytes. XOR masks [4]; 0 priority-bit changes. Target source consumer(s): OlivinePort, VermilionPort, SeagallopFerryVermilionGate.",
+        "gfx/tilesets/port.png: PNG decoded to RGBA: [128, 80] -> [128, 80]; modes L -> L; 4 resulting colors. 14 changed pixels; bounding box [32, 16, 48, 17]. Target source consumer(s): OlivinePort, VermilionPort.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "f7e45d7aa3e49925fec7baf1dbb19b32382b9949",
@@ -40901,10 +41037,15 @@
           "gfx/sprites/firebreather.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Firebreather sprite combines Prism's and FrenchOrange's designs. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a02e81e380143db9f9eef93aede4dfbd90e0223e",
+        "gfx/sprites/firebreather.png: PNG decoded to RGBA: [16, 96] -> [16, 96]; modes L -> L; 4 resulting colors. 403 changed pixels; bounding box [0, 0, 16, 95]. Target source consumer(s): SPRITE_FIREBREATHER.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "4093439bccef36f181187429f4382c200899f201",
@@ -41690,10 +41831,15 @@
           "maps/FuchsiaCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix block error in Fuchsia City. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/896b91701bd9e6545ef6b0f1898ce35459447b2b",
+        "maps/FuchsiaCity.ablk: Raw binary comparison: 360 bytes unchanged in length, 2 changed bytes. Target source consumer(s): FuchsiaCity.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "59566fea36f9d486971f4573c716bd7a1aa2fb98",
@@ -42158,10 +42304,15 @@
           "maps/BurnedTower1F.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix block in Burned Tower. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/37cb9795c46bccb0c9580fe97604b5c9bc8babff",
+        "maps/BurnedTower1F.ablk: Raw binary comparison: 64 bytes unchanged in length, 1 changed bytes. Target source consumer(s): BurnedTower1F.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "54c54061cee378ecd19a5c1e9b92472afbcf9e86",
@@ -43240,10 +43391,17 @@
           "gfx/tilesets/lab.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use simpler warp carpet for Labs and Academy, not the Dragon Shrine carpet. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e35e92473d8fc9857cd7636b80a8fab21b9e1f92",
+        "data/tilesets/lab_attributes.bin: Raw binary comparison: 848 bytes unchanged in length, 32 changed bytes. XOR masks [8, 40]; 0 priority-bit changes. Target source consumer(s): DragonShrine, EarlsPokemonAcademy, OaksLab.",
+        "data/tilesets/lab_metatiles.bin: Raw binary comparison: 848 bytes unchanged in length, 32 changed bytes. Target source consumer(s): DragonShrine, EarlsPokemonAcademy, OaksLab.",
+        "gfx/tilesets/lab.png: PNG decoded to RGBA: [128, 88] -> [128, 88]; modes L -> L; 4 resulting colors. 110 changed pixels; bounding box [88, 80, 104, 88]. Target source consumer(s): DragonShrine, EarlsPokemonAcademy.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "8a59866abb09c4b9ebecfd307a79a59ebaf7836a",
@@ -43565,10 +43723,17 @@
           "gfx/minis/farigiraf_mask.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Only Farigiraf menu-mini graphics/mask and artist credits change. Atlas gather_pokemon_icon_metadata selects FarigirafIcon (gfx/icons/farigiraf), not FarigirafMini or its mask. Decoded both changed PNGs and read the credits diff; no overworld icon or sprite changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d24619d7b29a6fa4d0d2edcc2b24f45faaa506c3",
+        "CREDITS.md: Full text patch adds/updates artist attribution only.",
+        "gfx/minis/farigiraf.png: PNG decoded to RGBA: [16, 32] -> [16, 32]; modes L -> L; 4 resulting colors. 191 changed pixels; bounding box [0, 0, 16, 32].",
+        "gfx/minis/farigiraf_mask.png: PNG decoded to RGBA: [16, 32] -> [16, 32]; modes L -> L; 2 resulting colors. 100 changed pixels; bounding box [0, 0, 16, 32].",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "d9017ee8146aee9714f7b7f9d2ffd4b8f9031273",
@@ -43710,10 +43875,15 @@
           "data/tilesets/underground_metatiles.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix door block. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b1ae77664b076c3caf7b4c61efffa546be801ca3",
+        "data/tilesets/underground_metatiles.bin: Raw binary comparison: 1632 bytes unchanged in length, 1 changed bytes. Target source consumer(s): GoldenrodUndergroundSwitchRoom, GoldenrodDeptStoreB1F, GoldenrodUndergroundWarehouse.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "37dc71737e2e1c6b4dd38ac27e74f28000f1f198",
@@ -44309,10 +44479,16 @@
           "data/tilesets/kanto_attributes.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Color the Game Corners blue and red. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c572f2987056c3330b26b9b8ebd08291eb715965",
+        "data/tilesets/johto_modern_attributes.bin: Raw binary comparison: 2512 bytes unchanged in length, 32 changed bytes. XOR masks [3]; 0 priority-bit changes. Target source consumer(s): Route34, Route34Coast, StormyBeach.",
+        "data/tilesets/kanto_attributes.bin: Raw binary comparison: 4032 bytes unchanged in length, 32 changed bytes. XOR masks [1]; 0 priority-bit changes. Target source consumer(s): Route19, Route20, Route21.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "dc874e2958facc42be6801ea74d6e75f39d00bff",
@@ -45115,10 +45291,16 @@
           "maps/SaffronCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fewer bollards around Saffron City and Route 8. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6b0ee5425d32e71d9bb360379629e5f4839443ba",
+        "maps/Route8.ablk: Raw binary comparison: 286 bytes unchanged in length, 9 changed bytes. Target source consumer(s): Route8.",
+        "maps/SaffronCity.ablk: Raw binary comparison: 380 bytes unchanged in length, 2 changed bytes. Target source consumer(s): SaffronCity.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "312c3494960f033809539bfa9edd3f8b6ad553cf",
@@ -45140,10 +45322,17 @@
           "maps/Route22.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Shift the League sign to align better with bricks. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/312c3494960f033809539bfa9edd3f8b6ad553cf",
+        "data/tilesets/kanto_attributes.bin: Raw binary comparison: 4048 bytes unchanged in length, 2 changed bytes. XOR masks [5]; 0 priority-bit changes. Target source consumer(s): Route19, Route20, Route21.",
+        "gfx/tilesets/kanto.kanto_common.png: PNG decoded to RGBA: [128, 40] -> [128, 40]; modes L -> L; 4 resulting colors. 134 changed pixels; bounding box [24, 32, 48, 40]. Target source consumer(s): Route19, Route20, Route21.",
+        "maps/Route22.ablk: Raw binary comparison: 153 bytes unchanged in length, 1 changed bytes. Target source consumer(s): Route22.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "c0981f8a68daac07de00ee68233e8b4124b67084",
@@ -45214,10 +45403,15 @@
           "gfx/tilesets/kanto.kanto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Improve dithering on Cinnabar Volcano. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/dfe4cac308e3a90fafb5440fab081a8fff36e5cf",
+        "gfx/tilesets/kanto.kanto_common.png: PNG decoded to RGBA: [128, 40] -> [128, 40]; modes L -> L; 4 resulting colors. 28 changed pixels; bounding box [40, 26, 48, 32]. Target source consumer(s): Route19, Route20, Route21.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "452800ddaecc78eb3104962d60f847eb76e5d134",
@@ -45377,10 +45571,15 @@
           "maps/PokemonLeagueGate.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Better-looking sideways hallways. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9d178869a7fc105860b0cde88c4d9d286f93f40a",
+        "maps/PokemonLeagueGate.ablk: Raw binary comparison: 99 bytes unchanged in length, 6 changed bytes. Target source consumer(s): PokemonLeagueGate.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "d3b7cd35fcafc0e52655bc59edc0876f826f0aee",
@@ -45801,10 +46000,15 @@
           "maps/Route13.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use tree+fence block. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/bd7b638d03912689d3b0e84ab8bb1d34810c3855",
+        "maps/Route13.ablk: Raw binary comparison: 350 bytes unchanged in length, 25 changed bytes. Target source consumer(s): Route13.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "a0efda414c1b6007f3db11d395cd5b9ef53e31da",
@@ -46162,10 +46366,15 @@
           "maps/Route12South.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add shoreline tiles on Route 12. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/027e2067181965fd09aa3429026eac3cce02d907",
+        "maps/Route12South.ablk: Raw binary comparison: 440 bytes unchanged in length, 3 changed bytes. Target source consumer(s): Route12South.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "c8040bf8225aa8ac3105cb1417b44648db414952",
@@ -46179,10 +46388,15 @@
           "data/tilesets/indigo_plateau_attributes.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Make Super Rod house's roof blue. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c8040bf8225aa8ac3105cb1417b44648db414952",
+        "data/tilesets/indigo_plateau_attributes.bin: Raw binary comparison: 4064 bytes unchanged in length, 20 changed bytes. XOR masks [3]; 0 priority-bit changes. Target source consumer(s): Route23North, Route23South, IndigoPlateau.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "12eebd507e37e817755e96949738f37460cd41d0",
@@ -46835,10 +47049,15 @@
           "maps/SnowtopMountainOutside.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix block. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9f5754357fe77a4eebe641845f484425655d3c07",
+        "maps/SnowtopMountainOutside.ablk: Raw binary comparison: 272 bytes unchanged in length, 1 changed bytes. Target source consumer(s): SnowtopMountainOutside.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "a79dd2a36d00449b4961a119a1098e3aa318364f",
@@ -48468,10 +48687,17 @@
           "gfx/tilesets/park.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add windows to gatehouses in National Park. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f864a8b97dd4486d479e3a93b313137b8be6aa62",
+        "data/tilesets/park_attributes.bin: Raw binary comparison: 1136 bytes unchanged in length, 6 changed bytes. XOR masks [5]; 0 priority-bit changes. Target source consumer(s): NationalPark, NationalParkBugContest.",
+        "data/tilesets/park_metatiles.bin: Raw binary comparison: 1136 bytes unchanged in length, 6 changed bytes. Target source consumer(s): NationalPark, NationalParkBugContest.",
+        "gfx/tilesets/park.png: PNG decoded to RGBA: [128, 56] -> [128, 56]; modes L -> L; 4 resulting colors. 44 changed pixels; bounding box [64, 48, 72, 56]. Target source consumer(s): NationalPark, NationalParkBugContest.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "c636696f4c917b6a4f1c9f6f4c29b043e20aec86",
@@ -48801,10 +49027,15 @@
           "gfx/tilesets/snowtop_mountain.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Correct PC+Mart roofs from Snowtop Mountain. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/59e02d12ecdf307afbc2325f1f8db0f510645cb1",
+        "gfx/tilesets/snowtop_mountain.png: PNG decoded to RGBA: [128, 112] -> [128, 112]; modes L -> L; 4 resulting colors. 215 changed pixels; bounding box [56, 0, 80, 20]. Target source consumer(s): SnowtopMountainOutside.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "36c9c31dbebfb2644058f2cb7e93447e7f0f1e6d",
@@ -49860,10 +50091,15 @@
           "data/tilesets/johto_traditional_metatiles.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix a tile error. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5bfd7346ead322a6fb8edae0f49787bb406a5637",
+        "data/tilesets/johto_traditional_metatiles.bin: Raw binary comparison: 4096 bytes unchanged in length, 1 changed bytes. Target source consumer(s): Route42, Route44, MahoganyTown.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "862ca8882150224d0dec603dab105aa4335b7040",
@@ -50060,10 +50296,16 @@
           "data/tilesets/kanto_metatiles.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix block error. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5455d91510ef6345c41b32ae06c48adefe8ad3ad",
+        "data/tilesets/kanto_attributes.bin: Raw binary comparison: 3904 bytes unchanged in length, 2 changed bytes. XOR masks [32]; 0 priority-bit changes. Target source consumer(s): Route19, Route20, Route21.",
+        "data/tilesets/kanto_metatiles.bin: Raw binary comparison: 3904 bytes unchanged in length, 2 changed bytes. Target source consumer(s): Route19, Route20, Route21.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "9162f69fc0fcf6d03c37fad2c6205784ff197019",
@@ -50475,10 +50717,15 @@
           "data/tilesets/kanto_attributes.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Make the Battle Factory orange instead of red. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/35f73a0e3279b7f0d78348da5b557f468052f510",
+        "data/tilesets/kanto_attributes.bin: Raw binary comparison: 4080 bytes unchanged in length, 122 changed bytes. XOR masks [7]; 0 priority-bit changes. Target source consumer(s): Route19, Route20, Route21.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "7c3870a0b2b7d84e9e1565bde10e76115ca7fa94",
@@ -50492,10 +50739,15 @@
           "gfx/tilesets/kanto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Make Kanto fenceposts 1px taller. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7c3870a0b2b7d84e9e1565bde10e76115ca7fa94",
+        "gfx/tilesets/kanto_common.png: PNG decoded to RGBA: [128, 64] -> [128, 64]; modes L -> L; 4 resulting colors. 14 changed pixels; bounding box [65, 1, 71, 7]. Target source consumer(s): Route19, Route20, Route21.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "fde982225eba8cb9d12183ed75e5a2b9af91eee8",
@@ -50554,10 +50806,17 @@
           "gfx/tilesets/kanto.kanto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Blend corner tiles in with background. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ffa6d68e53d1a728d225eceb8ca8f7b3e0364695",
+        "data/tilesets/kanto_attributes.bin: Raw binary comparison: 4080 bytes unchanged in length, 1 changed bytes. XOR masks [32]; 0 priority-bit changes. Target source consumer(s): Route19, Route20, Route21.",
+        "data/tilesets/kanto_metatiles.bin: Raw binary comparison: 4080 bytes unchanged in length, 3 changed bytes. Target source consumer(s): Route19, Route20, Route21.",
+        "gfx/tilesets/kanto.kanto_common.png: PNG decoded to RGBA: [128, 56] -> [128, 56]; modes L -> L; 4 resulting colors. 116 changed pixels; bounding box [96, 48, 112, 56]. Target source consumer(s): Route19, Route20, Route21.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "3291922d3e2dbb752d17667e917f353c0b18b436",
@@ -50571,10 +50830,15 @@
           "data/tilesets/kanto_urban_attributes.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Tweak Dojo window pattern. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3291922d3e2dbb752d17667e917f353c0b18b436",
+        "data/tilesets/kanto_urban_attributes.bin: Raw binary comparison: 2448 bytes unchanged in length, 5 changed bytes. XOR masks [1]; 0 priority-bit changes. Target source consumer(s): Route6, Route11, VermilionCity.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "619febf95da88a07627e3a33ebf04537dc9e8ba9",
@@ -50731,10 +50995,15 @@
           "data/tilesets/kanto_urban_attributes.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix window colors. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1f460ca366c3b767f9396bb2b400acc1f616fbd4",
+        "data/tilesets/kanto_urban_attributes.bin: Raw binary comparison: 2512 bytes unchanged in length, 4 changed bytes. XOR masks [6]; 0 priority-bit changes. Target source consumer(s): Route6, Route11, VermilionCity.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "9e98888fee7f6746a4bc42445204c63af63650a7",
@@ -50956,10 +51225,15 @@
           "maps/AzaleaTownRaining.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix Azalea Town map during rain. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3e56a473b9cf627fee22107aed3d7e4a70221701",
+        "maps/AzaleaTownRaining.ablk: Raw binary comparison: 180 bytes unchanged in length, 7 changed bytes. Target source consumer(s): AzaleaTown (weather override).",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "77e3e5be38a80a954181338922768a4272d9f242",
@@ -51280,10 +51554,15 @@
           "maps/PewterCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Move ledge in Pewter City. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c455a59d86bbf4b00245da20fa37fe3233925924",
+        "maps/PewterCity.ablk: Raw binary comparison: 380 bytes unchanged in length, 1 changed bytes. Target source consumer(s): PewterCity.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "c87e7a3a279509a5d9c622a2a9f20d4b6416eded",
@@ -51334,10 +51613,16 @@
           "maps/Route43.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use standard gatehouses on Route 29 and Route 43. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f4488c81fb647195d327908268f77a39e166ec77",
+        "maps/Route29.ablk: Raw binary comparison: 270 bytes unchanged in length, 2 changed bytes. Target source consumer(s): Route29.",
+        "maps/Route43.ablk: Raw binary comparison: 270 bytes unchanged in length, 4 changed bytes. Target source consumer(s): Route43.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "26b3f12c1f260d8a75903dc43902b13b697148bc",
@@ -51747,10 +52032,15 @@
           "maps/Route16North.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix a block error. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7315cf05b96612701388ff1f8d48e1e99e590e29",
+        "maps/Route16North.ablk: Raw binary comparison: 55 bytes unchanged in length, 2 changed bytes. Target source consumer(s): Route16North.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "cfdc29265d6ec9807eb5d361daef878f6de5d85b",
@@ -51825,10 +52115,14 @@
           "gfx/tilesets/hidden_grotto.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Adds Yellow Forest entrance-dependent hidden-grotto colors: copy WATER to GREEN and GREEN colors 1-3 to ROOF while retaining ROOF color 0. Full assembly/palette diffs reviewed. Target generic grotto palette selection does not carry the origin map; keep open for navigation context, day/night terrain variants and consistent background-derived NPC palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/87d5a5ebff6007cf3c4fde2619314922e849d3c3",
+        "Compared complete changed-file scope and all text patches; current source HiddenGrottoSpecialCase and scripts/render_map.py generic-grotto handling checked."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "836bf0096575570575b9111149684206a96db0a7",
@@ -52002,10 +52296,16 @@
           "gfx/tilesets/johto_modern.johto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use vertical road bricks to contrast with horizontal wall bricks. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements. The historical johto_coast.johto_common PNG is no longer selected at the target: JohtoCoastGFX1/GFX2 share johto_modern.johto_common, whose corresponding 12-pixel edit was also compared and whose source is consumed.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/82f5ed16fec9ad82b3373da2ffa0134bfb95e46e",
+        "gfx/tilesets/johto_coast.johto_common.png: PNG decoded to RGBA: [128, 96] -> [128, 96]; modes L -> L; 4 resulting colors. 12 changed pixels; bounding box [0, 0, 8, 8].",
+        "gfx/tilesets/johto_modern.johto_common.png: PNG decoded to RGBA: [128, 96] -> [128, 96]; modes L -> L; 4 resulting colors. 12 changed pixels; bounding box [0, 0, 8, 8]. Target source consumer(s): Route38, Route39.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "73a81d687496de1f3449c37b9f14c7ed1feebe1e",
@@ -52477,10 +52777,16 @@
           "data/tilesets/indigo_plateau_metatiles.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix Pokémon League roof to be flat. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0da7bc5d88b9285084eede19b0903c90b337e111",
+        "data/tilesets/indigo_plateau_attributes.bin: Raw binary comparison: 4064 bytes unchanged in length, 26 changed bytes. XOR masks [2, 3, 4, 5, 6, 32, 34, 38]; 0 priority-bit changes. Target source consumer(s): Route23North, Route23South, IndigoPlateau.",
+        "data/tilesets/indigo_plateau_metatiles.bin: Raw binary comparison: 4064 bytes unchanged in length, 64 changed bytes. Target source consumer(s): Route23North, Route23South, IndigoPlateau.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "de7047d40ab48de0ffad7d2798de9452eb0285f0",
@@ -53203,10 +53509,15 @@
           "data/tilesets/kanto_urban_metatiles.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix wall tiles for Silph Co buildings. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f42006b61e99755a7fb54e344d2290b566e596be",
+        "data/tilesets/kanto_urban_metatiles.bin: Raw binary comparison: 3968 bytes unchanged in length, 44 changed bytes. Target source consumer(s): Route6, Route11, VermilionCity.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "df058aa6a0d6b7815d5837bca9c2272352005495",
@@ -54101,10 +54412,15 @@
           "gfx/tilesets/forest.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use Jace's revised RBY trees instead of devamped FRLG trees for Viridian Forest. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3615288963c319e2ee66aec16a39b44d29fcde5c",
+        "gfx/tilesets/forest.png: PNG decoded to RGBA: [128, 104] -> [128, 104]; modes L -> L; 4 resulting colors. 667 changed pixels; bounding box [32, 40, 128, 72]. Target source consumer(s): IlexForest, MurkySwamp.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "d07e6836fd39f64633f3b66a3a75279d5602081b",
@@ -54674,10 +54990,17 @@
           "gfx/tilesets/champions_room.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add Capumon \"SALE\" signs in Cerulean bike shop. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/83e173101d5f3fa895ba26a947f561ffad924857",
+        "data/tilesets/champions_room_attributes.bin: Raw binary comparison: 704 bytes unchanged in length, 8 changed bytes. XOR masks [8]; 0 priority-bit changes. Target source consumer(s): CeruleanBikeShop, GoldenrodBikeShop, LancesRoom.",
+        "data/tilesets/champions_room_metatiles.bin: Raw binary comparison: 704 bytes unchanged in length, 6 changed bytes. Target source consumer(s): CeruleanBikeShop, GoldenrodBikeShop, LancesRoom.",
+        "gfx/tilesets/champions_room.png: PNG decoded to RGBA: [128, 80] -> [128, 80]; modes L -> L; 4 resulting colors. 127 changed pixels; bounding box [24, 72, 56, 80]. Target source consumer(s): CeruleanBikeShop, GoldenrodBikeShop.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "6f8736a098295a7409bd156af577c326e78d661c",
@@ -55143,10 +55466,15 @@
           "data/tilesets/game_corner_metatiles.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix block error. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a2564e1ec66c814c8f293e668f16cf71a7925925",
+        "data/tilesets/game_corner_metatiles.bin: Raw binary comparison: 784 bytes unchanged in length, 1 changed bytes. Target source consumer(s): OlivineCafe, GoldenrodGameCorner, CeladonGameCorner.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "dbd0d0e91ca30bc73c3728cf3de532df5e1f5094",
@@ -55475,10 +55803,15 @@
           "gfx/tilesets/johto_outlands.johto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Make the campfire edge fuzzier. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/722966c58934eb29904e24b1fa1cf4bd5f5626af",
+        "gfx/tilesets/johto_outlands.johto_common.png: PNG decoded to RGBA: [128, 72] -> [128, 72]; modes L -> L; 4 resulting colors. 119 changed pixels; bounding box [0, 56, 119, 72]. Target source consumer(s): Route43, LakeOfRage.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "683f5b3bde648d9ddcb6d5a36300a6102c4b5c6e",
@@ -59065,10 +59398,15 @@
           "gfx/tilesets/johto_outlands.johto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Reduce collinear pixels in campfire dithering. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/24cdf5fdf3202fb60120307c99ae622fbab30498",
+        "gfx/tilesets/johto_outlands.johto_common.png: PNG decoded to RGBA: [128, 72] -> [128, 72]; modes L -> L; 4 resulting colors. 8 changed pixels; bounding box [34, 58, 118, 70]. Target source consumer(s): Route43, LakeOfRage.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "7ade18b7689b25241d12ac823d4a90328de368e6",
@@ -59462,10 +59800,17 @@
           "gfx/tilesets/snowtop_mountain.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add chimney. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f22d31a52cbbf1387d27ba63f5bf2fa959955d37",
+        "data/tilesets/snowtop_mountain_attributes.bin: Raw binary comparison: 2240 bytes unchanged in length, 1 changed bytes. XOR masks [8]; 0 priority-bit changes. Target source consumer(s): SnowtopMountainOutside.",
+        "data/tilesets/snowtop_mountain_metatiles.bin: Raw binary comparison: 2240 bytes unchanged in length, 1 changed bytes. Target source consumer(s): SnowtopMountainOutside.",
+        "gfx/tilesets/snowtop_mountain.png: PNG decoded to RGBA: [128, 120] -> [128, 120]; modes L -> L; 4 resulting colors. 53 changed pixels; bounding box [8, 112, 16, 120]. Target source consumer(s): SnowtopMountainOutside.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "ce187a513c654fa5dc4243d0fb3a9ac485d0a4b9",
@@ -59483,10 +59828,16 @@
           "gfx/sprites/surf_pikachu.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use FrenchOrange's overworld sprite of surfing Pikachu. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ce187a513c654fa5dc4243d0fb3a9ac485d0a4b9",
+        "CREDITS.md: Full text patch adds/updates artist attribution only.",
+        "gfx/sprites/surf_pikachu.png: PNG decoded to RGBA: [16, 96] -> [16, 96]; modes L -> L; 4 resulting colors. 397 changed pixels; bounding box [0, 0, 16, 96]. Target source consumer(s): SPRITE_SURFING_PIKACHU.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "d0400356d9c007dd965bff37d75bbf3817a0ec51",
@@ -59504,10 +59855,16 @@
           "gfx/sprites/swimming_officer_f.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use OfficerF sprite tweaks by FrenchOrange. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d0400356d9c007dd965bff37d75bbf3817a0ec51",
+        "gfx/sprites/officer_f.png: PNG decoded to RGBA: [16, 96] -> [16, 96]; modes L -> L; 4 resulting colors. 110 changed pixels; bounding box [2, 8, 14, 96]. Target source consumer(s): SPRITE_OFFICER_F.",
+        "gfx/sprites/swimming_officer_f.png: PNG decoded to RGBA: [16, 48] -> [16, 48]; modes L -> L; 4 resulting colors. 17 changed pixels; bounding box [4, 24, 12, 46]. Target source consumer(s): SPRITE_SWIMMING_OFFICER_F.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "9e59a67ed797473a0fd0517a6b5c325ac36830c2",
@@ -59833,10 +60190,15 @@
           "maps/EcruteakCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix block error. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4772cb4c70cf0cd9387a884c41601a1a4eca4c57",
+        "maps/EcruteakCity.ablk: Raw binary comparison: 360 bytes unchanged in length, 2 changed bytes. Target source consumer(s): EcruteakCity.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "9b16605d620a4ad54d5cc3cf9dcc68af8fe6047a",
@@ -59991,10 +60353,15 @@
           "maps/YellowForest.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix perspective on Yellow Forest waterfall. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/71d404a84326e0bc3b2f86d17ce34ecff1f1c40b",
+        "maps/YellowForest.ablk: Raw binary comparison: 754 bytes unchanged in length, 4 changed bytes. Target source consumer(s): YellowForest.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "9dfcd39459a505f2cd0901de2d878cb93f9e4773",
@@ -62336,10 +62703,15 @@
           "data/tilesets/johto_sacred_attributes.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Route 28 Steel Wing house has gray roof. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d8c729a76f83b7a1f6d76e7579fa0b8f6f49b999",
+        "data/tilesets/johto_sacred_attributes.bin: Raw binary comparison: 2160 bytes unchanged in length, 16 changed bytes. XOR masks [3]; 0 priority-bit changes. Target source consumer(s): DragonsDenB1F, Route28, BellchimeTrail.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "840bae97651172e2706c9da5fd7b0f9c228a0cd1",
@@ -62386,10 +62758,16 @@
           "gfx/tilesets/indigo_plateau.kanto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Recolor the edge of Pokémon League building. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/547e1be7cca910c85d96a61cf8bbb4dac2540a3a",
+        "data/tilesets/indigo_plateau_attributes.bin: Raw binary comparison: 3968 bytes unchanged in length, 10 changed bytes. XOR masks [7]; 0 priority-bit changes. Target source consumer(s): Route23North, Route23South, IndigoPlateau.",
+        "gfx/tilesets/indigo_plateau.kanto_common.png: PNG decoded to RGBA: [128, 40] -> [128, 40]; modes L -> L; 4 resulting colors. 45 changed pixels; bounding box [34, 24, 48, 30]. Target source consumer(s): Route23North, Route23South, IndigoPlateau.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "cee4ba086b0fa13eac45ee2b9929ae459c3a514d",
@@ -63127,10 +63505,15 @@
           "data/tilesets/johto_coast_attributes.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "All four changed attribute bytes toggle only bit 7 (0x80), adding BG priority over the barn entrance. The renderer reads the bytes but Tileset.tile uses only palette, bank and flips; it discards priority and bakes opaque terrain below objects. Keep open for a terrain priority mask/compositing implementation and NPC overlap validation. Static map regeneration alone does not implement this change.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b2112459f25d584598c1aa6858566c79b148a546",
+        "data/tilesets/johto_coast_attributes.bin: Raw binary comparison: 3840 bytes unchanged in length, 4 changed bytes. XOR masks [128]; 4 priority-bit changes. Target source consumer(s): Route38, Route39, OlivineCity.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "204df63f876cf67d9c2c2dc4f5de7244f039fbc6",
@@ -63227,10 +63610,15 @@
           "maps/SnowtopMountainInside.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add tall grass to Snowtop Mountain. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4c92ad192fa11733d7fa955d906945392ac2edbd",
+        "maps/SnowtopMountainInside.ablk: Raw binary comparison: 306 bytes unchanged in length, 15 changed bytes. Target source consumer(s): SnowtopMountainInside.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "571e8edb8cf7472a7d96cf127652109bb19759e2",
@@ -63976,10 +64364,16 @@
           "maps/CeladonCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Make Silph Co roof HVAC unit gray. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f186a3040ff2820c615009efc3349dcd6551fe1d",
+        "data/tilesets/kanto_urban_attributes.bin: Raw binary comparison: 4096 bytes unchanged in length, 12 changed bytes. XOR masks [2]; 0 priority-bit changes. Target source consumer(s): Route6, Route11, VermilionCity.",
+        "maps/CeladonCity.ablk: Raw binary comparison: 396 bytes unchanged in length, 1 changed bytes. Target source consumer(s): CeladonCity.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "4db53687cf8993f8873b5dbf5ba64d50e736128f",
@@ -64822,10 +65216,15 @@
           "maps/Route8.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Remove fence from Route 8 chokepoint. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0ea0a9fc1c33a0fa8a6e0ee3825f2e03bb059001",
+        "maps/Route8.ablk: Raw binary comparison: 286 bytes unchanged in length, 2 changed bytes. Target source consumer(s): Route8.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "52c07f691ce0f9df063f72b322cae9152d395ec0",
@@ -65302,10 +65701,15 @@
           "data/tilesets/johto_modern_attributes.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Give Goldenrod Dept Store a red awning. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/38b7bc39b3297aa44ceb12488192937a81341861",
+        "data/tilesets/johto_modern_attributes.bin: Raw binary comparison: 2928 bytes unchanged in length, 4 changed bytes. XOR masks [7]; 0 priority-bit changes. Target source consumer(s): Route34, Route34Coast, StormyBeach.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "d213221f668e6a61e134c2271a6db16e20888a48",
@@ -65840,10 +66244,17 @@
           "maps/VermilionCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix block $13 in `kanto_urban` to sufficiently match `kanto` for the Saffron City/Route 8 connection. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/06e43dc3f38866bb681468249273a2f2812a12b4",
+        "data/tilesets/kanto_urban_metatiles.bin: Raw binary comparison: 4064 bytes unchanged in length, 8 changed bytes. Target source consumer(s): Route6, Route11, VermilionCity.",
+        "maps/SaffronCity.ablk: Raw binary comparison: 380 bytes unchanged in length, 11 changed bytes. Target source consumer(s): SaffronCity.",
+        "maps/VermilionCity.ablk: Raw binary comparison: 360 bytes unchanged in length, 1 changed bytes. Target source consumer(s): VermilionCity.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "8367f666f4e9cc105f3c154ac5d4f7ed20a462d8",
@@ -65959,10 +66370,15 @@
           "maps/CeladonCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Shorten north cul-de-sac in Celadon City. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5c728c28469890bdb903a4cf6e5fd1efb3c4f8af",
+        "maps/CeladonCity.ablk: Raw binary comparison: 396 bytes unchanged in length, 1 changed bytes. Target source consumer(s): CeladonCity.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "eec2b68b4f891a3f51e1ce42681d8c685ac20893",
@@ -66211,10 +66627,16 @@
           "maps/Route33.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Connect more Union Cave cliffs. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/324bd2221f293303e511d2f10afe0d0aada9d49f",
+        "maps/Route32Coast.ablk: Raw binary comparison: 525 bytes unchanged in length, 4 changed bytes. Target source consumer(s): Route32Coast.",
+        "maps/Route33.ablk: Raw binary comparison: 90 bytes unchanged in length, 12 changed bytes. Target source consumer(s): Route33.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     },
     {
       "sha": "704ea9db192ca8b902ef4aa7a441eb905eb29b89",
@@ -66232,10 +66654,16 @@
           "data/tilesets/johto_modern_metatiles.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Tweak fencepost in Goldenrod City. Complete changed-file scope contains static source assets and optional credits only. Compared all asset bytes/decoded pixels and checked format/dimension changes. Current map/sprite loaders consume the target data; regeneration incorporates the revised art/block indices/palette-bank-flip attributes without a new command or data format. This is a binary-data/consumer audit, not a visual review of every changed pixel or a resolution of separate gameplay/occlusion requirements.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/704ea9db192ca8b902ef4aa7a441eb905eb29b89",
+        "data/tilesets/johto_coast_metatiles.bin: Raw binary comparison: 3936 bytes unchanged in length, 2 changed bytes. Target source consumer(s): Route38, Route39, OlivineCity.",
+        "data/tilesets/johto_modern_metatiles.bin: Raw binary comparison: 2720 bytes unchanged in length, 2 changed bytes. Target source consumer(s): Route34, Route34Coast, StormyBeach.",
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+      ],
+      "review_method": "binary-data-diff"
     }
   ]
 }

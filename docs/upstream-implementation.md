@@ -319,6 +319,27 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   priority/obstruction. This batch does not complete the audit or broaden the
   previous visual verification claims.
 
+- Accelerated asset batch: **76 more commits processed, 72 resolved and four
+  reviewed/open**. Seventy-three commits were grouped by their complete changed-file
+  scope, then checked using raw binary comparisons, decoded PNG differences and
+  current source consumers. These records use `binary-data-diff`; they are neither
+  relevance-only skips nor claims of visual inspection of every changed pixel.
+  One PNG re-encoding uses `normalized-diff`: both complete decoded images are
+  identical. Farigiraf menu-mini art is excluded because the atlas selects the
+  separate overworld icon. Other resolutions cover regenerated terrain and sprite
+  assets. Exact raw metatile/attribute ingestion was checked for all 25 affected
+  current tilesets, and affected sprite sources decode successfully.
+- This batch found an additional rendering gap: the barn-entrance change toggles
+  BG priority on four tiles. The raster renderer currently discards that bit, so
+  regeneration alone cannot make objects pass behind the entrance. This stays
+  open alongside the existing object-priority work. Full text diffs for the three
+  entrance-dependent hidden-grotto palette commits were also reviewed; they stay
+  open for origin-aware terrain/NPC palette selection and navigation validation.
+- Current ledger: **556 resolved, 463 pending and 32 reviewed/open commits**
+  (**495 unresolved**). The full audit is still incomplete. The changelog remains
+  a triage aid, not a complete account of master changes. No new full-site visual
+  verification or publication is claimed by this asset batch.
+
 ## Immediate remaining implementation work
 
 - Verify palette-swap NPC colors in the full generated site. The frontend now
@@ -330,6 +351,9 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   main's shared publication tooling, then verify combined deployment.
 - Complete NPC glow effects, weather integration verification, dual-palette integration validation,
   and all map/object/movement findings from the audit.
+- Preserve BG tile priority through terrain/object compositing, including the barn
+  entrance. Check its interaction with object priority, animated tiles and glow;
+  the current baked terrain image does not retain a priority mask.
 - Finish glow validation on Dragon Shrine, cave mouths, underground lamps and lava
   ladders, including directional walls/warps and secondary palettes. Verify
   `SPRITE_AQUARIUM_MON` handling (also used for volcano Moltres), and reconcile

@@ -130,6 +130,10 @@ def _is_time_invariant_map(
     *,
     events: Set[str],
 ) -> bool:
+    # Swap palette tables have independent time/weather variants. Conservatively
+    # render each palette rather than reusing a common sheet based on base colors.
+    if repo_index.palette_swaps.maps.get(map_info.label):
+        return False
     baseline: Optional[Tuple[Optional[int], Tuple[Tuple[Tuple[int, int, int], ...], ...]]] = None
     for weekday in _WEEKDAY_VALUES:
         for time_of_day in _TIME_OF_DAY_VALUES:

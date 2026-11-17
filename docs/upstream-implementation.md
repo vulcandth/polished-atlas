@@ -63,5 +63,28 @@ passing this structural check alone does not prove compatibility.
 - Initial verification: 11 Python tests, 10 frontend tests, TypeScript checking,
   production build, and workflow YAML parsing pass. ESLint reports one existing
   dependency warning in MapCanvas and no errors.
-- Exhaustive review, dev compatibility, visual validation, and publication remain
-  incomplete. No upstream commits have been claimed reviewed merely by inventory.
+- Dev pins the reviewed target revision and can index 612 maps and 53 tilesets
+  after fixing constants parsing, LZP source fallback, and new roof references.
+- Palette-swap parsing covers all 17 affected maps at the pinned target. Terrain
+  rendering composites 16px cells and applies the result to every rendered frame.
+  Scoped table labels, ordered overrides, NULL chaining, and eight palette variants
+  are covered by tests. Goldenrod City and Route 7 static previews are available
+  locally in `.build/palette-preview/`; Goldenrod's composite was visually inspected.
+- 17 Python tests pass, including the locally available upstream palette-swap corpus.
+- Six commits have been individually reviewed and recorded as no atlas impact;
+  1,045 commits still require review. Inventory generation does not constitute review.
+- Exhaustive review, remaining dev compatibility, complete visual verification,
+  pushing branches, CI execution, and publication remain incomplete.
+
+## Immediate remaining implementation work
+
+- Consume palette-swap metadata in the frontend and apply the local palette context
+  to NPCs, including movement across swap boundaries. The metadata exporter is
+  updated, but the frontend currently still uses only per-map background palettes.
+- Implement modern banked `tileframe` animation tables/routines; the old animation
+  decoder remains and must not be treated as master-compatible.
+- Complete shared event state, fixed-weather rules/cherry blossoms, dual object
+  palettes, all map/object/movement findings from the audit, and full dev generation.
+- Run mandatory upstream corpus tests after source checkout in CI (the current
+  local corpus test skips when the optional checkout is absent).
+- Finish the commit ledger, then run full combined-site/browser tests and publish.

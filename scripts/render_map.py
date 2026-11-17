@@ -17,6 +17,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
+import palette_swaps
+
 RGB = Tuple[int, int, int]
 
 # LZ compression command identifiers (matching the engine format).
@@ -110,6 +112,8 @@ _ROOF_GFX = {
     "ROOF_AZALEA": "gfx/tilesets/roofs/azalea",
     "ROOF_OLIVINE": "gfx/tilesets/roofs/olivine",
     "ROOF_STATUE": "gfx/tilesets/roofs/statue",
+    "ROOF_PARK": "gfx/tilesets/roofs/park",
+    "ROOF_SINJOH": "gfx/tilesets/roofs/sinjoh",
 }
 
 _ROOF_TILE_OFFSET = 0x0A
@@ -364,6 +368,7 @@ class RendererData:
     tileset_key: str
     tileset_label: str
     map_label: str
+    palette_swaps: Tuple[palette_swaps.ResolvedSwap, ...] = ()
 
 
 @dataclass
@@ -400,6 +405,7 @@ class RepositoryIndex:
         self._default_weekday = self._determine_default_weekday()
         self._initial_event_flags = self._parse_initial_event_flags()
         self._bg_tile_palettes = _load_palette(self.root / "gfx/tilesets/bg_tiles.pal")
+        self.palette_swaps = palette_swaps.PaletteSwapIndex(self.root, _load_palette)
         self._environment_palette_indices = self._parse_environment_colors()
         self._map_constants = self._parse_map_constants()
         self._map_roofs = self._parse_map_roofs()
@@ -762,6 +768,8 @@ class RepositoryIndex:
             line = raw_line.split(";", 1)[0].strip()
             if not line:
                 continue
+            if line.startswith("DEF NUM_TILESETS"):
+                break
             if line.startswith("const_def"):
                 parts = line.split()
                 value = parts[1] if len(parts) > 1 else "0"
@@ -1239,7 +1247,7 @@ class RepositoryIndex:
 
     def _normalize_binary_path(self, raw_path: str, *, allow_asm_fallback: bool = False) -> str:
         candidate = Path(raw_path)
-        if candidate.suffix == ".lz":
+        if candidate.suffix in {".lz", ".lzp"}:
             without_lz = candidate.with_suffix("")
             if (self.root / without_lz).exists():
                 candidate = without_lz
@@ -1269,9 +1277,10 @@ class RepositoryIndex:
         candidates: List[str] = []
         if raw_path:
             candidates.append(raw_path)
-        if raw_path.endswith(".lz"):
-            candidates.append(raw_path[:-3])
-        base = raw_path[:-3] if raw_path.endswith(".lz") else raw_path
+        compression_suffix = next((suffix for suffix in (".lzp", ".lz") if raw_path.endswith(suffix)), "")
+        if compression_suffix:
+            candidates.append(raw_path[:-len(compression_suffix)])
+        base = raw_path[:-len(compression_suffix)] if compression_suffix else raw_path
         base = re.sub(r"\.2bpp(?:\.[^.]+)?$", "", base)
         candidates.extend(
             [
@@ -1626,7 +1635,7 @@ def _read_block_bytes(map_path: Path) -> bytes:
     candidates: List[Path] = []
     seen: Set[Path] = set()
     candidates.append(map_path)
-    if map_path.suffix == ".lz":
+    if map_path.suffix in {".lz", ".lzp"}:
         candidates.insert(0, map_path.with_suffix(""))
     else:
         candidates.append(map_path.with_suffix(map_path.suffix + ".lz"))
@@ -1637,6 +1646,8 @@ def _read_block_bytes(map_path: Path) -> bytes:
         if not candidate.exists():
             continue
         data = candidate.read_bytes()
+        if candidate.suffix == ".lzp":
+            raise ValueError(f"Compressed-only LZP asset requires its checked-in uncompressed source: {candidate}")
         if candidate.suffix == ".lz":
             data = LzDecompressor(data).decompress()
         return data
@@ -1644,6 +1655,8 @@ def _read_block_bytes(map_path: Path) -> bytes:
 
 
 def _read_asset_bytes(path: Path) -> bytes:
+    if path.suffix == ".lzp":
+        raise ValueError(f"Compressed-only LZP asset requires its checked-in uncompressed source: {path}")
     data = path.read_bytes()
     if path.suffix == ".lz":
         data = LzDecompressor(data).decompress()
@@ -1956,7 +1969,8 @@ def _apply_tile_animations(base_tiles: Sequence[Sequence[int]], animations: Sequ
     return tiles
 
 
-def _render_map(block_indices: Sequence[int], width: int, height: int, metatiles: MetatileSet) -> Tuple[int, int, List[List[int]]]:
+def _render_map(block_indices: Sequence[int], width: int, height: int, metatiles: MetatileSet,
+                cell_variants: Optional[Dict[Tuple[int, int], MetatileSet]] = None) -> Tuple[int, int, List[List[int]]]:
     tiles_per_metatile = MetatileSet.METATILE_DIM
     tile_size = Tileset.TILE_SIZE
     block_px = tiles_per_metatile * tile_size
@@ -1972,7 +1986,10 @@ def _render_map(block_indices: Sequence[int], width: int, height: int, metatiles
                 metatile = metatiles[block_index]
                 for tile_col in range(tiles_per_metatile):
                     tile_index = tile_row * tiles_per_metatile + tile_col
-                    tile_pixels = metatile[tile_index]
+                    # Upstream event/player coordinates use 16px cells (half a
+                    # 32px block). Select locally, without changing tile indices.
+                    variant = cell_variants.get((block_col * 2 + tile_col // 2, block_row * 2 + tile_row // 2)) if cell_variants else None
+                    tile_pixels = (variant[block_index] if variant is not None else metatile)[tile_index]
                     start = within_tile_row * tile_size
                     for rgb in tile_pixels[start : start + tile_size]:
                         row.extend(rgb)
@@ -2002,7 +2019,21 @@ def _write_png(path: Path, width: int, height: int, rows: List[List[int]], png_m
 def _render_with_tiles(renderer: RendererData, bank0_tiles: Sequence[Sequence[int]], bank1_tiles: Sequence[Sequence[int]]) -> Tuple[int, int, List[List[int]]]:
     tileset = Tileset(bank0_tiles, bank1_tiles, renderer.attributes)
     metatiles = MetatileSet(renderer.metatile_data, tileset, renderer.attributes)
-    return _render_map(renderer.block_indices, renderer.width, renderer.height, metatiles)
+    variants: Dict[Tuple[int, int], MetatileSet] = {}
+    if renderer.palette_swaps:
+        base = tuple(tuple(row) for row in renderer.attributes.colors)
+        cached = {base: metatiles}
+        attr_bytes = bytes(value for chunk in renderer.attributes.data for value in chunk)
+        for y in range(renderer.height * 2):
+            for x in range(renderer.width * 2):
+                colors = palette_swaps.evaluate(base, renderer.palette_swaps, x, y)
+                if colors not in cached:
+                    attributes = Attributes(attr_bytes, colors)
+                    variant_tiles = Tileset(bank0_tiles, bank1_tiles, attributes)
+                    cached[colors] = MetatileSet(renderer.metatile_data, variant_tiles, attributes)
+                if colors != base:
+                    variants[x, y] = cached[colors]
+    return _render_map(renderer.block_indices, renderer.width, renderer.height, metatiles, variants)
 
 
 def _write_gif(path: Path, frames: Sequence[Tuple[int, int, List[List[int]]]], duration_ms: int) -> None:
@@ -2219,6 +2250,7 @@ def _build_renderer(
         tileset_key=map_info.tileset,
         tileset_label=tileset_label,
         map_label=map_info.label,
+        palette_swaps=repo_index.palette_swaps.resolve(map_info.label, time_of_day, overcast_index is not None),
     )
 
 

@@ -219,10 +219,12 @@ def build_payload(opts: Options) -> Dict[str, object]:
             "map_constant": info.constant,
             "map_type": info.map_type,
             "palettes": palettes_by_time,
+            "palette_swaps": repo.palette_swaps.metadata(label),
         }
 
     return {
-        "version": 1,
+        "version": 2,
+        "palette_swap_palettes": repo.palette_swaps.palettes,
         "generated_at": datetime.utcnow().replace(tzinfo=None).isoformat() + "Z",
         "weekday": int(opts.weekday),
         "maps": maps_payload,

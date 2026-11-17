@@ -364,6 +364,23 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   463 pending and 29 reviewed/open commits** (**492 unresolved**). The audit and
   publication work remain incomplete; nothing has been pushed or published.
 
+- Further accelerated triage resolved **31 commits**: 24 scope screens, six full
+  text-diff reviews and one whitespace-normalized comparison. The scope screens
+  exclude ROM UI, encounter simulation, assembler updates and other unrelated
+  consumers; they do not claim full patch or binary-pixel review. Focused text
+  inspection was used where party/status UI shared graphics source files.
+  The palette-table relocation is already handled by `PaletteSwapIndex`; all
+  seven palette-swap tests pass, including the pinned upstream corpus. The first
+  test attempt hit the environment's broken MSYS Git; rerunning with Windows Git
+  passed. No product code changed in this batch.
+- Rechecking the complete changelog diff confirms that its only new release
+  entry is the v3.2.3 battle-crash hotfix. Commit/file triage remains necessary.
+  Hardware constants and other ambiguous shared changes remain pending rather
+  than being skipped on their titles. Current ledger: **590 resolved, 432 pending
+  and 29 reviewed/open commits** (**461 unresolved**). These findings remain
+  non-exhaustive; `paletteswap`, NPC glow and the other open validation work below
+  are still required. Nothing has been pushed or published.
+
 ## Immediate remaining implementation work
 
 - Verify palette-swap NPC colors in the full generated site. The frontend now

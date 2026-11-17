@@ -15485,10 +15485,14 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "PP font glyphs, credits and summary/menu display are outside the atlas renderer; no map or overworld sprite source changes.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status 88d2bb6e46cbf387070b0b166d03cb4127be1e2c",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "873137d0e5969545dbcfca2a4ce7256374bc8b48",
@@ -16061,10 +16065,15 @@
           "gfx/stats/mail.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Party-menu held-item and Berry overlays are outside atlas scope. Focused text inspection confirms mon_icons changes concern party minis and HeldItemIcons; atlas uses overworld icon sources and palettes separately. UI binary pixels were not reviewed.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status a38b8a2b35188ccaced45c738eb53388db8a1851",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed.",
+        "Text patch inspection: git show --no-ext-diff a38b8a2b35188ccaced45c738eb53388db8a1851; binary UI assets excluded by scope."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "baf6d3ba9931692057e468fecdaf03d908d27ce0",
@@ -16090,10 +16099,15 @@
           "gfx/stats/held_items.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Five-OAM party-mini layout and held-item overlap are UI-only. Focused text inspection confirms party/trade mini color and slot handling; atlas overworld icon rendering does not execute these routines. UI binary pixels were not reviewed.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status baf6d3ba9931692057e468fecdaf03d908d27ce0",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed.",
+        "Text patch inspection: git show --no-ext-diff baf6d3ba9931692057e468fecdaf03d908d27ce0; binary UI assets excluded by scope."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "1596331c20747f4b0637339c3017abd3ff142fba",
@@ -16148,10 +16162,15 @@
           "engine/pokemon/switchpartymons.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Complete text diff replaces party-mini/held-item OAM literals with equivalent constants and assertions; atlas does not consume these party UI layouts.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status be2d7b135f97f77d6dc6e116286be119d4983eef",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed.",
+        "Text patch inspection: git show --no-ext-diff be2d7b135f97f77d6dc6e116286be119d4983eef; binary UI assets excluded by scope."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "919fa567cd8042bc0a5565cc28bd0470fad11a63",
@@ -16784,10 +16803,14 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Fishing encounter timing/tables do not affect atlas terrain, object rendering, movement or weather; atlas has no encounter simulation.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status 1046416ddb78d34fa3269424d9a101ef99d99ab8",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6f6472865c04b8e5d645b922401d35d436b30f5f",
@@ -17582,10 +17605,14 @@
           "ram/hram.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Music-player keyboard animation, its art/palette and LCD/VBlank support are outside atlas scope; atlas does not execute ROM interrupt handlers.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status 987a23ed2def248f473c55d39c462facba840d8f",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "a0facd0a61c0ef7ec5b936251d2167124221d875",
@@ -30170,10 +30197,14 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Initial/options-menu scrolling, descriptions, UI assets and associated RAM/includes do not implement atlas controls or change its map/overworld data.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status 034e5afa4ec0e311d80173211aeded3c7ceff1e5",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6b26c2025612ec38aeb7c13757b160f69a6da1d2",
@@ -32499,10 +32530,14 @@
           "ram/hram.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "LCD interrupt RAM-label rename concerns music player, Judge, PC, Pokedex and summary screens; atlas does not execute their routines or read their RAM layout.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status e9de98f8bff63be5487a4bb201aee47e80aca0e9",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "4005eb4dce8aa31434228539274303ad4809048a",
@@ -32623,10 +32658,14 @@
           "ram/hram.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Local LCD interrupt RAM-label style changes are confined to ROM UI consumers and their RAM definitions; no atlas rendering input changes.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status 4503188770a8a96915651771657300f596c1e573",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "4ffc5e4e0584277ae02ba3c2649fafce7822da40",
@@ -32713,10 +32752,14 @@
           "ram/hram.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Judge Machine UI redesign and its build/assets/RAM are outside atlas display scope; atlas does not render Judge/statistics screens.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status dd65806ee731e4c542188e35b265e83b7ee4c450",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "656675e66f5ee6789383081bf9a41f86fd272360",
@@ -32821,10 +32864,14 @@
           "gfx/stats/judge.tilemap"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Judge Machine reuses battle UI graphics; no terrain, overworld object or map data changes.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status f5fc66cc274bf6af96b059719298f41e6f5da03d",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "cd72b66ff3ee01396d8797dbd0926c5eea70880b",
@@ -32891,10 +32938,14 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Font glyph reuse for ROM UI and map-name signs is outside atlas rendering: atlas draws its own labels and does not execute ROM font/sign graphics routines.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status 99ff90f89d4519d7692916c50fedb6ebf282ab9a",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6160556b92a2e0fc2d84667fe4d98d9fd307c3d4",
@@ -32980,10 +33031,14 @@
           "utils/ngram.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "BOLDH font encoding and ROM UI font/OAM assets are outside atlas rendering; atlas does not consume game charmap or font raster assets.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status 6160556b92a2e0fc2d84667fe4d98d9fd307c3d4",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ebfc7e1358974ccce7920c693178c09e866bd5e3",
@@ -35090,10 +35145,14 @@
           "macros/gfx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Naming-screen shiny-star palette and UI palette macros are outside atlas renderer; no overworld palette data changes in the complete file scope.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status dff6510afee4a5e569fb4b2a9fe9be3c79d8df52",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "c781d83a7fe06ba619fcc4a886347061832c49e1",
@@ -35165,10 +35224,15 @@
           "engine/menus/naming_screen.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Complete diff confines optimizations to battle ability display, Judge palette selection and naming-screen jumps; no overworld palette behavior changes.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status e64cc9c5755bdec7d9f313cf567e141e0ff1d41d",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed.",
+        "Text patch inspection: git show --no-ext-diff e64cc9c5755bdec7d9f313cf567e141e0ff1d41d; binary UI assets excluded by scope."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "0b9d18d4310f5b53176ae84ad5c22159f5f39599",
@@ -35268,10 +35332,14 @@
           "gfx/misc.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Evolution spotlight animation and breeding/evolution graphics are outside atlas scope; atlas does not simulate evolution movies.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status 29df138540f6d4f8e4941fb31749c2498128474e",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "80b77bc88fd5fc555eaacfc3e3777235af9af9cc",
@@ -35581,10 +35649,14 @@
           "gfx/trainer_card/kris_card.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Trainer Card portrait cropping and intro/player portrait loading are outside atlas rendering; this does not change overworld sprite sources.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status 6d4faa575ab031d8d9f811eaf3b7bb49fdbd64cc",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ac4471d42efad862c7fade58c300881c0282b0c7",
@@ -36323,10 +36395,13 @@
           "home/vblank.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "All five changed files differ only in end-of-line whitespace; ignoring that whitespace produces an empty patch, including tileset animation and VBlank code.",
+      "evidence": [
+        "git show --ignore-space-at-eol aeef12985c2f: commit header only, no diff."
+      ],
+      "review_method": "normalized-diff"
     },
     {
       "sha": "2538e8f3d1473fb76b2fbe35f4f2362a95616356",
@@ -39856,10 +39931,14 @@
           "engine/smallflag.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "SmallFlagAction and front-picture routine renames affect battle/menu/trade/evolution consumers; atlas does not execute these ROM calls or consume front-picture animations.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status a127fcdfd8351260abfb513b4d5e78e88ce5c266",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "c6f7cd15db1727a699c53f8e75588742abaa2ea9",
@@ -40021,10 +40100,15 @@
           "layout.link"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Complete diff adds a ROM crash vector and relocates ObjectEvent/DoNothingScript unchanged (still end), plus unchanged IsAPokemon code. No atlas script semantics change.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status 9d02585d3f2050a70901d18ae36d0ec9149758a6",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed.",
+        "Text patch inspection: git show --no-ext-diff 9d02585d3f2050a70901d18ae36d0ec9149758a6; binary UI assets excluded by scope."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "c1fb619f9749fe7e37af11b92b8c381af2eac953",
@@ -41633,10 +41717,14 @@
           "utils/ngram.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Naming-screen shiny star, summary text encoding and battle UI support are outside atlas display; atlas uses neither game charmap nor naming-screen palettes.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status bfe6b2c863189abbfa9fe597b8fb93f887c4aec4",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "f7375dd6ec01fdc1920f3869f4938b06bcdd6ce6",
@@ -46619,10 +46707,14 @@
           "home/cry.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Cry-table packing and Pokedex footprint assertions/assets are outside atlas terrain/object pipeline.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status 3b47050651a7d174b6cec6a1f8f1b5689241777a",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "0fa2d42184c2faa6d07f7c2b697423b355f94b03",
@@ -47040,10 +47132,15 @@
           "gfx/stats/status.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Focused text inspection limits shared color/font edits to status/faint icons in battle and summary screens; these are not overworld colors. UI bitmap pixels were not reviewed.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status 847327cb22c98528e31e4e9a3639553de1b23cb9",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed.",
+        "Text patch inspection: git show --no-ext-diff 847327cb22c98528e31e4e9a3639553de1b23cb9; binary UI assets excluded by scope."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "9f5754357fe77a4eebe641845f484425655d3c07",
@@ -48731,10 +48828,14 @@
           "home/header.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Upstream ROM assembler version, installation/workflow and ROM header changes do not change atlas source-asset parsing; atlas does not assemble the ROM.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status c636696f4c917b6a4f1c9f6f4c29b043e20aec86",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "c6943d72fb1f7aa5519d2b20ef7f7f40151850d3",
@@ -49160,10 +49261,14 @@
           "home/header.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Upstream RGBDS patch-version/workflow and ROM header updates are outside atlas builds, which consume source assets rather than assemble a ROM.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status 65cdb9eb71d00600de22300e4456f4b76871b84c",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6adafaed9542ae476d98f3470caef3fd9bd0196e",
@@ -55594,10 +55699,15 @@
           "engine/gfx/color.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Palette label/INCLUDE tables move from engine/gfx/color.asm into data/tileset_palettes.asm. PaletteSwapIndex explicitly reads the latter and resolves label-to-palette includes. This resolves the file relocation only, not remaining palette-swap NPC integration checks.",
+      "evidence": [
+        "Complete text diff: git show 5c673eb1013a",
+        "scripts/palette_swaps.py: PaletteSwapIndex.__init__",
+        "python -m unittest discover -s scripts/tests -p test_palette_swaps.py: 7 passed, including exact pinned upstream corpus (GIT_BIN set to Windows Git)."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "48b317fd0673df56c9dd363060c63d2cba2e2958",
@@ -58577,10 +58687,14 @@
           "home/pokemon.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Pokemon front-picture animation/DMA and summary-screen optimization is outside atlas overworld icon/sprite animation pipeline.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status 787882162cc7a10afed9ef03bf3ea3bc1d288629",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ff719a7c449070ff16769993331fc5419c54d037",
@@ -59251,10 +59365,14 @@
           "macros/ram.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Trade caught-data/OT-gender bookkeeping and trade-animation RAM are outside atlas map/event display.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status ff1c42bb1f33c8a2fe1e01db684d6ef07947d0fa",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ddcf3928f0715819b73a1234625757ca7ed65d35",
@@ -59737,10 +59855,15 @@
           "home/tilemap.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Complete diff changes HP-bar thresholds and party-mini speed derived from HP; no overworld icon palette or animation data changes.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status e1ebe1337393bdcf6f583a9ac70d0c9faf4faf06",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed.",
+        "Text patch inspection: git show --no-ext-diff e1ebe1337393bdcf6f583a9ac70d0c9faf4faf06; binary UI assets excluded by scope."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "512b9dc588d69af917e58c22df7d9518235b4eac",
@@ -62169,10 +62292,14 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Compressed Pokemon front-picture animation commands and their RAM are outside atlas overworld frame system; atlas does not consume pic_anims commands.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status 61c8897c92543d4e87ed50480f1dd2ca51685c37",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e425f5c2c7c843a2aca0297fb996b88c5fb0a5ae",
@@ -65592,10 +65719,15 @@
           "engine/items/items.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Complete diff packs key-item use/selectability effects in item metadata without changing key-item IDs or map scripts. Atlas does not execute inventory item effects.",
+      "evidence": [
+        "Complete changed-file scope: git show --name-status 4a9e37b133f75411b3dfeb52666eadaa8a7a9b2a",
+        "Atlas consumer check: scripts/generate_object_metadata.py, scripts/generate_map_objects.py and web/atlas/src; party UI, ROM interrupts and battle/front-picture routines are not executed.",
+        "Text patch inspection: git show --no-ext-diff 4a9e37b133f75411b3dfeb52666eadaa8a7a9b2a; binary UI assets excluded by scope."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "be0a3f9e9c7790f01cad53974f6a05c8a0bdda88",

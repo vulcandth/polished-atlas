@@ -1,5 +1,5 @@
 import { Assets, BaseTexture, Rectangle, Texture, type Container } from "pixi.js";
-import type { MapAnimationMetadata } from "@/types";
+import type { MapAnimationMetadata, TileAnimationMetadata } from "@/types";
 import { withVersion } from "@/lib/basePath";
 import { createTileAnimationPlayer, validateTileAnimation } from "@/lib/tileAnimation";
 
@@ -11,6 +11,8 @@ export interface MapAnimationResource {
   imageUrl: string;
   tileTextures?: Texture[];
   tileImageUrl?: string;
+  priorityTextures?: Texture[];
+  priorityImageUrl?: string;
   applyTiles?: (parent: Container, elapsedMs: number, enabled?: boolean) => void;
 }
 
@@ -94,19 +96,39 @@ export async function loadMapAnimation(assetUrl: string): Promise<MapAnimationRe
       }
       let tileTextures: Texture[] | undefined;
       let tileImageUrl: string | undefined;
+      let priorityTextures: Texture[] | undefined;
+      let priorityImageUrl: string | undefined;
       let applyTiles: MapAnimationResource["applyTiles"];
-      if (metadata.tileAnimation) {
-        const tiles = metadata.tileAnimation;
-        tileImageUrl = withVersion(new URL(tiles.image, baseHref).toString());
-        await Assets.load(tileImageUrl);
-        const tileBase = BaseTexture.from(tileImageUrl);
+      const loadTiles = async (tiles: TileAnimationMetadata) => {
+        const url = withVersion(new URL(tiles.image, baseHref).toString());
+        await Assets.load(url);
+        const tileBase = BaseTexture.from(url);
         if (tileBase.width !== tiles.sheetColumns * 8 ||
             tileBase.height !== Math.ceil(tiles.tileCount / tiles.sheetColumns) * 8) {
-          throw new Error(`Invalid animated tile atlas dimensions at ${tileImageUrl}`);
+          throw new Error(`Invalid tile atlas dimensions at ${url}`);
         }
-        tileTextures = Array.from({ length: tiles.tileCount }, (_, index) => new Texture(tileBase,
+        const frames = Array.from({ length: tiles.tileCount }, (_, index) => new Texture(tileBase,
           new Rectangle((index % tiles.sheetColumns) * 8, Math.floor(index / tiles.sheetColumns) * 8, 8, 8)));
-        applyTiles = createTileAnimationPlayer(tiles, tileTextures);
+        return { frames, url };
+      };
+      if (metadata.tileAnimation) {
+        const loaded = await loadTiles(metadata.tileAnimation);
+        tileTextures = loaded.frames;
+        tileImageUrl = loaded.url;
+        applyTiles = createTileAnimationPlayer(metadata.tileAnimation, tileTextures);
+      }
+      if (metadata.terrainPriority) {
+        const loaded = await loadTiles(metadata.terrainPriority);
+        priorityTextures = loaded.frames;
+        priorityImageUrl = loaded.url;
+        // Terrain hides NPC pixels (5), while weather stays in front (6).
+        const foreground = createTileAnimationPlayer(metadata.terrainPriority, priorityTextures,
+          { zIndex: 5.5, retainStatic: true });
+        const background = applyTiles;
+        applyTiles = (parent, elapsedMs, enabled) => {
+          background?.(parent, elapsedMs, enabled);
+          foreground(parent, elapsedMs, enabled);
+        };
       }
       const durations = [...metadata.frameDurationsMs];
       const loopDuration =
@@ -124,6 +146,8 @@ export async function loadMapAnimation(assetUrl: string): Promise<MapAnimationRe
         imageUrl: resolvedImageUrl,
         tileTextures,
         tileImageUrl,
+        priorityTextures,
+        priorityImageUrl,
         applyTiles,
       };
     } catch (error) {
@@ -196,9 +220,10 @@ function validateMetadata(metadata: MapAnimationMetadata, assetUrl: string): voi
   if (metadata.version !== 1 && metadata.version !== 2) {
     throw new Error(`Unsupported animation metadata version ${metadata.version} for ${assetUrl}.`);
   }
-  if (metadata.tileAnimation) {
+  for (const tiles of [metadata.tileAnimation, metadata.terrainPriority]) {
+    if (!tiles) continue;
     if (metadata.version !== 2 || metadata.frameCount !== 1) throw new Error("Invalid tile animation version or base frame count");
-    validateTileAnimation(metadata.tileAnimation, metadata.frameWidth, metadata.frameHeight);
+    validateTileAnimation(tiles, metadata.frameWidth, metadata.frameHeight);
   }
   if (
     !Array.isArray(metadata.frameDurationsMs) ||

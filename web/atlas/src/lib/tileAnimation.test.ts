@@ -10,6 +10,31 @@ const metadata = (): TileAnimationMetadata => ({
 });
 
 describe("compact map animation", () => {
+  it("keeps terrain priority above NPCs and below weather, freezing frame zero when disabled", () => {
+    const textures = [0, 1].map((value) => new Texture(BaseTexture.fromBuffer(new Uint8Array(256).fill(value), 8, 8)));
+    const parent = new Container();
+    parent.sortableChildren = true;
+    const objects = new Container(), weather = new Container();
+    objects.zIndex = 5;
+    weather.zIndex = 6;
+    parent.addChild(weather, objects);
+    const update = createTileAnimationPlayer(metadata(), textures, { zIndex: 5.5, retainStatic: true });
+    update(parent, frameMs * 2, false);
+    parent.sortChildren();
+    const layer = parent.children[1] as Container;
+    expect(parent.children).toEqual([objects, layer, weather]);
+    expect(layer.visible).toBe(true);
+    expect((layer.children[0] as Sprite).texture).toBe(textures[0]);
+    update(parent, frameMs * 2, true);
+    expect((layer.children[0] as Sprite).texture).toBe(textures[1]);
+    update(parent, frameMs * 2, false);
+    expect(layer.visible).toBe(true);
+    expect((layer.children[0] as Sprite).texture).toBe(textures[0]);
+    expect(parent.children).toHaveLength(3);
+    parent.destroy({ children: true });
+    textures.forEach((texture) => texture.destroy(true));
+  });
+
   it("keeps exact VBlank boundaries and independently repeating tracks", () => {
     const clock = makeTrackClock([0, 1, 0], [2, 1, 1], frameMs);
     for (let tick = 0; tick < 1600; tick++) {

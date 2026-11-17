@@ -298,7 +298,7 @@ function disposeAnimationResource(
   }
   // First, dispose of the Texture wrappers without touching the BaseTexture
   // so that the asset system can own the BaseTexture lifecycle.
-  for (const texture of [...resource.textures, ...(resource.tileTextures ?? [])]) {
+  for (const texture of [...resource.textures, ...(resource.tileTextures ?? []), ...(resource.priorityTextures ?? [])]) {
     try {
       // In some teardown orders, PIXI may already have nulled the baseTexture
       // on a Texture without marking it destroyed. Guard for that to avoid
@@ -321,6 +321,7 @@ function disposeAnimationResource(
   if (options?.unload) {
     void Assets.unload(resource.imageUrl);
     if (resource.tileImageUrl) void Assets.unload(resource.tileImageUrl);
+    if (resource.priorityImageUrl) void Assets.unload(resource.priorityImageUrl);
   }
 }
 

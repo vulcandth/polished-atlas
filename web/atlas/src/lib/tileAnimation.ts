@@ -44,19 +44,20 @@ export function makeTrackClock(frames: number[], durations: number[], frameMs: n
   };
 }
 
-export function createTileAnimationPlayer(data: TileAnimationMetadata, textures: Texture[]) {
+export function createTileAnimationPlayer(data: TileAnimationMetadata, textures: Texture[],
+  options: { zIndex?: number; retainStatic?: boolean } = {}) {
   const clocks = data.tracks.map((track) => makeTrackClock(track.frames, track.durations, data.frameMs));
   const instances = new WeakMap<Container, { layer: Container; tracks: { sprites: Sprite[]; frame: number }[] }>();
   return (parent: Container, elapsedMs: number, enabled = true) => {
     let instance = instances.get(parent);
-    if (!enabled) {
+    if (!enabled && !options.retainStatic) {
       if (instance) instance.layer.visible = false;
       return; // The base image already contains frame zero.
     }
     if (!instance) {
       const layer = new Container();
       layer.eventMode = "none";
-      layer.zIndex = 0;
+      layer.zIndex = options.zIndex ?? 0;
       parent.addChild(layer);
       instance = {
         layer,
@@ -75,7 +76,7 @@ export function createTileAnimationPlayer(data: TileAnimationMetadata, textures:
     }
     instance.layer.visible = true;
     instance.tracks.forEach((track, index) => {
-      const frame = clocks[index](elapsedMs);
+      const frame = clocks[index](enabled ? elapsedMs : 0);
       if (frame === track.frame) return;
       track.frame = frame;
       for (const sprite of track.sprites) sprite.texture = textures[frame];

@@ -121,6 +121,7 @@ export interface MapAnimationMetadata {
   loopDurationMs: number;
   sheetColumns?: number;
   tileAnimation?: TileAnimationMetadata;
+  terrainPriority?: TileAnimationMetadata;
 }
 
 export interface TileAnimationMetadata {

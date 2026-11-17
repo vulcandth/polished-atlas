@@ -35,7 +35,7 @@ def compact_track(frames: list[int]) -> tuple[tuple[int, int], ...]:
     return tuple(runs)
 
 
-def _tile_rgb(data: bytes, attribute: int, colors) -> bytes:
+def _tile_rgb(data: bytes, attribute: int, colors, *, priority: bool = False) -> bytes:
     pixels = []
     for y in range(8):
         row = 7 - y if attribute & 0x40 else y
@@ -44,6 +44,10 @@ def _tile_rgb(data: bytes, attribute: int, colors) -> bytes:
             bit = x if attribute & 0x20 else 7 - x
             shade = ((low >> bit) & 1) | (((high >> bit) & 1) << 1)
             pixels.extend(colors[shade])
+            if priority:
+                # CGB BG priority never hides an OBJ behind color index zero,
+                # even if another index has the same RGB color.
+                pixels.append(255 if shade else 0)
     return bytes(pixels)
 
 
@@ -82,6 +86,7 @@ def write_animation(root: Path, renderer, png, metadata_path: Path, context: Con
     active_colors = [list(row) for row in cycle.palette]
     animated_colors = {key for _, changes in cycle.changes for key in changes}
     images = []
+    priority_images = {}
     image_ids = {}
     for frame, (tiles, changed_colors) in enumerate(cycle.changes):
         for (bank, tile), data in tiles.items():
@@ -95,18 +100,25 @@ def write_animation(root: Path, renderer, png, metadata_path: Path, context: Con
                 for color in range(4):
                     if (attr & 7, color) in animated_colors:
                         palette[color] = active_colors[attr & 7][color]
-                rgb = _tile_rgb(banks[bank][tile * 16:(tile + 1) * 16], attr, palette)
-                image_id = image_ids.get(rgb)
+                data = banks[bank][tile * 16:(tile + 1) * 16]
+                rgb = _tile_rgb(data, attr, palette)
+                foreground = _tile_rgb(data, attr, palette, priority=True) if attr & 0x80 else None
+                # Preserve index-zero coverage even when RGB frames are equal.
+                image_key = (rgb, foreground)
+                image_id = image_ids.get(image_key)
                 if image_id is None:
                     image_id = len(images)
                     images.append(rgb)
-                    image_ids[rgb] = image_id
+                    image_ids[image_key] = image_id
+                    if foreground is not None:
+                        priority_images[image_id] = foreground
                 current[index] = image_id
             history[index].append(current[index])
 
     width, height = renderer.width * 32, renderer.height * 32
     rows = [bytearray(width * 3) for _ in range(height)]
     tracks = {}
+    priority_tracks = {}
     for key, frames in zip(keys, history):
         positions = groups[key]
         first = images[frames[0]]
@@ -114,6 +126,8 @@ def write_animation(root: Path, renderer, png, metadata_path: Path, context: Con
             for row in range(8):
                 rows[y + row][x * 3:(x + 8) * 3] = first[row * 24:(row + 1) * 24]
         compact = compact_track(frames)
+        if key[2] & 0x80:
+            priority_tracks.setdefault(compact, []).extend(positions)
         if len(compact) > 1:
             tracks.setdefault(compact, []).extend(positions)
 
@@ -141,5 +155,24 @@ def write_animation(root: Path, renderer, png, metadata_path: Path, context: Con
             "image": tile_path.name, "tileCount": len(used), "sheetColumns": columns, "frameMs": FRAME_MS,
             "tracks": [{"positions": positions, "frames": [remap[tile] for tile, _ in track],
                         "durations": [duration for _, duration in track]} for track, positions in tracks.items()]}
+    if priority_tracks:
+        used_priority = sorted({tile for track in priority_tracks for tile, _ in track})
+        remap_priority = {tile: index for index, tile in enumerate(used_priority)}
+        columns = min(128, len(used_priority))
+        atlas_height = ((len(used_priority) + columns - 1) // columns) * 8
+        if atlas_height > 4096:
+            raise ValueError(f"Priority tile atlas exceeds texture limit: {metadata_path}")
+        rgba_rows = [bytearray(columns * 8 * 4) for _ in range(atlas_height)]
+        for index, tile in enumerate(used_priority):
+            x, y = index % columns * 8, index // columns * 8
+            for row in range(8):
+                rgba_rows[y + row][x * 4:(x + 8) * 4] = priority_images[tile][row * 32:(row + 1) * 32]
+        priority_path = metadata_path.with_suffix(".priority.png")
+        with priority_path.open("wb") as handle:
+            png.Writer(columns * 8, atlas_height, greyscale=False, alpha=True).write(handle, rgba_rows)
+        payload["terrainPriority"] = {
+            "image": priority_path.name, "tileCount": len(used_priority), "sheetColumns": columns, "frameMs": FRAME_MS,
+            "tracks": [{"positions": positions, "frames": [remap_priority[tile] for tile, _ in track],
+                        "durations": [duration for _, duration in track]} for track, positions in priority_tracks.items()]}
     metadata_path.write_text(json.dumps(payload, separators=(",", ":")) + "\n", encoding="utf-8")
     return payload

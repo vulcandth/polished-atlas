@@ -63644,13 +63644,20 @@
           "data/tilesets/johto_coast_attributes.bin"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "All four changed attribute bytes toggle only bit 7 (0x80), adding BG priority over the barn entrance. The renderer reads the bytes but Tileset.tile uses only palette, bank and flips; it discards priority and bakes opaque terrain below objects. Keep open for a terrain priority mask/compositing implementation and NPC overlap validation. Static map regeneration alone does not implement this change.",
+      "reason": "The four changed bytes add BG priority at the barn entrance. Compact terrain export now retains the nonzero color-index coverage as RGBA tile tracks, including static tiles and animated frames. The browser composites those tracks above NPCs and below weather, retains frame zero with animation disabled, and releases their textures with the map. A controlled real-asset cowgirl overlap at the Route39 barn was verified in day/night, covered and clear positions, and animation-disabled mode. Object-to-object ordering and grass OAM priority remain separate open work.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/b2112459f25d584598c1aa6858566c79b148a546",
         "data/tilesets/johto_coast_attributes.bin: Raw binary comparison: 3840 bytes unchanged in length, 4 changed bytes. XOR masks [128]; 4 priority-bit changes. Target source consumer(s): Route38, Route39, OlivineCity.",
-        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
+        "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md.",
+        "scripts/tile_animation_export.py: terrainPriority export preserves alpha independently of RGB frame interning",
+        "scripts/tests/test_tile_animation_export.py: every cycle frame verifies masks, banks, flips, spatial palette swaps and static tracks; equal RGB values do not erase index-zero transparency",
+        "web/atlas/src/lib/tileAnimation.test.ts: terrain at z=5.5 between NPCs and weather, frame-zero retention when disabled",
+        "scripts/animation_assets.py validates priority image presence, bounds/tracks and 8-bit RGBA; full dev bundle passes",
+        "Full 612-map/four-time build: .build/dev-priority; all 1056 base map images byte-identical to previous grotto build",
+        "Browser controlled overlap fixture: .build/priority-check.html; screenshots .build/priority-barn-day.jpg and .build/priority-barn-night.jpg; production atlas day/night load and disabled-animation smoke check, no console errors",
+        "https://raw.githubusercontent.com/gbdev/pandocs/master/src/Tile_Maps.md: BG attribute bit 7 covers color indices 1-3, never index 0"
       ],
       "review_method": "binary-data-diff"
     },

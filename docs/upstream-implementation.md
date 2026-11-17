@@ -381,6 +381,32 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   non-exhaustive; `paletteswap`, NPC glow and the other open validation work below
   are still required. Nothing has been pushed or published.
 
+- BG tile priority now survives compact export as RGBA foreground tracks above
+  NPCs and below weather. Coverage uses source color indices, so index 0 remains
+  transparent even if its RGB matches another color. Static priority tiles remain
+  visible when map animation is disabled; animated coverage and colors share the
+  terrain clock. Texture cleanup includes the new layer. The priority rule is
+  documented in [Pan Docs](https://raw.githubusercontent.com/gbdev/pandocs/master/src/Tile_Maps.md).
+- Verification: 59 Python tests, 41 frontend tests, TypeScript and the full
+  612-map/four-time build pass. Lint has no errors and retains the existing hook
+  dependency warning. All 1,056 base map images are byte-identical to the previous
+  grotto build. There are 184 priority atlases, five with animated tracks. Bundle
+  validation checks foreground assets even without background animation and
+  rejects missing, invalid or opaque replacements. The frame-by-frame fixture
+  covers banks, flips, palette swaps, static tiles and index-zero transparency.
+- Browser validation used the real Route39 terrain and generated cowgirl sprite
+  in a controlled overlap fixture; no NPC map positions were changed. The lintel
+  hides overlapping pixels in day/night and with animation disabled, while moving
+  the fixture sprite clear of it restores the full sprite. The built atlas loads
+  day/night and supports the animation toggle without console errors. Evidence:
+  `.build/priority-barn-day.jpg`, `.build/priority-barn-night.jpg`,
+  `.build/priority-atlas-night.jpg`, and `.build/priority-regression.json`.
+  Exact source-attribute reconciliation checks all 1,056 map/time assets with no
+  missing or extra priority positions (`.build/priority-source-coverage.json`).
+  This is not a claim of visual inspection of every priority tile or completion
+  of NPC glow/grass/object-ordering work. The barn commit is resolved: **591
+  resolved, 432 pending and 28 reviewed/open** (**460 unresolved**).
+
 ## Immediate remaining implementation work
 
 - Verify palette-swap NPC colors in the full generated site. The frontend now
@@ -392,9 +418,10 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   main's shared publication tooling, then verify combined deployment.
 - Complete NPC glow effects, weather integration verification, dual-palette integration validation,
   and all map/object/movement findings from the audit.
-- Preserve BG tile priority through terrain/object compositing, including the barn
-  entrance. Check its interaction with object priority, animated tiles and glow;
-  the current baked terrain image does not retain a priority mask.
+- Finish object-to-object OAM ordering and grass occlusion, including arch-tree
+  flags and the per-facing RELATIVE_ATTRIBUTES/OAM_PRIO behavior. BG attribute
+  priority is implemented as recorded above; broader glow and object-priority
+  interaction validation remains open.
 - Finish glow validation on Dragon Shrine, cave mouths, underground lamps and lava
   ladders, including directional walls/warps and secondary palettes. Verify
   `SPRITE_AQUARIUM_MON` handling (also used for volcano Moltres), and reconcile

@@ -13,6 +13,7 @@ import {
 import { WeatherSystem } from "@/lib/weather";
 import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
 import { channelStorageKey } from "@/lib/channel";
+import { createSpatialPaletteSelector } from "@/lib/paletteSwaps";
 import {
   AtlasLayout,
   MapPlacement,
@@ -143,6 +144,7 @@ type ObjectMarkerEntry = {
   currentStepIndex: number | null;
   stepProgress: number;
   stepCount: number | null;
+  refreshPalette?: (marker: ObjectMarkerEntry, dx: number, dy: number) => void;
 };
 
 interface MapCanvasProps {
@@ -1466,11 +1468,43 @@ function createMovementAnimator(
   return null;
 }
 
+function spatialPaletteRefresher(
+  cache: ObjectSpriteCache,
+  metadata: BgPalettesMetadata | null,
+  label: string,
+  time: string,
+  spriteKey: string,
+  spriteDef: ObjectSpriteDefinition,
+  paletteName: string | null | undefined,
+  facingKey: string,
+): ObjectMarkerEntry["refreshPalette"] {
+  if (!metadata?.maps[label]?.palette_swaps?.length || !paletteName?.startsWith("PAL_OW_COPY_BG_")) {
+    return undefined;
+  }
+  const select = createSpatialPaletteSelector(metadata, label, time);
+  const context = cache.getPaletteContext();
+  return (marker, dx, dy) => {
+    const colors = select(marker.object.xTiles + dx, marker.object.yTiles + dy);
+    if (!colors) return;
+    // The cache is shared by maps. Restore this object's map context before
+    // constructing its new frames, including when a moving NPC crosses a region.
+    cache.setPaletteContext(context);
+    cache.setBgPalettes(colors);
+    const record = cache.getFacingTexture(spriteKey, facingKey, paletteName);
+    if (!record) throw new Error(`Missing palette-swapped sprite ${spriteKey}`);
+    marker.frameSet = buildMovementFrameSet(cache, spriteKey, spriteDef, paletteName, facingKey, record);
+    marker.currentFrameKey = null;
+  };
+}
+
 function applySpriteFrame(
   marker: ObjectMarkerEntry,
   direction: CardinalDirection | null,
   frameIndex: number,
+  dx = 0,
+  dy = 0,
 ): void {
+  marker.refreshPalette?.(marker, dx, dy);
   const frameSet = marker.frameSet;
   if (!frameSet) {
     if (direction) {
@@ -1586,7 +1620,7 @@ function updateMarkerAnimation(marker: ObjectMarkerEntry, elapsedMs: number): vo
       const baseFrameIndex = parity === 0 ? 0 : 2;
       const strideFrameIndex = parity === 0 ? 1 : 3;
       const frameIndex = inStride ? strideFrameIndex : baseFrameIndex;
-      applySpriteFrame(marker, activeSegment.direction, frameIndex);
+      applySpriteFrame(marker, activeSegment.direction, frameIndex, interpDx, interpDy);
       marker.sprite.x = baseX + marker.spriteOffset.x + interpDx * cellSize;
       marker.sprite.y = baseY + marker.spriteOffset.y + interpDy * cellSize;
       marker.currentStepIndex = activeSegment.stepIndex;
@@ -1595,7 +1629,7 @@ function updateMarkerAnimation(marker: ObjectMarkerEntry, elapsedMs: number): vo
       const stepIndex = activeSegment.stepIndex ?? 0;
       const parity = stepIndex & 1;
       const frameIndex = parity === 0 ? 0 : 2;
-      applySpriteFrame(marker, activeSegment.direction, frameIndex);
+      applySpriteFrame(marker, activeSegment.direction, frameIndex, activeSegment.position.dx, activeSegment.position.dy);
       marker.sprite.x = baseX + marker.spriteOffset.x + activeSegment.position.dx * cellSize;
       marker.sprite.y = baseY + marker.spriteOffset.y + activeSegment.position.dy * cellSize;
       marker.currentStepIndex = activeSegment.stepIndex;
@@ -2678,7 +2712,8 @@ export default function MapCanvas({
       const isOverworld = Boolean(mapMeta?.isOverworld);
       const isIndoor = !isOverworld;
       const weatherType = computeMapWeather(state.mapLabel);
-      const isOvercast = weatherType === "rain" || weatherType === "thunderstorm";
+      const isOvercast = bgPalettes?.maps[state.mapLabel]?.overcast ??
+        (weatherType === "rain" || weatherType === "thunderstorm");
       const constant = (mapMeta?.mapConstant || "").toUpperCase();
       const label = (mapMeta?.label || state.mapLabel || "").toUpperCase();
       const isDarkness =
@@ -2888,6 +2923,7 @@ export default function MapCanvas({
       }
       const stepCount = animator?.kind === "path" ? animator.stepCount : null;
       state.objectMarkers.push({
+        refreshPalette: spatialPaletteRefresher(cache, bgPalettes, state.mapLabel, timeOfDay, spriteKey, spriteDef, paletteName, facingKey),
         object: objectEntry,
         sprite: spriteInstance,
         movementSummary,
@@ -3572,7 +3608,8 @@ export default function MapCanvas({
         const isOverworld = Boolean(mapMeta?.isOverworld);
         const isIndoor = !isOverworld;
         const weatherType = computeMapWeather(entry.placement.label);
-        const isOvercast = weatherType === "rain" || weatherType === "thunderstorm";
+        const isOvercast = bgPalettes?.maps[entry.placement.label]?.overcast ??
+          (weatherType === "rain" || weatherType === "thunderstorm");
         // Heuristic for darkness: prefer explicit Dark Cave variants; extendable later
         const constant = (mapMeta?.mapConstant || "").toUpperCase();
         const label = (mapMeta?.label || entry.placement.label || "").toUpperCase();
@@ -3729,6 +3766,7 @@ export default function MapCanvas({
         }
         const stepCount = animator?.kind === "path" ? animator.stepCount : null;
         entry.objectMarkers.push({
+          refreshPalette: spatialPaletteRefresher(cache, bgPalettes, entry.placement.label, timeOfDay, spriteKey, spriteDef, paletteName, facingKey),
           object: objectEntry,
           sprite,
           movementSummary,

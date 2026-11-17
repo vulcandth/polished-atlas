@@ -38,6 +38,8 @@ function normalizeMapEntry(
     map_constant: entry?.map_constant ?? null,
     map_type: entry?.map_type ?? null,
     palettes: {},
+    palette_swaps: entry?.palette_swaps ?? [],
+    overcast: typeof entry?.overcast === "boolean" ? entry.overcast : undefined,
   } as BgPalettesMapEntry;
   const src = entry?.palettes ?? {};
   for (const [time, rows] of Object.entries(src)) {
@@ -75,6 +77,7 @@ function convertPayload(dto: BgPalettesPayloadDTO): BgPalettesMetadata {
     generatedAt: toStringOrNull(dto.generated_at) ?? new Date().toISOString(),
     weekday: toNumberOrNull(dto.weekday),
     maps,
+    paletteSwapPalettes: dto.palette_swap_palettes ?? {},
   };
 }
 

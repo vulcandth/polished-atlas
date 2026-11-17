@@ -220,6 +220,7 @@ def build_payload(opts: Options) -> Dict[str, object]:
             "map_type": info.map_type,
             "palettes": palettes_by_time,
             "palette_swaps": repo.palette_swaps.metadata(label),
+            "overcast": repo.get_overcast_index(info, weekday=opts.weekday, events=initial_flags) is not None,
         }
 
     return {

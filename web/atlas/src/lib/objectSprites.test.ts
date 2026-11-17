@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
 import { ObjectSpriteCache } from "./objectSprites";
-import type { ObjectMetadata, ObjectSpriteDefinition, ObjectFacingEntry } from "@/types";
+import type { ObjectMetadata, ObjectSpriteDefinition, ObjectFacingEntry, RgbTuple } from "@/types";
 
 type RawMetadata = {
   version?: number;
@@ -207,5 +207,24 @@ describe("ObjectSpriteCache normalization for large sprites", () => {
         expect(indices).toHaveLength(metadata.facings[facing].tiles.length);
       }
     }
+  });
+});
+
+describe("background-derived object palettes", () => {
+  it("constructs special WHITE and GRASS palettes from BG colors 0,0,1,2", () => {
+    const { metadata } = loadMetadataSubset();
+    const cache = new ObjectSpriteCache(metadata, "day");
+    const rows: RgbTuple[][] = Array.from({ length: 8 }, (_, slot) =>
+      Array.from({ length: 4 }, (_, color) => [slot * 20 + color, color, slot]));
+    cache.setBgPalettes(rows);
+    const resolvePalette = (name: string) => (cache as unknown as {
+      resolvePalette(name: string): RgbTuple[];
+    }).resolvePalette(name);
+    expect(resolvePalette("PAL_OW_COPY_BG_WHITE")).toEqual([rows[0][0], rows[0][0], rows[0][1], rows[0][2]]);
+    expect(resolvePalette("PAL_OW_COPY_BG_GRASS")).toEqual([rows[2][0], rows[2][0], rows[2][1], rows[2][2]]);
+    expect(resolvePalette("PAL_OW_COPY_BG_GREEN")).toEqual(rows[2]);
+    rows[2] = [[10, 20, 30], [40, 50, 60], [70, 80, 90], [0, 0, 0]];
+    cache.setBgPalettes(rows);
+    expect(resolvePalette("PAL_OW_COPY_BG_GRASS")).toEqual([rows[2][0], rows[2][0], rows[2][1], rows[2][2]]);
   });
 });

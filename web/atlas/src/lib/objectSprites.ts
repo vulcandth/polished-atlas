@@ -141,6 +141,10 @@ export class ObjectSpriteCache {
     // No texture clear; cacheKey includes these flags
   }
 
+  getPaletteContext(): { indoor: boolean; overcast: boolean; darkness: boolean } {
+    return { indoor: this.isIndoor, overcast: this.isOvercast, darkness: this.isDarkness };
+  }
+
   destroy(): void {
     this.clearTextures();
     this.tileCache.clear();
@@ -155,20 +159,21 @@ export class ObjectSpriteCache {
     if (!spriteName || !facingKey) {
       return null;
     }
+    const spriteDef = this.metadata.sprites[spriteName];
+    if (!spriteDef) {
+      return null;
+    }
+    const effectivePalette = paletteName ?? spriteDef.defaultPalette;
     // Include bgSignature for copy-from-BG palettes so textures are unique per map palette
-    const isCopy = paletteName ? this.resolveCopyBgIndex(paletteName) !== null : false;
-    const cacheKey = `${spriteName}|${facingKey}|${paletteName ?? ""}|${this.timeOfDay}` +
+    const isCopy = effectivePalette ? this.resolveCopyBgIndex(effectivePalette) !== null : false;
+    const cacheKey = `${spriteName}|${facingKey}|${effectivePalette ?? ""}|${this.timeOfDay}` +
       `${this.isIndoor ? "|indoor" : ""}${this.isOvercast ? "|overcast" : ""}${this.isDarkness ? "|dark" : ""}` +
       `${isCopy ? `|bg=${this.bgSignature ?? ""}` : ""}`;
     const cached = this.textureCache.get(cacheKey);
     if (cached) {
       return cached;
     }
-    const spriteDef = this.metadata.sprites[spriteName];
-    if (!spriteDef) {
-      return null;
-    }
-    const palette = this.resolvePalette(paletteName ?? spriteDef.defaultPalette);
+    const palette = this.resolvePalette(effectivePalette);
     const buildFallback = (): FacingTextureRecord | null => {
       const fallback = this.buildGeneratedTexture(spriteName, palette);
       if (fallback && import.meta.env?.DEV && DEBUG_SPRITES.has(spriteName)) {
@@ -417,7 +422,12 @@ export class ObjectSpriteCache {
     if (copyIndex !== null) {
       const rows = this.bgPalettes;
       if (rows && rows[copyIndex]) {
-        return clampPalette(rows[copyIndex]!);
+        const row = clampPalette(rows[copyIndex]!);
+        // CopySpritePal constructs WHITE/GRASS from BG colors 0,0,1,2.
+        if (name === "PAL_OW_COPY_BG_WHITE" || name === "PAL_OW_COPY_BG_GRASS") {
+          return [row[0], row[0], row[1], row[2]];
+        }
+        return row;
       }
       // Fallback to existing palette definitions if BG palettes aren't available
     }
@@ -457,10 +467,12 @@ export class ObjectSpriteCache {
   private resolveCopyBgIndex(name: string): number | null {
     switch (name) {
       case "PAL_OW_COPY_BG_GRAY":
+      case "PAL_OW_COPY_BG_WHITE":
         return 0;
       case "PAL_OW_COPY_BG_RED":
         return 1;
       case "PAL_OW_COPY_BG_GREEN":
+      case "PAL_OW_COPY_BG_GRASS":
         return 2;
       case "PAL_OW_COPY_BG_WATER":
         return 3;

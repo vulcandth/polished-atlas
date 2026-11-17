@@ -415,11 +415,23 @@ export interface ObjectMetadata {
   pokemonIcons: PokemonIconMetadata | null;
 }
 
+export interface PaletteSwapEntry {
+  min_x: number;
+  max_x: number;
+  min_y: number;
+  max_y: number;
+  slot: number;
+  outside: string | null;
+  inside: string | null;
+}
+
 export interface BgPalettesMapEntry {
   label: string;
   map_constant?: string | null;
   map_type?: string | null;
   palettes: Record<string, RgbTuple[][]>; // timeOfDay -> 8 palettes of 4 RGB tuples
+  palette_swaps?: PaletteSwapEntry[];
+  overcast?: boolean;
 }
 
 export interface BgPalettesPayloadDTO {
@@ -427,6 +439,7 @@ export interface BgPalettesPayloadDTO {
   generated_at: string;
   weekday?: number | null;
   maps: Record<string, BgPalettesMapEntry>;
+  palette_swap_palettes?: Record<string, RgbTuple[][]>;
 }
 
 export interface BgPalettesMetadata {
@@ -434,4 +447,5 @@ export interface BgPalettesMetadata {
   generatedAt: string;
   weekday: number | null;
   maps: Record<string, BgPalettesMapEntry>;
+  paletteSwapPalettes?: Record<string, RgbTuple[][]>;
 }

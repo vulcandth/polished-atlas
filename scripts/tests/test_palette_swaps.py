@@ -1,4 +1,6 @@
 from pathlib import Path
+import os
+import subprocess
 import sys
 import unittest
 
@@ -49,6 +51,16 @@ class PaletteSwapTests(unittest.TestCase):
             self.assertEqual(index.resolve("Test", time, False)[0].inside, palette(time))
             self.assertEqual(index.resolve("Test", time, True)[0].inside, palette(time + 4))
 
+    def test_upstream_eight_entry_limit_and_required_terminator(self):
+        header = ["Map_Header:", "callback MAPCALLBACK_CMDQUEUE, Setup", "Setup:",
+                  "usepaletteswap .Table", "endcallback", ".Table:"]
+        entry = "paletteswap 0, 5, 0, 255, PAL_BG_WATER, NULL, Roof"
+        slots = {"PAL_BG_WATER": 3}
+        self.assertEqual(len(PaletteSwapIndex.parse_map(header + [entry] * 8 + ["db -1"], slots, "Map")), 8)
+        for table in ([entry] * 9 + ["db -1"], [entry], ["db -1"]):
+            with self.assertRaisesRegex(ValueError, "Invalid palette-swap list"):
+                PaletteSwapIndex.parse_map(header + table, slots, "Map")
+
     def test_composite_renders_each_16px_cell_and_each_animation_frame(self):
         from render_map import Attributes, RendererData, _render_with_tiles
         colors = [tuple((value, value, value) for value in range(4)) for _ in range(8)]
@@ -65,9 +77,15 @@ class PaletteSwapTests(unittest.TestCase):
             self.assertEqual(rows[16][16 * 3:17 * 3], [shade] * 3)
 
     def test_pinned_upstream_corpus_when_available(self):
-        root = Path(__file__).resolve().parents[2] / "external/polishedcrystal-master"
+        required_root = os.environ.get("ATLAS_UPSTREAM_ROOT")
+        root = Path(required_root) if required_root else Path(__file__).resolve().parents[2] / "external/polishedcrystal-master"
         if not root.exists():
+            if required_root:
+                self.fail(f"Required upstream corpus does not exist: {root}")
             self.skipTest("Pinned upstream corpus is not checked out at the optional local test path")
+        expected = os.environ.get("ATLAS_UPSTREAM_COMMIT", "704ea9db192ca8b902ef4aa7a441eb905eb29b89")
+        actual = subprocess.check_output([os.environ.get("GIT_BIN", "git"), "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
+        self.assertEqual(actual, expected, "Corpus must be the exact pinned upstream revision")
         from render_map import _load_palette
         index = PaletteSwapIndex(root, _load_palette)
         declared = {path.stem for path in (root / "maps").glob("*.asm")

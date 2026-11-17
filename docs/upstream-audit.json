@@ -51826,10 +51826,14 @@
           "home/palette_swap.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Read the entire patch. Stops forcing a whole palette upload on maps without swap tables, preserving the judge-machine palette animation. Atlas swap evaluation does not force global uploads, but judge-machine palette cycling must be verified with the modern animation implementation before this item is resolved.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/404ad647f991e1b2a33e42ab9ce6c7021d7d34c3",
+        "Complete git show: home/palette_swap.asm carry return and early ret nc.",
+        "Open requirement: implement and validate CycleJudgeMachinePalette in modern tileset animations."
+      ]
     },
     {
       "sha": "a2ca48f2bc16d6bdeac2688aeee6fe3e7dfbc4e1",
@@ -54335,10 +54339,16 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Read all ten changed files. Adds per-entry initialization/state bits with an eight-entry limit, replay of chained NULL entries, previous/current time and overcast palette endpoints, and fade catch-up for BG and copy-BG objects; unrelated DMA fix discards stale VBlank. Spatial composite uses steady-state colors independently at each coordinate, not an emulated player/global fade. Ordered selection and variants are implemented; complete object/animation visual validation remains open.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7d1f7827a2f4fa73782b134384a4466d761f293c",
+        "Full patch read in two bounded groups covering all ten files.",
+        "scripts/tests/test_palette_swaps.py covers ordering, NULL, all eight time/weather variants and list length limits.",
+        "web/atlas/src/lib/paletteSwaps.test.ts covers moving object palette region selection.",
+        "Open: full generated-site visual checks and palette animation interaction."
+      ]
     },
     {
       "sha": "1cc751673a7559319ec9a5aeace2a1f5837e59df",
@@ -55329,10 +55339,14 @@
           "home/palette_swap.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Read all three changed files. Moves HandlePaletteSwap from ROM0 into the fade ROMX bank and replaces homecall/farcall plumbing; rectangle selection, palette contents and steady-state colors are unchanged. Atlas evaluates selected colors directly and does not emulate ROM bank switching.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/85728020518be106dc080429187845c9c7dc41e5",
+        "Complete git show reviewed for engine/gfx/fade.asm, engine/overworld/events.asm and home/palette_swap.asm.",
+        "Consumer: scripts/palette_swaps.py evaluate()/resolve(); no runtime ROM calls."
+      ]
     },
     {
       "sha": "b6002eb0856b940583400ade96d8e52f71f3fa65",

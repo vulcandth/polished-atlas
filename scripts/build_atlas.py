@@ -102,6 +102,12 @@ def main() -> None:
     source = load_source(args.source)
     source_dir = Path(os.environ.get("POLISHED_DIR", str(ROOT / "external" / source["commit"])))
     upstream = ensure_source(source, source_dir)
+    if source["channel"] == "dev":
+        # Run integration tests only after the exact source is available. An
+        # explicitly required corpus must fail, never skip, if unavailable.
+        run(sys.executable, "-m", "unittest", "discover", "-s", ROOT / "scripts/tests",
+            env=dict(os.environ, ATLAS_UPSTREAM_ROOT=str(upstream),
+                     ATLAS_UPSTREAM_COMMIT=source["commit"]))
     slugs = time_slugs(os.environ.get("TIME_OF_DAY_SET") or os.environ.get("TIME_OF_DAY") or "day,morn,nite,eve")
     weekday = int(os.environ.get("WEEKDAY", "1"))
     if not 0 <= weekday <= 6:

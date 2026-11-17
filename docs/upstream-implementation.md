@@ -28,6 +28,11 @@ is implementation work. The known requirements below are not a closed list.**
 - Update asset resolution, `.lzp` source fallbacks, banked `tileframe` animations,
   assembly syntax, maps/layouts, objects, dual palettes, collisions, movement
   analysis, and every additional compatibility requirement discovered by review.
+- Support the new NPC glow effects explicitly: review upstream glow sources,
+  spatial influence, palette selection and RGB adjustments, and implement their
+  interactions with time/weather, background-derived colors, palette swaps, and
+  secondary object palettes. Verify representative glowing and nearby NPCs;
+  locating the engine routines does not count as completing this support.
 - Share event state across terrain/palettes/objects/weather. Use fixed scripted
   and scheduled weather only; omit random weather and document this limitation.
 - Preserve all four time palettes; default weekday remains Monday. Alternate
@@ -63,7 +68,7 @@ passing this structural check alone does not prove compatibility.
 - Initial verification: 11 Python tests, 10 frontend tests, TypeScript checking,
   production build, and workflow YAML parsing pass. ESLint reports one existing
   dependency warning in MapCanvas and no errors.
-- Dev pins the reviewed target revision and can index 612 maps and 53 tilesets
+- Dev pins the target revision (whose audit is incomplete) and can index 612 maps and 53 tilesets
   after fixing constants parsing, LZP source fallback, and new roof references.
 - Palette-swap parsing covers all 17 affected maps at the pinned target. Terrain
   rendering composites 16px cells and applies the result to every rendered frame.
@@ -71,20 +76,27 @@ passing this structural check alone does not prove compatibility.
   are covered by tests. Goldenrod City and Route 7 static previews are available
   locally in `.build/palette-preview/`; Goldenrod's composite was visually inspected.
 - 17 Python tests pass, including the locally available upstream palette-swap corpus.
-- Six commits have been individually reviewed and recorded as no atlas impact;
-  1,045 commits still require review. Inventory generation does not constitute review.
+- Nine commits have been individually reviewed: seven are resolved as no atlas
+  impact and two retain open adaptation/validation work. Another 1,042 commits
+  have not been reviewed. Inventory generation does not constitute review.
+- The frontend consumes palette-swap regions for background-derived NPC colors,
+  including movement, and supports special WHITE/GRASS background color mapping.
+  Full generated-site visual verification remains outstanding.
+- Current focused checks: 18 Python tests (including the required pinned upstream
+  corpus), 15 frontend tests, and TypeScript checking pass. ESLint has one existing
+  hook dependency warning and no errors.
 - Exhaustive review, remaining dev compatibility, complete visual verification,
   pushing branches, CI execution, and publication remain incomplete.
 
 ## Immediate remaining implementation work
 
-- Consume palette-swap metadata in the frontend and apply the local palette context
-  to NPCs, including movement across swap boundaries. The metadata exporter is
-  updated, but the frontend currently still uses only per-map background palettes.
+- Verify palette-swap NPC colors in the full generated site. The frontend now
+  consumes swap metadata and rebuilds background-derived NPC frames when movement
+  crosses a color boundary; focused tests cover selection and boundary changes.
 - Implement modern banked `tileframe` animation tables/routines; the old animation
   decoder remains and must not be treated as master-compatible.
-- Complete shared event state, fixed-weather rules/cherry blossoms, dual object
+- Complete NPC glow effects, shared event state, fixed-weather rules/cherry blossoms, dual object
   palettes, all map/object/movement findings from the audit, and full dev generation.
-- Run mandatory upstream corpus tests after source checkout in CI (the current
-  local corpus test skips when the optional checkout is absent).
+- Dev builds now require upstream corpus tests after source checkout, checking
+  the exact pinned SHA. Extend that corpus coverage alongside further adaptations.
 - Finish the commit ledger, then run full combined-site/browser tests and publish.

@@ -181,6 +181,10 @@ export const MOVEMENT_MODEL_BY_CONSTANT = {
   SPRITEMOVEDATA_BIG_LUGIA: {
     category: "object",
   },
+  SPRITEMOVEDATA_RATTATA_BACK: {
+    category: "object",
+    note: "Bounces between two poses in place.",
+  },
   SPRITEMOVEDATA_AQUARIUM_TOP: {
     category: "object",
   },

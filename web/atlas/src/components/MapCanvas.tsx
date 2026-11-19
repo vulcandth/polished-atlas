@@ -34,6 +34,7 @@ import { computeObjectPosition, computeObjectPriority, type PlacementContext } f
 import { createCollisionHelper, type CollisionHelper } from "@/lib/collision";
 import { createGlowTransition, NO_GLOW, UNLIT } from "@/lib/objectGlow";
 import { getMovementModel } from "@/lib/movementModel";
+import { getStaticObjectAnimation } from "@/lib/objectAnimation";
 import { simulateNpcMovement } from "@/lib/movementSimulation";
 import {
   analyzeAllSpriteLimits,
@@ -796,14 +797,11 @@ function buildStaticAnimationFrames(
   spriteKey: string,
   paletteName: string | null,
   defaultDirection: CardinalDirection | null,
+  movementConstant: string | null,
 ): { direction: CardinalDirection; frames: SpriteFrameRef[] } | null {
-  const family: Record<string, string> = {
-    SPRITE_BIG_GYARADOS: "FACING_BIG_GYARADOS",
-    SPRITE_BIG_HO_OH: "FACING_BIG_HO_OH",
-    SPRITE_BIG_LUGIA: "FACING_BIG_LUGIA",
-  };
-  if (!family[spriteKey]) return null;
-  const facingKeys = [`${family[spriteKey]}_1`, `${family[spriteKey]}_2`];
+  const animation = getStaticObjectAnimation(movementConstant);
+  if (!animation) return null;
+  const facingKeys = animation.facings;
   const frames: SpriteFrameRef[] = [];
   for (const facingKey of facingKeys) {
     const record = cache.getFacingTexture(spriteKey, facingKey, paletteName ?? null);
@@ -831,18 +829,20 @@ function buildMovementFrameSet(
   paletteName: string | null,
   baseKey: string,
   baseRecord: NonNullable<ReturnType<ObjectSpriteCache["getFacingTexture"]>>,
+  movementConstant: string | null,
 ): MovementFrameSet {
   const defaultFrame = createSpriteFrameRef(baseKey, baseRecord);
   const framesByDirection: Partial<Record<CardinalDirection, SpriteFrameRef[]>> = {};
   const availableDirections: CardinalDirection[] = [];
   let defaultDirection = resolveDirectionFromFacingKey(baseKey);
 
-  if (spriteDef.spriteType !== "WALKING_SPRITE" || spriteKey === "SPRITE_BIG_HO_OH") {
+  if (spriteDef.spriteType !== "WALKING_SPRITE" || getStaticObjectAnimation(movementConstant)) {
     const staticFrames = buildStaticAnimationFrames(
       cache,
       spriteKey,
       paletteName ?? null,
       defaultDirection ?? null,
+      movementConstant,
     );
     if (staticFrames) {
       framesByDirection[staticFrames.direction] = staticFrames.frames;
@@ -1414,8 +1414,9 @@ function createIdleAnimator(
   if (!frames || frames.length <= 1) {
     return null;
   }
-  // These large Pokemon use AlternateStepFrame's 16-VBlank phases.
-  const frameDuration = 16 * FRAME_DURATION_MS;
+  const animation = getStaticObjectAnimation(objectEntry.movement.constant);
+  if (!animation) return null;
+  const frameDuration = animation.frameDurationMs;
   const seed =
     ((objectEntry.index ?? 0) * 2147483647 +
       summary.startCell.x * 2654435761 +
@@ -1477,7 +1478,7 @@ function createMovementAnimator(
   }
   if (
     summary.model.category === "object" &&
-    ["SPRITEMOVEDATA_BIG_GYARADOS", "SPRITEMOVEDATA_BIG_HO_OH", "SPRITEMOVEDATA_BIG_LUGIA"].includes(objectEntry.movement?.constant ?? "")
+    getStaticObjectAnimation(objectEntry.movement?.constant)
   ) {
     const idleAnimator = createIdleAnimator(summary, objectEntry, frameSet);
     if (idleAnimator) {
@@ -1531,7 +1532,7 @@ function spatialPaletteRefresher(
     } else {
       const record = cache.getFacingTexture(spriteKey, facingKey, paletteName);
       if (!record) throw new Error(`Missing spatially colored sprite ${spriteKey}`);
-      marker.frameSet = buildMovementFrameSet(cache, spriteKey, spriteDef, paletteName ?? null, facingKey, record);
+      marker.frameSet = buildMovementFrameSet(cache, spriteKey, spriteDef, paletteName ?? null, facingKey, record, marker.object.movement.constant);
     }
     marker.currentFrameKey = null;
   };
@@ -2886,6 +2887,7 @@ export default function MapCanvas({
           paletteName,
           facingKey,
           record,
+          objectEntry.movement.constant,
         );
       }
 
@@ -3743,6 +3745,7 @@ export default function MapCanvas({
             paletteName,
             facingKey,
             record,
+            objectEntry.movement.constant,
           );
         }
 

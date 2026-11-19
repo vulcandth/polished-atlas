@@ -67,6 +67,25 @@ class ObjectPaletteTests(unittest.TestCase):
                     self.assertIn(palette, definitions)
                 self.assertGreater(variant["tile_count"], 0)
 
+    def test_rattata_bounce_frames_and_static_reuse(self):
+        movement = self.movements["SPRITEMOVEDATA_RATTATA_BACK"]
+        self.assertEqual(movement.action, "OBJECT_ACTION_BOUNCE")
+        self.assertEqual(movement.function, "SPRITEMOVEFN_BOUNCE")
+        self.assertEqual(movement.flags2, self.constants.get("HIGH_PRIORITY"))
+        facings = {f.constant: f for f in objects.parse_facings(self.root, self.constants).values()}
+        self.assertEqual([t["tile"] for t in facings["FACING_STEP_DOWN_0"].tiles], [0, 1, 2, 3])
+        self.assertEqual([t["tile"] for t in facings["FACING_STEP_UP_0"].tiles], [4, 5, 6, 7])
+        _, sprites = objects.parse_sprite_headers(self.root, self.constants)
+        art = sprites["SPRITE_RATTATA_BACK"].tile_bytes
+        self.assertGreaterEqual(len(art), 128)
+        self.assertNotEqual(art[:64], art[64:128])
+        maps = objects.parse_map_objects(self.root, self.constants, {}, self.movements, self.names, set())
+        uses = [(m.label, o.movement_constant) for m in maps for o in m.objects
+                if o.sprite_constant == "SPRITE_RATTATA_BACK"]
+        self.assertIn(("Route30", "SPRITEMOVEDATA_RATTATA_BACK"), uses)
+        self.assertEqual([kind for label, kind in uses if label == "SilverCaveRoom3"],
+                         ["SPRITEMOVEDATA_ARCH_TREE_LEFT"] * 2 + ["SPRITEMOVEDATA_POKECOM_NEWS"])
+
     def test_aquarium_uses_npc_palettes_and_source_offsets(self):
         maps = objects.parse_map_objects(self.root, self.constants, {}, self.movements, self.names, set())
         aquarium = [o for m in maps for o in m.objects if o.sprite_constant == "SPRITE_AQUARIUM_MON"]

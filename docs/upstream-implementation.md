@@ -433,6 +433,16 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   reuse. Current ledger: **592 resolved, 431 pending and 28 reviewed/open**
   (**459 unresolved**). The audit remains incomplete; nothing is published.
 
+- The Route30 Rattata now bounces using its two source facings, with 16 VBlanks
+  per pose. The built atlas showed both poses. Corpus tests cover all three
+  SilverCaveRoom3 decorations that reuse its graphics. The full dev build,
+  61 Python tests, 44 frontend tests and the CI TypeScript check passed.
+- Ten additional animation-related commits received full diff reviews. The ledger
+  records three bookkeeping changes with no atlas impact, one superseded pillar
+  timing, and six changes already handled by final animation tables and palette
+  metadata. With Rattata resolved, 603 commits are resolved, 421 pending and
+  27 reviewed/open. The audit is incomplete.
+
 ## Immediate remaining implementation work
 
 - Verify palette-swap NPC colors in the full generated site. The frontend now
@@ -447,7 +457,7 @@ commit/file inventory. Never skip a change solely because it is undocumented.
 - Finish grass occlusion and per-facing RELATIVE_ATTRIBUTES/OAM_PRIO behavior.
   Static object priority groups and BG attribute priority are implemented as
   recorded above; broader glow and runtime object-priority interaction validation
-  remains open. Wire the new RATTATA_BACK bounce movement to its two source frames.
+  remains open.
 - Finish glow validation on Dragon Shrine, cave mouths, underground lamps and lava
   ladders, including directional walls/warps and secondary palettes. Verify
   `SPRITE_AQUARIUM_MON` handling (also used for volcano Moltres), and reconcile

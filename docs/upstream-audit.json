@@ -29087,10 +29087,15 @@
           "engine/tilesets/tileset_anims.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Moves hard-coded tile write destinations into animation table arguments and consolidates lava write helpers. The modern renderer parses each final bank/tile destination rather than retaining these old hard-coded destinations.",
+      "evidence": [
+        "Complete text diff: git show ba2a1e215a405a4a268c660b45c825da33e270d9",
+        "scripts/tile_animation.py: parse_tables and Machine._copy; strict bank/address and multi-tile-copy tests",
+        "scripts/tests/test_tile_animation.py: pinned corpus covers all 53 final tables"
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "3e1a012c8fe797d87b18e56befa736759b88b9f8",
@@ -37815,10 +37820,16 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Removes the temporary tile animation RAM buffer and changes animation tables to direct writes with explicit no-op/flicker slots. Atlas uses independent tile-bank arrays and reads the final tables in source order, preserving blank ticks and palette writes. Intermediate ScrollTileRightLeft commands were subsequently replaced in the pinned source; no obsolete buffer is needed.",
+      "evidence": [
+        "Complete text diff: git show b263ca1e00795487dd8bcf0925039d2ccacec540",
+        "scripts/tile_animation.py: Machine.step and capture_cycle",
+        "scripts/tests/test_tile_animation.py: one-command-per-step, blank-cycle, palette-write and pinned-table tests",
+        "Pinned data/tileset_anims.asm: Cave/QuietCave/Volcano, Peaks, IcePath and Tunnel tables"
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "a41e36e6ad80d3da94b5c6828ffc1d327040f0db",
@@ -37840,10 +37851,15 @@
           "home/video.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Introduces per-command $bank:tile parameters, including bank-1 tower animation, and changes runtime bank save/restore. Strict modern table parsing retains each bank and tile including high IDs; tile writes and raster export honor them. Hardware register save/restore is outside the source renderer.",
+      "evidence": [
+        "Complete text diff: git show a41e36e6ad80d3da94b5c6828ffc1d327040f0db",
+        "scripts/tests/test_tile_animation.py: strict_table_aliases_and_banked_address, multi_tile_copy_uses_selected_bank_and_high_ids",
+        "scripts/tests/test_tile_animation_export.py: frame-by-frame raster reconciliation across banks, flips and swaps"
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "29c86fb2e1a4130fb3f8b9cb29ac53cc7a452dba",
@@ -37890,10 +37906,14 @@
           "utils/optimize.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Adds an optimize.py bank-save pattern, equivalent Pokedex register bookkeeping, tileframe argument comments and a no-optimize weather comment. No world appearance or consumed data semantics change.",
+      "evidence": [
+        "Complete text diff: git show 91337c9d1d8e80647dcc7fd18e218bd3a4faac95",
+        "Complete four-file diff: data/tileset_anims.asm, engine/overworld/weather.asm, engine/pokedex/lcd.asm, utils/optimize.py"
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "53114a50bea9de4940efaa2f0eed7def2e0e57a0",
@@ -38090,10 +38110,16 @@
           "engine/tilesets/tileset_anims.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "superseded",
+      "reason": "Intermediate pillar slowdown to two animation-timer increments per pose is superseded by 941ab29779bb, which uses four. The modern renderer implements the pinned four-increment timing and eight-entry forward/back sequence.",
+      "evidence": [
+        "Complete text diff: git show b4934a716e562ab3e3d5f325d2b54c7e23b672ff",
+        "941ab29779bb0ae34ec52708677370c6e2c80283",
+        "scripts/tile_animation.py: tower CopySpec speed=4, sequence=(0,1,2,3,4,3,2,1)",
+        "scripts/tests/test_tile_animation.py: tower_pointer_sequence_and_actual_star_phase"
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "941ab29779bb0ae34ec52708677370c6e2c80283",
@@ -38111,10 +38137,16 @@
           "maps/SproutTower1F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Slows all four pillar segments to four animation-timer increments per pose and changes the SproutTower1F teacher to red. Modern tower CopySpecs use divisor 4; regenerated teacher metadata at (7,9) carries PAL_OW_RED (the final name of PAL_NPC_RED), consumed by the existing override resolver.",
+      "evidence": [
+        "Complete text diff: git show 941ab29779bb0ae34ec52708677370c6e2c80283",
+        "scripts/tile_animation.py: tower CopySpec; tower sequence test",
+        ".build/generated/dev/maps/object_metadata.json: SproutTower1F teacher palette_override",
+        "61 Python tests and complete four-time dev build pass"
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "cdbbd020ba0419a5a8199d77feaf3af686da3432",
@@ -38433,10 +38465,14 @@
           "home/video.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "ROM bank restoration in AnimateTileset and standard-font loading in the day-setting UI. Atlas reads graphics from source files and does not execute ROM banks or the game clock-setting UI.",
+      "evidence": [
+        "Complete text diff: git show cf0425f2b787444bf7ccf2b310547382f147a265",
+        "engine/rtc/timeset.asm and home/video.asm: entire two-file diff reviewed"
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "8181530854d61e34c7a3ed59c76134d5d4c62835",
@@ -38491,10 +38527,14 @@
           "home/video.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Moves ROM bank restoration from AnimateTileset to VBlank before graphics transfers. No graphics, map definitions or animation commands change; atlas does not emulate CPU bank switching.",
+      "evidence": [
+        "Complete text diff: git show d4114294f01353b5a5c824ed9c7242f9de79699f",
+        "home/vblank.asm and home/video.asm: entire two-file diff reviewed"
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "68375535fb45382ced39e3b796d719682fecd08a",
@@ -43773,10 +43813,16 @@
           "engine/tilesets/tileset_anims.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Facility/Hideout tables replace three timer increments with DoNothing while turbine frames switch to VBlank parity. Modern Machine executes each explicit slot and uses context.vblank for turbine independently of wTileAnimationTimer; fountain continues using the timer.",
+      "evidence": [
+        "Complete text diff: git show 4875099cf630d2e1728b338e9efe6c8b9ceafc30",
+        "scripts/tile_animation.py: AnimateTurbineTiles and fountain CopySpec",
+        "scripts/tests/test_tile_animation.py: divider_is_byte_offset_and_vblank_drives_turbine, one_command_per_step_and_independent_timer",
+        "Pinned Facility/Hideout tables consumed by complete dev build"
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "b7e86796114bf4608c1a028a555c974e0f984131",
@@ -45852,10 +45898,15 @@
           "engine/tilesets/tileset_anims.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Combines up/down/left/right currents into one four-tile animation operation and rearranges Kanto table slots. Machine writes all four directions in one step using the selected bank; final source tables supply timing/order.",
+      "evidence": [
+        "Complete text diff: git show f9dcd5c114a10b453814b3251a63375455420dab",
+        "scripts/tests/test_tile_animation.py: scroll_directions_and_eight_step_period",
+        "scripts/tests/test_tile_animation_export.py: every exported frame matches raster rendering, including four-current command"
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "6b29f086ee07d407b3707f80c7c239d169a5e19f",
@@ -49211,14 +49262,15 @@
           "maps/Route30.asm"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "Full three-file text diff adds SPRITEMOVEDATA_RATTATA_BACK with BOUNCE action and HIGH_PRIORITY, and applies it on Route30. Source metadata parses the new record and priority now draws Rattata in front (verified with real Rattata/Pidgey textures). Remains open: movementModel has no RATTATA_BACK entry and createMovementAnimator/static frame selection do not wire its SetFacingBounce down/up frames (16 VBlanks per phase). Confirm the new type animates without changing the same sprite reused as arch decoration in SilverCaveRoom3.",
+      "reason": "Route30 now uses the new high-priority bounce movement. The world and overlay select DOWN/UP poses every 16 VBlanks by movement type. The three SilverCaveRoom3 uses of the same graphics retain their own movements.",
       "evidence": [
         "Complete text diff: git show 522851adeed402a2586b6cb8b5e9d4a605ae0629",
         "engine/overworld/map_object_action.asm: SetFacingBounce / SetFacingFreezeBounce / AlternateStepFrame",
-        "web/atlas/src/lib/movementModel.ts and components/MapCanvas.tsx: missing idle animation route for new movement type",
-        "Browser high-priority overlap verified in .build/object-order-day.jpg and .build/object-order-night.jpg; not a bounce-animation validation"
+        "web/atlas/src/lib/objectAnimation.test.ts and scripts/tests/test_object_palettes.py verify source art, timing, movement, and decorative reuse",
+        "Built Route30 day/night scene and both live bounce poses verified in .build/rattata-day.jpg, .build/rattata-night.jpg and .build/rattata-detail-{0,4}.jpg",
+        "High-priority overlap check in .build/object-order-day.jpg"
       ],
       "review_method": "full-diff"
     },

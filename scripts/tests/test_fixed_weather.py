@@ -15,6 +15,7 @@ from generate_bg_palette_metadata import build_payload as bg_payload, Options
 from generate_object_metadata import parse_initial_event_flags, parse_event_overrides
 from generate_weather_metadata import build_payload as weather_assets
 from generate_weather_state import _determine_weather_for_map
+from generate_warp_metadata import build_metadata, _load_tileset_collision_table
 from render_map import _build_renderer
 
 
@@ -112,6 +113,36 @@ class WeatherCorpusTests(unittest.TestCase):
                         renderer = _build_renderer(png, self.root, self.repo, label, weekday=1, time_of_day=t,
                                                    events=effective_flags(self.repo.initial_event_flags))
                         self.assertEqual(renderer.attributes.colors[:7], payload['maps'][label]['palettes'][slug][:7])
+
+    def test_wet_and_dry_terrain_and_collision_use_the_same_blocks(self):
+        variants = {
+            'AzaleaTown': (0, 'AzaleaTownRaining'),
+            'Route33': (0, 'Route33Raining'),
+            'LakeOfRage': (1, 'LakeOfRageFlooded'),
+            'Route43': (1, 'Route43Raining'),
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            override = Path(temp) / 'events.json'
+            override.write_text(json.dumps({'clear': sorted(self.repo.initial_event_flags)}))
+            with patch.dict(os.environ, ATLAS_EVENT_OVERRIDES=str(override)):
+                for day in (0, 1):
+                    maps, _, aux = build_metadata(self.root, None, set(), weekday=day)
+                    for label, (wet_day, wet_asset) in variants.items():
+                        with self.subTest(label=label, weekday=day):
+                            source = wet_asset if day == wet_day else label
+                            blocks = (self.root / 'maps' / f'{source}.ablk').read_bytes()
+                            info = self.repo.maps[label]
+                            terrain = _build_renderer(atlas_common.png_module(self.root), self.root,
+                                                      self.repo, label, weekday=day, time_of_day=1,
+                                                      events=set())
+                            self.assertEqual(bytes(terrain.block_indices), blocks)
+                            table = _load_tileset_collision_table(
+                                self.root, self.repo.tileset_resources(info.tileset).collision_path,
+                                aux['collision_constants'])
+                            expected = bytes(
+                                table[blocks[(y // 2) * info.width + x // 2]][(y % 2) * 2 + x % 2]
+                                for y in range(info.height * 2) for x in range(info.width * 2))
+                            self.assertEqual(base64.b64decode(maps[label]['collision']['cells']), expected)
 
     def test_weather_tiles_and_palettes_are_valid_source_data(self):
         payload = weather_assets(self.root)

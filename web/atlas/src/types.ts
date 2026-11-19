@@ -8,6 +8,8 @@ export interface ConnectionDTO {
   target_present: boolean;
   /** Reverse constraint for static placement, not an in-game exit. */
   layout_only?: boolean;
+  /** Rows shared where a north connection uses a shortened border height. */
+  overlap_blocks?: number;
   /** Source-edge cell coordinates: inclusive minimum, exclusive maximum. */
   split_range?: [number | null, number | null];
 }

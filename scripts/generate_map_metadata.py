@@ -39,6 +39,8 @@ class WarpEvent:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate map metadata payload containing warp information.")
+    parser.add_argument("--weekday", type=render_map.parse_weekday, default=1,
+                        help="Weekday used for weather-dependent collision blocks (default Monday).")
     parser.add_argument(
         "--polishedcrystal",
         type=Path,
@@ -298,6 +300,7 @@ def _block_pixel_size() -> int:
 def build_metadata(
     polished_path: Path,
     attributes_path: Optional[Path],
+    weekday: int = 1,
 ) -> Tuple[Dict[str, dict], Dict[str, str], Dict[str, object]]:
     repo_index = atlas_common.repository(polished_path)
     events = effective_flags(repo_index.initial_event_flags)
@@ -371,7 +374,7 @@ def build_metadata(
             except KeyError:
                 tileset_resources = None
             try:
-                block_indices = repo_index.map_blocks(info, events)
+                block_indices = repo_index.map_blocks(info, events, weekday=weekday)
             except (FileNotFoundError, ValueError):
                 block_indices = None
             if tileset_resources and block_indices is not None:
@@ -433,7 +436,7 @@ def main() -> None:
     if attributes_path and not attributes_path.exists():
         raise FileNotFoundError(f"attributes.asm not found at {attributes_path}")
 
-    metadata, constant_lookup, aux_data = build_metadata(polished_path, attributes_path)
+    metadata, constant_lookup, aux_data = build_metadata(polished_path, attributes_path, weekday=args.weekday)
     output_path = args.output.resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     payload = {

@@ -27,7 +27,8 @@ import atlas_common
 from generate_map_connections import (
     AttributesParser,
     MapAttributes,
-    MapConnection,
+    Placement,
+    _project_neighbour,
     _augment_with_repo,
     _collect_reachable,
     _layout_graph,
@@ -39,15 +40,6 @@ from generate_map_connections import (
 TARGET_TYPES = ("TOWN", "ROUTE", "ISOLATED")
 AUTO_MARGIN_BLOCKS = 8
 MANIFEST_FILENAME = "map_neighborhoods.json"
-
-
-@dataclass
-class Placement:
-    label: str
-    x: int
-    y: int
-    width: int
-    height: int
 
 
 @dataclass
@@ -239,20 +231,6 @@ def _ensure_dimension(value: Optional[int], label: str, kind: str) -> int:
     if value is None:
         raise ValueError(f"Map '{label}' missing {kind} metadata")
     return int(value)
-
-
-def _project_neighbour(source: Placement, width: int, height: int, connection: MapConnection) -> Tuple[int, int]:
-    offset = int(connection.offset)
-    direction = connection.direction.lower()
-    if direction == "north":
-        return source.x + offset, source.y - height
-    if direction == "south":
-        return source.x + offset, source.y + source.height
-    if direction == "west":
-        return source.x - width, source.y + offset
-    if direction == "east":
-        return source.x + source.width, source.y + offset
-    raise ValueError(f"Unsupported connection direction '{connection.direction}'")
 
 
 def _build_layout(component: Dict[str, MapAttributes], root: str) -> Tuple[Dict[str, Placement], Tuple[int, int]]:

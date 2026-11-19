@@ -15137,14 +15137,17 @@
           "maps/VictoryRoad2F.asm"
         ]
       ],
-      "status": "reviewed",
-      "disposition": "regeneration",
-      "reason": "Reviewed every text change and compared all changed map block bytes. Route23 (12x70) becomes Route23North (12x38) and Route23South (12x32); concatenating the new 456-byte and 384-byte block arrays exactly reproduces the old 840 bytes. Reciprocal north/south connections retain zero x offset. South warp/object/coordinate Y values subtract 76 cells; north keeps Victory Road warps, signs and four officers, while south keeps League Gate warps and five officers. Shared scene state remains wRoute23SceneID, scripts and badges are relabeled/split, and external warps plus music/encounter tables point to the new maps. Atlas regeneration includes both halves and resolves targets; visual seam, officer placement and Victory Road/League Gate round-trip validation remain open.",
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The split Route 23 maps join continuously and preserve the officers and exits.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/395315a3b25682135acc88024851e352660958be",
         "Full text diffs plus full parent Route23.asm; binary comparison of maps/Route23.ablk, Route23North.ablk and Route23South.ablk proves exact concatenation (840 = 456 + 384 bytes).",
-        "Generated dev neighborhood graph contains both halves; scripts/tests/test_map_connections.py verifies complete map and warp inventory. Specific seam/object/round-trip checks remain required."
-      ]
+        "Generated dev neighborhood graph contains both halves; scripts/tests/test_map_connections.py verifies complete map and warp inventory. Specific seam/object/round-trip checks remain required.",
+        "https://github.com/Rangi42/polishedcrystal/commit/395315a3b25682135acc88024851e352660958be",
+        "Checked both 64-pixel seam strips against exported terrain in client layout order, nine visible officer frames and all four warp round trips through VictoryRoad1F/2F and PokemonLeagueGate."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "89f4fb572c37f26af9d39be2e7d445aca48fb8f6",
@@ -27715,11 +27718,15 @@
           "maps/RuinsOfAlphSinjohChamber.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/RuinsOfAlphSinjohChamber.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Align the Sinjoh Chamber door with the panel. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/bc28953aa67bf721a5f35858ccbaf06ea10ecad3",
+        "Checked all changed path types and map script operations (warp_event). Independently matched 4 current object declarations and 1 warp records by coordinates and multiplicity in RuinsOfAlphSinjohChamber, including sprite/movement for plain objects and warp destinations. Traced 4 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/RuinsOfAlphSinjohChamber.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "d543a9389cf036bbdcd6c06dabba66d20f7b95ba",
@@ -32932,10 +32939,14 @@
           "maps/PlayersHouse2F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "The modern-EV star appears in the Judge Machine stats UI.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/656675e66f5ee6789383081bf9a41f86fd272360",
+        "Read the menu sprite, options and debug-party hunks. No map object or machine terrain animation is changed."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "ca58e3f3a24269c688fb0574b2e45a8a30dba588",
@@ -36385,10 +36396,14 @@
           "maps/GoldenrodCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Move sign, and prefer overloadable roof tiles when possible. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7e00650f484305402f13f094993a76e49dddabfb",
+        "Checked all changed path types and map script operations (bg_event). Independently matched 16 current object declarations and 25 warp records by coordinates and multiplicity in GoldenrodCity, including sprite/movement for plain objects and warp destinations. Traced 3 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "f62b335841e737e3d563ad0f66fc3114637ff4f4",
@@ -39089,10 +39104,14 @@
           "maps/GoldenrodPokecomCenterOffice.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Make the PCC dev office a bit less cramped. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/bd0e69f8f1aa231ebe9dc4e92f2df3b3693b8c72",
+        "Checked all changed path types and map script operations (cont, line, text). Independently matched 8 current object declarations and 2 warp records by coordinates and multiplicity in GoldenrodPokecomCenterOffice, including sprite/movement for plain objects and warp destinations. Traced 4 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "6e06061634aae9474a9a84be399ff819ec4e1877",
@@ -39367,11 +39386,15 @@
           "maps/TrainerHouseB1F.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/TrainerHouse1F.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Update Trainer House design. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1efbfe4b2081d83907b1dece847880ac8d48e119",
+        "Checked all changed path types and map script operations (object_event). Independently matched 5 current object declarations and 3 warp records by coordinates and multiplicity in TrainerHouse1F, including sprite/movement for plain objects and warp destinations. Traced 11 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/TrainerHouse1F.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "3f77e34dfa68cae9f843c3f3c94ecaa3507fee69",
@@ -40245,10 +40268,14 @@
           "maps/PokemonLeagueGate.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Adds the Pokémon League Fly destination to the Pokégear.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9e2aad02c03649c24744c136af4e84b1af192a60",
+        "Inspected all eight paths, including the Route26 spawn point and the callbacks that set only the Fly flag. Atlas navigation uses map warps and connections."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "e79f8ae6f58b2b5bebf52b0407627dbfa360f445",
@@ -41563,11 +41590,15 @@
           "maps/UragaChannelEast.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeruleanCape.asm, maps/Route32Coast.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add some more floating item balls. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6dbb676fa590f09b7c063768cc7bfa1e9d83a26f",
+        "Checked all changed path types and map script operations (itemball_event, object_event). Independently matched 58 current object declarations and 6 warp records by coordinates and multiplicity in CeruleanCape, Route32Coast, Route34Coast, Route35CoastSouth, UragaChannelEast, including sprite/movement for plain objects and warp destinations. Traced 1 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeruleanCape.asm, maps/Route32Coast.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "1ead8bcbe4dc3c92102144c07ad574ef9d518f66",
@@ -42731,10 +42762,14 @@
           "engine/overworld/map_objects.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Optimizes leader/follower cancellation and following during game-controlled movement.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1975e75a23df7f0468982ac26c056f0aa1caa847",
+        "All changed lines lie in the map_objects follow routines. Atlas draws snapshot NPC positions and models individual idle movement."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "886a43bd19c99b20097da6499ba86a506e07d212",
@@ -43324,10 +43359,14 @@
           "maps/Route23South.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Badge checks make the player step back after an officer speaks.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/01af6b619570259245785cf0e414071e403e1593",
+        "Read both Route23 script diffs. The sole movement target in the additions is PLAYER. No officer definitions, terrain or warp events change."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "cb3c15c7c65894a2c7f9152c6c3ca20929bf9595",
@@ -44423,11 +44462,15 @@
           "maps/SaffronCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/SaffronCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Make the Fighting Dojo roof brown. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/71d1c666f8f858b909dcde7eef32ea60173c0abf",
+        "Checked all changed path types and map script operations (bg_event, warp_event). Independently matched 13 current object declarations and 21 warp records by coordinates and multiplicity in SaffronCity, including sprite/movement for plain objects and warp destinations. Traced 11 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/SaffronCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "c63032ce1a92a19341f3c941dc09be821be1cc60",
@@ -44489,11 +44532,15 @@
           "maps/GoldenrodGameCorner.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeladonCity.asm, maps/CeladonDeptStore1F.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Game Corners and Dept. Stores have double doors. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c63032ce1a92a19341f3c941dc09be821be1cc60",
+        "Checked all changed path types and map script operations (warp_event). Independently matched 60 current object declarations and 58 warp records by coordinates and multiplicity in CeladonCity, CeladonDeptStore1F, CeladonGameCorner, GoldenrodCity, GoldenrodDeptStore1F, GoldenrodGameCorner, including sprite/movement for plain objects and warp destinations. Traced 7 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeladonCity.asm, maps/CeladonDeptStore1F.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "1c3963e69019f89e6f2b19f6e51af98437d0fef1",
@@ -44547,11 +44594,15 @@
           "maps/PewterMuseumOfScience1F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeladonCity.asm, maps/CeladonUniversity1F.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Museums and Celadon University have double doors. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1c3963e69019f89e6f2b19f6e51af98437d0fef1",
+        "Checked all changed path types and map script operations (bg_event, warp_event). Independently matched 62 current object declarations and 71 warp records by coordinates and multiplicity in CeladonCity, CeladonUniversity1F, GoldenrodCity, GoldenrodMuseum1F, PewterCity, PewterMuseumOfScience1F, including sprite/movement for plain objects and warp destinations. Traced 5 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeladonCity.asm, maps/CeladonUniversity1F.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "111b4dbfb441bc286ad41c46d8859bb4b91a315d",
@@ -45012,10 +45063,14 @@
           "maps/Route39Barn.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add hay to barn and a bucket to the charcoal kiln. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8b449a1e86dff8df9025667882a6788b0ccaab98",
+        "Checked all changed path types and map script operations (CharcoalKilnBucketText:, bg_event, done, text). Independently matched 3 current object declarations and 2 warp records by coordinates and multiplicity in CharcoalKiln, including sprite/movement for plain objects and warp destinations. Traced 5 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "a9f137f1b42cb5b1ff65b3171131d05a57f08430",
@@ -45196,10 +45251,14 @@
           "tools/lzpcompress.c"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Replaces the build-time ROM compressor and toolchain.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d432df3daca488063f90ff1bb31383ea8b27647e",
+        "Inspected complete changed paths. No upstream compression tool is run by the atlas pipeline and the target Git tree contains zero tracked .lzp files. The pinned source build succeeds from uncompressed source graphics and maps."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "57f1d8131f8fbbb4a4b58d73e3405654225d1839",
@@ -46778,11 +46837,15 @@
           "maps/Route15.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/LuckyIsland.asm, maps/Route13.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Tweak the dirt on Route 15. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ca0f28c6e4bd40bba70d2a027650b03114a85bd7",
+        "Checked all changed path types and map script operations (bg_event, object_event). Independently matched 26 current object declarations and 0 warp records by coordinates and multiplicity in LuckyIsland, Route13, including sprite/movement for plain objects and warp destinations. Traced 2 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/LuckyIsland.asm, maps/Route13.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "027e2067181965fd09aa3429026eac3cce02d907",
@@ -48465,11 +48528,15 @@
           "maps/PlayersNeighborsHouse.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/LyrasHouse2F.asm, maps/PlayersNeighborsHouse.asm."
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "The three home radios share an interaction script.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/21436bf4d5b7bf21218926ef608f7177eb21bb27",
+        "Checked the include ordering, the two same-cell BGEVENT_READ changes at (5,1), and the radio playback/dialogue script changes."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/LyrasHouse2F.asm, maps/PlayersNeighborsHouse.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "e25f2951b8062cd8425473c4476d90728a1c2ddb",
@@ -48559,10 +48626,14 @@
           "maps/GoldenrodCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Move sign adjacent to fence. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/eba0369c3054100f7d49371d21f75ca9d749a664",
+        "Checked all changed path types and map script operations (bg_event). Independently matched 16 current object declarations and 25 warp records by coordinates and multiplicity in GoldenrodCity, including sprite/movement for plain objects and warp destinations. Traced 4 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "f2e15d2bb424fe09eb9a314bce6a280df3062f99",
@@ -50599,11 +50670,15 @@
           "maps/PewterCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/PewterCity.asm; object definitions in maps/PewterCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Replace bollards with fence in Pewter City, and add some grass and trees. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2b8f91b010938f3aaf8ab029fa5ef20706166413",
+        "Checked all changed path types and map script operations (fruittree_event, warp_event). Independently matched 10 current object declarations and 8 warp records by coordinates and multiplicity in PewterCity, including sprite/movement for plain objects and warp destinations. Traced 1 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/PewterCity.asm; object definitions in maps/PewterCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "5bfd7346ead322a6fb8edae0f49787bb406a5637",
@@ -50919,11 +50994,15 @@
           "maps/PewterCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/PewterCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Pewter Museum is one unified building. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e4da18b52b16dd46d9c5103216436e292441f8b1",
+        "Checked all changed path types and map script operations (fruittree_event). Independently matched 10 current object declarations and 8 warp records by coordinates and multiplicity in PewterCity, including sprite/movement for plain objects and warp destinations. Traced 4 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/PewterCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "b165a946073b2bdd28eaa944a58078ce70c2a86c",
@@ -51706,11 +51785,15 @@
           "maps/Route26HealSpeechHouse.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/PokemonLeagueGate.asm, maps/Route26.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Double door for Pokémon League reception gate. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b00347e446eea4f4e15b6c0b913e83d210180b43",
+        "Checked all changed path types and map script operations (warp_event). Independently matched 15 current object declarations and 16 warp records by coordinates and multiplicity in PokemonLeagueGate, Route26, Route26DayofWeekSiblingsHouse, Route26HealSpeechHouse, including sprite/movement for plain objects and warp destinations. Traced 3 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/PokemonLeagueGate.asm, maps/Route26.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "d3dc208fbb5fb0880d9aaf2b88bc706635be5589",
@@ -52169,10 +52252,14 @@
           "maps/GoldenrodCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Two-wide brick path to Goldenrod flower shop. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c87e7a3a279509a5d9c622a2a9f20d4b6416eded",
+        "Checked all changed path types and map script operations (bg_event). Independently matched 16 current object declarations and 25 warp records by coordinates and multiplicity in GoldenrodCity, including sprite/movement for plain objects and warp destinations. Traced 4 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "f4488c81fb647195d327908268f77a39e166ec77",
@@ -52308,14 +52395,16 @@
           "maps/CeruleanCity.asm"
         ]
       ],
-      "status": "reviewed",
-      "disposition": "adaptation",
-      "reason": "Removes nonfunctional Cerulean bridge coordinate triggers and scene constants. Script analysis consumes coordinate events; retain open with 1f9e29dbc993 for explicit bridge-state/collision support review rather than treating all map scripts as dialogue.",
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Removes obsolete scene constants and player coordinate triggers.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/7da3c7e051dde2965a4289255025da6f0f92fc0f",
-        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason.",
+        "https://github.com/Rangi42/polishedcrystal/commit/7da3c7e051dde2965a4289255025da6f0f92fc0f",
+        "All six removed rows are in CeruleanCity. No object declaration, warp or load callback is modified."
       ],
-      "review_method": "full-diff"
+      "review_method": "diff-hunks"
     },
     {
       "sha": "36becc776f6e6ee92fa716c6052d66468d2d8dd7",
@@ -52423,11 +52512,15 @@
           "maps/GoldenrodCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): palette swaps in maps/GoldenrodCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The final museum roof boundary follows the later map script.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2007154a7181e9a6c795a1807797e4f6ab69fc2f",
+        "Checked changed path scope and relevant map/palette definitions. Compared source rectangles and all RGB rows to export, then sampled affected tiles for four clock times. Map totals across active rules: GoldenrodCity 3260."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): palette swaps in maps/GoldenrodCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "82becdf67f8441022249e381723f926f59c9ae17",
@@ -52787,11 +52880,15 @@
           "maps/Route32.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Partial source inspection: CherrygroveBay east dual destinations now include both the playable CherrygroveTrainTrackDual and CherrygroveCity. Corpus tests verify offsets 0/15 blocks and retained track map; its lower city overlap and complete 16-file commit review remain pending. Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, data/maps/dual_connections.asm; object definitions in maps/CherrygroveBay.asm, maps/CherrygroveTrainTrackDual.asm and other files."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Cherrygrove City owns the southern overlap of the dual track. Its northern section connects the bay to Route 30.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/836bf0096575570575b9111149684206a96db0a7",
+        "Checked both generated connection branches, the 4-by-11-block city overlay against generated artwork, and both off-map Cut trees against the matching in-map flags and world coordinates. Remaining changed files register the map, encounters, signs and hidden item."
+      ],
+      "triage_note": "Partial source inspection: CherrygroveBay east dual destinations now include both the playable CherrygroveTrainTrackDual and CherrygroveCity. Corpus tests verify offsets 0/15 blocks and retained track map; its lower city overlap and complete 16-file commit review remain pending. Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, data/maps/dual_connections.asm; object definitions in maps/CherrygroveBay.asm, maps/CherrygroveTrainTrackDual.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "85c057f0bacda96118dd82a1ff3baeb9a5fabbf6",
@@ -53093,11 +53190,15 @@
           "maps/Route24.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): palette swaps in maps/CeruleanCity.asm, maps/Route24.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Nugget Bridge spans two maps.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0ee8fcfa24482dea6f84ec235ff2c1aa80a1d98c",
+        "Checked changed path scope and relevant map/palette definitions. Compared source rectangles and all RGB rows to export, then sampled affected tiles for four clock times. Map totals across active rules: CeruleanCity 176, Route24 1104."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): palette swaps in maps/CeruleanCity.asm, maps/Route24.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "2e9db7cf8f37c0b30da0ea51ce6db5abcdef2f13",
@@ -53587,10 +53688,14 @@
           "gfx/tilesets/palette-swap/mr-psychic-roof.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The two houses now have distinct water-slot source tables.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/90b0c05d478e3b9b24899901b628cb1ee1e7c9cd",
+        "Checked changed path scope and relevant map/palette definitions. Compared source rectangles and all RGB rows to export, then sampled affected tiles for four clock times. Map totals across active rules: Route30 608, SaffronCity 1020."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "102fb1e56782192bcb8c11121d0b10b05a65a3a7",
@@ -53731,11 +53836,15 @@
           "maps/VermilionCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): palette swaps in maps/VermilionCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The ferry roof has its own roof-slot rule. The accompanying BeautifulBeach block map has a generated terrain export.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/98773a2949a86c8a2f83176e6338226b4081d0b1",
+        "Checked changed path scope and relevant map/palette definitions. Compared source rectangles and all RGB rows to export, then sampled affected tiles for four clock times. Map totals across active rules: VermilionCity 3488."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): palette swaps in maps/VermilionCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "80de88b9a3e04cc791e5b7dd7518898be297ec59",
@@ -58205,11 +58314,15 @@
           "maps/IceIsland.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/IceIsland.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add some rocks to Ice Island. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4a62aeea7a2d8c877db6ec1a5af72ab99d141776",
+        "Checked all changed path types and map script operations (itemball_event). Independently matched 1 current object declarations and 6 warp records by coordinates and multiplicity in IceIsland, including sprite/movement for plain objects and warp destinations. Traced 1 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/IceIsland.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "db4dce417b0b15f8cbbb256ac0f3d42b87a361b4",
@@ -58537,10 +58650,14 @@
           "utils/farcheck.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Removes the unused memory minigame.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5a25e694f73c25bf769f2d3dacb1daa14f02bd5f",
+        "The removed main include, special registration and sprite command are commented out. Other removed assets and text belong to that minigame."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "6daa3bca08a7e739072e32b4795e6a211c17b1dd",
@@ -60041,10 +60158,14 @@
           "macros/scripts/trade_anims.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "The trade movie selects the traded Pokémon’s caught-ball graphic and palette.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ddcf3928f0715819b73a1234625757ca7ed65d35",
+        "Checked all affected paths, including the trade-specific palette loader, RAM variable, graphics bundle and animation commands."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "3b3e2af94a055d07a6c728c7f810c495ba754428",
@@ -61902,10 +62023,14 @@
           "utils/lz_analyze_pack16.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "The changes are confined to the ROM decompressor, encoder, format notes and analysis utility.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d3e1a20f23b1f5ba47999e438cdbc37f9042ec9d",
+        "Inspected complete changed paths. No upstream compression tool is run by the atlas pipeline and the target Git tree contains zero tracked .lzp files. The pinned source build succeeds from uncompressed source graphics and maps."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "65ee5c1489434c7432500e29b52a7121965f7ea5",
@@ -63744,10 +63869,14 @@
           "tools/lzpcompress.cpp"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Switches the upstream ROM compressor to C++ and updates its ROM decoder and upstream build workflow.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ff56df598563d1375953fcb2eb3569807f084537",
+        "Inspected complete changed paths. No upstream compression tool is run by the atlas pipeline and the target Git tree contains zero tracked .lzp files. The pinned source build succeeds from uncompressed source graphics and maps."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "b7ba9b30c363b559953294c42604630cd8503b25",
@@ -66129,11 +66258,15 @@
           "maps/VermilionCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/VermilionCity.asm; palette swaps in maps/VermilionCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Verified the removed Cut tree flag is absent from current Vermilion objects. Read the moved sign and hidden item changes. Verified both copy-background pearl objects in the actual facing resolver and 2,048 RGBA samples across regular and swapped locations.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/52c07f691ce0f9df063f72b322cae9152d395ec0",
+        "Checked changed path scope and relevant map/palette definitions. Compared source rectangles and all RGB rows to export, then sampled affected tiles for four clock times. Map totals across active rules: VermilionCity 3488."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/VermilionCity.asm; palette swaps in maps/VermilionCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "6530424be6959eee696bf57e866acf61fe73e9d9",
@@ -66483,11 +66616,15 @@
           "maps/VermilionCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/VermilionCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add some grass around Battle Factory. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/be0a3f9e9c7790f01cad53974f6a05c8a0bdda88",
+        "Checked all changed path types and map script operations (bg_event, object_event, pokemon_event). Independently matched 14 current object declarations and 15 warp records by coordinates and multiplicity in VermilionCity, including sprite/movement for plain objects and warp destinations. Traced 4 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/VermilionCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "616a497cb1733c2d0f14e86a33c472c7cea62c9e",
@@ -67228,11 +67365,15 @@
           "maps/StormyBeach.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/GoldenrodCity.asm; object definitions in maps/GoldenrodCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Clean up the filler buildings in Goldenrod City. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/418de6006e89d3df1fbce2e530a47818fd09fb48",
+        "Checked all changed path types and map script operations (object_event, warp_event). Independently matched 16 current object declarations and 25 warp records by coordinates and multiplicity in GoldenrodCity, including sprite/movement for plain objects and warp destinations. Traced 11 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/GoldenrodCity.asm; object definitions in maps/GoldenrodCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "5c728c28469890bdb903a4cf6e5fd1efb3c4f8af",
@@ -67413,10 +67554,14 @@
           "maps/VermilionPort.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add crates next to truck. The current source data is handled by atlas regeneration. Sign, text and other read interactions fall outside map navigation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/eb054dc7c1453555d6551ec3414a0ed6284c22c5",
+        "Checked all changed path types and map script operations (bg_event). Independently matched 3 current object declarations and 3 warp records by coordinates and multiplicity in VermilionPort, including sprite/movement for plain objects and warp destinations. Traced 5 terrain resources to generated map consumers. Art direction was screened by asset consumption."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "a1faed6f8b74399ab2b154fbedbefb4e39295aca",

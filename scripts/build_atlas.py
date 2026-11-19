@@ -138,7 +138,8 @@ def main() -> None:
                  "--layout-template", template,
                  "--overlay-rules", scripts / "overlay_rules.json",
                  "--overworld-exclude-file", scripts / "overworld_exclude.json")
-    generate("generate_warp_metadata.py", "--overworld-exclude-file", scripts / "overworld_exclude.json")
+    generate("generate_warp_metadata.py", "--weekday", str(weekday),
+             "--overworld-exclude-file", scripts / "overworld_exclude.json")
     generate("generate_object_metadata.py", "--event-overrides", overrides)
     generate("generate_weather_metadata.py")
     generate("generate_weather_state.py", "--weekday", str(weekday), "--time-of-day", slugs[0],

@@ -92,9 +92,11 @@ map_attributes Room, ROOM, $1, 0
                 else:
                     absent.append((entry.label, connection.label, connection.constant))
                 self.assertIn(connection.direction.upper(), entry.connection_flags)
-        # Upstream intentionally uses a shortened Route36 border here. It is a
-        # connection alias, not an omitted map header; layout support is separate.
-        self.assertEqual(absent, [("RuinsOfAlphOutside", "FakeRoute36", "FAKE_ROUTE_36")])
+        self.assertEqual(absent, [])
+        north, = [c for c in graph['RuinsOfAlphOutside'].connections if c.direction == 'north']
+        self.assertEqual((north.label, north.constant, north.offset, north.overlap_blocks),
+                         ('Route36', 'ROUTE_36', -9, 1))
+        self.assertFalse(any(c.label == 'RuinsOfAlphOutside' for c in graph['Route36'].connections))
         connected = _component_members("NewBarkTown", _build_adjacency(graph))
         self.assertIn("GoldenrodCity", connected)
         self.assertIn("OlivineCity", connected)
@@ -129,7 +131,11 @@ map_attributes Room, ROOM, $1, 0
                 bay, track, cherry = [placements[k] for k in ('CherrygroveBay', 'CherrygroveTrainTrackDual', 'CherrygroveCity')]
                 self.assertEqual((track.x, track.y), (bay.x + bay.width, bay.y))
                 self.assertEqual((cherry.x, cherry.y), (track.x, bay.y + 15))
-                self.assertIn('RuinsOfAlphOutside', placements)
+                ruins, route = placements['RuinsOfAlphOutside'], placements['Route36']
+                self.assertEqual((ruins.x, ruins.y), (route.x + 9, route.y + route.height - 1))
+                reverse, = [c for c in layout_graph['Route36'].connections if c.label == ruins.label]
+                self.assertTrue(reverse.layout_only)
+                self.assertEqual(reverse.overlap_blocks, 1)
         # The attributes macro reuses 3F dimensions, but the header order and
         # warp IDs still identify distinct third and fourth floors.
         self.assertEqual(repo.maps["LavRadioTower3F"].constant, "LAV_RADIO_TOWER_3F")

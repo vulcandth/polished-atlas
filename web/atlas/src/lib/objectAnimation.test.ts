@@ -1,9 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { getStaticObjectAnimation } from "./objectAnimation";
+import { convertObjectMetadata } from "@/hooks/useObjectMetadata";
+import { getStaticObjectAnimation, resolveFacingConstant } from "./objectAnimation";
 import { getMovementModel } from "./movementModel";
 import { makeTrackClock } from "./tileAnimation";
 
 describe("stationary object animations", () => {
+  it.each([
+    ["DOWN", "FACING_MUSEUM_DRILL_DOWN"], ["UP", "FACING_MUSEUM_DRILL_UP"],
+    ["LEFT", "FACING_ARCH_TREE_LEFT"], ["RIGHT", "FACING_ARCH_TREE_RIGHT"],
+  ])("uses the fixed museum or arch tiles when facing %s", (direction, expected) => {
+    const metadata = convertObjectMetadata({
+      movements: { FIXED: { action: "OBJECT_ACTION_MUSEUM_DRILL", facing: direction } },
+      facings: { [expected]: {}, WALKING: {} },
+      default_facing_for_direction: { [direction]: "WALKING" },
+      maps: { Map: { objects: [{ movement: { constant: "FIXED" } }] } },
+    });
+    expect(resolveFacingConstant(metadata.maps.Map.objects[0], metadata)).toBe(expected);
+  });
+
   it("selects Rattata's source poses at 16-VBlank boundaries", () => {
     const animation = getStaticObjectAnimation("SPRITEMOVEDATA_RATTATA_BACK")!;
     const clock = makeTrackClock([0, 1], [1, 1], animation.frameDurationMs);

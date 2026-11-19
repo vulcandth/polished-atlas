@@ -175,12 +175,12 @@ function projectNeighbour(
     case "north":
       return {
         xBlocks: sourcePlacement.xBlocks + offset,
-        yBlocks: sourcePlacement.yBlocks - targetHeight,
+        yBlocks: sourcePlacement.yBlocks - targetHeight + (connection.overlap_blocks ?? 0),
       };
     case "south":
       return {
         xBlocks: sourcePlacement.xBlocks + offset,
-        yBlocks: sourcePlacement.yBlocks + sourcePlacement.heightBlocks,
+        yBlocks: sourcePlacement.yBlocks + sourcePlacement.heightBlocks - (connection.overlap_blocks ?? 0),
       };
     case "west":
       return {

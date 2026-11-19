@@ -38,6 +38,7 @@ class MapConnection:
     offset: int
     layout_only: bool = False
     split_range: Optional[Tuple[Optional[int], Optional[int]]] = None
+    overlap_blocks: int = 0
 
 
 @dataclass
@@ -55,6 +56,29 @@ class MapAttributes:
     roof_constant: Optional[str] = None
 
 
+@dataclass
+class Placement:
+    label: str
+    x: int
+    y: int
+    width: int
+    height: int
+
+
+def _project_neighbour(source: Placement, width: int, height: int, connection: MapConnection) -> Tuple[int, int]:
+    offset = int(connection.offset)
+    direction = connection.direction.lower()
+    if direction == "north":
+        return source.x + offset, source.y - height + connection.overlap_blocks
+    if direction == "south":
+        return source.x + offset, source.y + source.height - connection.overlap_blocks
+    if direction == "west":
+        return source.x - width, source.y + offset
+    if direction == "east":
+        return source.x + source.width, source.y + offset
+    raise ValueError(f"Unsupported connection direction '{connection.direction}'")
+
+
 class AttributesParser:
     """Parser for ``data/maps/attributes.asm``."""
 
@@ -64,9 +88,19 @@ class AttributesParser:
     def parse(self) -> Dict[str, MapAttributes]:
         maps: Dict[str, MapAttributes] = {}
         current: Optional[MapAttributes] = None
+        definitions: Dict[str, str] = {}
+        aliases: List[MapConnection] = []
         for raw_line in self._iter_lines():
             line = raw_line.split(";", 1)[0].strip()
             if not line:
+                continue
+            definition = re.fullmatch(r"DEF\s+(\w+)\s+EQU\s+(.+)", line)
+            if definition:
+                definitions[definition[1]] = definition[2]
+                continue
+            if line.startswith("PURGE "):
+                for symbol in line[6:].split(","):
+                    definitions.pop(symbol.strip(), None)
                 continue
             attr_match = _MAP_ATTRIBUTES_RE.fullmatch(line)
             if attr_match:
@@ -91,16 +125,29 @@ class AttributesParser:
                 direction, target_label, target_constant, offset = conn_match.groups()
                 if direction not in {"north", "south", "west", "east"}:
                     raise ValueError(f"Unknown connection direction: {direction}")
-                current.connections.append(
-                    MapConnection(
-                        direction=direction,
-                        label=target_label,
-                        constant=target_constant,
-                        offset=int(offset),
-                    )
-                )
+                connection = MapConnection(direction, target_label, target_constant, int(offset))
+                group = definitions.get(f"GROUP_{target_constant}")
+                if group is not None:
+                    # The north gatehouse uses Route 36's map ID and stride, but
+                    # starts its border copy one row before the full map ends.
+                    target = group.removeprefix("GROUP_")
+                    height = definitions.get(f"{target_constant}_HEIGHT", "")
+                    shortened = re.fullmatch(rf"{target}_HEIGHT\s*-\s*(\d+)", height)
+                    if (direction != "north" or not shortened
+                            or definitions.get(f"MAP_{target_constant}") != f"MAP_{target}"
+                            or definitions.get(f"{target_constant}_WIDTH") != f"{target}_WIDTH"):
+                        raise ValueError(f"Unsupported connection alias: {line}")
+                    connection.constant = target
+                    connection.overlap_blocks = int(shortened[1])
+                    aliases.append(connection)
+                current.connections.append(connection)
         if not maps:
             raise ValueError(f"No map attributes found in {self.attributes_path}")
+        for alias in aliases:
+            labels = [m.label for m in maps.values() if m.constant == alias.constant]
+            if len(labels) != 1:
+                raise ValueError(f"Ambiguous or missing connection alias target: {alias.constant}")
+            alias.label = labels[0]
         # Modern upstream derives the flags from each connection macro instead
         # of repeating a fourth argument on map_attributes.
         for data in maps.values():
@@ -214,7 +261,7 @@ def _layout_graph(graph: Dict[str, MapAttributes], root: Path) -> Tuple[Dict[str
             target = result[connection.label]
             if not any(c.label == source.label for c in target.connections):
                 target.connections.append(MapConnection(opposite[connection.direction], source.label,
-                    source.constant, -connection.offset, layout_only=True))
+                    source.constant, -connection.offset, layout_only=True, overlap_blocks=connection.overlap_blocks))
     return result, proxies
 
 
@@ -275,6 +322,7 @@ def _serialise_connections(
                     "offset": conn.offset,
                     "target_present": conn.label in attributes,
                     **({"layout_only": True} if conn.layout_only else {}),
+                    **({"overlap_blocks": conn.overlap_blocks} if conn.overlap_blocks else {}),
                     **({"split_range": conn.split_range} if conn.split_range is not None else {}),
                 }
                 for conn in data.connections

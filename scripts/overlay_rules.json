@@ -2,6 +2,8 @@
   "version": 1,
   "overlays": [
     { "above": "GoldenrodCity", "below": "GoldenrodHarbor" },
-    { "above": "RuinsOfAlphOutside", "below": "VioletCity" }
+    { "above": "RuinsOfAlphOutside", "below": "VioletCity" },
+    { "above": "RuinsOfAlphOutside", "below": "Route36" },
+    { "above": "CherrygroveCity", "below": "CherrygroveTrainTrackDual" }
   ]
 }

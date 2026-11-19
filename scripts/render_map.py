@@ -465,8 +465,12 @@ class RepositoryIndex:
     def block_asset(self, block_label: str) -> Optional[str]:
         return self._block_assets.get(block_label)
 
-    def map_blocks(self, info: MapInfo, events: Set[str], override: Optional[Path] = None) -> List[int]:
+    def map_blocks(self, info: MapInfo, events: Set[str], override: Optional[Path] = None,
+                   *, weekday: Optional[int] = None) -> List[int]:
         asset = self.block_asset(info.block_label) or f"maps/{info.label}.ablk"
+        wet_asset = _OVERCAST_BLOCK_OVERRIDES.get(info.constant)
+        if wet_asset and self.get_overcast_index(info, weekday=weekday, events=events) is not None:
+            asset = wet_asset
         blocks = _map_block_indices(_read_block_bytes(override or self.root / asset), info.width, info.height)
         for flag, x, y, block in conditional_block_changes(self.root / "maps" / f"{info.label}.asm"):
             if flag in events:
@@ -2342,14 +2346,9 @@ def _build_renderer(
     time_of_day = palette_time(map_info.palette_flags, time_of_day)
     tileset_resources = repo_index.tileset_resources(map_info.tileset)
     overcast_index = repo_index.get_overcast_index(map_info, weekday=weekday, events=events)
-    override_block = None
-    if overcast_index is not None:
-        override_relative = _OVERCAST_BLOCK_OVERRIDES.get(map_info.constant)
-        if override_relative is not None:
-            override_block = polished_path / override_relative
     if events is None:
         events = effective_flags(repo_index.initial_event_flags)
-    block_indices = repo_index.map_blocks(map_info, events, override_block)
+    block_indices = repo_index.map_blocks(map_info, events, weekday=weekday)
     allows_roof_palette = map_info.map_type in {"TOWN", "ROUTE", "ISOLATED"}
     special_palette = repo_index.special_background_palette(
         map_info,

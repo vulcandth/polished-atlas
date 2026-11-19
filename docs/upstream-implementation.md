@@ -522,6 +522,36 @@ disposition, especially binary art, renames, and changes to shared engine code.
 **698 resolved, 331 pending, 28 reviewed with open work.** Commit-level
 coverage and runtime validation remain in progress.
 
+### Follow-up scan and seam checks
+
+Screened the 359 outstanding commits in 12 batches of up to 32 against
+`f8e67fbd5`. The v3.2.3 Flare Blitz hotfix is the only new release note.
+Substantive overworld changes, including palette swaps and NPC glow, appear
+in the commit patches. The ledger now has **735 resolved, 296 pending and
+26 reviewed with open work**. Of the 37 resolved in this pass, 11 were
+outside Atlas scope, 24 use regenerated data, one needed a layout correction,
+and one was already supported. Coverage remains preliminary.
+
+- For 19 map-data commits, checked all changed path types and map script
+  operations. Matched current object and warp declarations against generated
+  records and traced terrain inputs to their exported maps. The ledger names
+  the maps, counts and scope of each check.
+- Checked both ends of Nugget Bridge and four roof palette changes against
+  the pinned source and exported terrain. Rechecked all 25 swap rectangles
+  on 17 maps across four clock times. Using the client’s facing selector
+  exposed a wrong fallback for museum-drill and arch-tree sprites. Verified
+  the corrected Vermilion pearl objects against 2,048 RGBA samples.
+- The Route 36 alias shortens the north connection by one block. Verified
+  the overlapping gatehouse pixels, and the Cherrygrove City artwork across
+  its four-by-eleven-block track overlap. Both out-of-map Cut trees match the
+  flags and world coordinates of their in-map counterparts. On Route 23,
+  verified the seam, nine officers and all four Victory Road/League Gate
+  warp round trips.
+- Azalea Town, Route 33, Lake of Rage and Route 43 can replace their block
+  arrays in wet weather. Collision exports now use the same weekday and block
+  source as the terrain renderer. The regression compares the full dry and wet
+  cell grids against the source block and collision tables for all four maps.
+
 ## Immediate remaining implementation work
 
 - Verify palette-swap NPC colors in the full generated site. The frontend now
@@ -542,13 +572,8 @@ coverage and runtime validation remain in progress.
   all remaining dynamic-palette rules; explicit map time now replaces the indoor/day
   heuristic for current metadata. Hidden-grotto entrance-dependent terrain and
   background palettes are implemented and verified as recorded above.
-- Finish dual-connection commit review and visual seam checks, including the
-  Cherrygrove track/city overlap. Resolve the shortened FakeRoute36 border alias
-  used by RuinsOfAlphOutside; the ruins now place via their Route32 connection,
-  but their north connection still needs explicit alias handling/validation.
-- Validate Route23North/South's seam, officer placement and Victory Road/League
-  Gate warp round trips. The split commit's text and binary changes are reviewed;
-  its two block arrays exactly concatenate to the old map, but visual checks remain.
+- Finish the Route 13/14/Lucky Island dual connection and coastline review,
+  Goldenrod Harbor object overlap, and the wider Ruins of Alph redesign.
 - Dev builds now require upstream corpus tests after source checkout, checking
   the exact pinned SHA. Extend that corpus coverage alongside further adaptations.
 - Finish the commit ledger, then run full combined-site/browser tests and publish.

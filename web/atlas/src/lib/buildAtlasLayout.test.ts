@@ -32,4 +32,16 @@ describe("connection layout coverage", () => {
       Town: map("Town", 10, 8), Route: map("Route", 4, 12),
     } })).toThrow("unplaced maps: Route");
   });
+
+  it("retains the one-block gatehouse overlap from either side of Route 36", () => {
+    const graph: ConnectionGraphDTO = { root: "Route36", map_count: 2, maps: {
+      Route36: map("Route36", 23, 9, [{ ...edge("Ruins", "south", 9), overlap_blocks: 1, layout_only: true }]),
+      Ruins: map("Ruins", 14, 21, [{ ...edge("Route36", "north", -9), overlap_blocks: 1 }]),
+    } };
+    for (const rootOverride of ["Route36", "Ruins"]) {
+      const layout = buildAtlasLayout(graph, { rootOverride });
+      expect(Object.fromEntries(layout.placements.map(p => [p.label, [p.xBlocks, p.yBlocks]])))
+        .toEqual({ Route36: [0, 0], Ruins: [9, 8] });
+    }
+  });
 });

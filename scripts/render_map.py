@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 from map_palette import palette_time
-from event_state import initial_flags, effective_flags
+from event_state import conditional_block_changes, initial_flags, effective_flags
 from fixed_weather import fixed_weather
 import palette_swaps
 
@@ -464,6 +464,16 @@ class RepositoryIndex:
 
     def block_asset(self, block_label: str) -> Optional[str]:
         return self._block_assets.get(block_label)
+
+    def map_blocks(self, info: MapInfo, events: Set[str], override: Optional[Path] = None) -> List[int]:
+        asset = self.block_asset(info.block_label) or f"maps/{info.label}.ablk"
+        blocks = _map_block_indices(_read_block_bytes(override or self.root / asset), info.width, info.height)
+        for flag, x, y, block in conditional_block_changes(self.root / "maps" / f"{info.label}.asm"):
+            if flag in events:
+                if x >= 2 * info.width or y >= 2 * info.height or block > 255:
+                    raise ValueError(f"Invalid changeblock in {info.label} at ({x}, {y}): {block}")
+                blocks[(y // 2) * info.width + x // 2] = block
+        return blocks
 
     @property
     def no_roof_tileset_threshold(self) -> int:
@@ -1963,7 +1973,9 @@ def _load_tileset_animations(
 
 def _write_modern_animation(polished_path, renderer, png_module, repo_index, time_of_day, events, metadata_path):
     from tile_animation_export import context_for_map, write_animation
-    context = context_for_map(repo_index.map_info(renderer.map_label), time_of_day, events or set())
+    if events is None:
+        events = effective_flags(repo_index.initial_event_flags)
+    context = context_for_map(repo_index.map_info(renderer.map_label), time_of_day, events)
     return write_animation(polished_path, renderer, png_module, metadata_path, context)
 
 
@@ -2330,20 +2342,14 @@ def _build_renderer(
     time_of_day = palette_time(map_info.palette_flags, time_of_day)
     tileset_resources = repo_index.tileset_resources(map_info.tileset)
     overcast_index = repo_index.get_overcast_index(map_info, weekday=weekday, events=events)
-    block_asset = repo_index.block_asset(map_info.block_label)
     override_block = None
     if overcast_index is not None:
         override_relative = _OVERCAST_BLOCK_OVERRIDES.get(map_info.constant)
         if override_relative is not None:
             override_block = polished_path / override_relative
-    if override_block is not None:
-        blocks_path = override_block
-    elif block_asset:
-        blocks_path = polished_path / Path(block_asset)
-    else:
-        blocks_path = polished_path / "maps" / f"{map_info.label}.ablk"
-    block_bytes = _read_block_bytes(blocks_path)
-    block_indices = _map_block_indices(block_bytes, map_info.width, map_info.height)
+    if events is None:
+        events = effective_flags(repo_index.initial_event_flags)
+    block_indices = repo_index.map_blocks(map_info, events, override_block)
     allows_roof_palette = map_info.map_type in {"TOWN", "ROUTE", "ISOLATED"}
     special_palette = repo_index.special_background_palette(
         map_info,

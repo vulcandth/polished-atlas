@@ -7,9 +7,10 @@ dev branch at `/polished-atlas/dev/`. Both retain the existing atlas features.
 Publish both together manually. Future upstream updates require reviewed SHA
 changes, not an automatically moving master reference.
 
-The initial dev target is `704ea9db192ca8b902ef4aa7a441eb905eb29b89`.
+The dev target is `f8e67fbd53ad7a99870d8ab87fd73612e6c6a679`, verified against
+upstream master on November 18, 2026. The first audit pass targeted `704ea9db1`.
 The baseline is `e410d7405e7d5d016b16a0a59bfb6da0b2a9eabf` (v3.2.2).
-There are 1,051 commits and 3,520 changed endpoint paths in this range.
+There are 1,057 commits and 3,520 changed endpoint paths in the current range.
 
 **Planning inspection was preliminary and NOT exhaustive. Auditing every commit
 is implementation work. The known requirements below are not a closed list.**
@@ -477,13 +478,58 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   TypeScript and all 48 frontend tests passed. This change follows the combined
   build above. Final combined browser and publication checks remain open.
 
+### Batched review on November 18
+
+The changelog adds only the v3.2.3 battle hotfix. The two Flare Blitz commits
+already have dispositions. A pass over the 359 then-pending commits at the
+first pin scanned added and removed assembly lines in 15 batches. It found
+palette-swap signals in 15 commits, glow in 3, object definitions in 126,
+connections or warps in 76, and tile animation in 47. Groups overlap. These
+counts describe this batch only. The ledger preserves specific file leads for
+204 still-pending commits. Commits without matching lines still require a
+disposition, especially binary art, renames, and changes to shared engine code.
+
+- Screened out 15 commits affecting dialogue, audio, encounter rates, game UI,
+  RAM transfers, formatting, or assets the atlas does not display. Checked
+  mixed commits separately. For example, the Fly/Teleport change also gates
+  overcast roofs by environment, and the nine files in the reverted roof
+  refactor returned byte-for-byte to their previous versions.
+- Checked all 25 palette-swap rectangles in 17 maps and the eight RGB variants
+  of each of 26 palette labels against source. Across four times of day,
+  19,312 base tile placements used the expected palette. Checked every frame
+  used by 7,568 animated placements against its allowed colors. Route 7
+  declares a water-slot swap but has no tiles using that slot in its interior.
+  Its connected border and moving NPC visuals still need verification.
+- Found all nine glow collision types across 377 cells in the generated maps.
+  The aquarium schoolboy at (4,4) and Morty at (5,1) stand on lit cells.
+  The cave-mouth, ladder and Dragon Shrine side-wall fixtures need movement
+  through the cells to exercise their effects.
+- The Judge Machine also changes six screen blocks when powered on. The
+  renderer and collision generators now use the same conditional block changes
+  for single-flag tile callbacks. Four callbacks in this revision match this
+  form. Separate renders with the machine off and on verified all 18 distinct
+  cycle colors appear only when powered on. Cave flicker writes directly to
+  the display hardware. The Judge cycle writes to BG palette 6 in the active
+  buffer, and none of the 21 declared objects in the two PokéCom maps copies
+  that slot.
+- Reviewed all six additional commits through `f8e67fbd5`. National Park, its
+  contest variant and both gatehouses now belong to map group 41. Checked the
+  regular and overcast group colors. Comparing both park renders across all
+  four times localized the pixel changes to the flower strip. The compressed
+  offset encoding changed upstream. Atlas consumes the checked-in source
+  assets, and the target Git tree contains zero tracked `.lzp` files.
+
+**698 resolved, 331 pending, 28 reviewed with open work.** Commit-level
+coverage and runtime validation remain in progress.
+
 ## Immediate remaining implementation work
 
 - Verify palette-swap NPC colors in the full generated site. The frontend now
   consumes swap metadata and rebuilds background-derived NPC frames when movement
   crosses a color boundary; focused tests cover selection and boundary changes.
-- Finish animation integration with animated background-derived object colors,
-  shared event state. Forced map time is now shared across terrain and objects. Run the final combined-site checks before deployment.
+- Check remaining event-dependent tile callbacks, object visibility and weather
+  against the shared snapshot. Forced map time is shared across terrain and
+  objects. Run the final combined-site checks before deployment.
 - Complete NPC glow effects, weather integration verification, dual-palette integration validation,
   and all map/object/movement findings from the audit.
 - Finish grass occlusion and per-facing RELATIVE_ATTRIBUTES/OAM_PRIO behavior.

@@ -1,7 +1,7 @@
 {
   "base": "e410d7405e7d5d016b16a0a59bfb6da0b2a9eabf",
-  "head": "704ea9db192ca8b902ef4aa7a441eb905eb29b89",
-  "commit_count": 1051,
+  "head": "f8e67fbd53ad7a99870d8ab87fd73612e6c6a679",
+  "commit_count": 1057,
   "endpoint_changes": [
     [
       "M",
@@ -15197,7 +15197,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/DragonsDen1F.asm, maps/HiddenCaveGrotto.asm and other files; object definitions in maps/HiddenCaveGrotto.asm."
     },
     {
       "sha": "ac45f457748561ce109ff01dd4955ad608b4899a",
@@ -15226,7 +15227,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/NavelRockInside.asm; object definitions in maps/NavelRockInside.asm."
     },
     {
       "sha": "788f33bdf79fb11848708039bf3754819da5546d",
@@ -15382,10 +15384,14 @@
           "gfx/pokemon/ledyba/shiny.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Ledian battle portraits, minis and battle colors are separate assets from the atlas overworld icon.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6383b89323c099314a9346afe646071519e13452",
+        "All six changed paths inspected. Generated LEDIAN and LEDYBA entries use gfx/icons and packed PAL_MON colors from the overworld table."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e192f3a5814e2a3a22a19be4f0f6a2c3c6b289ab",
@@ -15792,10 +15798,14 @@
           "gfx/pokemon/hoothoot/shiny.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Hoothoot uses the pinned overworld icon palette table. Other art in this commit is outside the overworld icon renderer.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/32b7f75b00379027792b12c18de982a6f30e3c03",
+        "Reviewed data/pokemon/overworld_icon_pals.asm hunk and checked the generated normal/shiny entries for Hoothoot against the final packed pairs (gray/brown dark components)."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "d184d8740953053062508b568ddc84f2ad409e3d",
@@ -15813,10 +15823,14 @@
           "gfx/pokemon/golem_plain/shiny.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Geodude, Graveler and Golem uses the pinned overworld icon palette table. Other art in this commit is outside the overworld icon renderer.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d184d8740953053062508b568ddc84f2ad409e3d",
+        "Reviewed data/pokemon/overworld_icon_pals.asm hunk and checked the generated normal/shiny entries for Geodude, Graveler and Golem against the final packed pairs (orange/brown dark components)."
+      ],
+      "review_method": "scope-screen",
       "triage_note": "Overworld icon palette table changes: retain for icon color regeneration/verification."
     },
     {
@@ -15847,10 +15861,14 @@
           "gfx/pokemon/bulbasaur/shiny.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Bulbasaur battle portraits, mini and battle colors are separate from the atlas overworld icon.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2cba5f8eebc10e746a7870b513498958cf9f244d",
+        "All five paths inspected. The built BULBASAUR entry references gfx/icons/bulbasaur.2bpp.lzp and the overworld PAL_MON_TAN_GREEN/PAL_MON_TAN_TEAL pair."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "0d4f51591bb2bf3a058d251ec3b2630562568962",
@@ -15868,10 +15886,14 @@
           "gfx/pokemon/raichu_alolan/shiny.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Alolan Raichu uses the pinned overworld icon palette table. Other art in this commit is outside the overworld icon renderer.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0d4f51591bb2bf3a058d251ec3b2630562568962",
+        "Reviewed data/pokemon/overworld_icon_pals.asm hunk and checked the generated normal/shiny entries for Alolan Raichu against the final packed pairs (blue/orange dark components)."
+      ],
+      "review_method": "scope-screen",
       "triage_note": "Overworld icon palette table changes: retain for icon color regeneration/verification."
     },
     {
@@ -15973,7 +15995,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in constants/map_data_constants.asm, constants/weather_constants.asm and other files; state changes in maps/PlayersHouse2F.asm; object definitions in maps/Route10North.asm, maps/Route14.asm and other files."
     },
     {
       "sha": "4ab1adcf9838f4d8b5b1e8a7817779f54dca81a3",
@@ -16336,7 +16359,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/MagnetTunnelInside.asm."
     },
     {
       "sha": "070574ac2e64691c8061a4d3695f4f5a424d0092",
@@ -16650,7 +16674,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/NoisyForest.asm, maps/RockyBeach.asm and other files; state changes in maps/NoisyForest.asm, maps/ShamoutiIsland.asm."
     },
     {
       "sha": "1d19458a16e9895f9d532fd1b62aecc2d0001c29",
@@ -16886,10 +16911,14 @@
           "maps/ShamoutiTunnel.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Item-Maniac sale quantities affect inventory and dialogue.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1ef93f2b5b91170e9403ef7748f855c4b0c6fd99",
+        "All three changed map hunks call quantity, price and take-item specials in the transaction scripts. The remaining files implement or describe those specials."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "b6d4bfca2074fd94a32e002468963b7452873b92",
@@ -17079,7 +17108,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/QuietCaveB3F.asm; object definitions in maps/QuietCaveB3F.asm."
     },
     {
       "sha": "13231338e6c172188d4d1b4376be06731fc6d424",
@@ -17169,7 +17199,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; connectivity in maps/HiddenCaveGrotto.asm, maps/HiddenTreeGrotto.asm; object definitions in maps/HiddenCaveGrotto.asm, maps/HiddenTreeGrotto.asm; state changes in maps/HiddenCaveGrotto.asm, maps/HiddenTreeGrotto.asm."
     },
     {
       "sha": "88567c3d3ca2c0b6d1484d530b6b0ba7cdb34e75",
@@ -17397,7 +17428,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/overcast_maps.asm, data/sprites/weather.asm and other files."
     },
     {
       "sha": "88a64b73cddc97941742ea194340b31e33c79a30",
@@ -17498,10 +17530,14 @@
           "main.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Compression changes apply to the map-entry name banner drawn by the ROM.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/36a0238543cc9e109426b7ded1dc191e921c331f",
+        "Checked the sign pointers and shared gfx/misc.asm diff. All seven new graphics references point to gfx/signs. The atlas displays its own map labels."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "cb973fdd570f1eea562bed18337d75cd8c041602",
@@ -17539,10 +17575,14 @@
           "engine/pokegear/radio.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "The shared encounter-chance byte is consumed by grass encounter selection and the radio.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/cb973fdd570f1eea562bed18337d75cd8c041602",
+        "Checked the full path list and changed record-width constants. Atlas does not read grass encounter rates to place map objects."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "4874ed45a89802ef79b97df1443ac1abc14f086e",
@@ -17568,10 +17608,14 @@
           "macros/ram.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Audio channel rest/cry playback and channel RAM are outside the atlas.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4874ed45a89802ef79b97df1443ac1abc14f086e",
+        "Complete four-file list, shared channel_struct diff and SOUND_REST/SOUND_CRY flag change inspected."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "987a23ed2def248f473c55d39c462facba840d8f",
@@ -18384,7 +18428,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/overcast_maps.asm, data/maps/palettes.asm and other files; tile animation in engine/tilesets/tileset_anims.asm; object definitions in macros/scripts/maps.asm, maps/BattleTowerOutside.asm and other files; state changes in maps/NavelRockRoof.asm; connectivity in maps/SilverCaveRoom3.asm."
     },
     {
       "sha": "f084b9347bd953165b8f9fe1ccb3667a46208599",
@@ -18591,10 +18636,14 @@
           "maps/Route27RestHouse.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Happiness thresholds select dialogue and battle effects.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/18cbbfc5e6580bbd5a529d53915e1ea5379545f1",
+        "Read the changed receptionist, happiness rater and granny script hunks. They compare thresholds and choose dialogue. Other paths are happiness and battle data."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "7180a6959173b6d8844db558335165dadd44dcc1",
@@ -18863,7 +18912,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/OlivineCity.asm."
     },
     {
       "sha": "2f3481263a51a4ba249bf54858f7e3338bcd30ff",
@@ -19048,7 +19098,7 @@
       "disposition": null,
       "reason": "",
       "evidence": [],
-      "triage_note": "Partial source inspection and adaptation: export per-map dual object palette pairs, select NEXT_PALETTE per facing tile, and render both large-bird frames. Source-based day/night browser samples checked. Complete commit review, map priority/placement and glow integration validation remain open; not a full-diff resolution."
+      "triage_note": "Partial source inspection and adaptation: export per-map dual object palette pairs, select NEXT_PALETTE per facing tile, and render both large-bird frames. Source-based day/night browser samples checked. Complete commit review, map priority/placement and glow integration validation remain open; not a full-diff resolution. Batched changed-line scan (follow-up leads only): connectivity in maps/TinTower10F.asm, maps/TinTowerRoof.asm; object definitions in maps/TinTowerRoof.asm, maps/WhirlIslandLugiaChamber.asm."
     },
     {
       "sha": "6083379b634205dbb4bd66e3c9aa8ad5563d39df",
@@ -19494,7 +19544,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in constants/tileset_constants.asm, data/collision/field_move_blocks.asm and other files."
     },
     {
       "sha": "1ed36aee7cb3cca60ca63453eb73265f400c8bc8",
@@ -27555,7 +27606,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/MagnetTunnelEast.asm and other files; tile animation in engine/tilesets/tileset_anims.asm; object definitions in maps/MagnetTunnelEast.asm, maps/RuinsOfAlphOutside.asm; state changes in maps/Route47.asm, maps/RuinsOfAlphOutside.asm."
     },
     {
       "sha": "99d54bdb480336728c0a7ca924eea3f5f1ce5840",
@@ -27632,7 +27684,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm."
     },
     {
       "sha": "bc28953aa67bf721a5f35858ccbaf06ea10ecad3",
@@ -27665,7 +27718,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/RuinsOfAlphSinjohChamber.asm."
     },
     {
       "sha": "d543a9389cf036bbdcd6c06dabba66d20f7b95ba",
@@ -27813,7 +27867,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/EcruteakGym.asm; object definitions in maps/EcruteakGym.asm."
     },
     {
       "sha": "14b4baa31ddfcf5eb5030c7f1d9d83b00d08e03a",
@@ -28258,7 +28313,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CinnabarLab.asm, maps/CopycatsHouse2F.asm and other files; state changes in maps/CinnabarLab.asm, maps/CopycatsHouse2F.asm and other files."
     },
     {
       "sha": "8afedfb17ceddf31d3eb5f8c2b0d6d91d7e1d66c",
@@ -28387,7 +28443,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; object definitions in maps/RocketHideoutB1F.asm; state changes in maps/RocketHideoutB1F.asm, maps/RocketHideoutB4F.asm and other files."
     },
     {
       "sha": "94face39cfcb7038326dd4ff81daa636649b4be7",
@@ -28940,7 +28997,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/WiseTriosRoom.asm."
     },
     {
       "sha": "b59069743053a1dc9b0236cd484002641055c58e",
@@ -29359,7 +29417,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; state changes in maps/CeladonGameCorner.asm."
     },
     {
       "sha": "a687b47cfb61f7a88bd43ae77be99f22d7003253",
@@ -29416,7 +29475,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeladonHotelPool.asm."
     },
     {
       "sha": "91cb920cec2a5a572c90c75113631f905666f366",
@@ -29522,7 +29582,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/GoldenrodCity.asm, maps/GoldenrodDeptStoreB1F.asm and other files; state changes in maps/GoldenrodDeptStoreB1F.asm, maps/GoldenrodDeptStoreElevator.asm and other files; object definitions in maps/GoldenrodUnderground.asm, maps/GoldenrodUndergroundEntrances.asm and other files."
     },
     {
       "sha": "cf08098bcd246e54364b1cf6e6232654e8106f54",
@@ -29610,7 +29671,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/GoldenrodUndergroundSwitchRoom.asm, maps/Route5UndergroundEntrance.asm and other files; state changes in maps/GoldenrodUndergroundSwitchRoom.asm; connectivity in maps/Route5.asm, maps/Route5UndergroundEntrance.asm and other files."
     },
     {
       "sha": "f2a004aa8e573bc21795c986def4a1c7132122b8",
@@ -29659,7 +29721,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/GoldenrodDeptStoreB1F.asm."
     },
     {
       "sha": "85d5955cb9fafa6d310cfab6f77fd025f5c4bc58",
@@ -29688,7 +29751,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/GoldenrodUnderground.asm, maps/GoldenrodUndergroundSwitchRoom.asm and other files."
     },
     {
       "sha": "46f7d69de0d06e6ea82025807a3c56ac94bad2cc",
@@ -29733,7 +29797,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/GoldenrodUndergroundSwitchRoom.asm; object definitions in maps/GoldenrodUndergroundSwitchRoom.asm."
     },
     {
       "sha": "93d32bebc34042914b7458b92230d3e2357c00c7",
@@ -30119,7 +30184,7 @@
       "disposition": null,
       "reason": "",
       "evidence": [],
-      "triage_note": "Partial source inspection and adaptation: expand packed PAL_MON constants and iconpal repetitions, correct extended form indexing, compose light color 2 into dark color 1 before glow/fade. Focused pixel tests and full current-source palette reference checks pass. Complete commit review remains pending."
+      "triage_note": "Partial source inspection and adaptation: expand packed PAL_MON constants and iconpal repetitions, correct extended form indexing, compose light color 2 into dark color 1 before glow/fade. Focused pixel tests and full current-source palette reference checks pass. Complete commit review remains pending. Batched changed-line scan (follow-up leads only): object definitions in maps/AzaleaTown.asm, maps/BattleTower2F.asm and other files."
     },
     {
       "sha": "034e5afa4ec0e311d80173211aeded3c7ceff1e5",
@@ -30399,7 +30464,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; state changes in maps/VermilionCity.asm."
     },
     {
       "sha": "c7374b72db1c2d9779461910a90b60a561c86142",
@@ -30504,7 +30570,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/RadioTower4F.asm, maps/Route43.asm."
     },
     {
       "sha": "507f1443c34754944b92c954baf30b2fb24000a2",
@@ -30707,7 +30774,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/Route1617Gate.asm and other files; weather in data/maps/overcast_maps.asm; object definitions in maps/CeladonCity.asm, maps/Route16North.asm and other files; state changes in maps/GoldenrodUndergroundWarehouse.asm, maps/Route16South.asm and other files."
     },
     {
       "sha": "394b048a334451b91743a022fba8eecb4b4c210d",
@@ -30757,7 +30825,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm."
     },
     {
       "sha": "2568077d54ac7e5f628e5c9f459e6b62cee8b396",
@@ -31098,7 +31167,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm."
     },
     {
       "sha": "ac13126f561b8401916516431657ed32069da175",
@@ -31268,7 +31338,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; state changes in maps/PowerPlant.asm."
     },
     {
       "sha": "278df4b0225b8d641e0ae2af8db6a642d0777c84",
@@ -31378,7 +31449,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in macros/scripts/maps.asm, maps/AzaleaTown.asm and other files."
     },
     {
       "sha": "40bd23f04bd03c24ccefdc855e3c4c33a7e22c86",
@@ -31475,7 +31547,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/PokemonFanClub.asm, maps/SafariZoneWardensHome.asm; object definitions in maps/PokemonFanClub.asm."
     },
     {
       "sha": "44ad1ffdbf3c45cd07c183760855c1a42e545844",
@@ -31557,7 +31630,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/GoldenrodUnderground.asm, maps/GoldenrodUndergroundEntrances.asm."
     },
     {
       "sha": "744d29fa57fa8a8754cc211abee85a6e384e065f",
@@ -31610,7 +31684,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/Route5UndergroundPathEntrance.asm, maps/Route6UndergroundPathEntrance.asm; object definitions in maps/Route5UndergroundPathEntrance.asm."
     },
     {
       "sha": "8c303bc65d4695a498a1d4d78326ee428440ba15",
@@ -31659,7 +31734,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/PowerPlant.asm."
     },
     {
       "sha": "80dd8dcd3c557ddbd1bcc14e22fb528961982e3d",
@@ -32018,7 +32094,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/LancesRoom.asm."
     },
     {
       "sha": "fb2f4c275719acb3c9f466fa752650ed14c0ba3b",
@@ -32154,7 +32231,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; connectivity in maps/CianwoodGym.asm; object definitions in maps/CianwoodGym.asm; state changes in maps/CianwoodGym.asm."
     },
     {
       "sha": "d55ad8a00b040dff7d643f38ec35e501f6f4686b",
@@ -32456,7 +32534,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/GoldenrodUnderground.asm, maps/GoldenrodUndergroundSwitchRoom.asm; connectivity in maps/GoldenrodUndergroundSwitchRoom.asm; object definitions in maps/GoldenrodUndergroundSwitchRoom.asm."
     },
     {
       "sha": "0130dfe6e72af6ad72a3b7ae50ad25d393658b07",
@@ -35317,7 +35396,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/FightingDojo.asm; state changes in maps/FightingDojo.asm."
     },
     {
       "sha": "c69cb066b48d7afd2e54c62c86fa8e6c0fe79b3a",
@@ -36052,7 +36132,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/ValeriesHouse.asm; state changes in maps/ValeriesHouse.asm."
     },
     {
       "sha": "5bfb31194abaf3295ac4fc9997c89214edc1046f",
@@ -36244,7 +36325,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; state changes in maps/OlivineCity.asm."
     },
     {
       "sha": "1f0522ffef5a77aebb4c5df351b40a72cb2dfc23",
@@ -36367,7 +36449,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; object definitions in maps/CeladonCity.asm."
     },
     {
       "sha": "765ea064cab9c742301a1380e1deb7f2738d3411",
@@ -36416,7 +36499,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm."
     },
     {
       "sha": "5bbddf56b6349223f2a262f5c4e7565ef7a19619",
@@ -36441,7 +36525,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CianwoodGym.asm."
     },
     {
       "sha": "aeef12985c2f7a73f3d83e83e83819efa6c7dda2",
@@ -36541,7 +36626,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/DanceTheatre.asm."
     },
     {
       "sha": "f97f27695567e863c852d9cd218e5941c6b61f3f",
@@ -36615,7 +36701,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/SnowtopMountainInside.asm."
     },
     {
       "sha": "0e22ddca3b3c34dcb9e9cfd8237293e6d21a1e66",
@@ -37770,7 +37857,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm."
     },
     {
       "sha": "48095b6062da6082035d4707f7d6d623a7f3b48c",
@@ -37869,7 +37957,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
     },
     {
       "sha": "b263ca1e00795487dd8bcf0925039d2ccacec540",
@@ -38069,7 +38158,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
     },
     {
       "sha": "5a91e5ba05058fc34849b62a91e770d118a122e0",
@@ -38134,7 +38224,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
     },
     {
       "sha": "d9bd6239b4c97714fd42b7dea4273938b4a2381f",
@@ -38167,7 +38258,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
     },
     {
       "sha": "b4934a716e562ab3e3d5f325d2b54c7e23b672ff",
@@ -38447,7 +38539,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/SinjohRuins.asm."
     },
     {
       "sha": "1b13ade48888ea78063a23b556f5af91942ff9e6",
@@ -38503,7 +38596,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CopycatsHouse2F.asm; state changes in maps/CopycatsHouse2F.asm."
     },
     {
       "sha": "755da9a9f9e22b3f6056b948ec9a2fa3b479ba39",
@@ -38592,7 +38686,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
     },
     {
       "sha": "d4114294f01353b5a5c824ed9c7242f9de79699f",
@@ -38963,7 +39058,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object and terrain priority in data/sprites/facings.asm; object definitions in maps/GoldenrodPokecomCenterOffice.asm."
     },
     {
       "sha": "bd0e69f8f1aa231ebe9dc4e92f2df3b3693b8c72",
@@ -39105,7 +39201,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
     },
     {
       "sha": "e57a98e1e931dc292b6817fb3e93efca318b546c",
@@ -39211,7 +39308,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm; connectivity in maps/SilphCo1F.asm; object definitions in maps/SilphCo1F.asm, maps/SilphCo2F.asm and other files."
     },
     {
       "sha": "1efbfe4b2081d83907b1dece847880ac8d48e119",
@@ -39272,7 +39370,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/TrainerHouse1F.asm."
     },
     {
       "sha": "3f77e34dfa68cae9f843c3f3c94ecaa3507fee69",
@@ -39360,7 +39459,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route35CoastNorth.asm."
     },
     {
       "sha": "a61b060ee7af925e31d989350064e7084402eb12",
@@ -39523,7 +39623,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/DimCave2F.asm, maps/GiovannisCave.asm and other files; object definitions in maps/DimCave2F.asm, maps/GiovannisCave.asm and other files."
     },
     {
       "sha": "c46369ac4240496357db6cf494796559f1d700c1",
@@ -40421,7 +40522,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/TinTower1F.asm, maps/WiseTriosRoom.asm."
     },
     {
       "sha": "c105afe181edbee53c67be1429813a100077a875",
@@ -40466,7 +40568,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/GoldenrodGym.asm, maps/Route33.asm and other files."
     },
     {
       "sha": "276171ffbaa9a082e9a25c3537a6081dd84632c8",
@@ -40628,7 +40731,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/BeautifulBeach.asm, maps/CeruleanCape.asm and other files."
     },
     {
       "sha": "8254af78add9088cfeb69b5ac4274e2565b4dbd9",
@@ -40749,7 +40853,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/NoisyForest.asm, maps/ShamoutiTouristCenter.asm; state changes in maps/NoisyForest.asm, maps/ShamoutiTouristCenter.asm."
     },
     {
       "sha": "8c7c521f75ede013c978655f2bf58b6d9c35abb3",
@@ -41357,7 +41462,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/OlivinePort.asm, maps/Route35CoastSouth.asm."
     },
     {
       "sha": "aa0655a453848d0ce9ec2ca5e8cb03462955fb38",
@@ -41422,7 +41528,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
     },
     {
       "sha": "6dbb676fa590f09b7c063768cc7bfa1e9d83a26f",
@@ -41459,7 +41566,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeruleanCape.asm, maps/Route32Coast.asm and other files."
     },
     {
       "sha": "1ead8bcbe4dc3c92102144c07ad574ef9d518f66",
@@ -41488,7 +41596,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm; object definitions in maps/Route10North.asm; state changes in maps/Route10North.asm."
     },
     {
       "sha": "74e9e0174f0bdd657977a3f919f38995ae6186af",
@@ -41596,7 +41705,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeladonGameCorner.asm, maps/Route37.asm and other files."
     },
     {
       "sha": "f9fe4298de5b04abc2993c12e25c6830c634d002",
@@ -41997,7 +42107,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/FuchsiaCity.asm."
     },
     {
       "sha": "61cd162821d65c47c63992e357d7dc9906f05223",
@@ -42054,7 +42165,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/SaffronCity.asm; object definitions in maps/SaffronCity.asm."
     },
     {
       "sha": "896b91701bd9e6545ef6b0f1898ce35459447b2b",
@@ -42352,7 +42464,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm; connectivity in maps/VioletGym.asm; object definitions in maps/VioletGym.asm."
     },
     {
       "sha": "da935dfd4e95e3785a0b9636f02a526ec2303360",
@@ -42680,7 +42793,7 @@
       "disposition": null,
       "reason": "",
       "evidence": [],
-      "triage_note": "Partial source inspection: export BG_ALIGNED/BG_OFFSET vertical offsets and consume them in object placement. Corpus and placement tests pass. Full diff review and on-map overlap/priority verification remain pending."
+      "triage_note": "Partial source inspection: export BG_ALIGNED/BG_OFFSET vertical offsets and consume them in object placement. Corpus and placement tests pass. Full diff review and on-map overlap/priority verification remain pending. Batched changed-line scan (follow-up leads only): object and terrain priority in constants/map_object_constants.asm, data/sprites/facings.asm and other files."
     },
     {
       "sha": "5e1a04dba3167cf5fa62223f313adebbb098337a",
@@ -42797,7 +42910,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
     },
     {
       "sha": "a7f9e67c2395c6150ee9c46e9b4c721f8dfdd327",
@@ -42982,7 +43096,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object and terrain priority in data/sprites/map_objects.asm; connectivity in maps/AzaleaGym.asm; object definitions in maps/AzaleaGym.asm; state changes in maps/AzaleaGym.asm."
     },
     {
       "sha": "2f6171d9e57f56530307be7716f46dfa62593381",
@@ -43273,7 +43388,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/BurnedTower1F.asm, maps/RockTunnelB1F.asm; state changes in maps/BurnedTower1F.asm, maps/PlayersHouse2F.asm."
     },
     {
       "sha": "d640b2f95da12db7ee9487057d8b82059b4e7f32",
@@ -43745,7 +43861,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
     },
     {
       "sha": "596faccb26688bb94d06797f70c940cb6303cb3a",
@@ -43770,7 +43887,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
     },
     {
       "sha": "e69aa35e4b3605fe4aa032cf596f4403d5bbd9ad",
@@ -43872,7 +43990,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in macros/scripts/maps.asm, maps/CianwoodGym.asm and other files."
     },
     {
       "sha": "5855b9ad96264318e412842efbf894e68cfec566",
@@ -43910,10 +44029,14 @@
           "gfx/tilesets/pokecom_center.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Load the six powered-on screen blocks when the engine flag is set, together with the Judge Machine tile and roof-color animation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5855b9ad96264318e412842efbf894e68cfec566",
+        "Rendered GoldenrodPokecomCenter1F with ENGINE_JUDGE_MACHINE off/on using one snapshot for blocks and animation. Six screen blocks switch to $49-$4e. All 18 distinct colors in the upstream 16-pair cycle appear in the enabled export and are absent from the disabled export. Neither PokeCom map assigns a COPY_BG_ROOF palette to any of its 21 declared objects. Reviewed animation command/engine diff and data-file scope."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "4875099cf630d2e1728b338e9efe6c8b9ceafc30",
@@ -44241,7 +44364,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeruleanCity.asm; object definitions in maps/CeruleanCity.asm."
     },
     {
       "sha": "71d1c666f8f858b909dcde7eef32ea60173c0abf",
@@ -44302,7 +44426,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/SaffronCity.asm."
     },
     {
       "sha": "c63032ce1a92a19341f3c941dc09be821be1cc60",
@@ -44367,7 +44492,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeladonCity.asm, maps/CeladonDeptStore1F.asm and other files."
     },
     {
       "sha": "1c3963e69019f89e6f2b19f6e51af98437d0fef1",
@@ -44424,7 +44550,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeladonCity.asm, maps/CeladonUniversity1F.asm and other files."
     },
     {
       "sha": "111b4dbfb441bc286ad41c46d8859bb4b91a315d",
@@ -44498,7 +44625,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeruleanCity.asm."
     },
     {
       "sha": "414cc40a32598884c6d03f7fa8f414e8a6c0e6a9",
@@ -44616,7 +44744,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/Route39.asm, maps/Route39Barn.asm; object definitions in maps/Route39.asm, maps/Route39Barn.asm."
     },
     {
       "sha": "4c9bdba03beb71089f29c0302fb17939bee73d48",
@@ -44721,7 +44850,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/TinTower5F.asm; object definitions in maps/TinTower5F.asm."
     },
     {
       "sha": "c572f2987056c3330b26b9b8ebd08291eb715965",
@@ -44982,7 +45112,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/UndergroundPath.asm; object definitions in maps/UndergroundPath.asm."
     },
     {
       "sha": "861fca491f7e959d255799bb54f5a545544dd17d",
@@ -45199,7 +45330,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route8.asm."
     },
     {
       "sha": "7172f8b9b977816f1b108ac2ef3067fe8f8d975b",
@@ -45391,7 +45523,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/FuchsiaCity.asm; connectivity in maps/SaffronCity.asm, maps/SilphCo1F.asm; state changes in maps/VermilionCity.asm."
     },
     {
       "sha": "a456c654ecad72716cdaac234654675761d4e150",
@@ -45472,7 +45605,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/Route22.asm, maps/Route26.asm and other files; object definitions in maps/Route22.asm."
     },
     {
       "sha": "d0580c52cad4cd533c76a4cb26202bb268c9120d",
@@ -45518,7 +45652,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route17South.asm."
     },
     {
       "sha": "5b292a0f247c1dfce66259389cf6c1847299ed6f",
@@ -45551,7 +45686,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/PewterCity.asm; object definitions in maps/PewterCity.asm."
     },
     {
       "sha": "6b0ee5425d32e71d9bb360379629e5f4839443ba",
@@ -45667,7 +45803,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
     },
     {
       "sha": "dfe4cac308e3a90fafb5440fab081a8fff36e5cf",
@@ -45835,7 +45972,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/PokemonLeagueGate.asm, maps/Route22.asm and other files; object definitions in maps/Route22.asm."
     },
     {
       "sha": "9d178869a7fc105860b0cde88c4d9d286f93f40a",
@@ -45942,7 +46080,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/OlivineCity.asm, maps/SnowtopMountainOutside.asm; object definitions in maps/OlivineCity.asm, maps/SnowtopMountainOutside.asm; state changes in maps/OlivineCity.asm, maps/SnowtopMountainOutside.asm."
     },
     {
       "sha": "b972444a7080b30c16a341c6a45a10170935b04e",
@@ -45991,7 +46130,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/SnowtopMountainOutside.asm; state changes in maps/SnowtopMountainOutside.asm."
     },
     {
       "sha": "8e89b412b51e443f2052f63c2b2dacff45f0d9cf",
@@ -46092,7 +46232,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
     },
     {
       "sha": "786bf72dfc2ceae642b55f228ca41875a152600b",
@@ -46186,7 +46327,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route14.asm, maps/Route15.asm."
     },
     {
       "sha": "22cbdb13cb44b481df1de41c0ebaf52cfae11ec4",
@@ -46269,7 +46411,7 @@
       "disposition": null,
       "reason": "",
       "evidence": [],
-      "triage_note": "Partial source inspection and adaptation: expand both Route13 south destinations from dual_connections.asm, omit its replaced border proxy, and retain source split coordinates. Layout tests verify Route14/LuckyIsland adjacency and coverage through Fuchsia/Pallet; full-world browser confirms restored Fuchsia and aquarium entry/exit. Full 17-file commit review and broader visual seam validation remain pending."
+      "triage_note": "Partial source inspection and adaptation: expand both Route13 south destinations from dual_connections.asm, omit its replaced border proxy, and retain source split coordinates. Layout tests verify Route14/LuckyIsland adjacency and coverage through Fuchsia/Pallet; full-world browser confirms restored Fuchsia and aquarium entry/exit. Full 17-file commit review and broader visual seam validation remain pending. Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, data/maps/dual_connections.asm; weather in data/maps/overcast_maps.asm; object definitions in maps/Route13.asm, maps/Route13East.asm and other files."
     },
     {
       "sha": "bd7b638d03912689d3b0e84ab8bb1d34810c3855",
@@ -46369,7 +46511,7 @@
       "disposition": null,
       "reason": "",
       "evidence": [],
-      "triage_note": "Current-source geometry validation confirms Route14 width 9, LuckyIsland offset 9 and split coordinate 18 cells. Both destinations now participate in world layout. Full coastline commit text/binary review and visual seam validation remain pending."
+      "triage_note": "Current-source geometry validation confirms Route14 width 9, LuckyIsland offset 9 and split coordinate 18 cells. Both destinations now participate in world layout. Full coastline commit text/binary review and visual seam validation remain pending. Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, data/maps/dual_connections.asm; object definitions in maps/LuckyIsland.asm, maps/Route13.asm."
     },
     {
       "sha": "53c6aefc9a2aebd07e6fac0f27e2b16b74fb64a4",
@@ -46443,7 +46585,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/OlivineCity.asm; state changes in maps/OlivineCity.asm, maps/PlayersHouse2F.asm."
     },
     {
       "sha": "1f57fc9b6323fb6b7e8e886d775596402b9b4ab6",
@@ -46492,7 +46635,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/OlivineCity.asm; state changes in maps/SnowtopMountainOutside.asm."
     },
     {
       "sha": "3b53866cfe439bbf9ac994da6665d153119fc613",
@@ -46569,7 +46713,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/Route10North.asm."
     },
     {
       "sha": "83a8893b01ca5173a6ee5b28ac76e348920545c2",
@@ -46606,7 +46751,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
     },
     {
       "sha": "ca0f28c6e4bd40bba70d2a027650b03114a85bd7",
@@ -46635,7 +46781,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/LuckyIsland.asm, maps/Route13.asm."
     },
     {
       "sha": "027e2067181965fd09aa3429026eac3cce02d907",
@@ -46741,7 +46888,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/Route39.asm; object definitions in maps/Route39.asm."
     },
     {
       "sha": "3f96552d72f4d588c04d9fa954bc1aff0c01f289",
@@ -46930,7 +47078,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
     },
     {
       "sha": "6aaa38dd11a7063e9f8fa6a4967765ec8b566942",
@@ -47014,7 +47163,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
     },
     {
       "sha": "b3fde9c4baed2adee35d59678c582a356e5c2b68",
@@ -47407,7 +47557,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/Route30.asm; object definitions in maps/Route30.asm."
     },
     {
       "sha": "d03ae5e60af8c44c1ad1995be67649e05a4289b2",
@@ -47706,10 +47857,14 @@
           "macros/scripts/text.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Text pointer encoding and the text printer implement dialogue termination.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/12fe1d2c370b9d89e1513df43c0e7ec635090c67",
+        "Changed-line screen across 62 paths. Outside the text engine and macros, changes replace text_far/text_end with text_farend or the corresponding commented-out operations."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "a95e636d2e7442cb36ae619572bf6abfae518984",
@@ -48115,10 +48270,14 @@
           "utils/fix-newlines.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Only newline normalization in existing files and a standalone utility.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a95e636d2e7442cb36ae619572bf6abfae518984",
+        "The full diff excluding utils/fix-newlines.py has zero added or removed content lines with git diff --ignore-blank-lines --ignore-space-at-eol. Atlas does not run the utility."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "2003737a50a74ffc999d5ef16daeef269aa78828",
@@ -48309,7 +48468,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/LyrasHouse2F.asm, maps/PlayersNeighborsHouse.asm."
     },
     {
       "sha": "e25f2951b8062cd8425473c4476d90728a1c2ddb",
@@ -48833,7 +48993,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route32Coast.asm, maps/Route40.asm and other files; state changes in maps/SnowtopMountainOutside.asm."
     },
     {
       "sha": "f7ed398c6ee894db16f762bab0512c5bfce6ca67",
@@ -48874,7 +49035,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
     },
     {
       "sha": "c2e78131942c091b4f22dbd261e71a8b6452e9f5",
@@ -50368,7 +50530,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/CeladonCity.asm and other files; tile animation in data/tileset_anims.asm; object definitions in maps/AzaleaTown.asm, maps/CeladonCity.asm and other files; state changes in maps/VermilionCity.asm."
     },
     {
       "sha": "df8edceb3592517afeccaeed4fc09adef8f3cedc",
@@ -50417,7 +50580,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/EcruteakCity.asm, maps/Route38.asm; object definitions in maps/Route38.asm."
     },
     {
       "sha": "2b8f91b010938f3aaf8ab029fa5ef20706166413",
@@ -50438,7 +50602,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/PewterCity.asm; object definitions in maps/PewterCity.asm."
     },
     {
       "sha": "5bfd7346ead322a6fb8edae0f49787bb406a5637",
@@ -50600,7 +50765,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm; state changes in maps/VermilionCity.asm."
     },
     {
       "sha": "7a278ff01d8ad1ad71246ca12216e0ca9194f99f",
@@ -50645,7 +50811,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/BattleFactory1F.asm, maps/VermilionCity.asm; object definitions in maps/VermilionCity.asm; state changes in maps/VermilionCity.asm."
     },
     {
       "sha": "5455d91510ef6345c41b32ae06c48adefe8ad3ad",
@@ -50755,7 +50922,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/PewterCity.asm."
     },
     {
       "sha": "b165a946073b2bdd28eaa944a58078ce70c2a86c",
@@ -50937,7 +51105,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/Route6.asm and other files; object definitions in maps/Route6.asm, maps/VermilionCity.asm; state changes in maps/VermilionCity.asm."
     },
     {
       "sha": "ae59154cbb9aec16e4180a1cb5b2db51029515de",
@@ -51080,7 +51249,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route8.asm."
     },
     {
       "sha": "35f73a0e3279b7f0d78348da5b557f468052f510",
@@ -51370,7 +51540,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/NewBarkTown.asm; connectivity in maps/Route27.asm; object definitions in maps/Route27.asm."
     },
     {
       "sha": "1f460ca366c3b767f9396bb2b400acc1f616fbd4",
@@ -51441,7 +51612,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/ViridianCity.asm."
     },
     {
       "sha": "16e58eb740090f54af614ee53b66fa5ec0f2e472",
@@ -51537,7 +51709,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/PokemonLeagueGate.asm, maps/Route26.asm and other files."
     },
     {
       "sha": "d3dc208fbb5fb0880d9aaf2b88bc706635be5589",
@@ -51606,7 +51779,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm; connectivity in maps/CeladonCity.asm."
     },
     {
       "sha": "3e56a473b9cf627fee22107aed3d7e4a70221701",
@@ -51873,7 +52047,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in engine/gfx/color.asm; palette swaps in macros/scripts/events.asm, macros/scripts/maps.asm and other files."
     },
     {
       "sha": "943e6a7ebb1573b8a046182626134d5b4100a336",
@@ -51941,7 +52116,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/TeamRocketBaseB2F.asm."
     },
     {
       "sha": "c455a59d86bbf4b00245da20fa37fe3233925924",
@@ -52117,7 +52293,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/CeruleanCity.asm and other files; object definitions in maps/CeruleanCity.asm, maps/Route24.asm and other files."
     },
     {
       "sha": "7da3c7e051dde2965a4289255025da6f0f92fc0f",
@@ -52207,7 +52384,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in engine/gfx/color.asm; palette swaps in maps/SaffronCity.asm."
     },
     {
       "sha": "2007154a7181e9a6c795a1807797e4f6ab69fc2f",
@@ -52248,7 +52426,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): palette swaps in maps/GoldenrodCity.asm."
     },
     {
       "sha": "82becdf67f8441022249e381723f926f59c9ae17",
@@ -52281,7 +52460,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeladonCity.asm."
     },
     {
       "sha": "b4c28b4c610aec22ef7176ec0dcca34ade789a42",
@@ -52503,7 +52683,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/palettes.asm, data/maps/palettes_overcast.asm and other files."
     },
     {
       "sha": "87d5a5ebff6007cf3c4fde2619314922e849d3c3",
@@ -52610,7 +52791,7 @@
       "disposition": null,
       "reason": "",
       "evidence": [],
-      "triage_note": "Partial source inspection: CherrygroveBay east dual destinations now include both the playable CherrygroveTrainTrackDual and CherrygroveCity. Corpus tests verify offsets 0/15 blocks and retained track map; its lower city overlap and complete 16-file commit review remain pending."
+      "triage_note": "Partial source inspection: CherrygroveBay east dual destinations now include both the playable CherrygroveTrainTrackDual and CherrygroveCity. Corpus tests verify offsets 0/15 blocks and retained track map; its lower city overlap and complete 16-file commit review remain pending. Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, data/maps/dual_connections.asm; object definitions in maps/CherrygroveBay.asm, maps/CherrygroveTrainTrackDual.asm and other files."
     },
     {
       "sha": "85c057f0bacda96118dd82a1ff3baeb9a5fabbf6",
@@ -52688,7 +52869,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): palette swaps in maps/GoldenrodCity.asm."
     },
     {
       "sha": "82f5ed16fec9ad82b3373da2ffa0134bfb95e46e",
@@ -52784,7 +52966,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): palette swaps in maps/GoldenrodHarbor.asm."
     },
     {
       "sha": "281e49c1989871253a5eb1fac419a77de951946b",
@@ -52875,7 +53058,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeruleanCity.asm; object definitions in maps/CeruleanCity.asm."
     },
     {
       "sha": "0ee8fcfa24482dea6f84ec235ff2c1aa80a1d98c",
@@ -52912,7 +53096,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): palette swaps in maps/CeruleanCity.asm, maps/Route24.asm."
     },
     {
       "sha": "2e9db7cf8f37c0b30da0ea51ce6db5abcdef2f13",
@@ -53021,7 +53206,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/VermilionCity.asm."
     },
     {
       "sha": "515a05936fec55bb627d4e58edf8ad4027bd5cfd",
@@ -53088,10 +53274,14 @@
           "gfx/tilesets/roofs/new_bark.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "superseded",
+      "reason": "The roof refactor and its revert leave all nine affected files byte-identical to the pre-refactor versions.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0340f8079445d63ae22a8826d320a39a67f1a6ce",
+        "Compared the parent of 0340f807 to ddde0a46 with git diff --exit-code restricted to the nine changed paths. The intervening Route 5 map changes are outside those paths."
+      ],
+      "review_method": "normalized-diff"
     },
     {
       "sha": "7e74f750483cd084a893f309a4855cf72e82cebd",
@@ -53172,10 +53362,14 @@
           "gfx/tilesets/roofs/new_bark.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "superseded",
+      "reason": "The roof refactor and its revert leave all nine affected files byte-identical to the pre-refactor versions.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ddde0a46545e48e10202291e1b9920ec6136c63b",
+        "Compared the parent of 0340f807 to ddde0a46 with git diff --exit-code restricted to the nine changed paths. The intervening Route 5 map changes are outside those paths."
+      ],
+      "review_method": "normalized-diff"
     },
     {
       "sha": "0da7bc5d88b9285084eede19b0903c90b337e111",
@@ -53299,7 +53493,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/Route36.asm, maps/VioletCity.asm; object definitions in maps/Route36.asm."
     },
     {
       "sha": "eb48a09511dbf3d704b8372783e4742cd5eeb24f",
@@ -53539,7 +53734,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): palette swaps in maps/VermilionCity.asm."
     },
     {
       "sha": "80de88b9a3e04cc791e5b7dd7518898be297ec59",
@@ -53656,7 +53852,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
     },
     {
       "sha": "bca16341dd97252795a9a3638bc0bd97bd457fda",
@@ -53731,7 +53928,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
     },
     {
       "sha": "efccd6fba396ecc631d3f8ce84ccc8e951e088c7",
@@ -53776,7 +53974,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
     },
     {
       "sha": "eb2bc0cb5150195365b4f29958f45952b43873b2",
@@ -53841,14 +54040,14 @@
           "home/palette_swap.asm"
         ]
       ],
-      "status": "reviewed",
-      "disposition": "adaptation",
-      "reason": "Read the entire patch. Stops forcing a whole palette upload on maps without swap tables, preserving the judge-machine palette animation. Atlas swap evaluation does not force global uploads, but judge-machine palette cycling must be verified with the modern animation implementation before this item is resolved.",
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The no-swap path preserves the Judge Machine palette animation. The enabled terrain and animation now use the same engine flag.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/404ad647f991e1b2a33e42ab9ce6c7021d7d34c3",
-        "Complete git show: home/palette_swap.asm carry return and early ret nc.",
-        "Open requirement: implement and validate CycleJudgeMachinePalette in modern tileset animations."
-      ]
+        "Rendered GoldenrodPokecomCenter1F with ENGINE_JUDGE_MACHINE off/on using one snapshot for blocks and animation. Six screen blocks switch to $49-$4e. All 18 distinct colors in the upstream 16-pair cycle appear in the enabled export and are absent from the disabled export. Neither PokeCom map assigns a COPY_BG_ROOF palette to any of its 21 declared objects."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "a2ca48f2bc16d6bdeac2688aeee6fe3e7dfbc4e1",
@@ -53988,7 +54187,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/VermilionCity.asm."
     },
     {
       "sha": "9ab209a4a57f975b6d6b1c4b28bc57bffdccc317",
@@ -54221,7 +54421,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/FarawayIsland.asm and other files; weather in data/maps/overcast_maps.asm; object definitions in maps/FarawayIsland.asm, maps/FarawayIslandNorth.asm and other files; state changes in maps/FarawayIsland.asm, maps/FarawayIslandSouth.asm."
     },
     {
       "sha": "35237ed237a997984455dd3b9eea1ffc320a4a8a",
@@ -54390,7 +54591,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
     },
     {
       "sha": "9dfe883040fedbc9681339000015335483d8a93c",
@@ -54443,7 +54645,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/FarawayIslandNorth.asm, maps/FarawayIslandSouth.asm and other files."
     },
     {
       "sha": "5234357c1a80212be960575d261f82dcafb36469",
@@ -54613,7 +54816,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeruleanCape.asm, maps/Route19.asm and other files."
     },
     {
       "sha": "8c4da1888d3b114f53b00215fda6e3b779cd7f71",
@@ -54678,7 +54882,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
     },
     {
       "sha": "ea6522f5e158626ceec2a3cd84b2f253ad7d88ed",
@@ -54818,10 +55023,14 @@
           "engine/gfx/color.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The Fly change also sets NavelRockRoof to CAVE and makes the roof eligibility check apply before overcast roof selection.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6890f8d6918fedd0d25644fe9fdd1e4210f4b597",
+        "Reviewed maps.asm, indoor fly list, wild encounters and color.asm. The built object map is CAVE. RepositoryIndex.uses_roof_palette gates regular and overcast roofs, using the map group. Fly and wild encounters are outside the renderer."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "2d2dbd7128148bf74dc4e7d459f50b86b05cc4c3",
@@ -54946,7 +55155,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
     },
     {
       "sha": "6fb81b37aacfbb71d873342814baefb609b204ce",
@@ -55148,7 +55358,7 @@
       "disposition": null,
       "reason": "",
       "evidence": [],
-      "triage_note": "Partial source inspection and adaptation: SPRITE_AQUARIUM_MON resolves species/form, uses ordinary NPC palette overrides and the icon renderer. All 15 current objects resolve; fish and volcano Moltres source samples inspected. Complete commit review, source animation fidelity and full-world placement validation remain pending. Fuchsia is currently omitted by neighborhood connection traversal. Follow-up: dual-connection traversal now restores Fuchsia. Browser verification covers aquarium 1F entry, visible fish at day/night and exit to Fuchsia without console errors. Other floors, all animation phases and full commit review remain pending."
+      "triage_note": "Partial source inspection and adaptation: SPRITE_AQUARIUM_MON resolves species/form, uses ordinary NPC palette overrides and the icon renderer. All 15 current objects resolve; fish and volcano Moltres source samples inspected. Complete commit review, source animation fidelity and full-world placement validation remain pending. Fuchsia is currently omitted by neighborhood connection traversal. Follow-up: dual-connection traversal now restores Fuchsia. Browser verification covers aquarium 1F entry, visible fish at day/night and exit to Fuchsia without console errors. Other floors, all animation phases and full commit review remain pending. Batched changed-line scan (follow-up leads only): object and terrain priority in constants/map_object_constants.asm, data/sprites/map_objects.asm; tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm; connectivity in maps/FuchsiaAquarium1F.asm, maps/FuchsiaAquarium2F.asm and other files; object definitions in maps/FuchsiaAquarium1F.asm, maps/FuchsiaAquarium2F.asm and other files; state changes in maps/FuchsiaAquarium1F.asm, maps/FuchsiaAquarium2F.asm."
     },
     {
       "sha": "915f3fb6d8545caffe9f473572137303844381e2",
@@ -55286,7 +55496,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/EcruteakShrineInside.asm; object definitions in maps/EcruteakShrineInside.asm."
     },
     {
       "sha": "07cf8dedba3c8b69d2063917665e113488e7f4b0",
@@ -55537,7 +55748,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object and terrain priority in data/sprites/map_objects.asm; object definitions in maps/DragonsDenB1F.asm, maps/EcruteakCity.asm."
     },
     {
       "sha": "f1f20988dc34c2a8d819c08503adad025073b9c9",
@@ -55891,7 +56103,7 @@
       "disposition": null,
       "reason": "",
       "evidence": [],
-      "triage_note": "Relevant breaking format confirmed: inspected full engine/gfx/color.asm and engine/tilesets/tileset_palettes.asm diffs plus target macro/table. Adapted subset slot/count, TIMEWEATHER stride, nested if 0 reference palettes, aliases, special routines and copied BG slots. All 93 target declarations parse; every declared variant and representative raw RGB values tested. Entire 85-file commit and binary attribute change still require reconciliation; not counted as a complete commit review."
+      "triage_note": "Relevant breaking format confirmed: inspected full engine/gfx/color.asm and engine/tilesets/tileset_palettes.asm diffs plus target macro/table. Adapted subset slot/count, TIMEWEATHER stride, nested if 0 reference palettes, aliases, special routines and copied BG slots. All 93 target declarations parse; every declared variant and representative raw RGB values tested. Entire 85-file commit and binary attribute change still require reconciliation; not counted as a complete commit review. Batched changed-line scan (follow-up leads only): weather in data/maps/palettes.asm."
     },
     {
       "sha": "c6ed0a1aacf8608980d465605afeb75c19b3179a",
@@ -55987,7 +56199,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/palettes.asm."
     },
     {
       "sha": "54e4a0a58f475cab46a9752bb8b87ac3cd94e150",
@@ -56092,10 +56305,14 @@
           "maps/RuggedRoadSouth.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The pinned callbacks, palettes and terrain data feed the yellow-slot flower substitution on RuggedRoadSouth.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/48b317fd0673df56c9dd363060c63d2cba2e2958",
+        "Reviewed changed map directives and terrain/palette file scope. Independently matched source rectangles and RGB5 tables to metadata and checked allowed palette colors on 48 generated 8px tile placements across four clock times on RuggedRoadSouth, including animated tracks where present. Tile count covers the map's active swaps together, without individual art-direction review."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "2396daf159fb3aed77a034b182da5958486bfe3b",
@@ -56184,7 +56401,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/palettes.asm; object definitions in maps/RuggedRoadNorth.asm."
     },
     {
       "sha": "6d457dfd5d1fd559cdfe2084e5e860e5fbbb0f56",
@@ -56341,7 +56559,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/SnowtopPokeCenter1F.asm; state changes in maps/SnowtopPokeCenter1F.asm."
     },
     {
       "sha": "420a63c867d22bf7645d558b2ce0c90895baa944",
@@ -56400,7 +56619,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/RuggedRoadNorth.asm, maps/RuggedRoadSouth.asm."
     },
     {
       "sha": "de359533c9abfe016c18f1380804646d9dc72bd0",
@@ -56629,10 +56849,14 @@
           "utils/verify_huffman.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Huffman text encoding and text tooling sit outside the atlas source renderer.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5a866cafffdf162305562ca0052bcd2ff24cb2a1",
+        "The three map diffs substitute short or long branches to the same destinations. Other changed paths implement text coding."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "735e34b166b8d82b4d7179b7ec991b22a92b8b33",
@@ -56743,7 +56967,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in engine/gfx/fade.asm."
     },
     {
       "sha": "b67dd9fdfa10188616e9c0fd5940d43aff328bc6",
@@ -57212,7 +57437,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object glow in constants/collision_constants.asm, constants/gfx_constants.asm and other files; tile animation in data/tileset_anims.asm; connectivity in maps/CinnabarVolcanoB1F.asm; state changes in maps/CinnabarVolcanoB1F.asm, maps/CinnabarVolcanoB2F.asm; object definitions in maps/CinnabarVolcanoB2F.asm."
     },
     {
       "sha": "dc9c110c81dea6a171b1a9e736a6b8ae504fcba5",
@@ -57297,7 +57523,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object glow in constants/collision_constants.asm, data/collision/glow_collisions.asm and other files; connectivity in maps/DragonShrine.asm, maps/DragonsDenB1F.asm; object definitions in maps/DragonShrine.asm."
     },
     {
       "sha": "6d566dd76abf66c4d1bc6ea86b10385f53a01afb",
@@ -57318,7 +57545,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/DragonShrine.asm, maps/DragonsDenB1F.asm; state changes in maps/DragonShrine.asm, maps/DragonsDenB1F.asm."
     },
     {
       "sha": "1df26d6168b53240cf2223cfe5133aeebbc572fb",
@@ -57626,7 +57854,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/BurnedTowerB1F.asm, maps/CianwoodCity.asm and other files."
     },
     {
       "sha": "32d875bbe551c3aeb13c87dff1af23d96164ee32",
@@ -57737,7 +57966,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in engine/events/overcast.asm."
     },
     {
       "sha": "cecd9c48252d77b609a4c85ed1f65d326b074093",
@@ -57928,7 +58158,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object glow in constants/collision_constants.asm, data/collision/glow_collisions.asm and other files."
     },
     {
       "sha": "ab4bc7995fd05c31026ac7ff93c10fd5bd1a1871",
@@ -57977,7 +58208,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/IceIsland.asm."
     },
     {
       "sha": "db4dce417b0b15f8cbbb256ac0f3d42b87a361b4",
@@ -58011,10 +58243,14 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Relocates the temporary Game Boy stack pointer for graphics copying.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/db4dce417b0b15f8cbbb256ac0f3d42b87a361b4",
+        "Changed-line screen found only load instructions, RAM allocation, and the old/new symbol definitions. Atlas reads graphic assets without executing these memory transfers."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "7e177a0f5fcdf4dd6d13b08f1919990028d7164d",
@@ -58125,7 +58361,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeladonDeptStore5F.asm, maps/CeladonDeptStore6F.asm and other files; object definitions in maps/CeladonDeptStore6F.asm, maps/CeladonDeptStoreRoof.asm."
     },
     {
       "sha": "c8e48f462120bbfcdfbd92f3e53457f17352b0d4",
@@ -58182,7 +58419,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeladonDeptStoreRoof.asm, maps/CeladonMansionRoof.asm; object definitions in maps/CeladonDeptStoreRoof.asm, maps/CeladonMansionRoof.asm."
     },
     {
       "sha": "84a863bdfa62e185d5eeef198fecc146ba4d78fa",
@@ -58437,10 +58675,14 @@
           "ram/hram.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Renames RAM counters and labels in background graphics transfer routines.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/58740029d5cf9ab5fc42e86747214dca10ed27b5",
+        "Read the HRAM counter changes and screened all five files. These are hardware transfer state, outside atlas animation tables and graphics."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "f2113cecd53233432e745b6f15399cca5d427ad0",
@@ -58462,10 +58704,14 @@
           "home/gfx2.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Combines the two home graphics assembly units.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f2113cecd53233432e745b6f15399cca5d427ad0",
+        "Reviewed the include removal, relocation of HBlankCopy2bpp and changed symbol visibility for the VRAM copy routine. Atlas does not link these ROM units."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "a6bf991f357b1d5c4ff6dd9a29ee2ffa545b0c2c",
@@ -58583,7 +58829,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object and terrain priority in data/sprite_anims/oam.asm."
     },
     {
       "sha": "0863255c5a78f4113f04c5d2b5f06cbfd59f796e",
@@ -58682,7 +58929,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/RuinsOfAlphResearchCenter.asm; object definitions in maps/RuinsOfAlphResearchCenter.asm; state changes in maps/RuinsOfAlphResearchCenter.asm."
     },
     {
       "sha": "2c5059220706d2cd10878a68a16684a7b0c19615",
@@ -59936,7 +60184,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in engine/gfx/dynamic_pals.asm."
     },
     {
       "sha": "90d40be19d82922fd02a47b04a45898cf8dde2e5",
@@ -60678,7 +60927,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/EcruteakCity.asm and other files; object definitions in maps/Route38.asm, maps/Route39.asm and other files."
     },
     {
       "sha": "4772cb4c70cf0cd9387a884c41601a1a4eca4c57",
@@ -61112,10 +61362,14 @@
           "home/lcd.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Updates hardware register definitions and renames the LCD status bit.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f8aab19f73487886897c7e8a2156d1d56e35652b",
+        "The consuming code changes replace B_STAT_LYCF with B_STAT_LYC_EQ in Bills PC and summary-screen LCD handlers."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "8f3c7e9651e988d876e32a4c7ad9ef1bb76702a8",
@@ -61453,7 +61707,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/EcruteakShrineOutside.asm; object definitions in maps/EcruteakShrineOutside.asm."
     },
     {
       "sha": "e55d2ae7156bcad5b9dca8821f48a154e06cab03",
@@ -61478,7 +61733,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/EcruteakCity.asm, maps/EcruteakShrineOutside.asm."
     },
     {
       "sha": "89084450e318062819ae4c17e33c34bf3fabeb84",
@@ -61527,7 +61783,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/EcruteakShrineOutside.asm."
     },
     {
       "sha": "15a3be51fd8a9ddcfeffadad2d022ef8fb49142c",
@@ -62012,7 +62269,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/MountMoonGiftShop.asm and other files; weather in data/maps/overcast_maps.asm, data/maps/palettes.asm; tile animation in data/tileset_anims.asm; object and terrain priority in engine/events/cable_car.asm; object definitions in maps/MountMoonSquare.asm, maps/MountMoonSquareCableCarGate.asm and other files; state changes in maps/MountMoonSquareCableCarGate.asm, maps/Route3CableCarGate.asm."
     },
     {
       "sha": "68ee7ee4412c53811cf1c6b98f99604f2c634327",
@@ -62909,7 +63167,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/PowerPlant.asm; object definitions in maps/Route5.asm, maps/Route6.asm."
     },
     {
       "sha": "3aba6e58e92aec6dd861eb645f03c0cc46563caf",
@@ -62938,7 +63197,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/Route4.asm; object definitions in maps/Route4.asm."
     },
     {
       "sha": "8ceb94e0a36e7bee8d779484e7cf71e2e705cd1f",
@@ -63179,7 +63439,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/palettes.asm."
     },
     {
       "sha": "7df1366f3e2978ac32712180a1b5176e0aa419d0",
@@ -63363,10 +63624,14 @@
           "maps/Route10North.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The pinned callbacks, palettes and terrain data feed the Power Plant chimney red slot on Route10North.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/10780a66808b9c99aa445d97f68c8f671af90aa9",
+        "Reviewed changed map directives and terrain/palette file scope. Independently matched source rectangles and RGB5 tables to metadata and checked allowed palette colors on 368 generated 8px tile placements across four clock times on Route10North, including animated tracks where present. Tile count covers the map's active swaps together, without individual art-direction review."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "3bd8eadd78bad8d0d11e2d185596ecc6a3c282f6",
@@ -63419,7 +63684,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/Route10North.asm; object definitions in maps/Route10North.asm."
     },
     {
       "sha": "86748ec474dd092df3325e53e7aead06887c72d3",
@@ -63437,10 +63703,14 @@
           "maps/RuggedRoadNorth.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The campfire object appears at evening and night. The adjacent trainer also gains time-dependent dialogue.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/86748ec474dd092df3325e53e7aead06887c72d3",
+        "Reviewed both source diffs. Generated RuggedRoadNorth object at (23,10) has mask 12 with nite/eve slots. Generated morning red slot matches the new RGB5 row (28,31,16; 24,18,7; 20,15,3; 7,7,7)."
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "ff56df598563d1375953fcb2eb3569807f084537",
@@ -63569,7 +63839,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object and terrain priority in data/sprites/map_objects.asm; object definitions in maps/LavenderTown.asm, maps/Route10South.asm."
     },
     {
       "sha": "de9f6d91b2782852caa8ae85ecf07f889cef5eb4",
@@ -63897,10 +64168,14 @@
           "maps/Route28.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The pinned callbacks, palettes and terrain data feed the Steel Wing house red-slot substitution on Route28.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7e274a9a0955fdfcd413ea5a4efdf330fdaf8dfc",
+        "Reviewed changed map directives and terrain/palette file scope. Independently matched source rectangles and RGB5 tables to metadata and checked allowed palette colors on 96 generated 8px tile placements across four clock times on Route28, including animated tracks where present. Tile count covers the map's active swaps together, without individual art-direction review."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "0e73a0d5f13b4cc97d924c17ee2e239f20318aef",
@@ -64223,7 +64498,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object and terrain priority in data/sprites/map_objects.asm; object definitions in maps/YellowForest.asm."
     },
     {
       "sha": "72d00e21d40d4f5af79fd1bfc69e6c9a063912f0",
@@ -64281,7 +64557,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/PewterCity.asm."
     },
     {
       "sha": "cccf1dc5d5a31d3aff0008e3deebc074fc4fe76e",
@@ -64816,7 +65093,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): palette swaps in maps/CeladonCity.asm."
     },
     {
       "sha": "6e96b1d92d21d1ae569cae1846568514fa5d61f2",
@@ -64890,7 +65168,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeladonCity.asm, maps/CeladonHomeDecorStore1F.asm; object definitions in maps/CeladonCity.asm, maps/Route7.asm; palette swaps in maps/CeladonCity.asm, maps/Route7.asm."
     },
     {
       "sha": "f186a3040ff2820c615009efc3349dcd6551fe1d",
@@ -64946,7 +65225,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeladonCity.asm."
     },
     {
       "sha": "b7a2fdda3d060715f13f2c99c67bdb8e8ec6b37c",
@@ -65061,7 +65341,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route16FuchsiaSpeechHouse.asm; state changes in maps/Route16FuchsiaSpeechHouse.asm."
     },
     {
       "sha": "e351e6480f864ebd8508e7df29a34265de889b27",
@@ -65222,7 +65503,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/SnowtopPokeCenter1F.asm."
     },
     {
       "sha": "b5450f3e9a9288d0becfa88ab3aa53e7fb834766",
@@ -65240,10 +65522,14 @@
           "maps/Route26.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The pinned callbacks, palettes and terrain data feed the ordered shared WATER slot with NULL fallback on Route26.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b5450f3e9a9288d0becfa88ab3aa53e7fb834766",
+        "Reviewed changed map directives and terrain/palette file scope. Independently matched source rectangles and RGB5 tables to metadata and checked allowed palette colors on 4852 generated 8px tile placements across four clock times on Route26, including animated tracks where present. Tile count covers the map's active swaps together, without individual art-direction review."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "fa2095150153415a68b69fcd8c919936f1ab05b7",
@@ -65292,7 +65578,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/EusinesHouse.asm, maps/TinTower1F.asm and other files."
     },
     {
       "sha": "ee1ec2994f211b144b35da1804b5721dd9159f54",
@@ -65417,7 +65704,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/palettes.asm."
     },
     {
       "sha": "721013612b73928e5a1213afef0d93b2ee732a78",
@@ -65613,10 +65901,14 @@
           "home/window.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Names the ROM tilemap-copy flags and call arguments.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ec9db1dc3debba862edf9d9e173c1597d0ec9dcd",
+        "All changed assembly operations screened. Shared callers load SafeCopyTilemapAtOnce flags and the definitions describe palette/OAM transfers. No atlas map or graphics format changes."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6f8baac2a7049506d490f6a751199e4c0c97349e",
@@ -65683,7 +65975,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/MountMoonSquareCableCarGate.asm, maps/Route3CableCarGate.asm."
     },
     {
       "sha": "463f8a9ad7d182c9b0395587d311a11fc3accfff",
@@ -65839,7 +66132,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/VermilionCity.asm; palette swaps in maps/VermilionCity.asm."
     },
     {
       "sha": "6530424be6959eee696bf57e866acf61fe73e9d9",
@@ -66027,7 +66321,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/SafariZoneEastRestHouse.asm, maps/SafariZoneHubRestHouse.asm and other files."
     },
     {
       "sha": "7df0c560d053208bdcdf665f82eb68224d455530",
@@ -66048,7 +66343,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route35CoastNorth.asm, maps/Route35CoastSouth.asm."
     },
     {
       "sha": "00677057ff76a9ad1e2505ecd87247967651136d",
@@ -66114,7 +66410,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/SnowtopMountainOutside.asm."
     },
     {
       "sha": "4a9e37b133f75411b3dfeb52666eadaa8a7a9b2a",
@@ -66189,7 +66486,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/VermilionCity.asm."
     },
     {
       "sha": "616a497cb1733c2d0f14e86a33c472c7cea62c9e",
@@ -66865,10 +67163,14 @@
           "maps/CeladonCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The pinned callbacks, palettes and terrain data feed the hotel roof water slot and NULL fallback on CeladonCity.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8367f666f4e9cc105f3c154ac5d4f7ed20a462d8",
+        "Reviewed changed map directives and terrain/palette file scope. Independently matched source rectangles and RGB5 tables to metadata and checked allowed palette colors on 1556 generated 8px tile placements across four clock times on CeladonCity, including animated tracks where present. Tile count covers the map's active swaps together, without individual art-direction review."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "418de6006e89d3df1fbce2e530a47818fd09fb48",
@@ -66929,7 +67231,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/GoldenrodCity.asm; object definitions in maps/GoldenrodCity.asm."
     },
     {
       "sha": "5c728c28469890bdb903a4cf6e5fd1efb3c4f8af",
@@ -66980,7 +67283,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/VermilionPort.asm; object definitions in maps/VermilionPort.asm."
     },
     {
       "sha": "7abff0fea52a410698d2111361a067874d303229",
@@ -67009,7 +67313,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/VermilionPort.asm; object definitions in maps/VermilionPort.asm."
     },
     {
       "sha": "2a92c773934cf9db09ce5f0c33fd9962c613e909",
@@ -67073,7 +67378,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeruleanCape.asm."
     },
     {
       "sha": "eb054dc7c1453555d6551ec3414a0ed6284c22c5",
@@ -67163,7 +67469,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/RuinsOfAlphOutside.asm; object definitions in maps/RuinsOfAlphOutside.asm; state changes in maps/RuinsOfAlphOutside.asm."
     },
     {
       "sha": "3fe78b8925709d3a1621ba6d6f7f0bc78189ae4f",
@@ -67188,7 +67495,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm."
     },
     {
       "sha": "324bd2221f293303e511d2f10afe0d0aada9d49f",
@@ -67243,6 +67551,164 @@
         "Current target checks: exact raw metatile and attribute bytes reach renderer for all 25 affected tilesets; affected sprite headers decode nonempty tile-aligned graphics. Existing full 612-map/four-time dev build and bundle validation passed, documented in docs/upstream-implementation.md."
       ],
       "review_method": "binary-data-diff"
+    },
+    {
+      "sha": "6a09f03a0cb31f4d939c426a5f037357ef2b1670",
+      "parents": [
+        "704ea9db192ca8b902ef4aa7a441eb905eb29b89"
+      ],
+      "subject": "More colorful flowers in National Park",
+      "changes": [
+        [
+          "M",
+          "constants/map_constants.asm"
+        ],
+        [
+          "M",
+          "data/maps/maps.asm"
+        ],
+        [
+          "M",
+          "data/maps/roofs.asm"
+        ],
+        [
+          "M",
+          "data/maps/scripts.asm"
+        ],
+        [
+          "M",
+          "data/tilesets/park_attributes.bin"
+        ],
+        [
+          "M",
+          "gfx/tilesets/bg_tiles_overcast.pal"
+        ],
+        [
+          "M",
+          "gfx/tilesets/roofs.pal"
+        ],
+        [
+          "M",
+          "gfx/tilesets/roofs_overcast.pal"
+        ]
+      ],
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Map group 41 gives the park its own regular and overcast roof colors. Updated terrain attributes assign the flower tiles to the roof slot.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6a09f03a0cb31f4d939c426a5f037357ef2b1670",
+        "Verified group and map numbers (41:1 through 41:4) for both park maps and both gatehouses. Matched all four times against the new regular and overcast RGB5 rows. Compared generated park and contest PNGs to the previous pin: changes are confined to the flower strip at pixels [376,504) by [680,696) in all eight images."
+      ],
+      "review_method": "diff-hunks"
+    },
+    {
+      "sha": "4fb163b8432a3eb13c4da651971009e7e85c408d",
+      "parents": [
+        "6a09f03a0cb31f4d939c426a5f037357ef2b1670"
+      ],
+      "subject": "Fix >255-byte `LZ_ALTERNATE`, which was incorrectly handled as `LZ_ZERO`",
+      "changes": [
+        [
+          "M",
+          "home/decompress.asm"
+        ]
+      ],
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Corrects long LZP ALTERNATE dispatch in the ROM decoder. Dev builds obtain the atlas data from checked-in sources.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4fb163b8432a3eb13c4da651971009e7e85c408d",
+        "Read the ROM decoder diff. The pinned tree contains zero tracked .lzp files. Modern map, sprite and tile loaders use the uncompressed assets. The legacy .lz reader targets a different format."
+      ],
+      "review_method": "full-diff"
+    },
+    {
+      "sha": "c38920e11291320802218e9f357db404c5dfa6a5",
+      "parents": [
+        "4fb163b8432a3eb13c4da651971009e7e85c408d"
+      ],
+      "subject": "Recompress all LZP files on compressor changes",
+      "changes": [
+        [
+          "M",
+          "Makefile"
+        ]
+      ],
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "An upstream Makefile dependency now regenerates .lzp targets when the compressor changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c38920e11291320802218e9f357db404c5dfa6a5",
+        "The one-line dependency change adds tools/lzpcompress to the pattern rule. The atlas build does not run that Makefile to generate terrain or sprites."
+      ],
+      "review_method": "full-diff"
+    },
+    {
+      "sha": "9d15c51b271f39575ac2487c00bedffc9fd7846c",
+      "parents": [
+        "c38920e11291320802218e9f357db404c5dfa6a5"
+      ],
+      "subject": "Simplify encoding of relative copy offsets",
+      "changes": [
+        [
+          "M",
+          "home/decompress.asm"
+        ],
+        [
+          "M",
+          "tools/lzpcompress.cpp"
+        ]
+      ],
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Changes the modern compressed relative-copy encoding to a signed offset in the ROM decoder and matching C++ encoder.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9d15c51b271f39575ac2487c00bedffc9fd7846c",
+        "Read both diffs, including the offset serializer/deserializer. The atlas consumes raw checked-in sources and the pinned tree contains zero tracked .lzp files. This does not establish support for third-party compressed-only inputs."
+      ],
+      "review_method": "full-diff"
+    },
+    {
+      "sha": "66f950c7724371c43d9b1c1f8a048b322a3f4a4f",
+      "parents": [
+        "9d15c51b271f39575ac2487c00bedffc9fd7846c"
+      ],
+      "subject": "Optimise computing frontpic anim's num tiles",
+      "changes": [
+        [
+          "M",
+          "engine/gfx/load_pics.asm"
+        ]
+      ],
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Optimizes the tile count calculation for battle front pictures.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/66f950c7724371c43d9b1c1f8a048b322a3f4a4f",
+        "Full single-routine diff in engine/gfx/load_pics.asm. The atlas reads overworld sprite and icon graphics."
+      ],
+      "review_method": "full-diff"
+    },
+    {
+      "sha": "f8e67fbd53ad7a99870d8ab87fd73612e6c6a679",
+      "parents": [
+        "66f950c7724371c43d9b1c1f8a048b322a3f4a4f"
+      ],
+      "subject": "Use `n` not `l` for commenting length bits",
+      "changes": [
+        [
+          "M",
+          "home/decompress.asm"
+        ]
+      ],
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Updates comments describing length bits in the ROM decompressor.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f8e67fbd53ad7a99870d8ab87fd73612e6c6a679",
+        "Full home/decompress.asm patch changes comments only."
+      ],
+      "review_method": "full-diff"
     }
   ]
 }

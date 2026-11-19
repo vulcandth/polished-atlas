@@ -20,6 +20,7 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Set
 import render_map
 
 import atlas_common
+from event_state import effective_flags
 
 from generate_map_connections import AttributesParser
 
@@ -227,28 +228,6 @@ def _parse_collision_asm(path: Path, constants: Dict[str, int]) -> List[Tuple[in
     return entries
 
 
-def _load_block_indices(
-    polished_path: Path,
-    repo_index: render_map.RepositoryIndex,
-    info: render_map.MapInfo,
-) -> Optional[List[int]]:
-    block_asset = repo_index.block_asset(info.block_label)
-    if block_asset:
-        candidate = polished_path / Path(block_asset)
-    else:
-        candidate = polished_path / "maps" / f"{info.label}.ablk"
-    try:
-        block_bytes = render_map._read_block_bytes(candidate)
-    except FileNotFoundError:
-        return None
-    if info.width is None or info.height is None:
-        return None
-    try:
-        return render_map._map_block_indices(block_bytes, info.width, info.height)
-    except ValueError:
-        return None
-
-
 def _build_collision_cells(
     block_indices: Sequence[int],
     width_blocks: int,
@@ -373,6 +352,7 @@ def build_metadata(
     excluded_overworld: Set[str],
 ) -> Tuple[Dict[str, dict], Dict[str, str], Dict[str, object]]:
     repo_index = atlas_common.repository(polished_path)
+    events = effective_flags(repo_index.initial_event_flags)
     attributes_source = attributes_path or polished_path / "data/maps/attributes.asm"
     parser = AttributesParser(attributes_source)
     attribute_graph = parser.parse()
@@ -444,7 +424,10 @@ def build_metadata(
                 tileset_resources = repo_index.tileset_resources(info.tileset)
             except KeyError:
                 tileset_resources = None
-            block_indices = _load_block_indices(polished_path, repo_index, info)
+            try:
+                block_indices = repo_index.map_blocks(info, events)
+            except (FileNotFoundError, ValueError):
+                block_indices = None
             if tileset_resources and block_indices is not None:
                 table = collision_tables.get(info.tileset)
                 if table is None:

@@ -63,6 +63,22 @@ class MapPaletteTests(unittest.TestCase):
         self.assertEqual(aquarium["palettes"]["day"], aquarium["palettes"]["nite"])
         self.assertTrue(payload["maps"]["ScaryCaveShipwreck"]["darkness"])
 
+    def test_judge_screen_blocks_and_palette_animation_share_the_engine_flag(self):
+        info = self.repo.map_info("GoldenrodPokecomCenter1F")
+        locations = [(x, y) for y in (0, 2) for x in (24, 26, 28)]
+        png = atlas_common.png_module(self.root)
+        blocks = {}
+        for enabled in (False, True):
+            flags = {"ENGINE_JUDGE_MACHINE"} if enabled else set()
+            renderer = _build_renderer(png, self.root, self.repo, info.label, events=flags)
+            self.assertEqual(renderer.block_indices, self.repo.map_blocks(info, flags))
+            self.assertEqual(context_for_map(info, 1, flags).judge_active, enabled)
+            blocks[enabled] = renderer.block_indices
+        indices = [(y // 2) * info.width + x // 2 for x, y in locations]
+        self.assertEqual([blocks[True][i] for i in indices], list(range(0x49, 0x4f)))
+        changes = {i for i, (a, b) in enumerate(zip(blocks[False], blocks[True])) if a != b}
+        self.assertEqual(changes, set(indices))
+
     def test_special_palette_inventory_and_all_declared_variants(self):
         source = (self.root / "data/maps/palettes.asm").read_text(encoding="utf-8")
         declarations = re.findall(r"^\s*special_bg_pal ", source, re.M)

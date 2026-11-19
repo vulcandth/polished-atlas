@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+from functools import lru_cache
 from pathlib import Path
 import re
 from typing import Iterable
@@ -56,3 +57,28 @@ def parse_overrides(path: Path | None = None) -> tuple[set[str], set[str]]:
 def effective_flags(initial: Iterable[str], path: Path | None = None) -> set[str]:
     enabled, disabled = parse_overrides(path)
     return (set(initial) - disabled) | enabled
+
+
+@lru_cache(maxsize=1024)
+def conditional_block_changes(script: Path) -> tuple[tuple[str, int, int, int], ...]:
+    """Recognize tile callbacks consisting entirely of one flag-guarded run of changeblock."""
+    if not script.is_file():
+        return ()
+    lines = [raw.partition(';')[0].strip() for raw in script.read_text(encoding='utf-8').splitlines()]
+    source = '\n'.join(line for line in lines if line)
+    callbacks = re.findall(r'^callback\s+MAPCALLBACK_TILES,\s*(\w+)$', source, re.M)
+    if len(callbacks) != 1:
+        return ()
+    number = r'(?:\$[0-9a-fA-F]+|\d+)'
+    block = rf'changeblock\s+({number}),\s*({number}),\s*({number})'
+    match = re.search(
+        rf'^{callbacks[0]}::?\ncheck(?:event|flag) (?P<flag>\w+)\niffalsefwd (?P<skip>\.\w+)\n'
+        rf'(?P<blocks>(?:{block}\n)+)(?P=skip):?\nendcallback$', source, re.M)
+    if not match:
+        return ()
+
+    def value(token: str) -> int:
+        return int(token[1:], 16) if token.startswith('$') else int(token)
+
+    return tuple((match['flag'], value(x), value(y), value(block_id))
+                 for x, y, block_id in re.findall(block, match['blocks']))

@@ -72,7 +72,7 @@ map_attributes Room, ROOM, $1, 0
             if required:
                 self.fail(f"Required upstream corpus does not exist: {root}")
             self.skipTest("Optional upstream corpus is not checked out")
-        expected = os.environ.get("ATLAS_UPSTREAM_COMMIT", "704ea9db192ca8b902ef4aa7a441eb905eb29b89")
+        expected = os.environ.get("ATLAS_UPSTREAM_COMMIT", "f8e67fbd53ad7a99870d8ab87fd73612e6c6a679")
         actual = subprocess.check_output([os.environ.get("GIT_BIN", "git"), "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
         self.assertEqual(actual, expected)
         path = root / "data/maps/attributes.asm"

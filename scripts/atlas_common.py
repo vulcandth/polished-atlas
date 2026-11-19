@@ -19,7 +19,7 @@ from typing import Dict, Iterable, Optional, Set, Tuple
 
 import render_map
 from map_palette import palette_time
-from event_state import effective_flags
+from event_state import effective_flags, has_clock_tile_callback
 
 
 def scoped_map_lines(lines: Iterable[str]) -> Iterable[str]:
@@ -147,6 +147,8 @@ def _is_time_invariant_map(
     # Swap palette tables have independent time/weather variants. Conservatively
     # render each palette rather than reusing a common sheet based on base colors.
     if repo_index.palette_swaps.maps.get(map_info.label):
+        return False
+    if has_clock_tile_callback(Path(repo_index.root) / "maps" / f"{map_info.label}.asm"):
         return False
     if repo_index.tileset_label(map_info.tileset) in _time_sensitive_animation_tilesets(Path(repo_index.root)):
         from tile_animation_export import context_for_map

@@ -205,6 +205,17 @@ class MapPaletteTests(unittest.TestCase):
                             "changebridgeblock 0, 0, 5, TEST\ncall SomeSideEffect\njmp BufferScreen\n")
             self.assertEqual(evaluate_tile_callback(path, set()).changes, ())
 
+    def test_olivine_lighthouse_windows_use_the_clock_after_jasmine_returns(self):
+        for time in range(4):
+            for returned in (False, True):
+                events = {"EVENT_JASMINE_RETURNED_TO_GYM"} if returned else set()
+                r = _build_renderer(atlas_common.png_module(self.root), self.root, self.repo, "OlivineCity",
+                                    weekday=1, time_of_day=time, events=events)
+                offset = 7 * r.width + 16
+                expected = [0x9a, 0x9b] if time == 2 and returned else [0x98, 0x99]
+                with self.subTest(time=time, returned=returned):
+                    self.assertEqual(r.block_indices[offset:offset + 2], expected)
+
     def test_special_palette_inventory_and_all_declared_variants(self):
         source = (self.root / "data/maps/palettes.asm").read_text(encoding="utf-8")
         declarations = re.findall(r"^\s*special_bg_pal ", source, re.M)

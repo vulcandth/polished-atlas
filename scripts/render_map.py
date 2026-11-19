@@ -467,12 +467,13 @@ class RepositoryIndex:
         return self._block_assets.get(block_label)
 
     def map_blocks(self, info: MapInfo, events: Set[str], override: Optional[Path] = None,
-                   *, weekday: Optional[int] = None, entrance_map: Optional[str] = None) -> List[int]:
+                   *, weekday: Optional[int] = None, entrance_map: Optional[str] = None,
+                   clock_time: int = 1) -> List[int]:
         asset = self.block_asset(info.block_label) or f"maps/{info.label}.ablk"
         wet_asset = _OVERCAST_BLOCK_OVERRIDES.get(info.constant)
         if wet_asset and self.get_overcast_index(info, weekday=weekday, events=events) is not None:
             asset = wet_asset
-        callback = evaluate_tile_callback(self.root / "maps" / f"{info.label}.asm", events)
+        callback = evaluate_tile_callback(self.root / "maps" / f"{info.label}.asm", events, clock_time=clock_time)
         block_label = callback.block_label
         if info.constant == "POKECENTER_2F" and self.center_entrance_regions.get(entrance_map) == 1:
             block_label = "KantoPokeCenter2F_BlockData"
@@ -2377,12 +2378,14 @@ def _build_renderer(
     entrance_map: Optional[str] = None,
 ) -> RendererData:
     map_info = repo_index.map_info(map_label)
+    clock_time = time_of_day
     time_of_day = palette_time(map_info.palette_flags, time_of_day)
     tileset_resources = repo_index.tileset_resources(map_info.tileset)
     overcast_index = repo_index.get_overcast_index(map_info, weekday=weekday, events=events)
     if events is None:
         events = effective_flags(repo_index.initial_event_flags)
-    block_indices = repo_index.map_blocks(map_info, events, weekday=weekday, entrance_map=entrance_map)
+    block_indices = repo_index.map_blocks(map_info, events, weekday=weekday, entrance_map=entrance_map,
+                                         clock_time=clock_time)
     allows_roof_palette = map_info.map_type in {"TOWN", "ROUTE", "ISOLATED"}
     special_palette = repo_index.special_background_palette(
         map_info,

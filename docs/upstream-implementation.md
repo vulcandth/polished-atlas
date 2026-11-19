@@ -15,13 +15,13 @@ There are 1,057 commits and 3,520 changed endpoint paths in the current range.
 ## Current audit status
 
 All 1,057 commits from v3.2.2 through `f8e67fbd` have had a relevance
-screen. The ledger resolves 1,017. Of the 40 still open, 34 have leads
-from the scan and 6 have confirmed follow-up work. Auditing the remaining
+screen. The ledger resolves 1,022. Of the 35 still open, 27 have leads
+from the scan and 8 have specific implementation or verification work. Auditing the remaining
 diffs and validating the affected Atlas features are part of implementation.
 The list of known features below is preliminary.
 
-The latest batch closed 14 commits covering map-entry scenes, object
-placements, and connected terrain. Of the 552 total commits classified
+The latest two batches closed 19 commits covering map-entry scenes, object
+placements, connected terrain and tileset splits. Of the 552 total commits classified
 as having no Atlas impact, 364 were skipped after examining their subject,
 changed paths and consumers. The changelog adds only the v3.2.3 battle
 crash fix. Use the commit diffs to find unreleased master changes.
@@ -33,6 +33,13 @@ Shrine. The shrine test starts only at the front door. At Silph Co.,
 Chrome showed the guard at (13,1) before power restoration and (14,1)
 afterward. The object exporter now reads 24 complete clock- or event-driven
 object callbacks. That changes 15 maps in the default Monday export.
+
+The coast tileset review found that Olivine Lighthouse windows light up only
+at night after Jasmine returns. The renderer now checks both conditions.
+Other tileset changes reused the existing terrain and palette comparisons.
+Two findings still need dedicated checks. Navel Rock Inside connects to
+itself at the north and south edges, and hidden grottoes currently mark
+both the encounter and item visible at the same coordinates.
 
 Four movement-engine refactors shared ROM routines or reordered internal step
 IDs. The Atlas reads the same named movement commands before and after those
@@ -798,3 +805,8 @@ The clean dev build at `facbdbf` passed all 87 Python tests and generated 612
 maps. It assembled with stable `f4e515e` into a 128,053,312-byte local Pages
 site. Chrome loaded each channel, switched dev to night, and followed the
 link back to stable. Retained-site validation passed for both channels.
+
+The next clean dev build at `743c7c3` passed 92 Python tests and generated
+612 maps. It assembled with stable `f4e515e` into a 128,797,516-byte site.
+Chrome loaded both versions, requested dev night assets and returned to
+stable. The combined artifact also passed retained-site validation.

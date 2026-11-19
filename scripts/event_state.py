@@ -8,6 +8,7 @@ from functools import lru_cache
 from pathlib import Path
 import re
 from typing import Iterable
+from map_palette import TIME_NAMES
 
 
 def initial_flags(root: Path) -> set[str]:
@@ -156,7 +157,13 @@ class TileCallbackResult:
     changes: tuple[tuple[int, int, int], ...] = ()
 
 
-def evaluate_tile_callback(script: Path, events: set[str], *, scene_id: int = 0) -> TileCallbackResult:
+def has_clock_tile_callback(script: Path) -> bool:
+    commands, _ = _tile_callback(script)
+    return any(line.startswith('checktime ') for line in commands)
+
+
+def evaluate_tile_callback(script: Path, events: set[str], *, scene_id: int = 0,
+                           clock_time: int = 1) -> TileCallbackResult:
     """Commit map-local flags and block writes together when the callback returns."""
     commands, labels = _tile_callback(script)
     flags = set(events)
@@ -176,6 +183,8 @@ def evaluate_tile_callback(script: Path, events: set[str], *, scene_id: int = 0)
             checked = m[1] in flags
         elif line == 'checkscene':
             checked = bool(scene_id)
+        elif m := re.fullmatch(r'checktime\s+1\s*<<\s*(MORN|DAY|NITE|EVE)', line):
+            checked = TIME_NAMES[clock_time] == m[1].lower()
         elif line == 'special CheckIfTrendyPhraseIsLucky':
             checked = 'EVENT_LUCKY_ISLAND_CIVILIANS' not in events
         elif m := re.fullmatch(r'(setevent|clearevent)\s+(EVENT_\w+)', line):

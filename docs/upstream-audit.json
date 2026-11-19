@@ -15231,11 +15231,15 @@
           "maps/NavelRockInside.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/NavelRockInside.asm; object definitions in maps/NavelRockInside.asm."
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Navel Rock Inside uses two offset self-connections in addition to its regular warp tiles. Verify that the interior view represents the north and south seam.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ac45f457748561ce109ff01dd4955ad608b4899a",
+        "Checked the north +11 and south -11 source connections and the 14 ordinary warp records. A successful round trip through an ordinary warp does not verify the self-connection."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/NavelRockInside.asm; object definitions in maps/NavelRockInside.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "788f33bdf79fb11848708039bf3754819da5546d",
@@ -17224,11 +17228,15 @@
           "maps/HiddenTreeGrotto.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; connectivity in maps/HiddenCaveGrotto.asm, maps/HiddenTreeGrotto.asm; object definitions in maps/HiddenCaveGrotto.asm, maps/HiddenTreeGrotto.asm; state changes in maps/HiddenCaveGrotto.asm, maps/HiddenTreeGrotto.asm."
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "The new hidden-grotto terrain and entrance return coordinates are supported. Content visibility still requires a coherent per-entrance snapshot.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/13231338e6c172188d4d1b4376be06731fc6d424",
+        "Both 4-by-6 layouts export the door at (3,9). The map entry callback makes the encounter, item and hidden item mutually exclusive. Both current object records at (3,3) are marked visible and the hidden-item tile branch can also be selected. The first grotto guarantees a Pokemon drawn from the entrance table, with later contents rolled independently."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; connectivity in maps/HiddenCaveGrotto.asm, maps/HiddenTreeGrotto.asm; object definitions in maps/HiddenCaveGrotto.asm, maps/HiddenTreeGrotto.asm; state changes in maps/HiddenCaveGrotto.asm, maps/HiddenTreeGrotto.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "88567c3d3ca2c0b6d1484d530b6b0ba7cdb34e75",
@@ -29539,11 +29547,15 @@
           "maps/ViridianGym.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; state changes in maps/CeladonGameCorner.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The Kanto gyms and pools share new graphics. Several repacked tilesets change layouts elsewhere.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3e1a012c8fe797d87b18e56befa736759b88b9f8",
+        "Checked all ten endpoint tileset consumers against the four-clock terrain and collision comparison. The RGBDS palette comparison covers map-specific gym colors. Verified the Game Corner switch closed/open callback at (16,0), the only affected map script."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; state changes in maps/CeladonGameCorner.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "a687b47cfb61f7a88bd43ae77be99f22d7003253",
@@ -30615,11 +30627,15 @@
           "maps/VermilionCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; state changes in maps/VermilionCity.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Northern Kanto gains its own tileset, with relocated bridge and building blocks.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6b26c2025612ec38aeb7c13757b160f69a6da1d2",
+        "Checked the tileset map assignments, endpoint terrain, collision and animation, including 80 frames of Kanto water on Cerulean Cape. Verified the powered Vermilion block states and the separate underfoot/overhead tests for the twelve Nugget Bridge writes."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; state changes in maps/VermilionCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "c7374b72db1c2d9779461910a90b60a561c86142",
@@ -36565,11 +36581,15 @@
           "utils/unused_blocks.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; state changes in maps/OlivineCity.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "The coast and modern tilesets split. The lighthouse window blocks depend on both Jasmine and the clock.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/17d8b179a6dcfb076f0f537ff3ce900f14616259",
+        "Reconciled the affected map rasters and tileset pointers. Verified Route 35 Coast water across 80 frames and all eight lighthouse flag/time combinations at the two endpoint block coordinates. Both window states keep identical wall collision."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; state changes in maps/OlivineCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "1f0522ffef5a77aebb4c5df351b40a72cb2dfc23",
@@ -46101,11 +46121,15 @@
           "maps/VermilionCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/FuchsiaCity.asm; connectivity in maps/SaffronCity.asm, maps/SilphCo1F.asm; state changes in maps/VermilionCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Dark windows replace lit graphics at closed Kanto buildings. Fuchsia signs and both Silph entrances change.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/df5bd9209a2faac33d46fca2bcbc5b547d19b5bf",
+        "Compared the changed map terrain with source at all four clocks, checked removal of the two placeholder sign sprites, both Silph doorways in each direction, and the two power states for the Battle Factory entrance."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/FuchsiaCity.asm; connectivity in maps/SaffronCity.asm, maps/SilphCo1F.asm; state changes in maps/VermilionCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "a456c654ecad72716cdaac234654675761d4e150",
@@ -54375,11 +54399,15 @@
           "maps/VioletCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/Route36.asm, maps/VioletCity.asm; object definitions in maps/Route36.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Routes 35 and 36 use a separate roof group, with new traditional blocks and moved gate doors.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/de7047d40ab48de0ffad7d2798de9452eb0285f0",
+        "Checked both Route 36 exits and their Violet City counterparts, all affected map rasters and the group 39 park roof. The existing source comparison covers regular and overcast roof slots at all four times."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/Route36.asm, maps/VioletCity.asm; object definitions in maps/Route36.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "eb48a09511dbf3d704b8372783e4742cd5eeb24f",

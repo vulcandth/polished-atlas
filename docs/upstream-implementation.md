@@ -15,22 +15,47 @@ There are 1,057 commits and 3,520 changed endpoint paths in the current range.
 ## Current audit status
 
 All 1,057 commits from v3.2.2 through `f8e67fbd` have had a relevance
-screen. The ledger resolves 979. Of the 78 still open, 69 have leads
-from the scan and 9 have confirmed follow-up work. Auditing the remaining
+screen. The ledger resolves 1,000. Of the 57 still open, 49 have leads
+from the scan and 8 have confirmed follow-up work. Auditing the remaining
 diffs and validating the affected Atlas features are part of implementation.
 The list of known features below is preliminary.
 
-The last two batches closed 23 commits. Of the 552 total commits classified
+The latest batch closed 21 commits. Of the 552 total commits classified
 as having no Atlas impact, 364 were skipped after examining their subject,
 changed paths and consumers. The changelog adds only the v3.2.3 battle
 crash fix. Use the commit diffs to find unreleased master changes.
 
 Four movement-engine refactors shared ROM routines or reordered internal step
 IDs. The Atlas reads the same named movement commands before and after those
-changes. Azalea Gym's new half steps still have separate open records. For the
-environment-ID reorder, all 612 exported map categories and all 224 palette-slot
+changes. For the environment-ID reorder, all 612 exported map categories and all 224 palette-slot
 indices across the seven environments matched the pinned source.
 
+- In Azalea Gym, the movement analyzer reads all 30 cart paths. All 299
+  command bytes matched RGBDS output. Tests exercised 24 rides on the
+  switch-controlled cart across all three terminals, both directions and
+  four switch configurations. The rider and cart stayed together at half-cell
+  positions and reached the correct exits. The analyzer samples the ends
+  of movement commands. Chrome showed all four parked carts on map entry.
+- All 2,048 combinations of the eleven Goldenrod Underground door flags
+  selected the correct blocks at all 17 door positions. All 22 warps on the
+  four Underground maps resolved to their declared destination cells.
+- Browser textures matched the source art and colors for the two Celadon
+  swim rings, both Mt. Moon fossils, Larry, the PCC office staff and both
+  frames of Meowth. Additional checks covered the Wise Trio and the Burned
+  Tower Firebreather with their story-controlled object flags.
+- All three Cinnabar Volcano floors use both lava animation tracks. Each matched
+  the source for 96 ticks at four clock settings. B1F has 105 lava-glow cells
+  and two glowing ladders. B2F has 64 lava-glow cells. The 25 floor warps and
+  the entrance from Cinnabar Island resolve to their source destinations.
+- Five maps select bridge blocks in assembly during their entry callbacks.
+  The default scene now applies all 43 writes, including the end of Nugget
+  Bridge at (20,14). The alternate scene changes all 43 blocks. Route 47
+  also opens the Ruins of Alph door at (8,22) when its event flag is set.
+- Checked the revised Route 16/17 gates and map seams, Sinjoh Ruins entrances
+  and roof, Snowtop Mountain exits and lookout, the Battle Factory entrance
+  in both power states, and the new Johto roof graphics. Banked animation
+  checks included the hideout spinners in both states, restless forest trees,
+  fireplace, LCD and tiny water.
 - The Dojo uses the map-entry script to assign each rematch trainer’s position,
   facing, palette and graphic. All seven weekdays and four time slots were
   checked with three sets of story flags. On Monday, Chrome displayed Falkner

@@ -78,6 +78,32 @@ def effective_flags(initial: Iterable[str], path: Path | None = None) -> set[str
     return (set(initial) - disabled) | enabled
 
 
+def _bridge_routines(lines: list[str], map_label: str) -> dict[str, list[str]]:
+    """Recognize complete assembly routines that write local blocks and redraw."""
+    routines = {}
+    scope = name = ''
+    writes = []
+    for line in lines:
+        if not line:
+            continue
+        if re.fullmatch(r'\w+::?|\.\w+:?', line):
+            label = line.rstrip(':')
+            if not label.startswith('.'):
+                scope = label
+            name = scope + label if label.startswith('.') else label
+            writes = []
+        elif name and (match := re.fullmatch(r'changebridgeblock\s+(.+),\s*(\w+)', line)):
+            if match[2].replace('_', '') == map_label.upper():
+                writes.append(f'changeblock {match[1]}')
+            else:
+                name = ''
+        else:
+            if name and writes and line == 'jmp BufferScreen':
+                routines[name] = writes
+            name = ''
+    return routines
+
+
 @lru_cache(maxsize=1024)
 def _tile_callback(script: Path) -> tuple[list[str], dict[str, int]]:
     if not script.is_file():
@@ -107,11 +133,17 @@ def _tile_callback(script: Path) -> tuple[list[str], dict[str, int]]:
             labels[skip] = len(commands)
         commands.append('endcallback')
         return commands, labels
+    bridges = _bridge_routines(lines, script.stem) if any(line.startswith('changebridgeblock ') for line in lines) else {}
     for line in lines[entry + 1:]:
         if re.fullmatch(r'\w+::?', line):
             break
         if re.fullmatch(r'\.\w+:?', line):
             labels[line.rstrip(':')] = len(commands)
+        elif line.startswith('callasm '):
+            target = line.split()[1]
+            if target.startswith('.'):
+                target = callbacks[0] + target
+            commands.extend(bridges.get(target, [line]))
         elif line:
             commands.append(line)
     return commands, labels
@@ -124,7 +156,7 @@ class TileCallbackResult:
     changes: tuple[tuple[int, int, int], ...] = ()
 
 
-def evaluate_tile_callback(script: Path, events: set[str]) -> TileCallbackResult:
+def evaluate_tile_callback(script: Path, events: set[str], *, scene_id: int = 0) -> TileCallbackResult:
     """Commit map-local flags and block writes together when the callback returns."""
     commands, labels = _tile_callback(script)
     flags = set(events)
@@ -142,6 +174,8 @@ def evaluate_tile_callback(script: Path, events: set[str]) -> TileCallbackResult
             return TileCallbackResult(flags, block_label, tuple(changes))
         if m := re.fullmatch(r'check(?:event|flag)\s+((?:EVENT|ENGINE)_\w+)', line):
             checked = m[1] in flags
+        elif line == 'checkscene':
+            checked = bool(scene_id)
         elif line == 'special CheckIfTrendyPhraseIsLucky':
             checked = 'EVENT_LUCKY_ISLAND_CIVILIANS' not in events
         elif m := re.fullmatch(r'(setevent|clearevent)\s+(EVENT_\w+)', line):

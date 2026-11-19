@@ -29,6 +29,7 @@ from __future__ import annotations
 import argparse
 import base64
 from copy import deepcopy
+from functools import lru_cache
 import json
 import re
 from dataclasses import dataclass, field
@@ -37,7 +38,7 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import atlas_common
 from event_state import initial_flags
-from generate_object_metadata import gather_constants
+from generate_object_metadata import MACRO_EXPANSIONS, gather_constants, split_arguments
 from object_schedule import ObjectSchedule
 
 
@@ -207,7 +208,7 @@ def _parse_object_const_block(lines: List[str], start: int) -> Tuple[List[str], 
     return constants, i
 
 
-def _parse_object_events(lines: List[str], constants: List[str], include_unnamed: bool = False) -> Dict[str, ObjectSpawn]:
+def _parse_object_events(lines: List[str], constants: List[str]) -> Dict[str, ObjectSpawn]:
     """Parse def_object_events section, mapping constants -> (x,y, script_label).
 
     The order of object_event declarations corresponds to the order of constants
@@ -224,37 +225,20 @@ def _parse_object_events(lines: List[str], constants: List[str], include_unnamed
         if code.startswith("def_object_events"):
             in_section = True
             continue
-        if in_section and code.startswith("def_"):
+        if in_section and (code.startswith("def_") or code.startswith("object_const_def") or code.endswith(":")):
             break
         if not in_section:
             continue
-        if code.startswith("object_event ") or code.startswith("pokemon_event "):
-            payload = code.split(None, 1)[1]
-            parts = [p.strip() for p in payload.split(",") if p.strip()]
-            if len(parts) < 2:
-                continue
-            x = _numeric(parts[0])
-            y = _numeric(parts[1])
-            script_label: Optional[str] = None
-            hide_event: Optional[str] = None
-            # Heuristic: the penultimate argument is usually the script label when OBJECTTYPE_SCRIPT,
-            # and last is an event flag (or -1). If the penultimate token looks like an identifier and
-            # not a macro like jumptextfaceplayer, capture it.
-            if len(parts) >= 2:
-                penult = parts[-2]
-                last = parts[-1]
-                if not _numeric(penult) and not penult.startswith("BGEVENT_") and not penult.startswith("EVENT_"):
-                    # Exclude common inline commands to avoid bogus labels
-                    if not penult.lower().endswith("faceplayer") and not penult.lower().startswith("jumptext"):
-                        script_label = penult
-                # Last argument is often an event that hides the object when set
-                if last and last not in {"-1", "0"} and last.startswith("EVENT_"):
-                    hide_event = last
-            decls.append((int(x) if x is not None else None, int(y) if y is not None else None, script_label, hide_event))
+        words = code.split(None, 1)
+        if len(words) != 2 or words[0] not in MACRO_EXPANSIONS:
+            continue
+        args, _ = MACRO_EXPANSIONS[words[0]](split_arguments(words[1]))
+        script_label = args[10] if len(args) > 10 and _looks_like_label(args[10]) else None
+        hide_event = args[-1] if args[-1].startswith("EVENT_") else None
+        decls.append((_numeric(args[0]), _numeric(args[1]), script_label, hide_event))
     # Associate by order with constants
     names = list(constants)
-    if include_unnamed:
-        names.extend(f"OBJECT_{i + 1}" for i in range(len(names), len(decls)))
+    names.extend(f"OBJECT_{i + 1}" for i in range(len(names), len(decls)))
     for i, const_name in enumerate(names):
         if i < len(decls):
             x, y, script_label, hide_event = decls[i]
@@ -318,87 +302,61 @@ def _parse_callbacks(lines: List[str]) -> List[MapCallback]:
     return out
 
 
-def _parse_movement_blocks(lines: List[str]) -> Dict[str, MovementBlock]:
-    blocks: Dict[str, MovementBlock] = {}
-    current: Optional[str] = None
-    tokens: List[str] = []
-    pending_label: Optional[str] = None  # label we saw most recently; start block only if next line looks like movement
+@lru_cache(maxsize=4)
+def _movement_commands(macros: Path) -> set[str]:
+    if macros.is_file():
+        return set(re.findall(r"^MACRO\s+(\w+)", macros.read_text(encoding="utf-8"), re.M | re.I))
+    # Small standalone map fixtures can omit the upstream macro definitions.
+    return set(_STEP_DELTAS) | {
+        "turn_head_down", "turn_head_up", "turn_head_left", "turn_head_right",
+        "fix_facing", "remove_fixed_facing", "set_sliding", "remove_sliding",
+        "step_end", "step_loop", "step_sleep", "hide_object", "show_object", "remove_object",
+        *(f"step_sleep_{i}" for i in range(1, 9)),
+    }
 
-    def _is_movement_token_name(name: str) -> bool:
-        if not name:
-            return False
-        if name == "step_end":
-            return True
-        if name in _STEP_DELTAS:
-            return True
-        if name.startswith("turn_head_"):
-            return True
-        if name in {
-            "fix_facing",
-            "remove_fixed_facing",
-            "step_sleep",
-            "step_sleep_1",
-            "step_sleep_2",
-            "step_sleep_3",
-            "step_loop",
-            "hide_object",
-            "show_object",
-            "remove_object",
-        }:
-            return True
-        return False
+
+def _parse_movement_blocks(lines: List[str], commands: set[str]) -> Dict[str, MovementBlock]:
+    blocks: Dict[str, MovementBlock] = {}
+    offsets: Dict[str, int] = {}
+    tokens: List[str] = []
+    repeats: List[Tuple[int, int]] = []
+
+    def finish() -> None:
+        for label, offset in offsets.items():
+            if offset < len(tokens):
+                blocks[label] = MovementBlock(label, tokens[offset:])
+        offsets.clear()
+        tokens.clear()
+        repeats.clear()
 
     for raw in lines:
-        code = _strip_comment(raw).rstrip()
+        code = _strip_comment(raw).strip()
         if not code:
             continue
-
-        # Any new label (top-level or local) terminates an in-progress block
         if code.endswith(":"):
-            if current and tokens:
-                blocks[current] = MovementBlock(name=current, tokens=list(tokens))
-            current = None
-            tokens = []
-            pending_label = code[:-1]
+            # Adjacent labels alias the same address. A later label can also
+            # start in the middle of a movement used by an earlier label.
+            offsets[code[:-1]] = len(tokens)
             continue
-
-        # If we have a pending label, decide whether to start a movement block based on the first token after it
-        if pending_label and not current:
-            name = code.strip().split()[0]
-            if _is_movement_token_name(name):
-                current = pending_label
-                tokens = []
-                # fall through to collect this line as a token below
-            # Whether or not we started a block, clear the pending label decision now
-            pending_label = None
-
-        if current:
-            # Collect movement tokens until step_end
-            tok = code.strip()
-            if not tok:
+        if not offsets:
+            continue
+        parts = code.split(None, 1)
+        name = parts[0]
+        if name.lower() == "rept" and len(parts) == 2:
+            count = _numeric(parts[1])
+            if count is not None and count >= 0:
+                repeats.append((len(tokens), count))
                 continue
-            name = tok.split()[0]
-            # Only record recognizable movement tokens; ignore stray lines inside for robustness
-            if _is_movement_token_name(name):
-                tokens.append(name)
-                if name == "step_end":
-                    blocks[current] = MovementBlock(name=current, tokens=list(tokens))
-                    current = None
-                    tokens = []
-            else:
-                # Unexpected content inside a movement block; terminate what we gathered so far
-                if tokens:
-                    blocks[current] = MovementBlock(name=current, tokens=list(tokens))
-                current = None
-                tokens = []
+        if name.lower() == "endr" and repeats:
+            start, count = repeats.pop()
+            tokens[start:] = tokens[start:] * count
             continue
-
-        # Not in a movement block; ignore regular script lines
-        continue
-
-    # Flush trailing
-    if current and tokens:
-        blocks[current] = MovementBlock(name=current, tokens=list(tokens))
+        if name in commands:
+            tokens.append(name)
+            if name != "step_end" or repeats:
+                continue
+        finish()
+    finish()
     return blocks
 
 
@@ -408,7 +366,7 @@ _SCRIPT_CMD_RE = re.compile(
     r"moveobject|writeobjectxy|appear|disappear|warpfacing|warp|faceobject|turnobject|"
     r"follow|stopfollow|follownotexact|setlasttalked|"
     r"setevent|clearevent|checkevent|"
-    r"readvar|(?:verbose)?giveitems?(?:_unsafe)?|verbosegiveitemvar|"
+    r"readvar|loadmem|(?:verbose)?giveitems?(?:_unsafe)?|verbosegiveitemvar|"
     r"opentext|closetext|showtext|"
     r"sjumpfwd|sjump|farsjump|memjump|jump|priorityjump|jumpstd|stopandsjump|"
     r"scallfwd|scall|farscall|memcall|call|callasm|callstd|"
@@ -471,10 +429,10 @@ def parse_map_script(path: Path) -> ParsedMapScript:
             object_constants = consts
             break
     # Object spawns from object_event section
-    spawns = _parse_object_events(lines, object_constants, include_unnamed=schedule is not None)
+    spawns = _parse_object_events(lines, object_constants)
     coord_events = _parse_coord_events(lines)
     callbacks = _parse_callbacks(lines)
-    movement_blocks = _parse_movement_blocks(lines)
+    movement_blocks = _parse_movement_blocks(lines, _movement_commands(path.parent.parent / "macros/scripts/movement.asm"))
     script_labels = _parse_script_labels(lines)
     return ParsedMapScript(
         label=label,
@@ -556,12 +514,12 @@ def rects_intersect(ax: int, ay: int, aw: int, ah: int, bx: int, by: int, bw: in
     return ax < bx + bw and ax + aw > bx and ay < by + bh and ay + ah > by
 
 
-def clamp_scanline_y(y: int) -> int:
+def clamp_scanline_y(y: float) -> int:
     if y < 0:
         return 0
     if y >= SCREEN_HEIGHT_PX:
         return SCREEN_HEIGHT_PX - 1
-    return y
+    return int(y)
 
 
 def compute_viewport_for_player(cell_x: int, cell_y: int, cell_px: int) -> Tuple[int, int, int, int]:
@@ -751,6 +709,10 @@ _STEP_DELTAS = {
     "step_right": (1, 0),
     "step_up": (0, -1),
     "step_down": (0, 1),
+    "half_step_left": (-0.5, 0),
+    "half_step_right": (0.5, 0),
+    "half_step_up": (0, -0.5),
+    "half_step_down": (0, 0.5),
     # Turn + step tokens
     "turn_step_left": (-1, 0),
     "turn_step_right": (1, 0),
@@ -812,7 +774,7 @@ _STEP_DELTAS = {
 }
 
 
-def _simulate_apply_movement(tokens: Sequence[str], start_xy: Tuple[int, int]) -> List[Tuple[int, int]]:
+def _simulate_apply_movement(tokens: Sequence[str], start_xy: Tuple[float, float]) -> List[Tuple[float, float]]:
     """Return the sequence of positions including intermediate landing cells.
 
     Only tokens with positional deltas are applied. Non-positional tokens are ignored.
@@ -847,6 +809,17 @@ def follower_collision_during_path(
         if step_xy in plausible_set:
             return True
     return False
+
+
+def _move_synchronized_followers(followers: Iterable[str], positions: dict[str, tuple[float, float]],
+                                 spawns: dict[str, tuple[int, int]], previous: tuple[float, float],
+                                 current: tuple[float, float]) -> None:
+    """The cart receives the leader's step in the same frame, including half steps."""
+    for name in followers:
+        origin = positions.get(name, spawns.get(name))
+        if origin is not None:
+            positions[name] = (origin[0] + current[0] - previous[0],
+                               origin[1] + current[1] - previous[1])
 
 
 def plausible_follower_cells(player_xy: Tuple[int, int], warp_meta: WarpMeta) -> List[Tuple[int, int]]:
@@ -1196,7 +1169,7 @@ def analyze_scripts(
                 arrival_follow_suppress = True
                 last_talked2: Optional[str] = trig_obj2 if trig_kind2 == "talk" else None
                 follows2: Dict[str, str] = {}
-                follow_stack2: List[Tuple[str, str]] = []
+                follow_in_sync2 = False
 
                 def static_npcs_snapshot2(exclude: Optional[str] = None) -> List[Tuple[int, int]]:
                     o: List[Tuple[int, int]] = []
@@ -1274,7 +1247,7 @@ def analyze_scripts(
                                 prev = pstart2
                                 # If any NPC is currently following the PLAYER while the Pokémon follower is active, warn
                                 npc_followers_of_player2 = [f for f, leader in follows2.items() if leader == "PLAYER"]
-                                if npc_followers_of_player2 and include_follower:
+                                if npc_followers_of_player2 and include_follower and not follow_in_sync2:
                                     for fobj in npc_followers_of_player2:
                                         issues.append(
                                             AuditIssue(
@@ -1294,6 +1267,9 @@ def analyze_scripts(
                                             )
                                         )
                                 for step_xy2 in path2:
+                                    if follow_in_sync2:
+                                        _move_synchronized_followers(npc_followers_of_player2, temp_pos2,
+                                                                     dest_object_pos, prev, step_xy2)
                                     _tmp_issues = count_sprite_usage(
                                             dest_map_label,
                                             player_cell=step_xy2,
@@ -1481,7 +1457,7 @@ def analyze_scripts(
                             # If player moves one step while an NPC is following PLAYER and Pokémon follower is active, warn
                             if obj == "PLAYER":
                                 npc_followers_of_player2 = [f for f, leader in follows2.items() if leader == "PLAYER"]
-                                if npc_followers_of_player2 and include_follower:
+                                if npc_followers_of_player2 and include_follower and not follow_in_sync2:
                                     for fobj in npc_followers_of_player2:
                                         issues.append(
                                             AuditIssue(
@@ -1539,18 +1515,16 @@ def analyze_scripts(
                             temp_pos2.pop(obj, None)
                         else:
                             visible2[obj] = True
+                    elif op2 == "loadmem" and len(args2) == 2 and args2[0] == "wFollowInSync":
+                        follow_in_sync2 = args2[1] in {"TRUE", "1"}
                     elif op2 in {"follow", "follownotexact"} and len(args2) >= 2:
-                        follower_obj2 = args2[0]
-                        leader_obj2 = args2[1]
+                        leader_obj2, follower_obj2 = args2[:2]
+                        if op2 == "follow":
+                            follows2.clear()
                         follows2[follower_obj2] = leader_obj2
-                        follow_stack2.append((follower_obj2, leader_obj2))
                         # In arrival flows, defer warnings until we actually detect the player moving with an NPC following
                     elif op2 == "stopfollow":
-                        if follow_stack2:
-                            last_follower2, _ = follow_stack2.pop()
-                            follows2.pop(last_follower2, None)
-                        else:
-                            follows2.clear()
+                        follows2.clear()
                     if player_warped2:
                         break
 
@@ -1585,10 +1559,8 @@ def analyze_scripts(
                 steps: int = 0
                 # Active script-level follow relationships: follower -> leader
                 follows: Dict[str, str] = field(default_factory=dict)
-                # Stack of follow pairs to support conservative stopfollow behavior
-                follow_stack: List[Tuple[str, str]] = field(default_factory=list)
-                # Last variable read via readvar (e.g., VAR_FACING)
-                last_var_name: Optional[str] = None
+                follow_in_sync: bool = False
+                variable_result: Optional[float] = None
 
             def static_npcs_snapshot_local(visible: Dict[str, bool], temp_pos: Dict[str, Tuple[int, int]], exclude: Optional[str] = None) -> List[Tuple[int, int]]:
                 out_list: List[Tuple[int, int]] = []
@@ -1717,15 +1689,39 @@ def analyze_scripts(
                     # Inventory is not part of a map snapshot. Both pickup
                     # outcomes are possible regardless of earlier event checks.
                     ctx.last_check = None
-                    ctx.last_var_name = None
+                    ctx.variable_result = None
                     ctx.pc += 1
                     work.append(ctx)
                     continue
                 if op == "readvar" and len(args) >= 1:
-                    # Track last variable read so we can interpret equality branches that rely on VAR_RESULT.
-                    ctx.last_var_name = args[0]
+                    # Keep the value at the time of the read, including across
+                    # movement commands and successive comparisons.
+                    ctx.variable_result = None
+                    ctx.last_check = None
                     ctx.pc += 1
-                    work.append(ctx)
+                    var = args[0]
+                    npc = ctx.temp_pos.get(trig_obj) or object_pos.get(trig_obj)
+                    groups = {}
+                    facings = {(0, 1): 0, (0, -1): 1, (-1, 0): 2, (1, 0): 3}
+                    for cell in ctx.player_cells:
+                        value = None
+                        if var in ("VAR_XCOORD", "VAR_YCOORD"):
+                            value = cell[0 if var == "VAR_XCOORD" else 1]
+                        elif var == "VAR_FACING" and trig_kind == "talk" and npc:
+                            value = facings.get((npc[0] - cell[0], npc[1] - cell[1]))
+                        groups.setdefault(value, []).append(cell)
+                    if len(groups) <= 1:
+                        ctx.variable_result = next(iter(groups), None)
+                        if ctx.variable_result is not None:
+                            ctx.last_check = int(bool(ctx.variable_result))
+                        work.append(ctx)
+                    else:
+                        for value, cells in groups.items():
+                            branch = deepcopy(ctx)
+                            branch.variable_result = value
+                            branch.last_check = int(bool(value)) if value is not None else None
+                            branch.player_cells = cells
+                            work.append(branch)
                     continue
 
                 # Event state ops
@@ -1750,6 +1746,7 @@ def analyze_scripts(
                 if op == "checkevent" and len(args) >= 1:
                     ev = args[0]
                     ctx.last_check = _ev_get(ctx.ev, ev)
+                    ctx.variable_result = None
                     ctx.pc += 1
                     work.append(ctx)
                     continue
@@ -1766,102 +1763,16 @@ def analyze_scripts(
                             cand = m.group(1)
                             if _looks_like_label(cand) and cand in parsed.script_labels:
                                 target = cand
-                    # Special handling: ifequal*/ifnotequal* immediately after readvar VAR_FACING
-                    if target and ctx.last_var_name == "VAR_FACING" and (op.lower().startswith("ifequal") or op.lower().startswith("ifnotequal")):
-                        # Determine comparison token (e.g., DOWN) if present as first arg
-                        comp_tok = args[0] if args else None
-                        # Helper to compute mapping from facing -> subset of player_cells consistent with talking to trig_obj
-                        def cells_by_facing() -> Dict[str, List[Tuple[int, int]]]:
-                            mapping: Dict[str, List[Tuple[int, int]]] = {"UP": [], "DOWN": [], "LEFT": [], "RIGHT": []}
-                            npc_pos: Optional[Tuple[int, int]] = None
-                            if trig_kind == "talk" and trig_obj:
-                                npc_pos = ctx.temp_pos.get(trig_obj) or object_pos.get(trig_obj)
-                            # If we can't resolve NPC position (non-talk or missing), consider all facings possible
-                            if not npc_pos:
-                                # Treat all current player cells as eligible for all facings
-                                for f in mapping.keys():
-                                    mapping[f] = list(ctx.player_cells or [])
-                                return mapping
-                            nx, ny = npc_pos
-                            for px, py in (ctx.player_cells or []):
-                                dx = nx - px
-                                dy = ny - py
-                                if dx == 0 and dy == 1:
-                                    mapping["DOWN"].append((px, py))
-                                elif dx == 0 and dy == -1:
-                                    mapping["UP"].append((px, py))
-                                elif dx == 1 and dy == 0:
-                                    mapping["RIGHT"].append((px, py))
-                                elif dx == -1 and dy == 0:
-                                    mapping["LEFT"].append((px, py))
-                                else:
-                                    # Not adjacent; ignore
-                                    pass
-                            # If no adjacency matched (e.g., coord/callback), allow all
-                            if not any(mapping.values()):
-                                for f in mapping.keys():
-                                    mapping[f] = list(ctx.player_cells or [])
-                            return mapping
-                        if comp_tok:
-                            comp_val = comp_tok.strip().upper()
-                            by_face = cells_by_facing()
-                            matching = by_face.get(comp_val, [])
-                            # For notequal, invert match set
-                            is_noteq = op.lower().startswith("ifnotequal")
-                            if is_noteq:
-                                # Jump when VAR_FACING != comp_val -> matching is all cells NOT in comp_val
-                                all_cells = list(ctx.player_cells or [])
-                                nonmatch = [c for c in all_cells if c not in matching]
-                                # Deterministic outcomes
-                                if nonmatch and not matching:
-                                    # Always jump
-                                    ctx.player_cells = nonmatch
-                                    ctx.label, ctx.pc = target, 0
-                                    work.append(ctx)
-                                elif matching and not nonmatch:
-                                    # Never jump; just fall through with (empty) nonmatch? That means no path; drop.
-                                    # If all cells match comp, notequal can't be taken -> fallthrough with same cells
-                                    ctx.pc += 1
-                                    work.append(ctx)
-                                else:
-                                    # Fork both branches with filtered cells
-                                    if branches < max_branches:
-                                        branches += 1
-                                        # Jump branch with non-matching cells
-                                        ctx_jump = Ctx(label=target, pc=0, ret=list(ctx.ret), temp_pos=dict(ctx.temp_pos), visible=dict(ctx.visible), player_cells=list(nonmatch), last_talked=ctx.last_talked, ev=dict(ctx.ev), last_var_name=ctx.last_var_name, follows=dict(ctx.follows), follow_stack=list(ctx.follow_stack))
-                                        # Fallthrough branch with matching cells
-                                        ctx_fall = Ctx(label=ctx.label, pc=ctx.pc + 1, ret=list(ctx.ret), temp_pos=dict(ctx.temp_pos), visible=dict(ctx.visible), player_cells=list(matching), last_talked=ctx.last_talked, ev=dict(ctx.ev), last_var_name=ctx.last_var_name, follows=dict(ctx.follows), follow_stack=list(ctx.follow_stack))
-                                        # Only enqueue non-empty branches
-                                        if ctx_jump.player_cells:
-                                            work.append(ctx_jump)
-                                        if ctx_fall.player_cells:
-                                            work.append(ctx_fall)
-                                continue
+                    if target and op.startswith(("ifequal", "ifnotequal")) and ctx.variable_result is not None:
+                        comparison = args[0]
+                        value = {"DOWN": 0, "UP": 1, "LEFT": 2, "RIGHT": 3}.get(comparison, _numeric(comparison))
+                        if value is not None:
+                            if (value == ctx.variable_result) == op.startswith("ifequal"):
+                                ctx.label, ctx.pc = target, 0
                             else:
-                                # Equality: jump when facing equals comp_val
-                                nonmatch = [c for c in (ctx.player_cells or []) if c not in (by_face.get(comp_val, []))]
-                                matching = by_face.get(comp_val, [])
-                                if matching and not nonmatch:
-                                    # Always jump
-                                    ctx.player_cells = matching
-                                    ctx.label, ctx.pc = target, 0
-                                    work.append(ctx)
-                                elif nonmatch and not matching:
-                                    # Never jump; just fall through with remaining cells
-                                    ctx.player_cells = nonmatch
-                                    ctx.pc += 1
-                                    work.append(ctx)
-                                else:
-                                    # Fork both branches with filtered cells
-                                    if branches < max_branches:
-                                        branches += 1
-                                        ctx_jump = Ctx(label=target, pc=0, ret=list(ctx.ret), temp_pos=dict(ctx.temp_pos), visible=dict(ctx.visible), player_cells=list(matching), last_talked=ctx.last_talked, ev=dict(ctx.ev), last_var_name=ctx.last_var_name, follows=dict(ctx.follows), follow_stack=list(ctx.follow_stack))
-                                        ctx_fall = Ctx(label=ctx.label, pc=ctx.pc + 1, ret=list(ctx.ret), temp_pos=dict(ctx.temp_pos), visible=dict(ctx.visible), player_cells=list(nonmatch), last_talked=ctx.last_talked, ev=dict(ctx.ev), last_var_name=ctx.last_var_name, follows=dict(ctx.follows), follow_stack=list(ctx.follow_stack))
-                                        if ctx_jump.player_cells:
-                                            work.append(ctx_jump)
-                                        if ctx_fall.player_cells:
-                                            work.append(ctx_fall)
-                                continue
+                                ctx.pc += 1
+                            work.append(ctx)
+                            continue
                     ends_script = op in _CONDITIONAL_TEXT_END
                     if target or ends_script:
                         cond = ctx.last_check
@@ -1935,14 +1846,16 @@ def analyze_scripts(
                     continue
 
                 # Follow semantics
+                if op == "loadmem" and len(args) == 2 and args[0] == "wFollowInSync":
+                    ctx.follow_in_sync = args[1] in {"TRUE", "1"}
                 if op in {"follow", "follownotexact"} and len(args) >= 2:
-                    follower_obj = args[0]
-                    leader_obj = args[1]
+                    leader_obj, follower_obj = args[:2]
                     # Record the relationship
+                    if op == "follow":
+                        ctx.follows.clear()
                     ctx.follows[follower_obj] = leader_obj
-                    ctx.follow_stack.append((follower_obj, leader_obj))
                     # Only warn if the player will imminently move after setting an NPC to follow them
-                    if leader_obj == "PLAYER" and include_follower:
+                    if leader_obj == "PLAYER" and include_follower and not ctx.follow_in_sync:
                         def _player_moves_soon(block: ScriptLabel, start_index: int, limit: int = 12) -> bool:
                             end = min(len(block.commands), start_index + limit)
                             for j in range(start_index, end):
@@ -1981,12 +1894,7 @@ def analyze_scripts(
                     work.append(ctx)
                     continue
                 if op == "stopfollow":
-                    # Conservatively clear the most recent follow, or all if unknown
-                    if ctx.follow_stack:
-                        last_follower, _ = ctx.follow_stack.pop()
-                        ctx.follows.pop(last_follower, None)
-                    else:
-                        ctx.follows.clear()
+                    ctx.follows.clear()
                     ctx.pc += 1
                     work.append(ctx)
                     continue
@@ -2007,7 +1915,7 @@ def analyze_scripts(
                                 # If any NPC is currently following the PLAYER while the Pokémon follower is active,
                                 # this sequence will cause both to attempt occupying the trailing cell.
                                 npc_followers_of_player = [f for f, leader in ctx.follows.items() if leader == "PLAYER"]
-                                if npc_followers_of_player and include_follower:
+                                if npc_followers_of_player and include_follower and not ctx.follow_in_sync:
                                     for fobj in npc_followers_of_player:
                                         issues.append(
                                             AuditIssue(
@@ -2027,6 +1935,9 @@ def analyze_scripts(
                                             )
                                         )
                                 for step_xy in path:
+                                    if ctx.follow_in_sync:
+                                        _move_synchronized_followers(npc_followers_of_player, ctx.temp_pos,
+                                                                     object_pos, prev, step_xy)
                                     _tmp_issues = count_sprite_usage(
                                             map_label,
                                             player_cell=step_xy,
@@ -2241,7 +2152,7 @@ def analyze_scripts(
                             # If player moves one step while an NPC is following PLAYER and Pokémon follower is active, warn
                             if obj == "PLAYER":
                                 npc_followers_of_player = [f for f, leader in ctx.follows.items() if leader == "PLAYER"]
-                                if npc_followers_of_player and include_follower:
+                                if npc_followers_of_player and include_follower and not ctx.follow_in_sync:
                                     for fobj in npc_followers_of_player:
                                         issues.append(
                                             AuditIssue(

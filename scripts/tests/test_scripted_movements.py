@@ -72,3 +72,73 @@ Gift:
             failure = parsed.script_labels[script + target].commands
             self.assertEqual(failure[-1].opcode, "endtext")
             self.assertFalse(any(c.opcode in {"disappear", "setevent"} for c in failure))
+
+
+class CartMovementTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        configured = os.environ.get("ATLAS_UPSTREAM_ROOT")
+        root = Path(configured) if configured else Path(__file__).resolve().parents[2] / "external/polishedcrystal-master"
+        if not configured and not root.exists():
+            raise unittest.SkipTest("Optional upstream checkout unavailable")
+        cls.gym = root / "maps/AzaleaGym.asm"
+
+    def test_repeats_half_steps_and_shared_tails(self):
+        parsed = movement.parse_map_script(self.gym)
+        blocks = parsed.movement_blocks
+        self.assertEqual(len(parsed.object_spawns), 11)
+        refs = {c.args[1] for label in parsed.script_labels.values() for c in label.commands
+                if c.opcode == "applymovement"}
+        self.assertEqual(len(refs), 30)
+        self.assertEqual(refs, set(blocks))
+        crawl = blocks["SpinarakCart1Script.CrawlUpMovement"].tokens
+        path = movement._simulate_apply_movement(crawl, (2, 18))
+        self.assertEqual(path[5:11], [(6, 16.5), (7, 16.5), (8, 16.5), (9, 16.5), (10, 16.5), (11, 16.5)])
+        self.assertEqual(path[-1], (6, 15))
+        fourth = "SpinarakCart4Script.CrawlUpMiddleMovement"
+        self.assertEqual(blocks[fourth + "1"].tokens, ["step_up"] + ["step_right"] * 5 + ["step_up", "step_end"])
+        self.assertEqual(blocks[fourth + "2_BlueDisabled"].tokens, blocks[fourth + "3_BlueEnabled_RedDisabled"].tokens)
+
+    def test_fourth_cart_round_trips_with_each_switch_combination(self):
+        source = self.gym.read_text(encoding="utf-8")
+        positions = (2, 6, 11)
+        flags = ("EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1", "EVENT_TEMPORARY_UNTIL_MAP_RELOAD_2")
+        # Northern terminal reached from each of the three southern terminals.
+        routes = {
+            (False, False): (11, 2, 6), (True, False): (11, 6, 2),
+            (False, True): (2, 11, 6), (True, True): (6, 11, 2),
+        }
+        with tempfile.TemporaryDirectory() as temp, patch.object(movement.atlas_common, "ROOT_DIR", Path(temp)):
+            root = Path(temp)
+            (root / "maps").mkdir()
+            meta = root / "meta.json"
+            meta.write_text(json.dumps({"maps": {"AzaleaGym": {}}}))
+            for disabled, destinations in routes.items():
+                for south, north in zip(positions, destinations):
+                    for start, finish in [((south, 9), (north, 5)), ((north, 6), (south, 10))]:
+                        with self.subTest(disabled=disabled, start=start, finish=finish):
+                            line = "object_event  6,  9, SPRITE_SPINARAK_CART"
+                            self.assertEqual(source.count(line), 1)
+                            fixture = source.replace(line, f"object_event {start[0]}, {start[1]}, SPRITE_SPINARAK_CART")
+                            (root / "maps/AzaleaGym.asm").write_text(fixture, encoding="utf-8")
+                            ride = []
+                            landings = []
+                            direction = "Up" if start[1] == 9 else "Down"
+                            def observe(*args, **kwargs):
+                                label = kwargs["context"]["move"]
+                                pos = kwargs["player_cell"]
+                                if f".Crawl{direction}" in label:
+                                    ride.append(pos)
+                                    self.assertIn(pos, kwargs["static_npcs"])
+                                if label == f"SpinarakCartFinish{direction}Script.Movement":
+                                    landings.append(pos)
+                                return []
+                            with patch.object(movement, "count_sprite_usage", side_effect=observe):
+                                issues = movement.analyze_scripts(
+                                    root, meta, meta, label_filters=["SpinarakCart4Script"],
+                                    assume_set_events=[f for f, on in zip(flags, disabled) if on],
+                                    assume_clear_events=[f for f, on in zip(flags, disabled) if not on],
+                                )
+                            self.assertTrue(ride)
+                            self.assertEqual(landings, [finish])
+                            self.assertFalse(any(i.kind == "follower-collision" for i in issues))

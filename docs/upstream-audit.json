@@ -15197,11 +15197,15 @@
           "maps/WhirlIslandCave.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/DragonsDen1F.asm, maps/HiddenCaveGrotto.asm and other files; object definitions in maps/HiddenCaveGrotto.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The three small caves have independent block files, revised layouts and relocated entrances.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/89f4fb572c37f26af9d39be2e7d445aca48fb8f6",
+        "Compared all four caves to their pinned terrain, collision and source warp declarations. Both internal Dragon’s Den warps link to their reciprocal cells. The pinned Hidden Cave Grotto places the two conditional objects at (3,3) and retains its dynamic return index at (3,9). The subsequent Navel Rock self-connections have a separate record."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/DragonsDen1F.asm, maps/HiddenCaveGrotto.asm and other files; object definitions in maps/HiddenCaveGrotto.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "ac45f457748561ce109ff01dd4955ad608b4899a",
@@ -29589,11 +29593,15 @@
           "maps/ViridianGym.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeladonHotelPool.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The Celadon Hotel swim rings use upward-facing Dragonite graphics and copied red/yellow background palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a687b47cfb61f7a88bd43ae77be99f22d7003253",
+        "Matched both browser textures pixel-for-pixel to the pinned sprite and their two tile palettes. Verified current terrain/collision in both pools, the Dojo and Viridian Gym; the sprite artwork and tileset changes feed those exports."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeladonHotelPool.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "91cb920cec2a5a572c90c75113631f905666f366",
@@ -29696,11 +29704,15 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/GoldenrodCity.asm, maps/GoldenrodDeptStoreB1F.asm and other files; state changes in maps/GoldenrodDeptStoreB1F.asm, maps/GoldenrodDeptStoreElevator.asm and other files; object definitions in maps/GoldenrodUnderground.asm, maps/GoldenrodUndergroundEntrances.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use the four renamed and split Goldenrod Underground maps, their block data and the revised entrances.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/91cb920cec2a5a572c90c75113631f905666f366",
+        "Verified all 22 warp targets against the actual destination cells and checked all four maps’ rendered terrain, collisions and object tables. Named and unnamed actors are included in movement analysis; the Monday vendor schedule and return route via the department-store basement were checked."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/GoldenrodCity.asm, maps/GoldenrodDeptStoreB1F.asm and other files; state changes in maps/GoldenrodDeptStoreB1F.asm, maps/GoldenrodDeptStoreElevator.asm and other files; object definitions in maps/GoldenrodUnderground.asm, maps/GoldenrodUndergroundEntrances.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "cf08098bcd246e54364b1cf6e6232654e8106f54",
@@ -30913,11 +30925,15 @@
           "maps/Route17South.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/Route1617Gate.asm and other files; weather in data/maps/overcast_maps.asm; object definitions in maps/CeladonCity.asm, maps/Route16North.asm and other files; state changes in maps/GoldenrodUndergroundWarehouse.asm, maps/Route16South.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The reorganized Route 16 and 17 maps have distinct connections, gates and interiors. The warehouse uses the common underground-door reset.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d3078ca353472a15bf4d280f8cc4ba30590802e7",
+        "Checked all source warp declarations and target cells across ten maps, both pairs of connecting gate doors, and the exported layout bounds for the Route 16 west/north and Route 17 north/south seams. The shared switch-room reset and its 2,048 layouts were checked in the same batch."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/Route1617Gate.asm and other files; weather in data/maps/overcast_maps.asm; object definitions in maps/CeladonCity.asm, maps/Route16North.asm and other files; state changes in maps/GoldenrodUndergroundWarehouse.asm, maps/Route16South.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "394b048a334451b91743a022fba8eecb4b4c210d",
@@ -32722,11 +32738,15 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/GoldenrodUnderground.asm, maps/GoldenrodUndergroundSwitchRoom.asm; connectivity in maps/GoldenrodUndergroundSwitchRoom.asm; object definitions in maps/GoldenrodUndergroundSwitchRoom.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Rebuild the HGSS switch-room puzzle from its eleven saved door flags and the default reset on both entrances.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d3f88b6479383b1dafb54d849f35977078d31e2b",
+        "Exercised all 2,048 flag combinations against the source open/closed block IDs at all 17 affected positions, including paired blocks. Verified the eight default open flags and the 22 Underground warp targets. The four interaction scripts toggle flags in response to player input; Atlas renders the selected snapshot."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/GoldenrodUnderground.asm, maps/GoldenrodUndergroundSwitchRoom.asm; connectivity in maps/GoldenrodUndergroundSwitchRoom.asm; object definitions in maps/GoldenrodUndergroundSwitchRoom.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "0130dfe6e72af6ad72a3b7ae50ad25d393658b07",
@@ -36314,11 +36334,15 @@
           "gfx/tilesets/johto_traditional.johto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 13 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The new Johto Pokémon Center and Mart roofs use the Johto common art and per-tileset graphics. The shared waterfall animation slot moves.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b0bd34eb1d9f07c66a78159a353ef905e9f23aef",
+        "Checked modern, outlands, traditional and sacred consumers at four clocks, including Goldenrod, Azalea, Violet and Ecruteak. All six selected maps resolve the final $34 waterfall destination. Two Route 47 tracks match the source over 80 frames. Regular and overcast roof palettes were previously checked across all 42 map groups."
+      ],
+      "triage_note": "Batch screen of 13 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "3ff33399fd1f24af2713797a7e33703aded73735",
@@ -38402,11 +38426,15 @@
           "gfx/tilesets/tunnel.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Fireplace, restless trees, LCD and tiny water now load frames from their respective tileset banks.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/53114a50bea9de4940efaa2f0eed7def2e0e57a0",
+        "Decoded the source banks in Charcoal Kiln, Ilex Forest, Magnet Tunnel and Snowtop Mountain; compared full VRAM after each operator for eight timer phases and both forest states. Checked both visible fireplace tracks and all four Snowtop water tracks against emitted frame-sheet pixels at four clocks."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "5a91e5ba05058fc34849b62a91e770d118a122e0",
@@ -38468,11 +38496,15 @@
           "gfx/tilesets/hideout.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Hideout spinners use two tiles from the loaded hideout graphics. The idle Atlas uses the stationary frame.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/18d6abb09dc8be116bcdfe491fb0ba976d200020",
+        "Checked source VRAM tiles $08/$09 and destination $07 for all eight timer phases, both idle and spinning. Both banks match the predicted bytes after every command. The four-clock raster and collision checks cover Rocket Hideout B2F, which has 43 directional spinner cells."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "d9bd6239b4c97714fd42b7dea4273938b4a2381f",
@@ -38795,11 +38827,15 @@
           "utils/unused_blocks.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/SinjohRuins.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Sinjoh Ruins uses the ancient tileset, a separate roof and relocated entrances. Route 47 uses revised bridge blocks selected by its entry scene.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2ac63ac52e4e02700f49ed16b771f883ef20bfd0",
+        "Verified the Sinjoh roof group, all Sinjoh and Route 47 warp coordinates and destinations, all 16 bridge writes in both scenes, and independent locked/unlocked door state. Sinjoh, Route 47 and Route 43 default rasters matched source in all clock views."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/SinjohRuins.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "1b13ade48888ea78063a23b556f5af91942ff9e6",
@@ -39326,11 +39362,15 @@
           "maps/GoldenrodPokecomCenterOffice.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object and terrain priority in data/sprites/facings.asm; object definitions in maps/GoldenrodPokecomCenterOffice.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The Goldenrod PCC office displays its new staff sprites, individual palettes and bouncing Meowth.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/86b80072b8ae3e539e2fc211d8ec1d9158c65282",
+        "Matched the Rangi, Emi and Sour staff textures and both 16-by-16 Meowth icon frames to their source PNGs and palettes in Chrome. The endpoint uses the shared bounce action and BG_ALIGNED flag in place of the original dedicated facing."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object and terrain priority in data/sprites/facings.asm; object definitions in maps/GoldenrodPokecomCenterOffice.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "bd0e69f8f1aa231ebe9dc4e92f2df3b3693b8c72",
@@ -40831,11 +40871,15 @@
           "maps/WiseTriosRoom.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/TinTower1F.asm, maps/WiseTriosRoom.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The Wise Trio retains its individual NPC palette overrides when the story flags reveal the trainer objects.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e72ec2d7c2d42f39fe5ae240f7fd73556571c30c",
+        "Checked all nine changed map objects by their positions and color overrides. Using the relevant object visibility flags, matched the three Wise Trios Room trainers and the three first-group Tin Tower elders pixel-for-pixel in Chrome. The initial room’s three different, green elders were verified separately. The remaining palette changes are for trainer battles."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/TinTower1F.asm, maps/WiseTriosRoom.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "c105afe181edbee53c67be1429813a100077a875",
@@ -41175,11 +41219,15 @@
           "maps/ShamoutiTouristCenter.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/NoisyForest.asm, maps/ShamoutiTouristCenter.asm; state changes in maps/NoisyForest.asm, maps/ShamoutiTouristCenter.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Larry replaces Katy in the Atlas and appears in the Shamouti Tourist Center.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8254af78add9088cfeb69b5ac4274e2565b4dbd9",
+        "Verified the sole Larry object, removal of the Katy sprite, and the right-facing gray texture at (2,4) against the source PNG. The remaining changes supply trainer battles, text, reward flags and audio."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/NoisyForest.asm, maps/ShamoutiTouristCenter.asm; state changes in maps/NoisyForest.asm, maps/ShamoutiTouristCenter.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "8c7c521f75ede013c978655f2bf58b6d9c35abb3",
@@ -43503,11 +43551,15 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object and terrain priority in data/sprites/map_objects.asm; connectivity in maps/AzaleaGym.asm; object definitions in maps/AzaleaGym.asm; state changes in maps/AzaleaGym.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Display the four stationary Spinarak carts and the enabled red and blue webs on entry. Track the cart and rider together during scripted movement analysis.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/42176df67705c416f6794f0a6e946c39ff6f4650",
+        "Matched four Chrome cart textures to the downward-facing green source sprite, and all twelve initial web/switch blocks to the game. Verified all 30 movement labels against RGBDS and all 24 combinations of terminal, direction and switch configuration for the fourth cart, including exact rider/cart positions and exits. Other changed paths relocate graphics, egg palette calls, RAM and ROM sections."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object and terrain priority in data/sprites/map_objects.asm; connectivity in maps/AzaleaGym.asm; object definitions in maps/AzaleaGym.asm; state changes in maps/AzaleaGym.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "2f6171d9e57f56530307be7716f46dfa62593381",
@@ -43537,11 +43589,15 @@
           "maps/AzaleaGym.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 5 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Model the cart riding half-cell offsets across turns, repeated movement commands and separate applymovement calls.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2f6171d9e57f56530307be7716f46dfa62593381",
+        "The cart tests verify intermediate half-cell positions and the paired return to integer cells. All 299 bytes across 30 named endpoint paths match the assembled upstream movement data. The original half1/half2 opcode spellings were superseded by c132c848."
+      ],
+      "triage_note": "Batch screen of 5 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "4a8267d3722bfd4d3f97d2c5ff57e9e40ddedba1",
@@ -43598,14 +43654,15 @@
           "engine/overworld/map_objects.asm"
         ]
       ],
-      "status": "reviewed",
-      "disposition": "adaptation",
-      "reason": "Full diff reviewed: half2 player and NPC steps now take 16 frames rather than 8, with half-step offset updates on alternating frames. Retain open to reconcile atlas scripted movement timing and affected callers; a movement-engine refactor is not automatically irrelevant.",
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The ROM spreads the second eight pixels of a half step across sixteen frames. The movement analyzer samples command landing positions; the idle cart remains stationary in the web Atlas.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/34964da25711259567de4af168f7287e9a1f3440",
-        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason.",
+        "Checked UndoHalfStepOffset and both player/NPC handlers. The second phase advances the map cell while undoing the eight-pixel sprite offset on alternating frames. Verified the two visual half-cell deltas and the landing cell in both directions."
       ],
-      "review_method": "full-diff"
+      "review_method": "diff-hunks"
     },
     {
       "sha": "c132c8481a08ad5b9f453f57e769a2cf68f8819c",
@@ -43631,11 +43688,15 @@
           "maps/AzaleaGym.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 4 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "The pinned map uses half_step commands; the current per-axis offset decides which phase the game runs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c132c8481a08ad5b9f453f57e769a2cf68f8819c",
+        "All four directional macros are recognized. The fourth-cart regression carries offsets through horizontal moves and consecutive applymovement commands, validates all 24 routes, and verifies shared-tail labels against RGBDS output."
+      ],
+      "triage_note": "Batch screen of 4 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "792f2ce9163fae3e0f45d1b94a52bed67232edf7",
@@ -43811,11 +43872,15 @@
           "maps/RockTunnelB1F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/BurnedTower1F.asm, maps/RockTunnelB1F.asm; state changes in maps/BurnedTower1F.asm, maps/PlayersHouse2F.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "The Burned Tower Firebreather uses separate normal and ashes objects with different positions, visibility flags and palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/cb3c15c7c65894a2c7f9152c6c3ca20929bf9595",
+        "Matched both the initial red Firebreather at (6,3) and the gray ashes at (6,2) against source PNGs in Chrome, selecting the won-battle object flags for the latter. Verified the new coordinate trigger, its single upward step, the changed Burned Tower terrain/collision, and the renamed Rock Tunnel trainer. The in-battle UI and debug skip are outside the snapshot."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/BurnedTower1F.asm, maps/RockTunnelB1F.asm; state changes in maps/BurnedTower1F.asm, maps/PlayersHouse2F.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "d640b2f95da12db7ee9487057d8b82059b4e7f32",
@@ -44425,11 +44490,15 @@
           "maps/MountMoonB2F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in macros/scripts/maps.asm, maps/CianwoodGym.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use separate Helix and Dome fossil poses, renamed boulder graphics and the floating-ball sprite.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/83cb9f335a10153a6f844b392109d946ef69354e",
+        "Verified both fossil item IDs and distinct source poses against the actual Mt. Moon B2F browser pixels, four Ice Path boulders and their four lower-floor counterparts, the Dim Cave/Cianwood boulder objects, and the Goldenrod PCC sign and floating-ball entries."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in macros/scripts/maps.asm, maps/CianwoodGym.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "5855b9ad96264318e412842efbf894e68cfec566",
@@ -46648,11 +46717,15 @@
           "maps/SnowtopMountainOutside.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/SnowtopMountainOutside.asm; state changes in maps/SnowtopMountainOutside.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Snowtop Mountain shortens to 16 by 17 blocks, shifting its exits, lookout and approach.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b972444a7080b30c16a341c6a45a10170935b04e",
+        "Checked both destinations at (9,25) and (17,27), spawn source (17,28), all 23 stop-panning coordinates, endpoint object and terrain data, and eight animated rock/water tracks across 80 frames at each clock."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/SnowtopMountainOutside.asm; state changes in maps/SnowtopMountainOutside.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "8e89b412b51e443f2052f63c2b2dacff45f0d9cf",
@@ -51407,11 +51480,15 @@
           "maps/VermilionCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm; state changes in maps/VermilionCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The Battle Factory exterior, interior and surrounding Vermilion/Pewter blocks change. The fountain and Game Corner animation destinations move.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/53ed09a7a7dd538b9410ef97ee7172c5f2ca2180",
+        "Checked four-clock terrain and collision on the four changed maps, the final power-off/on entrance callback (one write versus zero), and all five affected fountain/Game Corner tracks in the Kanto urban tileset over 80 frames."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm; state changes in maps/VermilionCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "7a278ff01d8ad1ad71246ca12216e0ca9194f99f",
@@ -58352,11 +58429,15 @@
           "maps/CinnabarVolcanoB2F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object glow in constants/collision_constants.asm, constants/gfx_constants.asm and other files; tile animation in data/tileset_anims.asm; connectivity in maps/CinnabarVolcanoB1F.asm; state changes in maps/CinnabarVolcanoB1F.asm, maps/CinnabarVolcanoB2F.asm; object definitions in maps/CinnabarVolcanoB2F.asm. Verified volcano palettes, Moltres source icon and palette, lava/ladder cells, and 16 independent combinations of B1F boulder flags. Remaining event/graphics and animation changes are still under review."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Cinnabar Volcano uses dedicated terrain, lava glow, two animated lava tiles and a custom Moltres palette.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a6dd9387b726411bde0d2013821a38906104f11d",
+        "Checked both lava tracks on all three floors over 96 ticks at four clock settings. Matched 25 source warps and the Cinnabar Island entrance to their generated destinations. Verified B2F boulder off/on, Flame Orb (19,4) and Moltres (18,22), alongside the 16 B1F flag combinations, source icon textures and glow collision checks. Lava-glow cell counts by floor: [0, 105, 64]."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object glow in constants/collision_constants.asm, constants/gfx_constants.asm and other files; tile animation in data/tileset_anims.asm; connectivity in maps/CinnabarVolcanoB1F.asm; state changes in maps/CinnabarVolcanoB1F.asm, maps/CinnabarVolcanoB2F.asm; object definitions in maps/CinnabarVolcanoB2F.asm. Verified volcano palettes, Moltres source icon and palette, lava/ladder cells, and 16 independent combinations of B1F boulder flags. Remaining event/graphics and animation changes are still under review.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "dc9c110c81dea6a171b1a9e736a6b8ae504fcba5",

@@ -171,6 +171,40 @@ class MapPaletteTests(unittest.TestCase):
             state = evaluate_tile_callback(path, set())
             self.assertEqual((state.changes, state.flags, state.block_label), ((), set(), None))
 
+    def test_bridge_callbacks_use_the_scene_and_keep_other_block_writes(self):
+        for name, count, first, last in [
+            ("CeruleanCave1F", 6, (20, 2, 0x76), (20, 2, 0x74)),
+            ("Route24", 12, (20, 14, 0x39), (20, 14, 0x34)),
+            ("Route47", 16, (42, 24, 0xd8), (42, 24, 0xaa)),
+            ("RuggedRoadSouth", 5, (14, 0, 0xd8), (14, 0, 0xaa)),
+            ("YellowForest", 4, (32, 16, 0x9d), (32, 16, 0x86)),
+        ]:
+            with self.subTest(map=name):
+                path = self.root / "maps" / f"{name}.asm"
+                overhead = evaluate_tile_callback(path, set()).changes
+                underfoot = evaluate_tile_callback(path, set(), scene_id=1).changes
+                self.assertEqual((len(overhead), overhead[0], underfoot[0]), (count, first, last))
+                self.assertEqual([p[:2] for p in overhead], [p[:2] for p in underfoot])
+                self.assertTrue(all(a[2] != b[2] for a, b in zip(overhead, underfoot)))
+                info = self.repo.map_info(name)
+                blocks = self.repo.map_blocks(info, set())
+                for x, y, block in overhead:
+                    self.assertEqual(blocks[(y // 2) * info.width + x // 2], block)
+
+        route = self.root / "maps/Route47.asm"
+        for scene in (0, 1):
+            locked = evaluate_tile_callback(route, set(), scene_id=scene)
+            opened = evaluate_tile_callback(route, {"EVENT_DOOR_OPENED_IN_RUINS_OF_ALPH"}, scene_id=scene)
+            self.assertEqual(opened.changes, ((8, 22, 0x99), *locked.changes))
+
+    def test_unrecognized_assembly_cancels_the_entire_tile_callback(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "Test.asm"
+            path.write_text("callback MAPCALLBACK_TILES, TestTiles\nTestTiles:\n"
+                            "changeblock 2, 2, 6\ncallasm .bridge\nendcallback\n.bridge:\n"
+                            "changebridgeblock 0, 0, 5, TEST\ncall SomeSideEffect\njmp BufferScreen\n")
+            self.assertEqual(evaluate_tile_callback(path, set()).changes, ())
+
     def test_special_palette_inventory_and_all_declared_variants(self):
         source = (self.root / "data/maps/palettes.asm").read_text(encoding="utf-8")
         declarations = re.findall(r"^\s*special_bg_pal ", source, re.M)

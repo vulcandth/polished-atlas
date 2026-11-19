@@ -65,6 +65,9 @@ Gift:
         ]:
             parsed = movement.parse_map_script(root / "maps" / f"{name}.asm")
             commands = parsed.script_labels[script].commands
+            if name == "HiddenTreeGrotto":
+                self.assertEqual((commands[0].opcode, commands[0].args), ("special", ("GetHiddenGrottoContents",)))
+                commands = commands[1:]
             self.assertEqual([c.opcode for c in commands[:4]], ["giveitem", "iffalsefwd", "disappear", "setevent"])
             self.assertEqual(commands[1].args, (script + target,))
             self.assertEqual(commands[0].line_no, commands[1].line_no)

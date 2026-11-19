@@ -15,24 +15,38 @@ There are 1,057 commits and 3,520 changed endpoint paths in the current range.
 ## Current audit status
 
 All 1,057 commits from v3.2.2 through `f8e67fbd` have had a relevance
-screen. The ledger resolves 1,022. Of the 35 still open, 27 have leads
-from the scan and 8 have specific implementation or verification work. Auditing the remaining
-diffs and validating the affected Atlas features are part of implementation.
-The list of known features below is preliminary.
+screen. The ledger resolves 1,041. All 16 open commits now have specific
+follow-up work recorded against their diffs. The list of known features is
+preliminary. Auditing the outstanding changes and validating them in the
+Atlas remain part of implementation.
 
-The latest two batches closed 19 commits covering map-entry scenes, object
-placements, connected terrain and tileset splits. Of the 552 total commits classified
+The latest batch closed 19 commits, including Celadon’s rooftops, Moomoo
+Farm’s day and night occupants, Faraway Island’s ferry landing, Fuchsia’s
+four timed Tauros, and the Rugged Road palette boundary. Of the 552 total commits classified
 as having no Atlas impact, 364 were skipped after examining their subject,
 changed paths and consumers. The changelog adds only the v3.2.3 battle
 crash fix. Use the commit diffs to find unreleased master changes.
+
+| Open commit group | Remaining work |
+| --- | --- |
+| Palette swaps, NPC glow and weather | Verify map transitions for background-derived and dual NPC palettes, weather particles that survive a change of weather, and sprite priority when more than ten tiles share a scanline. |
+| Navel Rock and hidden grottoes | Represent the offset north/south self-connection. Choose one coherent grotto encounter state per entrance and resolve its sprite and palette. |
+| Variable NPCs and Pokémon | Replace the Trainer House’s placeholder sprite with an eligible daily opponent. Check the fourth player choice, daycare deposits and dolls against the snapshot. |
+| Ruins of Alph and map scripts | Check the redesigned chambers and entrances, the research scientist’s entry-scene position and the script commands that dispatch through tables or return after showing text. |
+
+The Route 10 North storm fade matched the game's RGB5 colors on 296,960
+opaque pixels at six fade steps in both day and night views. The two
+Rugged Road maps met without a gap at three camera positions in each view.
+Eusine’s standing locations passed all 32 combinations of the story and
+respawn flags under test.
 
 The scene-table check matched 90 script pointers and 241 named scene IDs
 against RGBDS across 612 maps. The movement analyzer follows deferred
 scripts at both cable car stations, the Olivine Lighthouse and the Dragon
 Shrine. The shrine test starts only at the front door. At Silph Co.,
 Chrome showed the guard at (13,1) before power restoration and (14,1)
-afterward. The object exporter now reads 24 complete clock- or event-driven
-object callbacks. That changes 15 maps in the default Monday export.
+afterward. That batch supported 24 complete clock- or event-driven object
+callbacks and changed 15 maps in the default Monday export.
 
 The coast tileset review found that Olivine Lighthouse windows light up only
 at night after Jasmine returns. The renderer now checks both conditions.

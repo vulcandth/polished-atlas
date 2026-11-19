@@ -1,4 +1,5 @@
 import os
+from itertools import product
 from pathlib import Path
 import sys
 import tempfile
@@ -36,6 +37,24 @@ class ObjectPaletteTests(unittest.TestCase):
             for flags in (set(), {"ENGINE_UNION_CAVE_LAPRAS"}):
                 lapras, = [o for o in at("UnionCaveB2F", day, flags) if o.event_flag == "EVENT_UNION_CAVE_B2F_LAPRAS"]
                 self.assertEqual(lapras.event_flag_set, bool(flags) or day != 5)
+
+    def test_eusine_visibility_follows_permanent_milestones_across_respawns(self):
+        maps = {m.label: m for m in objects.parse_map_objects(
+            self.root, self.constants, {}, self.movements, self.names, set())}
+        milestones = ("EVENT_FOUGHT_SUICUNE", "EVENT_EUSINE_LEFT_CELADON",
+                      "EVENT_EUSINE_HO_OH_ENCOUNTER", "EVENT_EUSINE_HO_OH_FAREWELL", "EVENT_FOUGHT_HO_OH")
+        for label in ("EusinesHouse", "TinTower1F"):
+            source = (self.root / "maps" / f"{label}.asm").read_text(encoding="utf8")
+            original = maps[label].objects
+            for fought, left, encounter, farewell, ho_oh in product((False, True), repeat=5):
+                flags = {flag for flag, active in zip(milestones, (fought, left, encounter, farewell, ho_oh)) if active}
+                rows = objects.scheduled_objects(source, original, self.constants, flags, 1, ("day",),
+                                                 set(), set()).get("day", original)
+                eusine, = (o for o in rows if o.sprite_constant == "SPRITE_EUSINE")
+                at_home = fought and not (left or encounter or farewell)
+                in_tower = encounter and not farewell
+                with self.subTest(label=label, flags=flags):
+                    self.assertEqual(not eusine.event_flag_set, at_home if label == "EusinesHouse" else in_tower)
 
     def test_unknown_branch_prevents_partial_object_schedule(self):
         source = ("Map:\ncallback MAPCALLBACK_OBJECTS, .setup\nobject_const_def\nconst ACTOR\n"

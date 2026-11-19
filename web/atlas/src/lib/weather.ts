@@ -3,13 +3,14 @@ import {
   Graphics,
   Sprite,
   Texture,
-  Application,
+  Filter,
   BaseTexture,
   SCALE_MODES,
 } from "pixi.js";
 import { decodeBase64 } from "@/lib/base64";
 import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
 import { cherrySpawnPoint, type WeatherPoint, type WeatherType } from "@/lib/weatherState";
+import { fadeColorStep, GAME_FRAME_MS } from "@/lib/objectGlow";
 
 export type { WeatherType } from "@/lib/weatherState";
 
@@ -23,6 +24,45 @@ const RAINSPLASH = 2;
 const SNOWFLAKE = 3;
 const SAND = 4;
 const CHERRY = 5;
+
+const LIGHTNING_STEPS = 15;
+const LIGHTNING_STEP_MS = 2 * GAME_FRAME_MS;
+
+// During lightning the ROM fades all BG and object palettes back from white.
+// Look up each 5-bit channel after the current step, including on animated tiles.
+const lightningFragment = `
+  varying vec2 vTextureCoord;
+  uniform sampler2D uSampler;
+  uniform sampler2D uFadeTable;
+  uniform float uRow;
+  void main() {
+    vec4 color = texture2D(uSampler, vTextureCoord);
+    vec3 target = floor(clamp(color.rgb / max(color.a, 0.0001), 0.0, 1.0) * 31.875);
+    vec3 x = (target + 0.5) / 32.0;
+    vec3 faded = vec3(texture2D(uFadeTable, vec2(x.r, uRow)).r,
+                      texture2D(uFadeTable, vec2(x.g, uRow)).r,
+                      texture2D(uFadeTable, vec2(x.b, uRow)).r);
+    gl_FragColor = vec4(faded * color.a, color.a);
+  }
+`;
+
+let lightningTable: Texture | undefined;
+function whiteFadeTable(): Texture {
+  if (lightningTable) return lightningTable;
+  const height = LIGHTNING_STEPS + 1;
+  const pixels = new Uint8Array(32 * height * 4);
+  for (let target = 0; target < 32; target++) {
+    let channel = 31;
+    for (let step = 0; step < height; step++) {
+      const index = 4 * (step * 32 + target);
+      pixels.fill(Math.round(255 * channel / 31), index, index + 3);
+      pixels[index + 3] = 255;
+      channel = fadeColorStep(channel, target, LIGHTNING_STEPS - step);
+    }
+  }
+  lightningTable = Texture.fromBuffer(pixels, 32, height, { scaleMode: SCALE_MODES.NEAREST });
+  return lightningTable;
+}
 
 type Particle = {
   kind: typeof RAINDROP | typeof RAINSPLASH | typeof SNOWFLAKE | typeof SAND | typeof CHERRY;
@@ -40,7 +80,8 @@ type Particle = {
 // removed unused helpers makeRectTextureWithRenderer and clamp
 
 export class WeatherSystem {
-  private app: Application;
+  private lightningFilter: Filter | null = null;
+  private lightningStart = 0;
   private layer: Container;
   private clip: Graphics;
   private enabled = true;
@@ -173,8 +214,7 @@ export class WeatherSystem {
     return new Texture(bt);
   }
 
-  constructor(app: Application, parent: Container) {
-    this.app = app;
+  constructor(private readonly parent: Container) {
     this.layer = new Container();
     this.layer.sortableChildren = false;
     // Local coordinate system: attach as child of parent (e.g., map sprite)
@@ -196,11 +236,13 @@ export class WeatherSystem {
 
   public setEnabled(next: boolean): void {
     this.enabled = !!next;
+    if (!this.enabled) this.endLightning();
     this.layer.visible = this.enabled && this.weather !== "none";
   }
 
   public setWeather(next: WeatherType): void {
     if (this.weather === next) return;
+    this.endLightning();
     // Map snapshots have no gameplay transition state. Clear previous particles
     // immediately so a disabled/replaced layer cannot leave stale effects.
     this.clear();
@@ -251,6 +293,7 @@ export class WeatherSystem {
 
   public destroy(): void {
     this.destroyed = true;
+    this.endLightning();
     this.clear();
     this.disposeTextures();
     try {
@@ -398,6 +441,11 @@ export class WeatherSystem {
   // cameraStep is the delta (in px) of the world relative to screen this tick
   public update(cameraStepX: number, cameraStepY: number): void {
     if (!this.ready) return;
+    if (this.lightningFilter) {
+      const step = Math.floor((performance.now() - this.lightningStart) / LIGHTNING_STEP_MS);
+      if (step >= LIGHTNING_STEPS) this.endLightning();
+      else this.lightningFilter.uniforms.uRow = (step + 0.5) / (LIGHTNING_STEPS + 1);
+    }
     // Only update on odd frames to emulate GB 30fps weather cadence
     this.frameCounter = (this.frameCounter + 1) & 0xff;
     const runThisFrame = (this.frameCounter & 1) === 1;
@@ -410,7 +458,7 @@ export class WeatherSystem {
       for (let i = 0; i < 3; i++) this.trySpawnRain();
       // Occasional lightning flash for thunderstorms
       if (this.weather === "thunderstorm") {
-        if (Math.random() < 0.005 && Math.random() < 0.5) {
+        if (Math.random() < 2 / 256 && Math.random() < 127 / 256) {
           this.flash();
         }
       }
@@ -480,7 +528,7 @@ export class WeatherSystem {
       }
 
       if (p.kind === SNOWFLAKE || p.kind === CHERRY) {
-        if (p.kind === CHERRY && Math.random() < 0.01) {
+        if (p.kind === CHERRY && Math.random() < 2 / 256) {
           this.despawn(i--);
           continue;
         }
@@ -556,32 +604,18 @@ export class WeatherSystem {
   }
 
   private flash(): void {
-    // Simple white flash overlay that decays quickly
-    const g = new Graphics();
-    g.beginFill(0xffffff, 0.85);
-    g.drawRect(0, 0, this.width, this.height);
-    g.endFill();
-    g.zIndex = 100000;
-    this.layer.addChild(g);
-    let ttl = 2; // a couple of weather frames
-    const tick = (): void => {
-      ttl -= 1;
-      g.alpha *= 0.25;
-      if (ttl <= 0) {
-        try {
-          g.destroy(true);
-        } catch {
-          /* noop */
-        }
-      } else {
-        // schedule next after a short delay (next RAF)
-        if (typeof window !== "undefined") {
-          window.requestAnimationFrame(() => tick());
-        }
-      }
-    };
-    if (typeof window !== "undefined") {
-      window.requestAnimationFrame(() => tick());
+    this.lightningStart = performance.now();
+    if (!this.lightningFilter) {
+      this.lightningFilter = new Filter(undefined, lightningFragment, { uFadeTable: whiteFadeTable(), uRow: 0 });
+      this.parent.filters = [...(this.parent.filters ?? []), this.lightningFilter];
     }
+    this.lightningFilter.uniforms.uRow = 0.5 / (LIGHTNING_STEPS + 1);
+  }
+
+  private endLightning(): void {
+    if (!this.lightningFilter) return;
+    this.parent.filters = (this.parent.filters ?? []).filter(filter => filter !== this.lightningFilter);
+    this.lightningFilter.destroy();
+    this.lightningFilter = null;
   }
 }

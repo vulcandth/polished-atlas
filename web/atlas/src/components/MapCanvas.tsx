@@ -2563,7 +2563,7 @@ export default function MapCanvas({
       return null;
     }
     if (!weatherEnabled && !existing) return null;
-    const system = existing ?? new WeatherSystem(app, parent);
+    const system = existing ?? new WeatherSystem(parent);
     system.setBounds(width, height);
     const paletteTime = bgPalettes?.maps[label]?.palette_times?.[timeOfDay] ?? timeOfDay;
     system.setTimeOfDay(paletteTime === "morn" || paletteTime === "eve" || paletteTime === "nite" ? paletteTime : "day");
@@ -2575,8 +2575,9 @@ export default function MapCanvas({
     if (collision && typeof cherry === "number") {
       for (let i = 0; i < collision.cellBytes.length; i++) {
         if (collision.cellBytes[i] === cherry) {
-          leaves.push({ x: (i % collision.widthCells) * 16 + 8,
-                        y: Math.floor(i / collision.widthCells) * 16 + 8 });
+          // SpawnCherryBlossom writes cell * 16 + 16 to both OAM axes.
+          leaves.push({ x: (i % collision.widthCells) * 16 + 12,
+                        y: Math.floor(i / collision.widthCells) * 16 + 4 });
         }
       }
     }

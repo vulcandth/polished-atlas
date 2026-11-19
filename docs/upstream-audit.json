@@ -14282,7 +14282,8 @@
       "reason": "Read all twelve changed files. Adds previous/current weather, darkness, overcast and time states; palette fade catch-up; saved object palette clearing at connections; white-fade handling for lightning. Atlas currently builds steady-state palettes and selects UI time directly. Must verify map environment metadata and object palette precedence against the new engine, including later glow integration, before resolving.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/91322e3740c5a824cd6224b7c74b6740f62f3582",
-        "Full patch read in two file groups; open consumers: generate_bg_palette_metadata.py, generate_object_metadata.py, objectSprites.ts and weather rendering."
+        "Full patch read in two file groups; open consumers: generate_bg_palette_metadata.py, generate_object_metadata.py, objectSprites.ts and weather rendering.",
+        "Route 10 North storm: captured 296,960 opaque map pixels in each of six fade states at day and night. Every observed channel matched the RGB5 fade from white, including restoration of the original bytes. This isolates the lightning fade; crossing between weather systems remains a separate check."
       ]
     },
     {
@@ -16003,11 +16004,15 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
+      "status": "reviewed",
       "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): weather in constants/map_data_constants.asm, constants/weather_constants.asm and other files; state changes in maps/PlayersHouse2F.asm; object definitions in maps/Route10North.asm, maps/Route14.asm and other files."
+      "reason": "Fixed/scheduled per-map weather, indoor snow, Cherrygrove petals, Rugged Road sand and Route 10 lightning have source and runtime checks. Random regional rolls are excluded by the snapshot policy. Finish the weather cooldown and scanline checks tracked under 65ee5c14 and 3b3e2af9.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/88efa64840fd0b0f36386ae0f36db8af78616ff9",
+        "Fixed/scheduled per-map weather, indoor snow, Cherrygrove petals, Rugged Road sand and Route 10 lightning have source and runtime checks. Random regional rolls are excluded by the snapshot policy. Finish the weather cooldown and scanline checks tracked under 65ee5c14 and 3b3e2af9."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in constants/map_data_constants.asm, constants/weather_constants.asm and other files; state changes in maps/PlayersHouse2F.asm; object definitions in maps/Route10North.asm, maps/Route14.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "4ab1adcf9838f4d8b5b1e8a7817779f54dca81a3",
@@ -17461,11 +17466,15 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/overcast_maps.asm, data/sprites/weather.asm and other files."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Cherrygrove’s petal weather uses the pink sprite palette, a cherry tile and cherry-leaf collision cells.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ede8bcf810d6ad8a07ea674bbd315401be45b3a1",
+        "Observed falling petals in the Cherrygrove browser view. Checked source tile and clock palettes, byte thresholds for spawning and despawning, edge versus leaf selection, 8px sprite coordinate offsets and motion. Source and frontend tests cover both edge paths and empty leaf lists."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/overcast_maps.asm, data/sprites/weather.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "88a64b73cddc97941742ea194340b31e33c79a30",
@@ -18470,11 +18479,15 @@
           "maps/YellowForest.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/overcast_maps.asm, data/maps/palettes.asm and other files; tile animation in engine/tilesets/tileset_anims.asm; object definitions in macros/scripts/maps.asm, maps/BattleTowerOutside.asm and other files; state changes in maps/NavelRockRoof.asm; connectivity in maps/SilverCaveRoom3.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Mt. Silver and Navel Rock use peak terrain, revised sprites and map-specific weather.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/54917bff05ec7236194844738566d5a5b762cd96",
+        "Confirmed snow in Silver Cave Room 3, the roof return warp and Leaf’s four daily rematch states. Checked all surviving map rasters, the fruit-tree and item macro split, and the timed and conditional peak visuals covered by the corpus. The offset interior self-connection has its own audit record."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/overcast_maps.asm, data/maps/palettes.asm and other files; tile animation in engine/tilesets/tileset_anims.asm; object definitions in macros/scripts/maps.asm, maps/BattleTowerOutside.asm and other files; state changes in maps/NavelRockRoof.asm; connectivity in maps/SilverCaveRoom3.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "f084b9347bd953165b8f9fe1ccb3667a46208599",
@@ -27724,11 +27737,15 @@
           "utils/unused_blocks.py"
         ]
       ],
-      "status": "pending",
+      "status": "reviewed",
       "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/MagnetTunnelEast.asm and other files; tile animation in engine/tilesets/tileset_anims.asm; object definitions in maps/MagnetTunnelEast.asm, maps/RuinsOfAlphOutside.asm; state changes in maps/Route47.asm, maps/RuinsOfAlphOutside.asm."
+      "reason": "The new digmod command changes the return location when the player uses Dig. Check the changed ordinary entrances, four chamber states, the new outside layout and route links separately. The Route 47 door callback is already verified.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/973ae6b847567e331fbc927345e2e9209274a2f4",
+        "The new digmod command changes the return location when the player uses Dig. Check the changed ordinary entrances, four chamber states, the new outside layout and route links separately. The Route 47 door callback is already verified."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/MagnetTunnelEast.asm and other files; tile animation in engine/tilesets/tileset_anims.asm; object definitions in maps/MagnetTunnelEast.asm, maps/RuinsOfAlphOutside.asm; state changes in maps/Route47.asm, maps/RuinsOfAlphOutside.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "99d54bdb480336728c0a7ca924eea3f5f1ce5840",
@@ -28443,11 +28460,15 @@
           "maps/TrainerHouseB1F.asm"
         ]
       ],
-      "status": "pending",
+      "status": "reviewed",
       "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CinnabarLab.asm, maps/CopycatsHouse2F.asm and other files; state changes in maps/CinnabarLab.asm, maps/CopycatsHouse2F.asm and other files."
+      "reason": "The beta player appears as an ending-sequence actor at Navel Rock, a Copycat disguise and trainer Euna. Verified the Navel Rock mask and default Copycat-to-Lass resolution. Check the beta art and the eligible daily Trainer House opponent snapshot. Battle backsprites, naming screens and pack graphics are outside the map layers.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9b77ef6caf5958843ba6fb7ff0c2724ccf831ca9",
+        "The beta player appears as an ending-sequence actor at Navel Rock, a Copycat disguise and trainer Euna. Verified the Navel Rock mask and default Copycat-to-Lass resolution. Check the beta art and the eligible daily Trainer House opponent snapshot. Battle backsprites, naming screens and pack graphics are outside the map layers."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CinnabarLab.asm, maps/CopycatsHouse2F.asm and other files; state changes in maps/CinnabarLab.asm, maps/CopycatsHouse2F.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "8afedfb17ceddf31d3eb5f8c2b0d6d91d7e1d66c",
@@ -28573,11 +28594,15 @@
           "maps/TeamRocketBaseB3F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; object definitions in maps/RocketHideoutB1F.asm; state changes in maps/RocketHideoutB1F.asm, maps/RocketHideoutB4F.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The Mahogany base and Celadon hideout use the hideout tileset, revised doors and animated machinery.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8afedfb17ceddf31d3eb5f8c2b0d6d91d7e1d66c",
+        "Checked the endpoint maps, terrain, warps and source object placements. Rylan’s B1F door writes block $06 at (16,16) only before he is beaten. The hideout spinner has both states, and the four Team Rocket Base B2F turbine tiles match the 96-frame cycle."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; object definitions in maps/RocketHideoutB1F.asm; state changes in maps/RocketHideoutB1F.asm, maps/RocketHideoutB4F.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "94face39cfcb7038326dd4ff81daa636649b4be7",
@@ -29127,11 +29152,15 @@
           "maps/YellowForestGate.asm"
         ]
       ],
-      "status": "pending",
+      "status": "reviewed",
       "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/WiseTriosRoom.asm."
+      "reason": "The large map-script rewrite includes three scalltable dispatches as well as inline and conditional text returns. Check table-dispatched actor paths and ensure the analyzer terminates each affected branch at its actual text command.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/94face39cfcb7038326dd4ff81daa636649b4be7",
+        "The large map-script rewrite includes three scalltable dispatches as well as inline and conditional text returns. Check table-dispatched actor paths and ensure the analyzer terminates each affected branch at its actual text command."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/WiseTriosRoom.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "b59069743053a1dc9b0236cd484002641055c58e",
@@ -30346,11 +30375,15 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Partial source inspection and adaptation: expand packed PAL_MON constants and iconpal repetitions, correct extended form indexing, compose light color 2 into dark color 1 before glow/fade. Focused pixel tests and full current-source palette reference checks pass. Complete commit review remains pending. Batched changed-line scan (follow-up leads only): object definitions in maps/AzaleaTown.asm, maps/BattleTower2F.asm and other files."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Overworld Pokémon icons accept a packed dark/light color pair and explicit species or form palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d9e14d8c013f7d03ebd73f3c3a1389847bf54123",
+        "Verified every emitted PAL_MON override and all normal/shiny form defaults against the packed color table. Checked the four visibly different Fuchsia Tauros, repeated palette rows for alternate forms, and source-based composition tests. Variable sprite identity is tracked under dd1056be."
+      ],
+      "triage_note": "Partial source inspection and adaptation: expand packed PAL_MON constants and iconpal repetitions, correct extended form indexing, compose light color 2 into dark color 1 before glow/fade. Focused pixel tests and full current-source palette reference checks pass. Complete commit review remains pending. Batched changed-line scan (follow-up leads only): object definitions in maps/AzaleaTown.asm, maps/BattleTower2F.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "034e5afa4ec0e311d80173211aeded3c7ceff1e5",
@@ -31346,11 +31379,15 @@
           "gfx/tilesets/whirlpool/4.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Several tile animation commands write two or four consecutive tiles in a single update.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2568077d54ac7e5f628e5c9f459e6b62cee8b396",
+        "Checked the engine and table changes against the modern animation machine. The existing source-based cycle checks cover four whirlpool tiles, two Faraway water tiles, fire, tiny water and the fountain. The separate banked tree and spinner verification covers their conditional writes."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "ac13126f561b8401916516431657ed32069da175",
@@ -31637,11 +31674,15 @@
           "maps/YellowForest.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in macros/scripts/maps.asm, maps/AzaleaTown.asm and other files."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "New dark and environment-based NPC palettes change map sprites and defaults.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e5e34801beb0e975f5a7386d7ff6d904e6cc5af8",
+        "All emitted overrides resolve, including the four dark and five environment families at every clock. The pinned object palette tables, seven weekday book colors, Route 8 bikers and mixed trainer recolors have separate source and runtime comparisons."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in macros/scripts/maps.asm, maps/AzaleaTown.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "40bd23f04bd03c24ccefdc855e3c4c33a7e22c86",
@@ -43261,11 +43302,15 @@
           "maps/SnowtopMountainOutside.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Partial source inspection: export BG_ALIGNED/BG_OFFSET vertical offsets and consume them in object placement. Corpus and placement tests pass. Full diff review and on-map overlap/priority verification remain pending. Batched changed-line scan (follow-up leads only): object and terrain priority in constants/map_object_constants.asm, data/sprites/facings.asm and other files."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "The background-aligned and offset bits on each movement determine vertical sprite placement.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f7a3ab8283c0a748558e094099e569bca391cc1b",
+        "Compared the generated Y offset of every map object to its source movement flags. The verified aquarium top/bottom examples use -8/+4. The browser checks cover background-aligned decorations, arch trees, pagoda halves and their facing and priority data."
+      ],
+      "triage_note": "Partial source inspection: export BG_ALIGNED/BG_OFFSET vertical offsets and consume them in object placement. Corpus and placement tests pass. Full diff review and on-map overlap/priority verification remain pending. Batched changed-line scan (follow-up leads only): object and terrain priority in constants/map_object_constants.asm, data/sprites/facings.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "5e1a04dba3167cf5fa62223f313adebbb098337a",
@@ -44713,11 +44758,15 @@
           "maps/Route48.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 11 changed paths. Compare the visible shared block on both sides of the Azalea and Route 34 connection at all four times."
+      "status": "resolved",
+      "disposition": "superseded",
+      "reason": "The historical shared block $93 was repurposed in Johto Modern by the later Goldenrod filler-building cleanup.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d9017ee8146aee9714f7b7f9d2ffd4b8f9031273",
+        "Compared the 16 tile IDs and 16 attribute bytes in both tilesets at the original commit. Traced the later collision reassignment to 418de6006. Verified the current full terrain and collision on the affected route and town maps using their endpoint tilesets."
+      ],
+      "triage_note": "Batch screen of 11 changed paths. Compare the visible shared block on both sides of the Azalea and Route 34 connection at all four times.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "33c4fab6964556a3e999d3baa3286e6c3c6f1a39",
@@ -45317,11 +45366,15 @@
           "maps/Route39Barn.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/Route39.asm, maps/Route39Barn.asm; object definitions in maps/Route39.asm, maps/Route39Barn.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Two Miltank move from the pasture to the barn at dusk. The barn has a double entrance.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9ea30e08a679477f931c8c41af83a2324fa8c201",
+        "Matched all seven Miltank declarations in the two generated maps, including the pink and azure palettes, day and night masks, and both pairs of door coordinates. Inspected the accompanying feeding and dialogue changes."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/Route39.asm, maps/Route39Barn.asm; object definitions in maps/Route39.asm, maps/Route39Barn.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "4c9bdba03beb71089f29c0302fb17939bee73d48",
@@ -46707,11 +46760,15 @@
           "maps/SnowtopMountainOutside.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/OlivineCity.asm, maps/SnowtopMountainOutside.asm; object definitions in maps/OlivineCity.asm, maps/SnowtopMountainOutside.asm; state changes in maps/OlivineCity.asm, maps/SnowtopMountainOutside.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Olivine’s boardwalk and lighthouse approach move and Snowtop’s distant windows use object graphics.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d3b7cd35fcafc0e52655bc59edc0876f826f0aee",
+        "Verified the two opposed sideways-stair cells, current lighthouse and port doors, Snowtop window objects, and four clock-specific terrain exports. The lighthouse callback has separate night/Jasmine checks and the Snowtop tiny-window artwork has dusk and night pixel verification."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/OlivineCity.asm, maps/SnowtopMountainOutside.asm; object definitions in maps/OlivineCity.asm, maps/SnowtopMountainOutside.asm; state changes in maps/OlivineCity.asm, maps/SnowtopMountainOutside.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "b972444a7080b30c16a341c6a45a10170935b04e",
@@ -51289,11 +51346,15 @@
           "utils/unused_blocks.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/CeladonCity.asm and other files; tile animation in data/tileset_anims.asm; object definitions in maps/AzaleaTown.asm, maps/CeladonCity.asm and other files; state changes in maps/VermilionCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "New gym roofs change regional tilesets, entrances, surrounding objects and Route 16/17 geometry.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4e56db40e33a3f975e95868a649a3df1cb4c77e5",
+        "Checked all surviving affected map layouts in the four-clock comparison, map-group roof sources across all 42 groups, city gym warps and the later Battle Factory doorway. The earlier Route 16/17 gate and seam checks cover the accompanying regional split."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/CeladonCity.asm and other files; tile animation in data/tileset_anims.asm; object definitions in maps/AzaleaTown.asm, maps/CeladonCity.asm and other files; state changes in maps/VermilionCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "df8edceb3592517afeccaeed4fc09adef8f3cedc",
@@ -55386,11 +55447,15 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/FarawayIsland.asm and other files; weather in data/maps/overcast_maps.asm; object definitions in maps/FarawayIsland.asm, maps/FarawayIslandNorth.asm and other files; state changes in maps/FarawayIsland.asm, maps/FarawayIslandSouth.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Faraway Island is split into a coast, northern island and jungle. The ferry landing and Lawrence depend on map scripts.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a54b7a73f73178874e260857e60b3cc0b52fb53c",
+        "Matched the four jungle passage cells, the ferry landing at (12,12), both island water tracks over 80 frames, and all four Lawrence milestone combinations. Compared the three endpoint maps in all clock views."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/FarawayIsland.asm and other files; weather in data/maps/overcast_maps.asm; object definitions in maps/FarawayIsland.asm, maps/FarawayIslandNorth.asm and other files; state changes in maps/FarawayIsland.asm, maps/FarawayIslandSouth.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "35237ed237a997984455dd3b9eea1ffc320a4a8a",
@@ -55614,11 +55679,15 @@
           "maps/VermilionCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/FarawayIslandNorth.asm, maps/FarawayIslandSouth.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Faraway rocks, museum exhibits and Vermilion decorations use object graphics to add colors over the background.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9dfe883040fedbc9681339000015335483d8a93c",
+        "Matched the positions, palette and facing movement for seven Faraway rocks. Cross-checked the surviving pearl sheet at Goldenrod Museum and the already verified Vermilion arch-tree, large decoration and background-copy palette consumers."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/FarawayIslandNorth.asm, maps/FarawayIslandSouth.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "5234357c1a80212be960575d261f82dcafb36469",
@@ -56354,11 +56423,15 @@
           "maps/UragaChannelWest.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Partial source inspection and adaptation: SPRITE_AQUARIUM_MON resolves species/form, uses ordinary NPC palette overrides and the icon renderer. All 15 current objects resolve; fish and volcano Moltres source samples inspected. Complete commit review, source animation fidelity and full-world placement validation remain pending. Fuchsia is currently omitted by neighborhood connection traversal. Follow-up: dual-connection traversal now restores Fuchsia. Browser verification covers aquarium 1F entry, visible fish at day/night and exit to Fuchsia without console errors. Other floors, all animation phases and full commit review remain pending. Batched changed-line scan (follow-up leads only): object and terrain priority in constants/map_object_constants.asm, data/sprites/map_objects.asm; tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm; connectivity in maps/FuchsiaAquarium1F.asm, maps/FuchsiaAquarium2F.asm and other files; object definitions in maps/FuchsiaAquarium1F.asm, maps/FuchsiaAquarium2F.asm and other files; state changes in maps/FuchsiaAquarium1F.asm, maps/FuchsiaAquarium2F.asm. Both aquarium floors now apply their shared weekday callback in generated object metadata. All 15 aquarium-sprite uses, including volcano Moltres, were checked by matching both frames against source PNG pixels and the requested NPC palettes. Broader zoo, sign, object placement and movement review remains open."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Fuchsia’s zoo and two aquarium floors include timed species/forms, a swimming Lapras, and weekday-dependent tank occupants.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6fb81b37aacfbb71d873342814baefb609b204ce",
+        "Checked all four clock-exclusive Tauros and their forms, the Lapras swim movement and range, both city entrances, stairs and both aquarium floors. The 14 tank sprites and the shared volcano consumer have two-frame source pixel checks, NPC palette checks and weekday visibility checks. Zoo signs invoke seen-species and text operations."
+      ],
+      "triage_note": "Partial source inspection and adaptation: SPRITE_AQUARIUM_MON resolves species/form, uses ordinary NPC palette overrides and the icon renderer. All 15 current objects resolve; fish and volcano Moltres source samples inspected. Complete commit review, source animation fidelity and full-world placement validation remain pending. Fuchsia is currently omitted by neighborhood connection traversal. Follow-up: dual-connection traversal now restores Fuchsia. Browser verification covers aquarium 1F entry, visible fish at day/night and exit to Fuchsia without console errors. Other floors, all animation phases and full commit review remain pending. Batched changed-line scan (follow-up leads only): object and terrain priority in constants/map_object_constants.asm, data/sprites/map_objects.asm; tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm; connectivity in maps/FuchsiaAquarium1F.asm, maps/FuchsiaAquarium2F.asm and other files; object definitions in maps/FuchsiaAquarium1F.asm, maps/FuchsiaAquarium2F.asm and other files; state changes in maps/FuchsiaAquarium1F.asm, maps/FuchsiaAquarium2F.asm. Both aquarium floors now apply their shared weekday callback in generated object metadata. All 15 aquarium-sprite uses, including volcano Moltres, were checked by matching both frames against source PNG pixels and the requested NPC palettes. Broader zoo, sign, object placement and movement review remains open.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "915f3fb6d8545caffe9f473572137303844381e2",
@@ -57745,7 +57818,8 @@
         "Full patch read in two bounded groups covering all ten files.",
         "scripts/tests/test_palette_swaps.py covers ordering, NULL, all eight time/weather variants and list length limits.",
         "web/atlas/src/lib/paletteSwaps.test.ts covers moving object palette region selection.",
-        "Open: full generated-site visual checks and palette animation interaction."
+        "Open: full generated-site visual checks and palette animation interaction.",
+        "Route 10 North storm: captured 296,960 opaque map pixels in each of six fade states at day and night. Every observed channel matched the RGB5 fade from white, including restoration of the original bytes. This isolates the lightning fade; crossing between weather systems remains a separate check."
       ]
     },
     {
@@ -57984,7 +58058,8 @@
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/e035debe8474b09ec8df1700b8922bbe27a6a36c",
         "Read all five changed files in two bounded patch calls. Focused frontend tests cover saturation, fades, shared NPC fade clock, cache identity and COPY_BG composition. Browser inspected 25 actual sprite samples each at day and night. Open: full-map movement, weather and dual-palette interaction.",
-        "Observed the real RuggedRoadNorth Firebreather walking into and out of a DAY_GLOW collision in the browser at day and night. Compared settled and transitional colors to the pinned red sprite palette and RGB5 fade arithmetic. Map/weather transition verification stays open."
+        "Observed the real RuggedRoadNorth Firebreather walking into and out of a DAY_GLOW collision in the browser at day and night. Compared settled and transitional colors to the pinned red sprite palette and RGB5 fade arithmetic. Map/weather transition verification stays open.",
+        "Route 10 North storm: captured 296,960 opaque map pixels in each of six fade states at day and night. Every observed channel matched the RGB5 fade from white, including restoration of the original bytes. This isolates the lightning fade; crossing between weather systems remains a separate check."
       ]
     },
     {
@@ -58011,11 +58086,15 @@
           "engine/overworld/warp_connection.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): weather in engine/gfx/fade.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The pinned no-fade list names the two connected Rugged Road maps. The Atlas keeps both map palettes active as the camera crosses their shared edge.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/930ef831113b5cdf3c3543eaf8887c7d6aafc5e6",
+        "Compared two 240-by-24-pixel strips in Chrome after panning north to south and back, by day and night. The two rasters met with zero gap or horizontal offset. 69,113 of 69,120 framebuffer pixels matched the underlying map PNGs. Seven pixels differed in the last capture, outside the general terrain comparison."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in engine/gfx/fade.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "b67dd9fdfa10188616e9c0fd5940d43aff328bc6",
@@ -59473,11 +59552,15 @@
           "maps/CeladonMansionRoof_overcast.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeladonDeptStore5F.asm, maps/CeladonDeptStore6F.asm and other files; object definitions in maps/CeladonDeptStore6F.asm, maps/CeladonDeptStoreRoof.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The department store rooftop replaces 6F and is reached by the stairs on 5F.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d29786275e90f9ee8ba3f06731a0ba1dea64e7b8",
+        "Matched both ends of the 5F stairs, all four rooftop NPCs, all five floor entrances to the elevator, and removal of 6F. The source elevator menu now lists five floors. The Atlas displays its declared warps."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeladonDeptStore5F.asm, maps/CeladonDeptStore6F.asm and other files; object definitions in maps/CeladonDeptStore6F.asm, maps/CeladonDeptStoreRoof.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "c8e48f462120bbfcdfbd92f3e53457f17352b0d4",
@@ -59531,11 +59614,15 @@
           "maps/CeladonMansionRoof_overcast.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeladonDeptStoreRoof.asm, maps/CeladonMansionRoof.asm; object definitions in maps/CeladonDeptStoreRoof.asm, maps/CeladonMansionRoof.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The two Celadon rooftop layouts expand to include the ground below.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c8e48f462120bbfcdfbd92f3e53457f17352b0d4",
+        "Compared the terrain and collision of the 13-by-6 and 9-by-7 layouts at four times, the three mansion exits and the fisher. Both normal and overcast rooftop color tables have independent RGB source checks."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeladonDeptStoreRoof.asm, maps/CeladonMansionRoof.asm; object definitions in maps/CeladonDeptStoreRoof.asm, maps/CeladonMansionRoof.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "84a863bdfa62e185d5eeef198fecc146ba4d78fa",
@@ -60049,11 +60136,15 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
+      "status": "reviewed",
       "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/RuinsOfAlphResearchCenter.asm; object definitions in maps/RuinsOfAlphResearchCenter.asm; state changes in maps/RuinsOfAlphResearchCenter.asm."
+      "reason": "The fossil scientist and both Research Center exits are present. The Get Unown Dex entry scene moves scientist 3 to (5,7) before the player enters. Verify the scene-specific placement and downstream movement. Fossil restoration dialogue and party selection do not change the atlas map.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/329217e409455ee224fbc4ba01de249ad83abdfa",
+        "The fossil scientist and both Research Center exits are present. The Get Unown Dex entry scene moves scientist 3 to (5,7) before the player enters. Verify the scene-specific placement and downstream movement. Fossil restoration dialogue and party selection do not change the atlas map."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/RuinsOfAlphResearchCenter.asm; object definitions in maps/RuinsOfAlphResearchCenter.asm; state changes in maps/RuinsOfAlphResearchCenter.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "2c5059220706d2cd10878a68a16684a7b0c19615",
@@ -61267,11 +61358,15 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
+      "status": "reviewed",
       "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 18 changed paths. Inspect palette, weather and map transition code under a scripted map change, including cooldown behavior."
+      "reason": "Most changes optimize ROM tile streaming and memory transfers. The weather sprite limiter changes visible behavior: reverse OAM priority, a ten-sprite ceiling per scanline and rollback when a candidate would overflow. Compare the Atlas weather particle limiter against those cases.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3b3e2af94a055d07a6c728c7f810c495ba754428",
+        "Most changes optimize ROM tile streaming and memory transfers. The weather sprite limiter changes visible behavior: reverse OAM priority, a ten-sprite ceiling per scanline and rollback when a candidate would overflow. Compare the Atlas weather particle limiter against those cases."
+      ],
+      "triage_note": "Batch screen of 18 changed paths. Inspect palette, weather and map transition code under a scripted map change, including cooldown behavior.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "24cdf5fdf3202fb60120307c99ae622fbab30498",
@@ -61323,11 +61418,15 @@
           "engine/overworld/movement.asm"
         ]
       ],
-      "status": "pending",
+      "status": "reviewed",
       "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): weather in engine/gfx/dynamic_pals.asm."
+      "reason": "The ROM reserves the weather palette while precipitation clears, and skips invisible or offscreen actors. The Atlas gives particles and NPCs separate textures. Verify that hidden and newly visible actors retain their own colors when the precipitation kind changes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7ade18b7689b25241d12ac823d4a90328de368e6",
+        "The ROM reserves the weather palette while precipitation clears, and skips invisible or offscreen actors. The Atlas gives particles and NPCs separate textures. Verify that hidden and newly visible actors retain their own colors when the precipitation kind changes."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in engine/gfx/dynamic_pals.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "90d40be19d82922fd02a47b04a45898cf8dde2e5",
@@ -61782,12 +61881,13 @@
       ],
       "status": "reviewed",
       "disposition": "adaptation",
-      "reason": "Moves daily Trainer House opponent selection into clock-reset handling and updates the callback loading its variable trainer sprite. Retain open to establish and validate the atlas representative daily-opponent sprite policy; no ROM clock-reset crash simulation is needed.",
+      "reason": "The Trainer House B1F callback replaces the literal Mom sprite at (6,11) with a saved daily trainer, constrained for two rare opponents. The generated object still names Mom. Select a valid representative opponent for the Atlas snapshot and verify its trainer sprite and palette.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/9e59a67ed797473a0fd0517a6b5c325ac36830c2",
-        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason.",
+        "The Trainer House B1F callback replaces the literal Mom sprite at (6,11) with a saved daily trainer, constrained for two rare opponents. The generated object still names Mom. Select a valid representative opponent for the Atlas snapshot and verify its trainer sprite and palette."
       ],
-      "review_method": "full-diff"
+      "review_method": "diff-hunks"
     },
     {
       "sha": "31c123342f0a97aa8e7624659ad842386e27beb6",
@@ -63098,11 +63198,16 @@
           "engine/overworld/weather.asm"
         ]
       ],
-      "status": "pending",
+      "status": "reviewed",
       "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 4 changed paths. Inspect palette, weather and map transition code under a scripted map change, including cooldown behavior."
+      "reason": "During a weather cooldown the game draws remaining particles with their previous graphics and colors. The Atlas currently clears a replaced layer immediately. The Route 10 North lightning-fade check is complete; the former-weather particle lifetime and colors still need a transition decision or adaptation.",
+      "evidence": [
+        "Route 10 North storm: captured 296,960 opaque map pixels in each of six fade states at day and night. Every observed channel matched the RGB5 fade from white, including restoration of the original bytes. This isolates the lightning fade; crossing between weather systems remains a separate check.",
+        "https://github.com/Rangi42/polishedcrystal/commit/65ee5c1489434c7432500e29b52a7121965f7ea5",
+        "During a weather cooldown the game draws remaining particles with their previous graphics and colors. The Atlas currently clears a replaced layer immediately. The Route 10 North lightning-fade check is complete; the former-weather particle lifetime and colors still need a transition decision or adaptation."
+      ],
+      "triage_note": "Batch screen of 4 changed paths. Inspect palette, weather and map transition code under a scripted map change, including cooldown behavior.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "c56337dafbef18e071a71636d327d9e06274b85d",
@@ -63439,11 +63544,15 @@
           "utils/upgrade-music.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/MountMoonGiftShop.asm and other files; weather in data/maps/overcast_maps.asm, data/maps/palettes.asm; tile animation in data/tileset_anims.asm; object and terrain priority in engine/events/cable_car.asm; object definitions in maps/MountMoonSquare.asm, maps/MountMoonSquareCableCarGate.asm and other files; state changes in maps/MountMoonSquareCableCarGate.asm, maps/Route3CableCarGate.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Both cable car stations and the scripted arrival/departure movement replace the Route 3 Pokémon Center connection.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2165aad84539479dae51108567609ce77829c1a6",
+        "Checked the three cable car sprite sections, facings, two doors, and endpoint station maps at each end. Existing deferred scene tests trace the receptionist and passenger scripts after the cross-map warp. The moving mountainside interlude draws its own game screen outside the Atlas map and NPC layers."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/MountMoonGiftShop.asm and other files; weather in data/maps/overcast_maps.asm, data/maps/palettes.asm; tile animation in data/tileset_anims.asm; object and terrain priority in engine/events/cable_car.asm; object definitions in maps/MountMoonSquare.asm, maps/MountMoonSquareCableCarGate.asm and other files; state changes in maps/MountMoonSquareCableCarGate.asm, maps/Route3CableCarGate.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "68ee7ee4412c53811cf1c6b98f99604f2c634327",
@@ -66830,11 +66939,15 @@
           "maps/TinTowerRoof.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/EusinesHouse.asm, maps/TinTower1F.asm and other files."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Eusine follows permanent story milestones across Ho-Oh respawns.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/fa2095150153415a68b69fcd8c919936f1ab05b7",
+        "Exercised 32 combinations of milestone and respawn flags. Checked six departure scenarios against the pinned Celadon and Tin Tower scripts, including the three-beast condition. The browser showed Eusine at home and his spot in the tower vacant in the researching state."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/EusinesHouse.asm, maps/TinTower1F.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "ee1ec2994f211b144b35da1804b5721dd9159f54",

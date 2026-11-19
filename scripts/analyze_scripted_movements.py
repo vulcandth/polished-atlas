@@ -39,7 +39,7 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 import atlas_common
 from event_state import initial_flags
 from generate_object_metadata import MACRO_EXPANSIONS, gather_constants, split_arguments
-from object_schedule import ObjectSchedule
+from object_schedule import ObjectSchedule, caught_beasts, eusine_masks, eusine_state
 
 
 # ---------------------------- Constants ----------------------------
@@ -372,7 +372,7 @@ _SCRIPT_CMD_RE = re.compile(
     r"setmapscene|setscene|checkscene|sdefer|readvar|readmem|loadmem|(?:verbose)?giveitems?(?:_unsafe)?|verbosegiveitemvar|"
     r"opentext|closetext|showtext|"
     r"sjumpfwd|sjump|farsjump|memjump|jump|priorityjump|jumpstd|stopandsjump|"
-    r"scallfwd|scall|farscall|memcall|call|callasm|callstd|"
+    r"scallfwd|scall|farscall|memcall|call|callasm|callstd|special|"
     r"end|endall|reloadend|endcallback|endtext|done|"
     r"newloadmap|reloadmap|reloadmapafterbattle|warpcheck|"
     r"if\w+"
@@ -972,7 +972,7 @@ def analyze_scripts(
     initial_events = (initial_events - forced_clear) | forced_set
     constants = None
 
-    def entry_state(path: Path, flags: set[str]) -> ParsedMapScript:
+    def entry_state(path: Path, flags: set[str], writes: Dict[str, int]) -> ParsedMapScript:
         nonlocal constants
         parsed = parse_map_script(path)
         for spawn in parsed.object_spawns.values():
@@ -986,11 +986,20 @@ def analyze_scripts(
                     spawn.x, spawn.y = map(int, args)
                 elif command in ("appear", "disappear"):
                     parsed.object_spawns[name].visible = command == "appear"
+                elif command in ("setevent", "clearevent"):
+                    hidden = command == "setevent"
+                    writes[name] = int(hidden)
+                    for spawn in parsed.object_spawns.values():
+                        if spawn.hide_event == name:
+                            spawn.visible = not hidden
             for spawn in parsed.object_spawns.values():
                 if spawn.hide_event in forced_set:
                     spawn.visible = False
                 elif spawn.hide_event in forced_clear:
                     spawn.visible = True
+            for flag in writes:
+                if flag in forced_set or flag in forced_clear:
+                    writes[flag] = int(flag in forced_set)
             # The known entry script has already run. Replaying a flattened
             # copy here would combine positions from mutually exclusive days.
             parsed.callbacks = [cb for cb in parsed.callbacks if cb.label != parsed.schedule.entry]
@@ -1022,6 +1031,7 @@ def analyze_scripts(
     def scan_map(asm_path: Path, arrival: Optional[Tuple[int, int]] = None,
                  inherited_events: Optional[Dict[str, int]] = None,
                  selected_scene: Optional[str] = None, previous_warp: Optional[int] = None) -> None:
+        nonlocal constants
         on_arrival = arrival is not None
         first_issue = len(issues)
         flags = set(initial_events)
@@ -1039,7 +1049,8 @@ def analyze_scripts(
         is_overworld = warp_meta.is_overworld
         if not on_arrival and ((scope == "overworld" and not is_overworld) or (scope == "indoor" and is_overworld)):
             return
-        parsed = entry_state(asm_path, flags)
+        entry_writes: Dict[str, int] = {}
+        parsed = entry_state(asm_path, flags, entry_writes)
         map_constant = warp_maps.get(map_label, {}).get("map_constant")
         scene_variable = scene_variables.get(map_constant)
         local_names = {obj.index: name for name, obj in parsed.object_spawns.items()}
@@ -1174,6 +1185,7 @@ def analyze_scripts(
                 _ev_set(ev_state, ev, EV_FALSE)
 
             ev_state.update(inherited_events or {})
+            ev_state.update(entry_writes)
 
             # Visibility snapshot seeded from base, but will be updated by events during traversal
             base_vis: Dict[str, bool] = dict(base_visible_by_name)
@@ -1359,12 +1371,24 @@ def analyze_scripts(
                     continue
 
                 # Variable ops
-                if op in ("callasm", "checkscene", "readmem"):
+                if op in ("callasm", "checkscene", "readmem", "special"):
                     value = None
                     if op == "checkscene" or (op == "readmem" and args and args[0] == scene_variable):
                         value = scene_id(ctx.scene_writes.get(_norm_label_key(map_label), current_scene))
                     elif op == "callasm" and args and args[0] in parsed.previous_warp_checks and origin_index is not None:
                         value = (origin_index - parsed.previous_warp_checks[args[0]]) & 255
+                    elif op == "special" and args and args[0] in {"SpecialBeastsCheck", "UpdateEusineVisibility"}:
+                        active = {flag for flag, state in ctx.ev.items() if state == EV_TRUE}
+                        if args[0] == "SpecialBeastsCheck":
+                            value = int(caught_beasts(active))
+                        else:
+                            state = eusine_state(active)
+                            if constants is None:
+                                constants = gather_constants(polished_path)
+                            value = constants.get(state)
+                            # The mask affects subsequent entries. An actor already
+                            # on screen stays until the script calls disappear.
+                            ctx.ev.update({flag: int(hidden) for flag, hidden in eusine_masks(state).items()})
                     ctx.variable_result = value
                     ctx.last_check = None if value is None else int(bool(value))
                     ctx.pc += 1
@@ -1451,6 +1475,10 @@ def analyze_scripts(
                     if target and op.startswith(("ifequal", "ifnotequal")) and ctx.variable_result is not None:
                         comparison = args[0]
                         value = {"DOWN": 0, "UP": 1, "LEFT": 2, "RIGHT": 3}.get(comparison, _numeric(comparison))
+                        if value is None and (polished_path / "constants/script_constants.asm").is_file():
+                            if constants is None:
+                                constants = gather_constants(polished_path)
+                            value = constants.get(comparison)
                         if value is not None:
                             if (value == ctx.variable_result) == op.startswith("ifequal"):
                                 ctx.label, ctx.pc = target, 0

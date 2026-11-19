@@ -1,7 +1,7 @@
 import type { ObjectGlowMetadata, RgbTuple } from "@/types";
 
 export const NO_GLOW = "OBJ_GLOW_NONE";
-const GAME_FRAME_MS = 1000 * 70224 / 4194304;
+export const GAME_FRAME_MS = 1000 * 70224 / 4194304;
 
 // Terrain uses n * 8; object metadata uses round(n * 255 / 31). Both retain
 // the original CGB channel in their high five bits.

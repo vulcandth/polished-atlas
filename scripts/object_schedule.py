@@ -11,6 +11,28 @@ if TYPE_CHECKING:
     from generate_object_metadata import ASMConstantParser, ObjectEventEntry
 
 
+def eusine_state(flags: set[str]) -> str:
+    # GetEusineState checks permanent milestones before the Suicune encounter.
+    for flag, state in (
+        ("EVENT_EUSINE_HO_OH_FAREWELL", "EUSINE_TRAVELING"),
+        ("EVENT_EUSINE_HO_OH_ENCOUNTER", "EUSINE_FAREWELL_PENDING"),
+        ("EVENT_EUSINE_LEFT_CELADON", "EUSINE_LEFT_CELADON"),
+        ("EVENT_FOUGHT_SUICUNE", "EUSINE_RESEARCHING"),
+    ):
+        if flag in flags:
+            return state
+    return "EUSINE_SEARCHING"
+
+
+def eusine_masks(state: str) -> dict[str, bool]:
+    return {"EVENT_EUSINES_HOUSE_EUSINE": state != "EUSINE_RESEARCHING",
+            "EVENT_TIN_TOWER_1F_EUSINE": state != "EUSINE_FAREWELL_PENDING"}
+
+
+def caught_beasts(flags: set[str]) -> bool:
+    return {"ENGINE_PLAYER_CAUGHT_RAIKOU", "ENGINE_PLAYER_CAUGHT_ENTEI", "ENGINE_PLAYER_CAUGHT_SUICUNE"} <= flags
+
+
 @dataclass
 class ObjectSchedule:
     entry: str
@@ -74,6 +96,12 @@ class ObjectSchedule:
                     has_placements = True
                 elif op == "rematch" and body:
                     has_placements = True
+                elif op in {"setevent", "clearevent"} and rest.startswith("EVENT_"):
+                    has_placements = True
+                elif op == "special" and rest in {"UpdateEusineVisibility", "SpecialBeastsCheck"}:
+                    has_result = True
+                    if rest == "UpdateEusineVisibility":
+                        has_placements = True
                 elif op in {"checkflag", "checkevent", "checktime"} or (op == "readvar" and rest == "VAR_WEEKDAY"):
                     has_result = True
                 elif op != "variablesprite":
@@ -86,6 +114,7 @@ class ObjectSchedule:
         pos = self.labels[self.entry]
         visited = set()
         result = None
+        flags = flags.copy()
         while pos not in visited:
             visited.add(pos)
             line = self.lines[pos]
@@ -100,6 +129,23 @@ class ObjectSchedule:
                 result = weekday
             elif op in ("checkevent", "checkflag"):
                 result = int(rest in flags)
+            elif op == "special" and rest == "SpecialBeastsCheck":
+                result = caught_beasts(flags)
+            elif op == "special" and rest == "UpdateEusineVisibility":
+                state = eusine_state(flags)
+                result = _value(constants, state)
+                for flag, hidden in eusine_masks(state).items():
+                    if hidden:
+                        flags.add(flag)
+                    else:
+                        flags.discard(flag)
+                    yield ("setevent" if hidden else "clearevent"), [flag]
+            elif op in ("setevent", "clearevent"):
+                if op == "setevent":
+                    flags.add(rest)
+                else:
+                    flags.discard(rest)
+                yield op, args
             elif op == "checktime":
                 result = bool(_value(constants, rest) & (1 << _value(constants, time.upper())))
             elif op in ("ifequal", "ifequalfwd"):
@@ -139,6 +185,10 @@ def scheduled_objects(source: str, objects: list[ObjectEventEntry], constants: A
         for command, (name, *args) in schedule.commands(constants, flags, weekday, time):
             if command in ("appear", "disappear"):
                 named[name].event_flag_set = command == "disappear"
+            elif command in ("setevent", "clearevent"):
+                for obj in rows:
+                    if obj.event_flag == name:
+                        obj.event_flag_set = command == "setevent"
             elif command == "setmapobjectpal":
                 named[name].palette_value = _value(constants, args[0])
                 named[name].palette_constant = None

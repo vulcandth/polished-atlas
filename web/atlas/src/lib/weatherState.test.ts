@@ -15,15 +15,15 @@ describe("generated weather policy", () => {
     }
   });
   it("makes a single ten-percent blossom spawn attempt", () => {
-    expect(cherrySpawnPoint(160, 144, [{ x: 8, y: 8 }], sequence(0.1))).toBeNull();
+    expect(cherrySpawnPoint(160, 144, [{ x: 8, y: 8 }], sequence(25 / 256))).toBeNull();
   });
   it("chooses a leaf collision cell without inventing candidates", () => {
     const leaves = [{ x: 24, y: 40 }, { x: 88, y: 56 }];
-    expect(cherrySpawnPoint(160, 144, leaves, sequence(0.09, 0.3, 0.75))).toEqual(leaves[1]);
+    expect(cherrySpawnPoint(160, 144, leaves, sequence(24 / 256, 76 / 256, 0.75))).toEqual(leaves[1]);
     expect(cherrySpawnPoint(160, 144, [], sequence(0, 0.9))).toBeNull();
   });
   it("spawns edge petals from the top or right", () => {
-    expect(cherrySpawnPoint(160, 144, [], sequence(0, 0.29, 0.24, 0.5))).toEqual({ x: 168, y: 76 });
-    expect(cherrySpawnPoint(160, 144, [], sequence(0, 0, 0.25, 0))).toEqual({ x: 8, y: 0 });
+    expect(cherrySpawnPoint(160, 144, [], sequence(0, 0.29, 0.24, 0.5))).toEqual({ x: 164, y: 68 });
+    expect(cherrySpawnPoint(160, 144, [], sequence(0, 0, 0.25, 0))).toEqual({ x: 4, y: -12 });
   });
 });

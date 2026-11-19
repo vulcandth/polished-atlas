@@ -26,6 +26,10 @@ motion remain randomized. Weather palettes follow each map's effective palette t
 Map snapshots switch weather immediately rather than simulating the ROM's 32-frame
 gameplay transition cooldown. See the implementation tracker for validation status.
 
+Trainer House B1F shows Cal at the opponent's position. The game randomly
+selects and saves an eligible trainer each day. For a reproducible Atlas
+snapshot, Cal is the first unrestricted entry in the game's opponent table.
+
 Individual generators retain their `--help` interfaces. `POLISHED_DIR` and
 `ATLAS_MAPS_DIR` set their default source/output roots. Standalone scripts still
 default to `external/polishedcrystal` and `maps`. The normal production pipeline

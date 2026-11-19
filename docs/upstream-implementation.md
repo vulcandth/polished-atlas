@@ -15,12 +15,12 @@ There are 1,057 commits and 3,520 changed endpoint paths in the current range.
 ## Current audit status
 
 All 1,057 commits from v3.2.2 through `f8e67fbd` have had a relevance
-screen. The ledger resolves 1,043. All 14 open commits now have specific
+screen. The ledger resolves 1,048. All nine open commits have specific
 follow-up work recorded against their diffs. The list of known features is
 preliminary. Auditing the outstanding changes and validating them in the
 Atlas remain part of implementation.
 
-The latest batches closed 21 commits, including Celadon’s rooftops, Moomoo
+The previous batches closed 21 commits, including Celadon’s rooftops, Moomoo
 Farm’s day and night occupants, Faraway Island’s ferry landing, Fuchsia’s
 four timed Tauros, and the Rugged Road palette boundary. Of the 552 total commits classified
 as having no Atlas impact, 364 were skipped after examining their subject,
@@ -30,9 +30,14 @@ crash fix. Use the commit diffs to find unreleased master changes.
 | Open commit group | Remaining work |
 | --- | --- |
 | Palette swaps, NPC glow and weather | Verify map transitions for background-derived and dual NPC palettes and check weather sprite priority when more than ten tiles share a scanline. Atlas snapshots change weather immediately. The old particle layer was cleared in all four tested room transitions. |
-| Navel Rock and hidden grottoes | Represent the offset north/south self-connection. Choose one coherent grotto encounter state per entrance and resolve its sprite and palette. |
-| Variable NPCs and Pokémon | Replace the Trainer House’s placeholder sprite with an eligible daily opponent. Check the fourth player choice, daycare deposits and dolls against the snapshot. |
-| Ruins of Alph and map scripts | Check the redesigned chambers and entrances, the research scientist’s entry-scene position and the script commands that dispatch through tables or return after showing text. |
+| Hidden grottoes and variable Pokémon | Choose one coherent grotto encounter per entrance and verify its sprite and palette. Check daycare deposits and dolls against the snapshot. |
+| Ruins of Alph | Verify the redesigned chambers, the outside layout and entrances. |
+
+Chrome followed both Navel Rock border strips to their corresponding cells 11
+blocks across. The Trainer House displayed Cal in the red Chris sprite, and
+Cinnabar Lab hid all four player stand-ins before the cutscene. The movement
+tests followed the Ruins scientist into the research center and through the
+destination scene. All 20 pointers in the five map script tables resolved.
 
 The Route 10 North storm fade matched the game's RGB5 colors on 296,960
 opaque pixels at six fade steps in both day and night views. The two
@@ -51,9 +56,8 @@ callbacks and changed 15 maps in the default Monday export.
 The coast tileset review found that Olivine Lighthouse windows light up only
 at night after Jasmine returns. The renderer now checks both conditions.
 Other tileset changes reused the existing terrain and palette comparisons.
-Two findings still need dedicated checks. Navel Rock Inside connects to
-itself at the north and south edges, and hidden grottoes currently mark
-both the encounter and item visible at the same coordinates.
+The earlier tileset check also identified the Navel Rock self-connection
+and an encounter and item visible together in hidden grottoes.
 
 Four movement-engine refactors shared ROM routines or reordered internal step
 IDs. The Atlas reads the same named movement commands before and after those

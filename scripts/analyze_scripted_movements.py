@@ -126,6 +126,7 @@ class ParsedMapScript:
     previous_warp_checks: Dict[str, int]
     movement_blocks: Dict[str, MovementBlock]
     script_labels: Dict[str, ScriptLabel]
+    call_tables: Dict[str, List[str]]
     schedule: Optional[ObjectSchedule] = None
 
 
@@ -370,10 +371,11 @@ _SCRIPT_CMD_RE = re.compile(
     r"follow|stopfollow|follownotexact|setlasttalked|"
     r"setevent|clearevent|checkevent|setflag|clearflag|checkflag|yesorno|verticalmenu|"
     r"setmapscene|setscene|checkscene|sdefer|readvar|readmem|loadmem|(?:verbose)?giveitems?(?:_unsafe)?|verbosegiveitemvar|"
-    r"opentext|closetext|showtext|"
+    r"opentext|closetext|showtext|farjumptext|jumpstashedtext|jump(?:this)?(?:openedtext|text(?:faceplayer)?)|"
+    r"checkkeyitem|checkitem|checkpoke|setval|"
     r"sjumpfwd|sjump|farsjump|memjump|jump|priorityjump|jumpstd|stopandsjump|"
-    r"scallfwd|scall|farscall|memcall|call|callasm|callstd|special|"
-    r"end|endall|reloadend|endcallback|endtext|done|"
+    r"scallfwd|scalltable|scall|farscall|memcall|call|callasm|callstd|special|"
+    r"end|endall|reloadend|endcallback|endtext|waitendtext|done|"
     r"newloadmap|reloadmap|reloadmapafterbattle|warpcheck|"
     r"if\w+"
     r")\b(.*)"
@@ -382,7 +384,10 @@ _SCRIPT_CMD_RE = re.compile(
 
 _ITEM_OPERANDS = {"giveitem": 1, "giveitems": 2, "verbosegiveitem": 1,
                   "verbosegiveitems": 2, "verbosegiveitemvar": 2}
-_CONDITIONAL_TEXT_END = {"iffalse_endtext", "iftrue_endtext", "iffalse_jumpopenedtext", "iftrue_jumpopenedtext"}
+_CONDITIONAL_TEXT_END = {f"{condition}_{command}" for condition in ("iftrue", "iffalse")
+                         for command in ("endtext", "jumptext", "jumptextfaceplayer", "jumpopenedtext")}
+_TEXT_RETURNS = {"endtext", "waitendtext", "farjumptext", "jumpstashedtext", "jumptext", "jumpopenedtext",
+                 "jumptextfaceplayer", "jumpthistext", "jumpthisopenedtext", "jumpthistextfaceplayer"}
 
 
 def _script_commands(code: str, line_no: int) -> Iterable[ScriptCommand]:
@@ -437,6 +442,15 @@ def parse_map_script(path: Path) -> ParsedMapScript:
     callbacks = _parse_callbacks(lines)
     movement_blocks = _parse_movement_blocks(lines, _movement_commands(path.parent.parent / "macros/scripts/movement.asm"))
     script_labels = _parse_script_labels(lines)
+    call_tables: Dict[str, List[str]] = {cmd.args[0]: [] for script in script_labels.values()
+                                         for cmd in script.commands if cmd.opcode == "scalltable" and cmd.args}
+    if call_tables:
+        table = None
+        for line in lines:
+            if line.endswith(":"):
+                table = call_tables.get(line[:-1])
+            elif table is not None and line.startswith("dw "):
+                table.extend(arg.strip() for arg in line[3:].split(","))
     scenes = []
     for line in lines:
         if match := re.fullmatch(r"scene_script\s+([\w.]+)(?:,\s*(\w+))?", line):
@@ -462,6 +476,7 @@ def parse_map_script(path: Path) -> ParsedMapScript:
         previous_warp_checks=previous_warp_checks,
         movement_blocks=movement_blocks,
         script_labels=script_labels,
+        call_tables=call_tables,
         schedule=schedule,
     )
 
@@ -1078,10 +1093,12 @@ def analyze_scripts(
             dm = tgt.get("map_label")
             dx = tgt.get("x_cells")
             dy = tgt.get("y_cells")
-            if sx is None or sy is None or dm is None or dx is None or dy is None:
+            if sx is None or sy is None:
+                continue
+            warp_indices[(int(sx), int(sy))] = w.get("index")
+            if dm is None or dx is None or dy is None:
                 continue
             warp_sources_index[(int(sx), int(sy))] = (str(dm), (int(dx), int(dy)))
-            warp_indices[(int(sx), int(sy))] = w.get("index")
 
         # optional debug header per map
         if debug:
@@ -1209,6 +1226,7 @@ def analyze_scripts(
                 variable_result: Optional[float] = None
                 scene_writes: Dict[str, str] = field(default_factory=dict)
                 deferred: Optional[str] = None
+                moved_player: bool = False
 
             def static_npcs_snapshot_local(visible: Dict[str, bool], temp_pos: Dict[str, Tuple[int, int]], exclude: Optional[str] = None) -> List[Tuple[int, int]]:
                 out_list: List[Tuple[int, int]] = []
@@ -1251,6 +1269,11 @@ def analyze_scripts(
                     state.label, state.pc = state.deferred, 0
                     state.deferred = None
                 else:
+                    if state.moved_player:
+                        for cell in state.player_cells:
+                            if cell in warp_sources_index:
+                                target, destination = warp_sources_index[cell]
+                                follow_arrival(target, destination, state.ev, state.scene_writes, warp_indices[cell])
                     return
                 work.append(state)
 
@@ -1286,7 +1309,29 @@ def analyze_scripts(
 
                 # Control-flow: mid-script warp terminates this path on current map
                 # Cross-map ops terminate this path; reloadmap/reloadmapafterbattle continue without reporting
-                if op in {"warp", "warpfacing", "newloadmap", "warpcheck"}:
+                if op == "warpcheck":
+                    # GetDestinationWarpNumber checks the current player cell.
+                    # State writes between the last movement and this command
+                    # are visible to the destination's object callback and scene.
+                    staying = []
+                    for cell in ctx.player_cells:
+                        if cell not in warp_indices:
+                            staying.append(cell)
+                            continue
+                        target, destination = warp_sources_index.get(cell, (None, None))
+                        if target and destination:
+                            follow_arrival(target, destination, ctx.ev, ctx.scene_writes, warp_indices[cell])
+                        issues.append(AuditIssue(
+                            map_label, str(asm_path.relative_to(atlas_common.ROOT_DIR)), "cross-map", "info",
+                            {"script_label": start_label, "line": cmd.line_no, "op": op, "trigger": trig_kind,
+                             "dest_map": target, "dest_xy": list(destination) if destination else None},
+                        ))
+                    if staying:
+                        ctx.player_cells = staying
+                        ctx.pc += 1
+                        work.append(ctx)
+                    continue
+                if op in {"warp", "warpfacing", "newloadmap"}:
                     dest_map: Optional[str] = None
                     dest_xy: Optional[Tuple[int, int]] = None
                     if op == "warp" and len(args) >= 3:
@@ -1309,8 +1354,8 @@ def analyze_scripts(
                             dest_xy = (int(dx), int(dy))
                     # Severity rules:
                     # - warp/warpfacing: info when destination map resolves; warn when it doesn't
-                    # - newloadmap/warpcheck: informational breadcrumb only
-                    if op in {"newloadmap", "warpcheck"}:
+                    # - newloadmap: informational breadcrumb only
+                    if op == "newloadmap":
                         severity = "info"
                     else:
                         severity = ("warn" if (dest_map is None) else "info")
@@ -1352,6 +1397,22 @@ def analyze_scripts(
                     ctx.deferred = args[0]
 
                 # Calls and jumps
+                if op == "scalltable" and args:
+                    targets = parsed.call_tables.get(args[0], [])
+                    # The game uses hScriptVar as the pointer index. Unknown
+                    # facing or player identity can select any valid row.
+                    for index, target in enumerate(targets):
+                        if ctx.variable_result is not None and ctx.variable_result != index:
+                            continue
+                        if target not in parsed.script_labels:
+                            continue
+                        branch = deepcopy(ctx)
+                        branch.ret.append((ctx.label, ctx.pc + 1))
+                        branch.label, branch.pc = target, 0
+                        branch.variable_result = index
+                        branch.last_check = int(bool(index))
+                        work.append(branch)
+                    continue
                 if op in {"sjump", "sjumpfwd", "farsjump", "memjump", "jump", "priorityjump", "jumpstd", "stopandsjump"} and args:
                     tgt = args[0]
                     if tgt in parsed.script_labels:
@@ -1366,14 +1427,16 @@ def analyze_scripts(
                         ctx.label, ctx.pc = tgt, 0
                         work.append(ctx)
                     continue
-                if op in {"end", "endall", "reloadend", "endcallback", "endtext", "done"}:
+                if op in _TEXT_RETURNS or op in {"end", "endall", "reloadend", "endcallback", "done"}:
                     finish_script(ctx, end_all=op == "endall")
                     continue
 
                 # Variable ops
-                if op in ("callasm", "checkscene", "readmem", "special"):
+                if op in ("callasm", "checkscene", "readmem", "special", "setval", "checkkeyitem", "checkitem", "checkpoke"):
                     value = None
-                    if op == "checkscene" or (op == "readmem" and args and args[0] == scene_variable):
+                    if op == "setval" and args:
+                        value = _numeric(args[0])
+                    elif op == "checkscene" or (op == "readmem" and args and args[0] == scene_variable):
                         value = scene_id(ctx.scene_writes.get(_norm_label_key(map_label), current_scene))
                     elif op == "callasm" and args and args[0] in parsed.previous_warp_checks and origin_index is not None:
                         value = (origin_index - parsed.previous_warp_checks[args[0]]) & 255
@@ -1416,6 +1479,8 @@ def analyze_scripts(
                         value = None
                         if var in ("VAR_XCOORD", "VAR_YCOORD"):
                             value = cell[0 if var == "VAR_XCOORD" else 1]
+                        elif var == "VAR_WEEKDAY":
+                            value = weekday
                         elif var == "VAR_FACING" and trig_kind == "talk" and npc:
                             value = facings.get((npc[0] - cell[0], npc[1] - cell[1]))
                         groups.setdefault(value, []).append(cell)
@@ -1703,14 +1768,10 @@ def analyze_scripts(
                                                 },
                                             )
                                         )
-                                        follow_arrival(d_map, (dx, dy), ctx.ev, ctx.scene_writes,
-                                                       warp_indices.get(step_xy))
-                                        # terminate this path on this map after warp
-                                        break
                                     follower_cell = prev
                                     prev = step_xy
-                                else:
-                                    landing_cells.append(path[-1])
+                                landing_cells.append(path[-1])
+                                ctx.moved_player = True
                             if not landing_cells:
                                 continue
                             ctx.player_cells = landing_cells
@@ -1724,6 +1785,8 @@ def analyze_scripts(
                             start_xy = ctx.temp_pos.get(obj) or object_pos.get(obj)
                             if start_xy is not None:
                                 path = _simulate_apply_movement(tokens, start_xy)
+                                escorts_player = ctx.follows.get("PLAYER") == obj
+                                player_landings = []
                                 for pstart in (ctx.player_cells or [(0, 0)]):
                                     collided = follower_collision_during_path(pstart, path, warp_meta)
                                     if collided:
@@ -1744,7 +1807,15 @@ def analyze_scripts(
                                                 },
                                             )
                                         )
+                                    leader_cell = start_xy
                                     for step_xy in path:
+                                        if escorts_player and step_xy != leader_cell:
+                                            if ctx.follow_in_sync:
+                                                pstart = (pstart[0] + step_xy[0] - leader_cell[0],
+                                                          pstart[1] + step_xy[1] - leader_cell[1])
+                                            else:
+                                                pstart = leader_cell
+                                        leader_cell = step_xy
                                         _tmp_issues = count_sprite_usage(
                                                 map_label,
                                                 player_cell=pstart,
@@ -1770,6 +1841,10 @@ def analyze_scripts(
                                         for _it in _tmp_issues:
                                             _it.file = str(asm_path.relative_to(atlas_common.ROOT_DIR))
                                         issues.extend(_tmp_issues)
+                                    player_landings.append(pstart)
+                                if escorts_player and path:
+                                    ctx.player_cells = list(dict.fromkeys(player_landings))
+                                    ctx.moved_player = True
                                 if path:
                                     ctx.temp_pos[obj] = path[-1]
                     ctx.pc += 1

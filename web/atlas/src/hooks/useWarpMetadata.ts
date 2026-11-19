@@ -133,6 +133,7 @@ function normaliseMapEntry(label: string, dto: MapMetadataDTO | undefined): MapM
     heightBlocks: toNumberOrNull(dto?.height_blocks),
     isOverworld: toBoolean(dto?.is_overworld, false),
     warps,
+    selfConnections: dto?.self_connections,
     collision: normaliseCollision(dto?.collision ?? null),
   };
 }

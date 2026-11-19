@@ -1617,6 +1617,20 @@ def object_macro_appearance(root: Path) -> Dict[str, Dict[int, str]]:
     return result
 
 
+def representative_trainer_house_sprite(root: Path) -> str:
+    # The game stores a random eligible opponent for the day. A snapshot
+    # uses the first unrestricted opponent in the game's table (currently Cal).
+    opponents = (root / "data/events/trainer_house_opponents.asm").read_text(encoding="utf-8")
+    candidates = re.findall(r"^\s*db\s+(\w+),\s*(\w+)", opponents, re.M)
+    selected = next(trainer for trainer, member in candidates if member not in {"EN", "MADOKA"})
+    trainers = (root / "constants/trainer_constants.asm").read_text(encoding="utf-8")
+    classes = re.findall(r"^\s*trainerclass\s+(\w+)", trainers, re.M)
+    sprites = (root / "data/trainers/sprites.asm").read_text(encoding="utf-8")
+    rows = re.findall(r"^\s*db\s+(SPRITE_\w+)", sprites, re.M)
+    # BTTrainerClassSprites omits class zero (TRAINER_NONE).
+    return rows[classes.index(selected) - 1]
+
+
 def parse_map_objects(
     root: Path,
     constants: ASMConstantParser,
@@ -1716,6 +1730,8 @@ def parse_map_objects(
             map_objects.append(entry)
         if not map_objects:
             continue
+        if label == "TrainerHouseB1F" and "LoadTrainerSpriteAsMapObject1" in source:
+            map_objects[0].resolved_sprite = representative_trainer_house_sprite(root)
         data = MapObjectData(
             label=label,
             map_constant=map_info.constant if map_info else None,

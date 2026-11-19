@@ -85,6 +85,71 @@ class SceneTests(unittest.TestCase):
         if not configured and not cls.source.is_dir():
             raise unittest.SkipTest("Optional upstream checkout unavailable")
 
+    def test_table_call_returns_after_inline_text_and_preserves_caller(self):
+        source = """
+Header:
+    def_coord_events
+    coord_event 1, 1, 0, Start
+    def_bg_events
+Start:
+    {value}
+    scalltable .Table
+    checkevent EVENT_SECOND
+    iftruefwd .Second
+    warp Room, 1, 4
+.Second:
+    warp Room, 2, 4
+.Table:
+    dw .First, .Next
+.First:
+    clearevent EVENT_SECOND
+    jumpthisopenedtext
+.Next:
+    setevent EVENT_SECOND
+    checkevent EVENT_SECOND
+    iftrue_jumptextfaceplayer OutsideText
+    warp Room, 99, 99
+"""
+        with tempfile.TemporaryDirectory() as temp, patch.object(movement.atlas_common, "ROOT_DIR", Path(temp)):
+            root = Path(temp)
+            (root / "maps").mkdir()
+            meta = root / "meta.json"
+            meta.write_text(json.dumps({"maps": {"Room": {}}}))
+            for value, expected in [("setval 0", [1]), ("readvar VAR_WEEKDAY", [2]),
+                                    ("readvar VAR_PLAYERGENDER", [1, 2])]:
+                with self.subTest(value=value):
+                    (root / "maps/Room.asm").write_text(source.format(value=value))
+                    issues = movement.analyze_scripts(root, meta, meta, weekday=1)
+                    self.assertCountEqual([i.details["dest_xy"] for i in issues], [[x, 4] for x in expected])
+
+    def test_scientist_escorts_player_through_door_before_research_center_scene(self):
+        with tempfile.TemporaryDirectory() as temp, patch.object(movement.atlas_common, "ROOT_DIR", Path(temp)):
+            root = Path(temp)
+            (root / "maps").mkdir()
+            for name in ("RuinsOfAlphOutside", "RuinsOfAlphResearchCenter"):
+                (root / f"maps/{name}.asm").write_bytes((self.source / f"maps/{name}.asm").read_bytes())
+            macros = root / "macros/scripts"
+            macros.mkdir(parents=True)
+            (macros / "movement.asm").write_bytes((self.source / "macros/scripts/movement.asm").read_bytes())
+            meta = root / "meta.json"
+            door = {"index": 7, "x_cells": 23, "y_cells": 17, "target": {
+                "map_label": "RuinsOfAlphResearchCenter", "x_cells": 4, "y_cells": 7}}
+            meta.write_text(json.dumps({"maps": {
+                "RuinsOfAlphOutside": {"warps": [door]},
+                "RuinsOfAlphResearchCenter": {"map_constant": "RUINS_OF_ALPH_RESEARCH_CENTER"}}}))
+            steps = []
+            def observe(name, **args):
+                context = args["context"]
+                if context.get("phase") == "arrival" and context.get("move") == "RuinsOfAlphResearchCenterApproachesComputerMovement":
+                    steps.append((args["player_cell"], args["moving_npc_cell"]))
+                return []
+            with patch.object(movement, "count_sprite_usage", side_effect=observe):
+                issues = movement.analyze_scripts(root, meta, meta, map_filters=["RuinsOfAlphOutside"],
+                    label_filters=["RuinsOfAlphOutsideScientistScript"],
+                    assume_clear_events=["EVENT_RUINS_OF_ALPH_OUTSIDE_SCIENTIST"])
+            self.assertTrue(any(i.details.get("op") == "warpcheck" and i.details["dest_xy"] == [4, 7] for i in issues))
+            self.assertEqual(steps[:3], [((4, 7), (5, 6)), ((4, 7), (5, 5)), ((4, 7), (4, 5))])
+
     def test_only_the_front_shrine_entrance_starts_the_deferred_walk(self):
         with tempfile.TemporaryDirectory() as temp, patch.object(movement.atlas_common, "ROOT_DIR", Path(temp)):
             root = Path(temp)

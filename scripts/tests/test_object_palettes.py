@@ -145,6 +145,7 @@ class ObjectPaletteTests(unittest.TestCase):
                     self.assertTrue(headers[sprite["resolved_constant"]].tile_bytes)
                     self.assertEqual(sprite["id"], self.constants.get(sprite["constant"]))
         self.assertEqual(appearances, {
+            ("TrainerHouseB1F", "SPRITE_MOM"): "SPRITE_CHRIS",
             ("CopycatsHouse2F", "SPRITE_COPYCAT"): "SPRITE_LASS",
             ("FuchsiaPokeCenter1F", "SPRITE_JANINE_IMPERSONATOR"): "SPRITE_CUTE_GIRL",
             **{("FuchsiaGym", f"SPRITE_FUCHSIA_GYM_{i}"): "SPRITE_JANINE" for i in range(1, 5)},

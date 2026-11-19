@@ -7,6 +7,7 @@ import {
   FederatedPointerEvent,
   Assets,
   Graphics,
+  Rectangle,
   Sprite,
   Texture,
 } from "pixi.js";
@@ -18,6 +19,7 @@ import { createSpatialPaletteSelector, resolveEntranceVariant } from "@/lib/pale
 import {
   AtlasLayout,
   MapPlacement,
+  MapSelfConnection,
   MapWarp,
   ObjectMetadata,
   MapObjectMetadataEntry,
@@ -417,6 +419,8 @@ type OverlayState = {
   sprite: AnimatedSprite;
   resource: MapAnimationResource;
   background: Graphics;
+  connectionStrips: AnimatedSprite[];
+  connectionPadding: number;
   markers: WarpMarkerEntry[];
   highlight?: Graphics;
   baseWidth: number;
@@ -438,6 +442,40 @@ type OverlayState = {
   spriteIssueIndex?: number;
   spriteIssueHighlight?: Graphics;
 };
+
+function addConnectionStrip(parent: AnimatedSprite, connection: MapSelfConnection, blockSize: number,
+  resource: MapAnimationResource, select: (x: number, y: number) => void): AnimatedSprite | null {
+  const { width, height } = resource.textures[0];
+  // The game copies three rows or columns of blocks into the map border.
+  const border = 3 * blockSize;
+  const shift = connection.offset_blocks * blockSize;
+  const vertical = connection.direction === "north" || connection.direction === "south";
+  const dx = vertical ? shift : connection.direction === "west" ? -width : width;
+  const dy = vertical ? (connection.direction === "north" ? -height : height) : shift;
+  const left = Math.max(0, -border - dx);
+  const top = Math.max(0, -border - dy);
+  const right = Math.min(width, width + border - dx);
+  const bottom = Math.min(height, height + border - dy);
+  if (right <= left || bottom <= top) return null;
+
+  const strip = new AnimatedSprite(resource.textures, false);
+  strip.position.set(dx, dy);
+  strip.sortableChildren = true;
+  strip.hitArea = new Rectangle(left, top, right - left, bottom - top);
+  const mask = new Graphics().beginFill(0xffffff).drawRect(left, top, right - left, bottom - top).endFill();
+  mask.eventMode = "none";
+  strip.addChild(mask);
+  strip.mask = mask;
+  strip.eventMode = "static";
+  strip.cursor = "pointer";
+  strip.on("pointertap", (event) => {
+    event.stopPropagation();
+    const point = event.getLocalPosition(strip);
+    select(point.x, point.y);
+  });
+  parent.addChild(strip);
+  return strip;
+}
 
 function frameIndexForTime(elapsedMs: number, durations: number[], loopDuration: number): number {
   if (!durations.length || loopDuration <= 0) {
@@ -2207,8 +2245,8 @@ export default function MapCanvas({
     const availableWidth = Math.max(1, rendererWidth - padding * 2);
     const availableHeight = Math.max(1, rendererHeight - padding * 2);
 
-    const fitWidthScale = availableWidth / baseWidth;
-    const fitHeightScale = availableHeight / baseHeight;
+    const fitWidthScale = availableWidth / (baseWidth + 2 * state.connectionPadding);
+    const fitHeightScale = availableHeight / (baseHeight + 2 * state.connectionPadding);
     const rawFitScale = Math.min(fitWidthScale, fitHeightScale, MAX_SCALE);
     const fitScale = Math.max(MIN_SCALE, rawFitScale);
     const minScale = Math.min(fitScale, Math.max(MIN_SCALE, fitScale * 0.5));
@@ -2296,6 +2334,10 @@ export default function MapCanvas({
       state.spriteIssueHighlight = undefined;
     }
     state.objectMarkers = [];
+    for (const strip of state.connectionStrips) {
+      strip.mask = null;
+      strip.destroy({ children: true });
+    }
     for (const marker of state.markers) {
       marker.graphic.removeAllListeners();
       marker.graphic.destroy();
@@ -3167,6 +3209,16 @@ export default function MapCanvas({
         const frame = resource.textures[0];
         const baseWidth = frame?.width ?? sprite.width;
         const baseHeight = frame?.height ?? sprite.height;
+        const connectionBlockSize = mapMeta?.widthBlocks ? baseWidth / mapMeta.widthBlocks : 0;
+        const connectionStrips: AnimatedSprite[] = [];
+        for (const connection of mapMeta?.selfConnections ?? []) {
+          const strip = addConnectionStrip(sprite, connection, connectionBlockSize, resource, (x, y) => {
+            sprite.x = app.screen.width / 2 - x * sprite.scale.x;
+            sprite.y = app.screen.height / 2 - y * sprite.scale.y;
+            void openOverlay(mapLabel, { xCells: Math.floor(x / cellSize), yCells: Math.floor(y / cellSize) }, originMap);
+          });
+          if (strip) connectionStrips.push(strip);
+        }
 
         const keyHandler = (event: KeyboardEvent): void => {
           if (event.key === "Escape") {
@@ -3185,6 +3237,8 @@ export default function MapCanvas({
           sprite,
           resource,
           background,
+          connectionStrips,
+          connectionPadding: connectionStrips.length ? 3 * connectionBlockSize : 0,
           markers,
           highlight: highlightGraphic,
           baseWidth,
@@ -3211,6 +3265,10 @@ export default function MapCanvas({
           sprite.gotoAndStop(initialFrame);
         }
         resource.applyTiles?.(sprite, elapsed, !disableMapAnimations);
+        for (const strip of connectionStrips) {
+          strip.gotoAndStop(sprite.currentFrame);
+          resource.applyTiles?.(strip, elapsed, !disableMapAnimations);
+        }
         refreshOverlayObjects();
         const world = worldRef.current;
         if (world) {
@@ -4500,6 +4558,10 @@ export default function MapCanvas({
           }
         }
         overlayState.resource.applyTiles?.(overlayState.sprite, elapsed, !disableMapAnimations);
+        for (const strip of overlayState.connectionStrips) {
+          if (strip.currentFrame !== overlayState.sprite.currentFrame) strip.gotoAndStop(overlayState.sprite.currentFrame);
+          overlayState.resource.applyTiles?.(strip, elapsed, !disableMapAnimations);
+        }
         for (const marker of overlayState.objectMarkers) {
           if (disableObjectAnimations) {
             marker.animationElapsedMs = undefined;

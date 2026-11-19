@@ -15233,12 +15233,13 @@
           "maps/NavelRockInside.asm"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "Navel Rock Inside uses two offset self-connections in addition to its regular warp tiles. Verify that the interior view represents the north and south seam.",
+      "reason": "Navel Rock Inside displays reciprocal terrain strips for its two offset self-connections.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/ac45f457748561ce109ff01dd4955ad608b4899a",
-        "Checked the north +11 and south -11 source connections and the 14 ordinary warp records. A successful round trip through an ordinary warp does not verify the self-connection."
+        "Checked the north +11 and south -11 source connections and the 14 ordinary warp records. A successful round trip through an ordinary warp does not verify the self-connection.",
+        "Verified north +11 and south -11 blocks against the connection macro, including its three-block border. Chrome opened the 54-by-52-cell map, displayed both 608-by-96-pixel strips, and accepted actual pointer taps that highlighted (10,49) and (32,3) on the opposite edges. All 14 ordinary warp entries keep their original indices."
       ],
       "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/NavelRockInside.asm; object definitions in maps/NavelRockInside.asm.",
       "review_method": "diff-hunks"
@@ -28461,12 +28462,13 @@
           "maps/TrainerHouseB1F.asm"
         ]
       ],
-      "status": "reviewed",
-      "disposition": null,
-      "reason": "The beta player appears as an ending-sequence actor at Navel Rock, a Copycat disguise and trainer Euna. Verified the Navel Rock mask and default Copycat-to-Lass resolution. Check the beta art and the eligible daily Trainer House opponent snapshot. Battle backsprites, naming screens and pack graphics are outside the map layers.",
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "The fourth player choice is represented in the source sprite table and its cutscene objects follow their entry flags.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/9b77ef6caf5958843ba6fb7ff0c2724ccf831ca9",
-        "The beta player appears as an ending-sequence actor at Navel Rock, a Copycat disguise and trainer Euna. Verified the Navel Rock mask and default Copycat-to-Lass resolution. Check the beta art and the eligible daily Trainer House opponent snapshot. Battle backsprites, naming screens and pack graphics are outside the map layers."
+        "The beta player appears as an ending-sequence actor at Navel Rock, a Copycat disguise and trainer Euna. Verified the Navel Rock mask and default Copycat-to-Lass resolution. Check the beta art and the eligible daily Trainer House opponent snapshot. Battle backsprites, naming screens and pack graphics are outside the map layers.",
+        "Compared all 24 Beta tiles with the pinned source PNG and checked the purple default palette, Euna trainer class, Copycat disguise and initial Lass assignment. The three maps with literal Beta stand-ins hide them on entry. Chrome confirmed all four stand-ins hidden in Cinnabar Lab."
       ],
       "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CinnabarLab.asm, maps/CopycatsHouse2F.asm and other files; state changes in maps/CinnabarLab.asm, maps/CopycatsHouse2F.asm and other files.",
       "review_method": "diff-hunks"
@@ -29153,12 +29155,13 @@
           "maps/YellowForestGate.asm"
         ]
       ],
-      "status": "reviewed",
-      "disposition": null,
-      "reason": "The large map-script rewrite includes three scalltable dispatches as well as inline and conditional text returns. Check table-dispatched actor paths and ensure the analyzer terminates each affected branch at its actual text command.",
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "The movement analyzer follows local script-pointer tables and returns from inline, conditional and opened text commands.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/94face39cfcb7038326dd4ff81daa636649b4be7",
-        "The large map-script rewrite includes three scalltable dispatches as well as inline and conditional text returns. Check table-dispatched actor paths and ensure the analyzer terminates each affected branch at its actual text command."
+        "The large map-script rewrite includes three scalltable dispatches as well as inline and conditional text returns. Check table-dispatched actor paths and ensure the analyzer terminates each affected branch at its actual text command.",
+        "Verified all 20 local pointers in the five current dispatch tables, including Elm, Cinnabar Lab, Route 10 North and the link room. The executor tests cover known/unknown selectors, nested calls and text returns alongside the pinned movement scenes."
       ],
       "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/WiseTriosRoom.asm.",
       "review_method": "diff-hunks"
@@ -60139,12 +60142,13 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "reviewed",
-      "disposition": null,
-      "reason": "The fossil scientist and both Research Center exits are present. The Get Unown Dex entry scene moves scientist 3 to (5,7) before the player enters. Verify the scene-specific placement and downstream movement. Fossil restoration dialogue and party selection do not change the atlas map.",
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "The research-center escort follows the scientist through the door into the selected scene.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/329217e409455ee224fbc4ba01de249ad83abdfa",
-        "The fossil scientist and both Research Center exits are present. The Get Unown Dex entry scene moves scientist 3 to (5,7) before the player enters. Verify the scene-specific placement and downstream movement. Fossil restoration dialogue and party selection do not change the atlas map."
+        "The fossil scientist and both Research Center exits are present. The Get Unown Dex entry scene moves scientist 3 to (5,7) before the player enters. Verify the scene-specific placement and downstream movement. Fossil restoration dialogue and party selection do not change the atlas map.",
+        "Matched both lab exits and all four scientist slots. The pinned-source integration test follows the outdoor escort, applies the destination callback before the entry scene and verifies the player at (4,7) and the scientist moving from (5,7) via (5,6) and (5,5) to (4,5). The party operation uses the shared fossil routine."
       ],
       "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/RuinsOfAlphResearchCenter.asm; object definitions in maps/RuinsOfAlphResearchCenter.asm; state changes in maps/RuinsOfAlphResearchCenter.asm.",
       "review_method": "diff-hunks"
@@ -61883,13 +61887,14 @@
           "maps/TrainerHouseB1F.asm"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "The Trainer House B1F callback replaces the literal Mom sprite at (6,11) with a saved daily trainer, constrained for two rare opponents. The generated object still names Mom. Select a valid representative opponent for the Atlas snapshot and verify its trainer sprite and palette.",
+      "reason": "The Trainer House uses Cal as its representative eligible daily opponent.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/9e59a67ed797473a0fd0517a6b5c325ac36830c2",
         "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason.",
-        "The Trainer House B1F callback replaces the literal Mom sprite at (6,11) with a saved daily trainer, constrained for two rare opponents. The generated object still names Mom. Select a valid representative opponent for the Atlas snapshot and verify its trainer sprite and palette."
+        "The Trainer House B1F callback replaces the literal Mom sprite at (6,11) with a saved daily trainer, constrained for two rare opponents. The generated object still names Mom. Select a valid representative opponent for the Atlas snapshot and verify its trainer sprite and palette.",
+        "Followed the callback through the daily opponent and trainer-class sprite tables. Chrome displayed the resolved Chris sprite at (6,11) with the opaque day shades of PAL_OW_RED. All 24 exported sprite tiles matched the source PNG."
       ],
       "review_method": "diff-hunks"
     },

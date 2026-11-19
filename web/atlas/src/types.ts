@@ -170,6 +170,7 @@ export interface MapMetadataDTO {
   height_blocks?: number | null;
   is_overworld?: boolean | null;
   warps?: WarpEntryDTO[];
+  self_connections?: MapSelfConnection[];
   collision?: MapCollisionDTO | null;
 }
 
@@ -220,7 +221,13 @@ export interface MapMetadataEntry {
   heightBlocks: number | null;
   isOverworld: boolean;
   warps: MapWarp[];
+  selfConnections?: MapSelfConnection[];
   collision: MapCollisionMetadata | null;
+}
+
+export interface MapSelfConnection {
+  direction: "north" | "south" | "west" | "east";
+  offset_blocks: number;
 }
 
 export interface WarpMetadata {

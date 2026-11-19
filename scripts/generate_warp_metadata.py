@@ -474,6 +474,11 @@ def build_metadata(
         }
         if collision_payload is not None:
             metadata[label]["collision"] = collision_payload
+        if attr:
+            loops = [{"direction": conn.direction, "offset_blocks": conn.offset}
+                     for conn in attr.connections if conn.label == label and not conn.layout_only]
+            if loops:
+                metadata[label]["self_connections"] = loops
     aux_data = {
         "collision_permissions": collision_permissions,
         "collision_constants": collision_constants,

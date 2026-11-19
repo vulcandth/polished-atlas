@@ -23816,11 +23816,15 @@
           "maps/YellowForest.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 124 changed paths. Check macro and map-script hunks for any change to persistent object flags, callbacks or warp destinations."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Map scripts now assign symbolic scene IDs with and without a script pointer.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6b0ccd597cdb1529f9f5cdc358f1403c5aed9325",
+        "Assembled the pinned scene tables using the game macros. The parser matched 241 named IDs and all 90 pointer words across 612 maps. Checked numeric and symbolic scene selection through actual script warps and return scenes."
+      ],
+      "triage_note": "Batch screen of 124 changed paths. Check macro and map-script hunks for any change to persistent object flags, callbacks or warp destinations.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "040deac0e1499e1dcfbfd207457319c18bdebe7c",
@@ -32435,11 +32439,15 @@
           "maps/CianwoodGym.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; connectivity in maps/CianwoodGym.asm; object definitions in maps/CianwoodGym.asm; state changes in maps/CianwoodGym.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Cianwood Gym switches its waterfall, boulders and Chuck poses after the puzzle.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/353436de0902e4e175f1c5dc3561734cf2f4c710",
+        "Checked the two stone-table targets and all four changed blocks. The normal and blocked snapshots select the two different Chuck objects and boulder positions at all four clocks. Verified the waterfall tracks and independently matched the blocked-state Chuck texture from Chrome."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; connectivity in maps/CianwoodGym.asm; object definitions in maps/CianwoodGym.asm; state changes in maps/CianwoodGym.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "d55ad8a00b040dff7d643f38ec35e501f6f4686b",
@@ -39628,11 +39636,15 @@
           "maps/TrainerHouseB1F.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm; connectivity in maps/SilphCo1F.asm; object definitions in maps/SilphCo1F.asm, maps/SilphCo2F.asm and other files."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "The Silph Co. officer moves when power returns. The facility has revised exits, floor layouts and a fountain.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/40b7753c6994209dc3375db98c2ead8a32cb6333",
+        "Verified the four clock exports in both power states and observed the officer at (13,1) and (14,1) in Chrome. Checked both street exits, the facility fountain over 96 frames, and the affected facility maps against the terrain, collision and warp inventories."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm; connectivity in maps/SilphCo1F.asm; object definitions in maps/SilphCo1F.asm, maps/SilphCo2F.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "1efbfe4b2081d83907b1dece847880ac8d48e119",
@@ -42883,11 +42895,15 @@
           "maps/VioletGym.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm; connectivity in maps/VioletGym.asm; object definitions in maps/VioletGym.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Violet Gym has new exits, colors and a deferred Gym Guy script. The tileset animation changes also affect Cianwood.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3b274400439f42c0a845afa061fe2f350ba39d45",
+        "Verified both Violet Gym exit cells, the visible Gym Guy at (4,15) in Chrome, and his step to (4,16) during the deferred scene. The four-clock terrain/palette check and two water and two waterfall tracks over 88 frames cover the graphics changes."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm; connectivity in maps/VioletGym.asm; object definitions in maps/VioletGym.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "da935dfd4e95e3785a0b9636f02a526ec2303360",
@@ -47196,11 +47212,15 @@
           "maps/PlayersHouse2F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/OlivineCity.asm; state changes in maps/OlivineCity.asm, maps/PlayersHouse2F.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "The lighthouse entrance uses a scripted camera pan and a coordinate-guarded deferred scene on return.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f12a60513f627ee63225487e68fbc36b4e0695df",
+        "Traced the five upward camera steps, the scripted warp to lighthouse 1F at (10,17) and the single return step from (33,21) to (33,22). Checked the parallel scene renames and equivalent coordinate guards in the other tower scripts."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/OlivineCity.asm; state changes in maps/OlivineCity.asm, maps/PlayersHouse2F.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "1f57fc9b6323fb6b7e8e886d775596402b9b4ab6",
@@ -47246,11 +47266,15 @@
           "maps/SnowtopMountainOutside.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/OlivineCity.asm; state changes in maps/SnowtopMountainOutside.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The view from Snowtop Mountain reflects the hidden Rare Candy in Olivine City.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1f57fc9b6323fb6b7e8e886d775596402b9b4ab6",
+        "Verified the two flag states at block (4,8), the pickup at (35,18), and the alternating Fisher/Sailor at (31,19) with the correct time masks. Checked the affected terrain and collision against pinned source."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/OlivineCity.asm; state changes in maps/SnowtopMountainOutside.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "3b53866cfe439bbf9ac994da6665d153119fc613",
@@ -47324,11 +47348,15 @@
           "maps/VioletGym.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/Route10North.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Map-entry tables use a shared empty scene, with several local scene bodies relocated.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3b53866cfe439bbf9ac994da6665d153119fc613",
+        "Reviewed the 16 changed maps and the common end instruction. All 20 endpoint references to the shared no-op occupy their proper table positions. RGBDS confirmed the complete pointer table."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/Route10North.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "83a8893b01ca5173a6ee5b28ac76e348920545c2",
@@ -51844,11 +51872,15 @@
           "maps/VermilionCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/Route6.asm and other files; object definitions in maps/Route6.asm, maps/VermilionCity.asm; state changes in maps/VermilionCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The redesigned Route 6 joins Saffron and Vermilion at new offsets.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6f7344590e4651bc9d5b026589ba396149adc0ee",
+        "Verified Route 6 touches both city edges with the two-block horizontal offset in the generated layout. Compared the four changed maps against the pinned four-clock terrain, collision, objects and warp targets."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/Route6.asm and other files; object definitions in maps/Route6.asm, maps/VermilionCity.asm; state changes in maps/VermilionCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "ae59154cbb9aec16e4180a1cb5b2db51029515de",
@@ -53072,11 +53104,15 @@
           "maps/UragaChannelWest.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/CeruleanCity.asm and other files; object definitions in maps/CeruleanCity.asm, maps/Route24.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Trimming map edges shifts connection offsets, warp points and objects.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f40fca89baf1edff9ea5a9b53b731324782aca27",
+        "Verified the nine- and three-block offsets on the two sides of Route 36 and the one-block drop at the Cape. Checked the eight affected block files against the pinned terrain/collision corpus, with the later Route 24 bridge-state correction checked separately. The endpoint object/warp inventory covers the relocated objects and doors."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/CeruleanCity.asm and other files; object definitions in maps/CeruleanCity.asm, maps/Route24.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "7da3c7e051dde2965a4289255025da6f0f92fc0f",
@@ -58531,11 +58567,15 @@
           "maps/DragonsDenB1F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object glow in constants/collision_constants.asm, data/collision/glow_collisions.asm and other files; connectivity in maps/DragonShrine.asm, maps/DragonsDenB1F.asm; object definitions in maps/DragonShrine.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "The shrine gains a rear entrance and directional glowing wall collision.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c1f3ca99cbe2a8242cd138297a1330c33cc1bf81",
+        "Verified all four shrine exits, the source-derived terrain and collision on both maps, and all 12 shrine glow cells. The pinned movement regression exercises both rear doors and the front door separately."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object glow in constants/collision_constants.asm, data/collision/glow_collisions.asm and other files; connectivity in maps/DragonShrine.asm, maps/DragonsDenB1F.asm; object definitions in maps/DragonShrine.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "6d566dd76abf66c4d1bc6ea86b10385f53a01afb",
@@ -58575,14 +58615,15 @@
           "maps/DragonShrine.asm"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "Shifts the Dragon Shrine elder/Clair spawn coordinates and reverses several scripted paths/facings to keep the player centered. Retain open for scripted-movement analysis and on-map validation; this is more than a camera-only change.",
+      "reason": "The shrine test walks the player up the center aisle, with revised Clair and elder positions.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/1df26d6168b53240cf2223cfe5133aeebbc572fb",
-        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason.",
+        "Traced the deferred front-door scene from (4,13) to (4,7). Clair approaches at (5,7), steps across to (7,7), and moves back to (5,7). The elder moves from (4,5) to (4,6), across to (7,6), and returns. Chrome showed the elder at the declared starting cell."
       ],
-      "review_method": "full-diff"
+      "review_method": "diff-hunks"
     },
     {
       "sha": "59b438584f66d9b24f3539c0934e217bfe1fa4ce",
@@ -67166,11 +67207,15 @@
           "maps/Route3CableCarGate.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/MountMoonSquareCableCarGate.asm, maps/Route3CableCarGate.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Both stations reset the attendant to the same numbered object slot after a cable car ride.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4f7e0f8aa1a191b2541585756d68aa299cf0d30b",
+        "Tested both scripted warps to (6,4), the three exit steps, and the attendant reset to (6,6) in both destination scripts, including the cross-map constant. Matched the pixels of both parked attendants and all six cart pieces in Chrome."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/MountMoonSquareCableCarGate.asm, maps/Route3CableCarGate.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "463f8a9ad7d182c9b0395587d311a11fc3accfff",
@@ -68608,11 +68653,15 @@
           "maps/CeruleanCape.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeruleanCape.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Two mirrored lilypad objects mask attribute clash on Cerulean Cape. The assembler also checks the object count.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9849f3f2368e3debba345ac788c5001e563e310b",
+        "Matched both browser textures at (8,2) and (11,2) pixel for pixel to the pinned sprite and sampled brown background palette. The largest exported object list contains 19, within the upstream limit of 21."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeruleanCape.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "eb054dc7c1453555d6551ec3414a0ed6284c22c5",
@@ -68703,11 +68752,15 @@
           "maps/RuinsOfAlphResearchCenter.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/RuinsOfAlphOutside.asm; object definitions in maps/RuinsOfAlphOutside.asm; state changes in maps/RuinsOfAlphOutside.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The ruins extend over the north end of Magnet Tunnel and move the research center entrance.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a1faed6f8b74399ab2b154fbedbefb4e39295aca",
+        "Measured the 64-pixel overlap with the tunnel and nine-block offset from Route 36. Both research center exits lead to (23,17). Compared the affected grass, terrain, collision, objects and warp declarations with the pinned source."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/RuinsOfAlphOutside.asm; object definitions in maps/RuinsOfAlphOutside.asm; state changes in maps/RuinsOfAlphOutside.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "3fe78b8925709d3a1621ba6d6f7f0bc78189ae4f",

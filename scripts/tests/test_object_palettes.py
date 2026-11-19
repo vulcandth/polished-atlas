@@ -6,6 +6,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import generate_object_metadata as objects
+from object_schedule import ObjectSchedule
 
 
 class ObjectPaletteTests(unittest.TestCase):
@@ -18,6 +19,29 @@ class ObjectPaletteTests(unittest.TestCase):
         cls.constants = objects.gather_constants(cls.root)
         cls.names = sum((list(group) for group in objects.parse_palette_definitions(cls.root)), [])
         cls.movements = objects.parse_movement_table(cls.root, cls.constants)
+
+    def test_local_callback_positions_and_weekday_visibility(self):
+        maps = {m.label: m for m in objects.parse_map_objects(
+            self.root, self.constants, {}, self.movements, self.names, set())}
+        def at(name, day, flags):
+            original = maps[name].objects
+            source = (self.root / "maps" / f"{name}.asm").read_text(encoding="utf8")
+            return objects.scheduled_objects(source, original, self.constants, flags, day,
+                                             ("day",), set(), set()).get("day", original)
+
+        for flags, x in [(set(), 13), ({"EVENT_RESTORED_POWER_TO_KANTO"}, 14)]:
+            officer, = [o for o in at("SilphCo1F", 1, flags) if o.sprite_constant == "SPRITE_OFFICER"]
+            self.assertEqual((officer.x_tiles, officer.y_tiles), (x, 1))
+        for day in range(7):
+            for flags in (set(), {"ENGINE_UNION_CAVE_LAPRAS"}):
+                lapras, = [o for o in at("UnionCaveB2F", day, flags) if o.event_flag == "EVENT_UNION_CAVE_B2F_LAPRAS"]
+                self.assertEqual(lapras.event_flag_set, bool(flags) or day != 5)
+
+    def test_unknown_branch_prevents_partial_object_schedule(self):
+        source = ("Map:\ncallback MAPCALLBACK_OBJECTS, .setup\nobject_const_def\nconst ACTOR\n"
+                  ".setup:\ncheckevent EVENT_OPEN\niffalsefwd .closed\nmoveobject ACTOR, 2, 3\n"
+                  "endcallback\n.closed:\ncallasm UnmodeledPlacement\nendcallback\n")
+        self.assertIsNone(ObjectSchedule.parse(source))
 
     def test_macro_sprites_fruit_facings_and_item_flags(self):
         flag = "EVENT_GOLDENROD_HARBOR_STAR_PIECE"

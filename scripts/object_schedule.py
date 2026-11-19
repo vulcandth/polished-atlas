@@ -1,4 +1,4 @@
-"""Evaluate the map-entry scripts that schedule Dojo rematches and Valerie's fairy book."""
+"""Evaluate map-entry object placements controlled by event flags and the clock."""
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
@@ -21,17 +21,15 @@ class ObjectSchedule:
 
     @classmethod
     def parse(cls, source: str) -> ObjectSchedule | None:
-        callback = re.search(
-            r"^\s*callback\s+MAPCALLBACK_OBJECTS,\s*(FightingDojoSetupRematchesCallback|SetupValerieAfterMorningWalkScript)\b",
-            source, re.M,
-        )
-        if not callback:
-            return None
-        macro = re.search(r"^\s*MACRO\s+rematch\b[^\n]*\n(.*?)^\s*ENDM\b", source, re.M | re.S)
-        # Earlier versions use separate event-controlled objects in these rooms.
-        if not macro and not re.search(r"^\s*setmapobjectpal\s+VALERIESHOUSE_FAIRY_BOOK,", source, re.M):
+        if "MAPCALLBACK_OBJECTS" not in source:
             return None
         lines = list(atlas_common.scoped_map_lines(source.splitlines()))
+        entries = [match[1] for line in lines
+                   if (match := re.fullmatch(r"callback\s+MAPCALLBACK_OBJECTS,\s*([\w.]+)", line))]
+        if len(entries) != 1 or "object_const_def" not in lines:
+            return None
+        entry = entries[0]
+        macro = re.search(r"^\s*MACRO\s+rematch\b[^\n]*\n(.*?)^\s*ENDM\b", source, re.M | re.S)
         names = []
         for line in lines[lines.index("object_const_def") + 1:]:
             if not line:
@@ -41,7 +39,47 @@ class ObjectSchedule:
             names.append(line.split()[1])
         labels = {line[:-1]: i + 1 for i, line in enumerate(lines) if line.endswith(":")}
         body = [line.strip() for line in macro[1].splitlines() if line.strip()] if macro else []
-        return cls(callback[1], lines, labels, names, body)
+        if entry not in labels:
+            return None
+        # Only execute complete callbacks. Assembly, persistent scene state
+        # and player input can select an entirely different object placement.
+        pending = [(labels[entry], False)]
+        visited = set()
+        has_placements = False
+        while pending:
+            pos, has_result = pending.pop()
+            if (pos, has_result) in visited:
+                continue
+            if pos >= len(lines):
+                return None
+            visited.add((pos, has_result))
+            line = lines[pos]
+            if line == "endcallback":
+                continue
+            if line and not line.endswith(":"):
+                parts = line.split(None, 1)
+                if len(parts) != 2:
+                    return None
+                op, rest = parts
+                if op in {"ifequal", "ifequalfwd", "iftruefwd", "iffalsefwd", "sjumpfwd"}:
+                    target = labels.get(rest.split(",")[-1].strip())
+                    if target is None or target <= pos or (op != "sjumpfwd" and not has_result):
+                        return None
+                    pending.append((target, has_result))
+                    if op == "sjumpfwd":
+                        continue
+                elif op in {"moveobject", "appear", "disappear", "turnobject", "setmapobjectpal"}:
+                    if rest.split(",")[0].strip() not in names:
+                        return None
+                    has_placements = True
+                elif op == "rematch" and body:
+                    has_placements = True
+                elif op in {"checkflag", "checkevent", "checktime"} or (op == "readvar" and rest == "VAR_WEEKDAY"):
+                    has_result = True
+                elif op != "variablesprite":
+                    return None
+            pending.append((pos + 1, has_result))
+        return cls(entry, lines, labels, names, body) if has_placements else None
 
     def commands(self, constants: ASMConstantParser, flags: set[str], weekday: int, time: str
                  ) -> Iterator[tuple[str, list[str]]]:

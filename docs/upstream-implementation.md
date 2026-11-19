@@ -15,15 +15,24 @@ There are 1,057 commits and 3,520 changed endpoint paths in the current range.
 ## Current audit status
 
 All 1,057 commits from v3.2.2 through `f8e67fbd` have had a relevance
-screen. The ledger resolves 1,003. Of the 54 still open, 47 have leads
-from the scan and 7 have confirmed follow-up work. Auditing the remaining
+screen. The ledger resolves 1,017. Of the 40 still open, 34 have leads
+from the scan and 6 have confirmed follow-up work. Auditing the remaining
 diffs and validating the affected Atlas features are part of implementation.
 The list of known features below is preliminary.
 
-The latest batches closed 24 commits. Of the 552 total commits classified
+The latest batch closed 14 commits covering map-entry scenes, object
+placements, and connected terrain. Of the 552 total commits classified
 as having no Atlas impact, 364 were skipped after examining their subject,
 changed paths and consumers. The changelog adds only the v3.2.3 battle
 crash fix. Use the commit diffs to find unreleased master changes.
+
+The scene-table check matched 90 script pointers and 241 named scene IDs
+against RGBDS across 612 maps. The movement analyzer follows deferred
+scripts at both cable car stations, the Olivine Lighthouse and the Dragon
+Shrine. The shrine test starts only at the front door. At Silph Co.,
+Chrome showed the guard at (13,1) before power restoration and (14,1)
+afterward. The object exporter now reads 24 complete clock- or event-driven
+object callbacks. That changes 15 maps in the default Monday export.
 
 Four movement-engine refactors shared ROM routines or reordered internal step
 IDs. The Atlas reads the same named movement commands before and after those

@@ -73,6 +73,7 @@ def _ev_set(state: Dict[str, int], ev: str, val: int) -> None:
 class MapCoordEvent:
     x: int
     y: int
+    scene: str
     label: str
 
 
@@ -121,6 +122,8 @@ class ParsedMapScript:
     object_spawns: Dict[str, ObjectSpawn]
     coord_events: List[MapCoordEvent]
     callbacks: List[MapCallback]
+    scenes: List[Tuple[Optional[str], Optional[str]]]
+    previous_warp_checks: Dict[str, int]
     movement_blocks: Dict[str, MovementBlock]
     script_labels: Dict[str, ScriptLabel]
     schedule: Optional[ObjectSchedule] = None
@@ -256,7 +259,7 @@ def _parse_object_events(lines: List[str], constants: List[str]) -> Dict[str, Ob
     return spawns
 
 
-_COORD_EVENT_RE = re.compile(r"^coord_event\s+(\d+)\s*,\s*(\d+)\s*,\s*[^,]+\s*,\s*([\w\.]+)")
+_COORD_EVENT_RE = re.compile(r"^coord_event\s+(\d+)\s*,\s*(\d+)\s*,\s*([^,]+?)\s*,\s*([\w\.]+)")
 
 
 def _parse_coord_events(lines: List[str]) -> List[MapCoordEvent]:
@@ -275,7 +278,7 @@ def _parse_coord_events(lines: List[str]) -> List[MapCoordEvent]:
             continue
         m = _COORD_EVENT_RE.match(code)
         if m:
-            out.append(MapCoordEvent(x=int(m.group(1)), y=int(m.group(2)), label=m.group(3)))
+            out.append(MapCoordEvent(int(m[1]), int(m[2]), m[3], m[4]))
     return out
 
 
@@ -365,8 +368,8 @@ _SCRIPT_CMD_RE = re.compile(
     r"applymovement|applymovementlasttalked|applyonemovement|"
     r"moveobject|writeobjectxy|appear|disappear|warpfacing|warp|faceobject|turnobject|"
     r"follow|stopfollow|follownotexact|setlasttalked|"
-    r"setevent|clearevent|checkevent|"
-    r"readvar|loadmem|(?:verbose)?giveitems?(?:_unsafe)?|verbosegiveitemvar|"
+    r"setevent|clearevent|checkevent|setflag|clearflag|checkflag|yesorno|verticalmenu|"
+    r"setmapscene|setscene|checkscene|sdefer|readvar|readmem|loadmem|(?:verbose)?giveitems?(?:_unsafe)?|verbosegiveitemvar|"
     r"opentext|closetext|showtext|"
     r"sjumpfwd|sjump|farsjump|memjump|jump|priorityjump|jumpstd|stopandsjump|"
     r"scallfwd|scall|farscall|memcall|call|callasm|callstd|"
@@ -434,6 +437,20 @@ def parse_map_script(path: Path) -> ParsedMapScript:
     callbacks = _parse_callbacks(lines)
     movement_blocks = _parse_movement_blocks(lines, _movement_commands(path.parent.parent / "macros/scripts/movement.asm"))
     script_labels = _parse_script_labels(lines)
+    scenes = []
+    for line in lines:
+        if match := re.fullmatch(r"scene_script\s+([\w.]+)(?:,\s*(\w+))?", line):
+            scenes.append((match[2], match[1]))
+        elif match := re.fullmatch(r"scene_const\s+(\w+)", line):
+            scenes.append((match[1], None))
+    # These assembly helpers return wPrevWarp minus a constant in hScriptVar.
+    # Honor the exact instruction sequence, leaving other helpers unknown.
+    previous_warp_checks = {
+        m[1]: m[2].count("dec a") for m in re.finditer(
+            r"^([\w.]+):\nld hl, wPrevWarp\nld a, \[hl\]\n((?:dec a\n)*)ldh \[hScriptVar\], a\nret$",
+            "\n".join(line for line in lines if line), re.M,
+        )
+    }
     return ParsedMapScript(
         label=label,
         path=path,
@@ -441,6 +458,8 @@ def parse_map_script(path: Path) -> ParsedMapScript:
         object_spawns=spawns,
         coord_events=coord_events,
         callbacks=callbacks,
+        scenes=scenes,
+        previous_warp_checks=previous_warp_checks,
         movement_blocks=movement_blocks,
         script_labels=script_labels,
         schedule=schedule,
@@ -855,78 +874,23 @@ def _looks_like_label(token: str) -> bool:
     return bool(re.match(r"^[A-Za-z_][A-Za-z0-9_\.]*$", token))
 
 
-def _collect_label_flow(parsed: ParsedMapScript, start_label: str, max_depth: int = 64, stats: Optional[dict] = None) -> List[ScriptCommand]:
-    """Traverse basic control-flow starting at label, following unconditional jumps and simple if-branches.
-
-    Returns a flattened list of commands in a plausible execution order. This is conservative and not exhaustive.
-    """
-    out: List[ScriptCommand] = []
-    visited: set[Tuple[str, int]] = set()
-
-    # Build linear order of labels to support simple fallthrough between adjacent labels
-    label_order: List[str] = list(parsed.script_labels.keys())
-    next_label_by_name: Dict[str, Optional[str]] = {}
-    for i, name in enumerate(label_order):
-        next_label_by_name[name] = label_order[i + 1] if i + 1 < len(label_order) else None
-
-    def walk(label: str, depth: int) -> None:
-        if depth > max_depth:
-            return
-        key = (label, depth)
-        if key in visited:
-            return
-        visited.add(key)
-        block = parsed.script_labels.get(label)
-        if not block:
-            return
-        i = 0
-        while i < len(block.commands):
-            cmd = block.commands[i]
-            out.append(cmd)
-            op = cmd.opcode
-            args = cmd.args
-            # Follow unconditional jumps and stop linear flow
-            if op in {"sjump", "sjumpfwd", "farsjump", "memjump", "jump", "priorityjump", "jumpstd", "stopandsjump"} and args:
-                if stats is not None:
-                    stats['jumps_followed'] = stats.get('jumps_followed', 0) + 1
-                walk(args[0], depth + 1)
-                return
-            # Inline subroutine calls and continue linear flow afterwards
-            if op in {"call", "callstd", "scall", "scallfwd", "farscall", "memcall"} and args:
-                if stats is not None:
-                    stats['calls_followed'] = stats.get('calls_followed', 0) + 1
-                walk(args[0], depth + 1)
-                # continue to next command after call
-            # Simple conditional forward branch: also explore target label but continue linear flow
-            if op.startswith('if') and op not in _CONDITIONAL_TEXT_END:
-                # try last arg as label when plausible
-                target: Optional[str] = None
-                if args:
-                    candidate = args[-1]
-                    if _looks_like_label(candidate) and candidate in parsed.script_labels:
-                        target = candidate
-                if not target:
-                    m = _IF_BRANCH_RE.match(f"{op} {', '.join(args)}" if args else op)
-                    if m:
-                        cand = m.group(1)
-                        if _looks_like_label(cand) and cand in parsed.script_labels:
-                            target = cand
-                if target:
-                    if stats is not None:
-                        stats['branches_followed'] = stats.get('branches_followed', 0) + 1
-                    walk(target, depth + 1)
-            # Stop at explicit terminators
-            if op in {"end", "endall", "reloadend", "endcallback", "endtext", "done"}:
-                return
-            i += 1
-
-        # Reached end of block without an explicit jump or end; allow simple fallthrough
-        nxt = next_label_by_name.get(label)
-        if nxt:
-            walk(nxt, depth + 1)
-
-    walk(start_label, 0)
-    return out
+def _map_script_indices(maps_dir: Path):
+    """Collect object ordinals and arrival cells from explicit scene-setting warps."""
+    ordinals = {}
+    scripted_arrivals = {}
+    for path in _iter_map_asm_files(maps_dir):
+        source = path.read_text(encoding="utf-8")
+        lines = [line.partition(";")[0].strip() for line in source.splitlines()]
+        if "object_const_def" in lines:
+            names, _ = _parse_object_const_block(lines, lines.index("object_const_def"))
+            ordinals.update((name, i) for i, name in enumerate(names, 1))
+        code = "\n".join(line for line in lines if line)
+        for match in re.finditer(
+            r"^setmapscene\s+(\w+),\s*(\w+)\n(?:warp\s+|warpfacing\s+\w+,\s*)\1,\s*(\d+),\s*(\d+)$",
+            code, re.M,
+        ):
+            scripted_arrivals.setdefault((match[1], match[2]), set()).add((int(match[3]), int(match[4])))
+    return ordinals, scripted_arrivals
 
 
 def _is_land_passable(aux_root: dict, cell_value: int) -> bool:
@@ -972,10 +936,9 @@ def analyze_scripts(
         'maps_scanned': 0,
         'triggers_found': 0,
         'applymovement_processed': 0,
-        'jumps_followed': 0,
-        'branches_followed': 0,
     }
     maps_dir = polished_path / "maps"
+    object_ordinals, scripted_arrivals = _map_script_indices(maps_dir)
     object_meta = load_object_metadata(object_meta_path)
     warp_maps, warp_root = load_warp_metadata(warp_meta_path)
     # Build normalized label map to resolve ASM map constants (e.g., FAST_SHIP_1F) to metadata labels (e.g., FastShip1F)
@@ -1034,7 +997,7 @@ def analyze_scripts(
         return parsed
 
     # Precompute inverse warp mapping: target map label -> list of (dest_x, dest_y)
-    incoming_spawns: Dict[str, List[Tuple[int, int]]] = {}
+    incoming_spawns: Dict[str, Dict[Tuple[int, int], set[int]]] = {}
     for src_label, src_data in warp_maps.items():
         for w in src_data.get("warps", []) or []:
             tgt = w.get("target") or {}
@@ -1042,29 +1005,61 @@ def analyze_scripts(
             dx = tgt.get("x_cells")
             dy = tgt.get("y_cells")
             if tgt_label and dx is not None and dy is not None:
-                incoming_spawns.setdefault(tgt_label, []).append((int(dx), int(dy)))
+                indices = incoming_spawns.setdefault(tgt_label, {}).setdefault((int(dx), int(dy)), set())
+                if isinstance(w.get("index"), int):
+                    indices.add(w["index"])
+
+    scene_file = polished_path / "data/maps/scenes.asm"
+    scene_variables = dict(re.findall(r"^\s*scene_var\s+(\w+),\s*(\w+)",
+                                      scene_file.read_text(encoding="utf-8"), re.M)) if scene_file.is_file() else {}
 
     # Normalize filters to case-insensitive substring checks
     map_filters_norm = [s.lower() for s in (map_filters or [])]
     label_filters_norm = [s.lower() for s in (label_filters or [])]
 
-    for asm_path in _iter_map_asm_files(maps_dir):
+    seen_arrivals = set()
+
+    def scan_map(asm_path: Path, arrival: Optional[Tuple[int, int]] = None,
+                 inherited_events: Optional[Dict[str, int]] = None,
+                 selected_scene: Optional[str] = None, previous_warp: Optional[int] = None) -> None:
+        on_arrival = arrival is not None
+        first_issue = len(issues)
+        flags = set(initial_events)
+        for flag, value in (inherited_events or {}).items():
+            if value == EV_TRUE:
+                flags.add(flag)
+            elif value == EV_FALSE:
+                flags.discard(flag)
         map_label = asm_path.stem
-        if map_filters_norm:
+        if not on_arrival and map_filters_norm:
             label_lc = map_label.lower()
             if not any(sub in label_lc for sub in map_filters_norm):
-                continue
+                return
         warp_meta = get_warp_meta(warp_maps, map_label)
         is_overworld = warp_meta.is_overworld
-        if scope == "overworld" and not is_overworld:
-            continue
-        if scope == "indoor" and is_overworld:
-            continue
-        parsed = entry_state(asm_path, initial_events)
-        stats['maps_scanned'] += 1
+        if not on_arrival and ((scope == "overworld" and not is_overworld) or (scope == "indoor" and is_overworld)):
+            return
+        parsed = entry_state(asm_path, flags)
+        map_constant = warp_maps.get(map_label, {}).get("map_constant")
+        scene_variable = scene_variables.get(map_constant)
+        local_names = {obj.index: name for name, obj in parsed.object_spawns.items()}
+
+        def actor(name: str) -> str:
+            # A script can use another map's constant for the same object slot.
+            if name in parsed.object_spawns:
+                return name
+            return local_names.get(object_ordinals.get(name), name)
+
+        def scene_id(token: Optional[str]) -> Optional[int]:
+            if token is None:
+                return None
+            return next((i for i, (name, _) in enumerate(parsed.scenes) if name == token), _numeric(token))
+        if not on_arrival:
+            stats['maps_scanned'] += 1
 
         # Index source warp tiles for this map: (x,y) -> (dest_map, (dx,dy))
         warp_sources_index: Dict[Tuple[int, int], Tuple[str, Tuple[int, int]]] = {}
+        warp_indices = {}
         for w in (warp_maps.get(map_label, {}).get("warps", []) or []):
             sx = w.get("x_cells")
             sy = w.get("y_cells")
@@ -1075,6 +1070,7 @@ def analyze_scripts(
             if sx is None or sy is None or dm is None or dx is None or dy is None:
                 continue
             warp_sources_index[(int(sx), int(sy))] = (str(dm), (int(dx), int(dy)))
+            warp_indices[(int(sx), int(sy))] = w.get("index")
 
         # optional debug header per map
         if debug:
@@ -1086,11 +1082,17 @@ def analyze_scripts(
         triggers: List[Tuple[str, str, List[Tuple[int, int]], Optional[str]]] = []
         # - Coord events
         for ce in parsed.coord_events:
-            triggers.append(("coord", ce.label, [(ce.x, ce.y)], None))
+            if not on_arrival or (arrival == (ce.x, ce.y) and (
+                selected_scene is None or ce.scene in ("-1", "SCENE_ALWAYS") or
+                ce.scene == selected_scene or (
+                    scene_id(selected_scene) is not None and scene_id(ce.scene) == scene_id(selected_scene)
+                )
+            )):
+                triggers.append(("coord", ce.label, [(ce.x, ce.y)], None))
         # - Talk-to-NPC events (from object spawns with script_label present in ASM)
         grid = warp_meta.collision
         for spawn in parsed.object_spawns.values():
-            if not spawn.script_label:
+            if on_arrival or not spawn.script_label:
                 continue
             if spawn.script_label not in parsed.script_labels:
                 continue
@@ -1117,13 +1119,23 @@ def analyze_scripts(
             if positions:
                 triggers.append(("talk", spawn.script_label, positions, spawn.label))
         # - Callbacks: use incoming warp destinations as plausible player cells
-        cb_cells = list({xy for xy in incoming_spawns.get(map_label, [])})
+        arrivals = incoming_spawns.get(map_label, {})
+        cb_cells = [arrival] if on_arrival else sorted(arrivals)
+        for index, (scene, label) in enumerate(parsed.scenes):
+            cells = cb_cells
+            if not on_arrival and (map_constant, scene) in scripted_arrivals:
+                cells = sorted(scripted_arrivals[map_constant, scene])
+            if cells and label in parsed.script_labels and (selected_scene is None or scene_id(selected_scene) == index):
+                if parsed.previous_warp_checks:
+                    triggers.extend(("scene", label, [cell], None) for cell in cells)
+                else:
+                    triggers.append(("scene", label, cells, None))
         for cb in parsed.callbacks:
             if cb_cells:
                 triggers.append(("callback", cb.label, cb_cells, None))
 
         # Optional label filtering on triggers
-        if label_filters_norm:
+        if label_filters_norm and not on_arrival:
             def _keep_trig(t: Tuple[str, str, List[Tuple[int, int]], Optional[str]]) -> bool:
                 _, lbl, _, _ = t
                 return any(sub in lbl.lower() for sub in label_filters_norm)
@@ -1137,396 +1149,16 @@ def analyze_scripts(
         # Quick lookup of object initial positions by constant name
         object_pos: Dict[str, Tuple[int, int]] = {name: (spawn.x, spawn.y) for name, spawn in parsed.object_spawns.items()}
 
-        # Helper: run immediate arrival sequence on a destination map at dest_xy
-        def _run_arrival_on_map(dest_map_label: str, dest_xy: Tuple[int, int], events: Dict[str, int]) -> None:
-            dest_asm = maps_dir / f"{dest_map_label}.asm"
-            if not dest_asm.exists():
+        def follow_arrival(target: str, xy: Tuple[int, int], ev: Dict[str, int], scenes: Dict[str, str],
+                           warp_index: Optional[int] = None) -> None:
+            if on_arrival:
                 return
-            dest_flags = initial_events | {key for key, state in events.items() if state == EV_TRUE}
-            dest_flags.difference_update(key for key, state in events.items() if state == EV_FALSE)
-            dest_parsed = entry_state(dest_asm, dest_flags)
-            dest_warp_meta = get_warp_meta(warp_maps, dest_map_label)
-            # Build narrow triggers: callbacks on load, plus coord events matching dest_xy
-            arrival_triggers: List[Tuple[str, str, List[Tuple[int, int]], Optional[str]]] = []
-            if dest_parsed.callbacks:
-                for cb in dest_parsed.callbacks:
-                    arrival_triggers.append(("callback", cb.label, [dest_xy], None))
-            for ce in dest_parsed.coord_events:
-                if ce.x == dest_xy[0] and ce.y == dest_xy[1]:
-                    arrival_triggers.append(("coord", ce.label, [dest_xy], None))
-            if debug:
-                print(f"    [arrival] {dest_map_label} triggers={len(arrival_triggers)} at={dest_xy}")
-            # State for destination map processing
-            dest_object_pos: Dict[str, Tuple[int, int]] = {name: (sp.x, sp.y) for name, sp in dest_parsed.object_spawns.items()}
-            for trig_kind2, start_label2, player_cells2, trig_obj2 in arrival_triggers:
-                flow2 = _collect_label_flow(dest_parsed, start_label2, stats=stats)
-                if debug:
-                    print(f"      [flow] start={start_label2} cmds={len(flow2)}")
-                temp_pos2: Dict[str, Tuple[int, int]] = {}
-                visible2: Dict[str, bool] = {name: sp.visible for name, sp in dest_parsed.object_spawns.items()}
-                current_player_cells2: List[Tuple[int, int]] = [dest_xy]
-                # On arrival: follower is spawned overlapping the player; first player move keeps follower at warp cell
-                arrival_follow_suppress = True
-                last_talked2: Optional[str] = trig_obj2 if trig_kind2 == "talk" else None
-                follows2: Dict[str, str] = {}
-                follow_in_sync2 = False
-
-                def static_npcs_snapshot2(exclude: Optional[str] = None) -> List[Tuple[int, int]]:
-                    o: List[Tuple[int, int]] = []
-                    for name, sp in dest_parsed.object_spawns.items():
-                        if name == exclude or name == "PLAYER":
-                            continue
-                        if not visible2.get(name, True):
-                            continue
-                        pos = temp_pos2.get(name) or (sp.x, sp.y)
-                        o.append(pos)
-                    return o
-
-                player_warped2 = False
-                for cmd2 in flow2:
-                    op2 = cmd2.opcode
-                    args2 = cmd2.args
-                    # Cross-map ops during arrival: annotate and stop. reloadmap/reloadmapafterbattle continue.
-                    if op2 in {"warp", "warpfacing", "newloadmap", "warpcheck"}:
-                        issues.append(
-                            AuditIssue(
-                                map_label=dest_map_label,
-                                file=str(dest_asm.relative_to(atlas_common.ROOT_DIR)),
-                                kind="cross-map",
-                                severity="info",
-                                details={
-                                    "script_label": start_label2,
-                                    "line": cmd2.line_no,
-                                    "op": op2,
-                                    "trigger": trig_kind2,
-                                },
-                            )
-                        )
-                        if debug:
-                            print("      [warp] encountered in arrival; annotating and stopping at depth 1")
-                        player_warped2 = True
-                        break
-                    if op2 in {"reloadmap", "reloadmapafterbattle"}:
-                        # Same-map cleanup; do not annotate or stop. Continue to next command.
-                        continue
-                    if op2 == "moveobject" and len(args2) >= 3:
-                        obj = args2[0]
-                        x = _numeric(args2[1])
-                        y = _numeric(args2[2])
-                        if x is not None and y is not None:
-                            temp_pos2[obj] = (int(x), int(y))
-                            if obj == "PLAYER":
-                                current_player_cells2 = [(int(x), int(y))]
-                    elif op2 == "setlasttalked" and len(args2) >= 1:
-                        last_talked2 = args2[0]
-                    elif op2 == "writeobjectxy" and len(args2) >= 3:
-                        obj = args2[0]
-                        x = _numeric(args2[1])
-                        y = _numeric(args2[2])
-                        if x is not None and y is not None:
-                            temp_pos2[obj] = (int(x), int(y))
-                            if obj == "PLAYER":
-                                current_player_cells2 = [(int(x), int(y))]
-                    elif op2 == "applymovement" and len(args2) >= 2:
-                        obj = args2[0]
-                        mov_label = args2[1]
-                        block = dest_parsed.movement_blocks.get(mov_label)
-                        if not block:
-                            continue
-                        stats['applymovement_processed'] += 1
-                        if debug:
-                            print(f"      [apply] obj={obj} move={mov_label} tokens={len(block.tokens)} (arrival)")
-                        if obj == "PLAYER":
-                            starts2 = current_player_cells2 or [(0, 0)]
-                            for pstart2 in starts2:
-                                path2 = _simulate_apply_movement(block.tokens, pstart2)
-                                if debug:
-                                    print(f"        [path] player start={pstart2} len={len(path2)} (arrival)")
-                                follower_cell = pstart2  # overlap on arrival
-                                suppress = arrival_follow_suppress
-                                prev = pstart2
-                                # If any NPC is currently following the PLAYER while the Pokémon follower is active, warn
-                                npc_followers_of_player2 = [f for f, leader in follows2.items() if leader == "PLAYER"]
-                                if npc_followers_of_player2 and include_follower and not follow_in_sync2:
-                                    for fobj in npc_followers_of_player2:
-                                        issues.append(
-                                            AuditIssue(
-                                                map_label=dest_map_label,
-                                                file=str(dest_asm.relative_to(atlas_common.ROOT_DIR)),
-                                                kind="follower-collision",
-                                                severity="warn",
-                                                details={
-                                                    "script_label": start_label2,
-                                                    "line": cmd2.line_no,
-                                                    "object": fobj,
-                                                    "player_cell": list(pstart2),
-                                                    "follower_cell": list(follower_cell),
-                                                    "trigger": trig_kind2,
-                                                    "reason": "npc-following-player conflicts with pokemon follower during player movement",
-                                                },
-                                            )
-                                        )
-                                for step_xy2 in path2:
-                                    if follow_in_sync2:
-                                        _move_synchronized_followers(npc_followers_of_player2, temp_pos2,
-                                                                     dest_object_pos, prev, step_xy2)
-                                    _tmp_issues = count_sprite_usage(
-                                            dest_map_label,
-                                            player_cell=step_xy2,
-                                            moving_npc_cell=None,
-                                            static_npcs=static_npcs_snapshot2(None),
-                                            follower_cell_override=follower_cell,
-                                            object_meta=object_meta,
-                                            warp_meta=dest_warp_meta,
-                                            include_follower=include_follower,
-                                            include_weather=include_weather,
-                                            scanline_limit=scanline_limit,
-                                            total_limit=total_limit,
-                                            context={
-                                                "script_label": start_label2,
-                                                "line": cmd2.line_no,
-                                                "trigger": trig_kind2,
-                                                "op": op2,
-                                                "move": mov_label,
-                                                "phase": "arrival",
-                                                "follower_cell": list(follower_cell),
-                                            },
-                                        )
-                                    for _it in _tmp_issues:
-                                        _it.file = str(dest_asm.relative_to(atlas_common.ROOT_DIR))
-                                    issues.extend(_tmp_issues)
-                                    # Update follower per-step
-                                    if suppress:
-                                        suppress = False
-                                    else:
-                                        follower_cell = prev
-                                    prev = step_xy2
-                                if path2:
-                                    current_player_cells2 = [path2[-1]]
-                        else:
-                            start_xy2 = temp_pos2.get(obj) or dest_object_pos.get(obj)
-                            if start_xy2 is None:
-                                continue
-                            path2 = _simulate_apply_movement(block.tokens, start_xy2)
-                            if debug:
-                                print(f"        [path] npc obj={obj} start={start_xy2} len={len(path2)} (arrival)")
-                            starts2 = current_player_cells2 or [(0, 0)]
-                            for pstart2 in starts2:
-                                collided2 = follower_collision_during_path(pstart2, path2, dest_warp_meta)
-                                if collided2:
-                                    issues.append(
-                                        AuditIssue(
-                                            map_label=dest_map_label,
-                                            file=str(dest_asm.relative_to(atlas_common.ROOT_DIR)),
-                                            kind="follower-collision",
-                                            severity="warn",
-                                            details={
-                                                "script_label": start_label2,
-                                                "line": cmd2.line_no,
-                                                "object": obj,
-                                                "move": mov_label,
-                                                "player_cell": list(pstart2),
-                                                "trigger": trig_kind2,
-                                            },
-                                        )
-                                    )
-                                for step_xy2 in path2:
-                                    _tmp_issues = count_sprite_usage(
-                                            dest_map_label,
-                                            player_cell=pstart2,
-                                            moving_npc_cell=step_xy2,
-                                            static_npcs=static_npcs_snapshot2(obj),
-                                            follower_cell_override=None,
-                                            object_meta=object_meta,
-                                            warp_meta=dest_warp_meta,
-                                            include_follower=include_follower,
-                                            include_weather=include_weather,
-                                            scanline_limit=scanline_limit,
-                                            total_limit=total_limit,
-                                            context={
-                                                "script_label": start_label2,
-                                                "line": cmd2.line_no,
-                                                "trigger": trig_kind2,
-                                                "op": op2,
-                                                "move": mov_label,
-                                                "object": obj,
-                                                "phase": "arrival",
-                                            },
-                                        )
-                                    for _it in _tmp_issues:
-                                        _it.file = str(dest_asm.relative_to(atlas_common.ROOT_DIR))
-                                    issues.extend(_tmp_issues)
-                            if path2:
-                                temp_pos2[obj] = path2[-1]
-                    elif op2 == "applymovementlasttalked" and len(args2) >= 1:
-                        target2 = last_talked2
-                        if not target2:
-                            continue
-                        mov_label = args2[0]
-                        block = dest_parsed.movement_blocks.get(mov_label)
-                        if not block:
-                            continue
-                        stats['applymovement_processed'] += 1
-                        if debug:
-                            print(f"      [apply] obj={target2} move={mov_label} tokens={len(block.tokens)} (arrival lasttalked)")
-                        start_xy2 = temp_pos2.get(target2) or dest_object_pos.get(target2)
-                        if start_xy2 is None:
-                            continue
-                        path2 = _simulate_apply_movement(block.tokens, start_xy2)
-                        starts2 = current_player_cells2 or [(0, 0)]
-                        for pstart2 in starts2:
-                            collided2 = follower_collision_during_path(pstart2, path2, dest_warp_meta)
-                            if collided2:
-                                issues.append(
-                                    AuditIssue(
-                                        map_label=dest_map_label,
-                                        file=str(dest_asm.relative_to(atlas_common.ROOT_DIR)),
-                                        kind="follower-collision",
-                                        severity="warn",
-                                        details={
-                                            "script_label": start_label2,
-                                            "line": cmd2.line_no,
-                                            "object": target2,
-                                            "move": mov_label,
-                                            "player_cell": list(pstart2),
-                                            "trigger": trig_kind2,
-                                        },
-                                    )
-                                )
-                            for step_xy2 in path2:
-                                _tmp_issues = count_sprite_usage(
-                                        dest_map_label,
-                                        player_cell=pstart2,
-                                        moving_npc_cell=step_xy2,
-                                        static_npcs=static_npcs_snapshot2(target2),
-                                        follower_cell_override=None,
-                                        object_meta=object_meta,
-                                        warp_meta=dest_warp_meta,
-                                        include_follower=include_follower,
-                                        include_weather=include_weather,
-                                        scanline_limit=scanline_limit,
-                                        total_limit=total_limit,
-                                        context={
-                                            "script_label": start_label2,
-                                            "line": cmd2.line_no,
-                                            "trigger": trig_kind2,
-                                            "op": op2,
-                                            "move": mov_label,
-                                            "object": target2,
-                                            "phase": "arrival",
-                                        },
-                                    )
-                                for _it in _tmp_issues:
-                                    _it.file = str(dest_asm.relative_to(atlas_common.ROOT_DIR))
-                                issues.extend(_tmp_issues)
-                        if path2:
-                            temp_pos2[target2] = path2[-1]
-                    elif op2 == "applyonemovement" and len(args2) >= 2:
-                        obj = args2[0]
-                        token = args2[1]
-                        # If moving a currently hidden NPC, assume it should have been visible (same heuristic as applymovement)
-                        if not visible2.get(obj, True):
-                            sp = dest_parsed.object_spawns.get(obj)
-                            if sp and sp.hide_event:
-                                _ev_set(ev_state, sp.hide_event, EV_FALSE)
-                                visible2[obj] = True
-                        start_xy2 = temp_pos2.get(obj) or dest_object_pos.get(obj) or dest_xy
-                        path2 = _simulate_apply_movement([token, "step_end"], start_xy2)
-                        if debug:
-                            print(f"      [apply1] obj={obj} token={token} len={len(path2)} (arrival)")
-                        starts2 = current_player_cells2 or [(0, 0)]
-                        for pstart2 in starts2:
-                            # Collision check against follower for the one-step path
-                            if path2 and follower_collision_during_path(pstart2, path2, dest_warp_meta):
-                                issues.append(
-                                    AuditIssue(
-                                        map_label=dest_map_label,
-                                        file=str(dest_asm.relative_to(atlas_common.ROOT_DIR)),
-                                        kind="follower-collision",
-                                        severity="warn",
-                                        details={
-                                            "script_label": start_label2,
-                                            "line": cmd2.line_no,
-                                            "object": obj,
-                                            "player_cell": list(pstart2),
-                                            "follower_candidates": [list(t) for t in plausible_follower_cells(pstart2, dest_warp_meta)],
-                                            "trigger": trig_kind2,
-                                        },
-                                    )
-                                )
-                            # If player moves one step while an NPC is following PLAYER and Pokémon follower is active, warn
-                            if obj == "PLAYER":
-                                npc_followers_of_player2 = [f for f, leader in follows2.items() if leader == "PLAYER"]
-                                if npc_followers_of_player2 and include_follower and not follow_in_sync2:
-                                    for fobj in npc_followers_of_player2:
-                                        issues.append(
-                                            AuditIssue(
-                                                map_label=dest_map_label,
-                                                file=str(dest_asm.relative_to(atlas_common.ROOT_DIR)),
-                                                kind="follower-collision",
-                                                severity="warn",
-                                                details={
-                                                    "script_label": start_label2,
-                                                    "line": cmd2.line_no,
-                                                    "object": fobj,
-                                                    "player_cell": list(pstart2),
-                                                    "follower_cell": list(pstart2),
-                                                    "trigger": trig_kind2,
-                                                    "reason": "npc-following-player conflicts with pokemon follower during player movement",
-                                                },
-                                            )
-                                        )
-                            for step_xy2 in path2:
-                                _tmp_issues = count_sprite_usage(
-                                        dest_map_label,
-                                        player_cell=pstart2,
-                                        moving_npc_cell=step_xy2,
-                                        static_npcs=static_npcs_snapshot2(obj),
-                                        follower_cell_override=(pstart2 if obj == "PLAYER" else None),
-                                        object_meta=object_meta,
-                                        warp_meta=dest_warp_meta,
-                                        include_follower=include_follower,
-                                        include_weather=include_weather,
-                                        scanline_limit=scanline_limit,
-                                        total_limit=total_limit,
-                                        context={
-                                            "script_label": start_label2,
-                                            "line": cmd2.line_no,
-                                            "trigger": trig_kind2,
-                                            "op": op2,
-                                            "token": token,
-                                            "object": obj,
-                                            "phase": "arrival",
-                                            **({"follower_cell": list(pstart2)} if obj == "PLAYER" else {}),
-                                        },
-                                    )
-                                for _it in _tmp_issues:
-                                    _it.file = str(dest_asm.relative_to(atlas_common.ROOT_DIR))
-                                issues.extend(_tmp_issues)
-                        if path2:
-                            if obj == "PLAYER":
-                                current_player_cells2 = [path2[-1]]
-                            else:
-                                temp_pos2[obj] = path2[-1]
-                    elif op2 in {"appear", "disappear"} and len(args2) >= 1:
-                        obj = args2[0]
-                        if op2 == "disappear":
-                            visible2[obj] = False
-                            temp_pos2.pop(obj, None)
-                        else:
-                            visible2[obj] = True
-                    elif op2 == "loadmem" and len(args2) == 2 and args2[0] == "wFollowInSync":
-                        follow_in_sync2 = args2[1] in {"TRUE", "1"}
-                    elif op2 in {"follow", "follownotexact"} and len(args2) >= 2:
-                        leader_obj2, follower_obj2 = args2[:2]
-                        if op2 == "follow":
-                            follows2.clear()
-                        follows2[follower_obj2] = leader_obj2
-                        # In arrival flows, defer warnings until we actually detect the player moving with an NPC following
-                    elif op2 == "stopfollow":
-                        follows2.clear()
-                    if player_warped2:
-                        break
+            path = maps_dir / f"{target}.asm"
+            scene = scenes.get(_norm_label_key(target))
+            key = (target, xy, scene, warp_index, tuple(sorted(ev.items())))
+            if key not in seen_arrivals and path.is_file():
+                seen_arrivals.add(key)
+                scan_map(path, xy, ev, scene, warp_index)
 
         # Execute per trigger with symbolic event-state traversal
         for trig_kind, start_label, player_cells, trig_obj in triggers:
@@ -1540,6 +1172,8 @@ def analyze_scripts(
             # CLI explicit clears override
             for ev in forced_clear:
                 _ev_set(ev_state, ev, EV_FALSE)
+
+            ev_state.update(inherited_events or {})
 
             # Visibility snapshot seeded from base, but will be updated by events during traversal
             base_vis: Dict[str, bool] = dict(base_visible_by_name)
@@ -1561,6 +1195,8 @@ def analyze_scripts(
                 follows: Dict[str, str] = field(default_factory=dict)
                 follow_in_sync: bool = False
                 variable_result: Optional[float] = None
+                scene_writes: Dict[str, str] = field(default_factory=dict)
+                deferred: Optional[str] = None
 
             def static_npcs_snapshot_local(visible: Dict[str, bool], temp_pos: Dict[str, Tuple[int, int]], exclude: Optional[str] = None) -> List[Tuple[int, int]]:
                 out_list: List[Tuple[int, int]] = []
@@ -1576,9 +1212,35 @@ def analyze_scripts(
             max_steps = 2000
             max_branches = 32
             branches = 0
-            work: List[Ctx] = [
-                Ctx(label=start_label, pc=0, ret=[], temp_pos={}, visible=dict(base_vis), player_cells=list(player_cells), last_talked=(trig_obj if trig_kind == "talk" else None), ev=dict(ev_state))
-            ]
+            current_scene = selected_scene
+            first_label = start_label
+            returns = []
+            origin_index = previous_warp
+            if trig_kind == "scene":
+                current_scene = next(str(i) for i, (_, label) in enumerate(parsed.scenes) if label == start_label)
+                if not on_arrival and len(player_cells) == 1:
+                    indices = arrivals.get(player_cells[0], set())
+                    if len(indices) == 1:
+                        origin_index = next(iter(indices))
+                # Object callbacks position the actors before the scene runs.
+                for cb in reversed(parsed.callbacks):
+                    if cb.kind == "MAPCALLBACK_OBJECTS" and cb.label in parsed.script_labels:
+                        returns.append((first_label, 0))
+                        first_label = cb.label
+            work = [Ctx(label=first_label, pc=0, ret=returns, temp_pos={}, visible=dict(base_vis),
+                        player_cells=list(player_cells), last_talked=trig_obj, ev=dict(ev_state))]
+
+            def finish_script(state: Ctx, end_all: bool = False) -> None:
+                if end_all:
+                    state.ret.clear()
+                if state.ret:
+                    state.label, state.pc = state.ret.pop()
+                elif state.deferred in parsed.script_labels:
+                    state.label, state.pc = state.deferred, 0
+                    state.deferred = None
+                else:
+                    return
+                work.append(state)
 
             while work:
                 ctx = work.pop()
@@ -1604,6 +1266,11 @@ def analyze_scripts(
                 ctx.steps += 1
                 op = cmd.opcode
                 args = cmd.args
+                if args and op in {"applymovement", "applyonemovement", "moveobject", "writeobjectxy",
+                                   "appear", "disappear", "turnobject", "setlasttalked"}:
+                    args = (actor(args[0]), *args[1:])
+                elif len(args) == 2 and op in {"follow", "follownotexact", "faceobject"}:
+                    args = tuple(actor(a) for a in args)
 
                 # Control-flow: mid-script warp terminates this path on current map
                 # Cross-map ops terminate this path; reloadmap/reloadmapafterbattle continue without reporting
@@ -1653,6 +1320,8 @@ def analyze_scripts(
                     )
                     if debug:
                         print(f"    [warp] {op} from {ctx.label}:{ctx.pc} -> {dest_map or '?'} {dest_xy or ''}")
+                    if dest_map and dest_xy:
+                        follow_arrival(dest_map, dest_xy, ctx.ev, ctx.scene_writes)
                     # Stop this path on this map
                     continue
                 if op in {"reloadmap", "reloadmapafterbattle"}:
@@ -1660,6 +1329,15 @@ def analyze_scripts(
                     ctx.pc += 1
                     work.append(ctx)
                     continue
+
+                if op == "setmapscene" and len(args) == 2:
+                    ctx.scene_writes[_norm_label_key(args[0])] = args[1]
+                elif op == "setscene" and args:
+                    ctx.scene_writes[_norm_label_key(map_label)] = args[0]
+                elif op == "sdefer" and args and trig_kind == "scene":
+                    # RunSceneScript has a single pending pointer. The outer
+                    # scene must finish before it starts the selected script.
+                    ctx.deferred = args[0]
 
                 # Calls and jumps
                 if op in {"sjump", "sjumpfwd", "farsjump", "memjump", "jump", "priorityjump", "jumpstd", "stopandsjump"} and args:
@@ -1677,15 +1355,22 @@ def analyze_scripts(
                         work.append(ctx)
                     continue
                 if op in {"end", "endall", "reloadend", "endcallback", "endtext", "done"}:
-                    # Return if possible
-                    if ctx.ret:
-                        ctx.label, ctx.pc = ctx.ret[-1]
-                        ctx.ret = ctx.ret[:-1]
-                        work.append(ctx)
+                    finish_script(ctx, end_all=op == "endall")
                     continue
 
                 # Variable ops
-                if op.removesuffix("_unsafe") in _ITEM_OPERANDS:
+                if op in ("callasm", "checkscene", "readmem"):
+                    value = None
+                    if op == "checkscene" or (op == "readmem" and args and args[0] == scene_variable):
+                        value = scene_id(ctx.scene_writes.get(_norm_label_key(map_label), current_scene))
+                    elif op == "callasm" and args and args[0] in parsed.previous_warp_checks and origin_index is not None:
+                        value = (origin_index - parsed.previous_warp_checks[args[0]]) & 255
+                    ctx.variable_result = value
+                    ctx.last_check = None if value is None else int(bool(value))
+                    ctx.pc += 1
+                    work.append(ctx)
+                    continue
+                if op in {"yesorno", "verticalmenu"} or op.removesuffix("_unsafe") in _ITEM_OPERANDS:
                     # Inventory is not part of a map snapshot. Both pickup
                     # outcomes are possible regardless of earlier event checks.
                     ctx.last_check = None
@@ -1725,7 +1410,7 @@ def analyze_scripts(
                     continue
 
                 # Event state ops
-                if op == "setevent" and len(args) >= 1:
+                if op in {"setevent", "setflag"} and args:
                     ev = args[0]
                     _ev_set(ctx.ev, ev, EV_TRUE)
                     for name, sp in parsed.object_spawns.items():
@@ -1734,7 +1419,7 @@ def analyze_scripts(
                     ctx.pc += 1
                     work.append(ctx)
                     continue
-                if op == "clearevent" and len(args) >= 1:
+                if op in {"clearevent", "clearflag"} and args:
                     ev = args[0]
                     _ev_set(ctx.ev, ev, EV_FALSE)
                     for name, sp in parsed.object_spawns.items():
@@ -1743,7 +1428,7 @@ def analyze_scripts(
                     ctx.pc += 1
                     work.append(ctx)
                     continue
-                if op == "checkevent" and len(args) >= 1:
+                if op in {"checkevent", "checkflag"} and args:
                     ev = args[0]
                     ctx.last_check = _ev_get(ctx.ev, ev)
                     ctx.variable_result = None
@@ -1793,9 +1478,7 @@ def analyze_scripts(
                             if take_jump is None:
                                 branches += 1
                             if ends_script:
-                                if branch.ret:
-                                    branch.label, branch.pc = branch.ret.pop()
-                                    work.append(branch)
+                                finish_script(branch)
                             else:
                                 branch.label, branch.pc = target, 0
                                 work.append(branch)
@@ -1900,16 +1583,26 @@ def analyze_scripts(
                     continue
 
                 # Movements
-                if op == "applymovement" and len(args) >= 2:
+                if op in {"applymovement", "applyonemovement"} and len(args) >= 2:
                     obj = args[0]
                     mov_label = args[1]
                     block = parsed.movement_blocks.get(mov_label)
-                    if block:
+                    if op == "applyonemovement":
+                        tokens = [mov_label, "step_end"]
+                        movement_key = "token"
+                    else:
+                        tokens = block.tokens if block else []
+                        movement_key = "move"
+                    if tokens:
                         stats['applymovement_processed'] += 1
                         if obj == "PLAYER":
                             starts = ctx.player_cells or [(0, 0)]
+                            landing_cells = []
                             for pstart in starts:
-                                path = _simulate_apply_movement(block.tokens, pstart)
+                                path = _simulate_apply_movement(tokens, pstart)
+                                if not path:
+                                    landing_cells.append(pstart)
+                                    continue
                                 prev = pstart
                                 follower_cell = pstart
                                 # If any NPC is currently following the PLAYER while the Pokémon follower is active,
@@ -1955,8 +1648,8 @@ def analyze_scripts(
                                                 "line": cmd.line_no,
                                                 "trigger": trig_kind,
                                                 "op": op,
-                                                "move": mov_label,
-                                                "phase": "main",
+                                                movement_key: mov_label,
+                                                "phase": "arrival" if on_arrival else "main",
                                                 "follower_cell": list(follower_cell),
                                             },
                                         )
@@ -1982,14 +1675,17 @@ def analyze_scripts(
                                                 },
                                             )
                                         )
-                                        _run_arrival_on_map(d_map, (dx, dy), ctx.ev)
+                                        follow_arrival(d_map, (dx, dy), ctx.ev, ctx.scene_writes,
+                                                       warp_indices.get(step_xy))
                                         # terminate this path on this map after warp
-                                        path = []
                                         break
                                     follower_cell = prev
                                     prev = step_xy
-                                if path:
-                                    ctx.player_cells = [path[-1]]
+                                else:
+                                    landing_cells.append(path[-1])
+                            if not landing_cells:
+                                continue
+                            ctx.player_cells = landing_cells
                         else:
                             # If moving a currently hidden NPC via applymovement, assume it should have been visible (hinted rule)
                             if not ctx.visible.get(obj, True):
@@ -1999,7 +1695,7 @@ def analyze_scripts(
                                     ctx.visible[obj] = True
                             start_xy = ctx.temp_pos.get(obj) or object_pos.get(obj)
                             if start_xy is not None:
-                                path = _simulate_apply_movement(block.tokens, start_xy)
+                                path = _simulate_apply_movement(tokens, start_xy)
                                 for pstart in (ctx.player_cells or [(0, 0)]):
                                     collided = follower_collision_during_path(pstart, path, warp_meta)
                                     if collided:
@@ -2013,7 +1709,7 @@ def analyze_scripts(
                                                     "script_label": start_label,
                                                     "line": cmd.line_no,
                                                     "object": obj,
-                                                    "move": mov_label,
+                                                    movement_key: mov_label,
                                                     "player_cell": list(pstart),
                                                     "follower_candidates": [list(t) for t in plausible_follower_cells(pstart, warp_meta)],
                                                     "trigger": trig_kind,
@@ -2038,9 +1734,9 @@ def analyze_scripts(
                                                     "line": cmd.line_no,
                                                     "trigger": trig_kind,
                                                     "op": op,
-                                                    "move": mov_label,
+                                                    movement_key: mov_label,
                                                     "object": obj,
-                                                    "phase": "main",
+                                                    "phase": "arrival" if on_arrival else "main",
                                                 },
                                             )
                                         for _it in _tmp_issues:
@@ -2106,7 +1802,7 @@ def analyze_scripts(
                                                 "op": op,
                                                 "move": mov_label,
                                                 "object": target,
-                                                "phase": "main",
+                                                "phase": "arrival" if on_arrival else "main",
                                             },
                                         )
                                     for _it in _tmp_issues:
@@ -2118,99 +1814,17 @@ def analyze_scripts(
                     work.append(ctx)
                     continue
 
-                if op == "applyonemovement" and len(args) >= 2:
-                    obj = args[0]
-                    token = args[1]
-                    # If moving a hidden NPC, assume it should have been visible (same heuristic as applymovement)
-                    if not ctx.visible.get(obj, True):
-                        sp = parsed.object_spawns.get(obj)
-                        if sp and sp.hide_event:
-                            _ev_set(ctx.ev, sp.hide_event, EV_FALSE)
-                            ctx.visible[obj] = True
-                    start_xy = ctx.temp_pos.get(obj) or object_pos.get(obj)
-                    if start_xy is not None:
-                        path = _simulate_apply_movement([token, "step_end"], start_xy)
-                        for pstart in (ctx.player_cells or [(0, 0)]):
-                            # Collision check for the one-step path
-                            if path and follower_collision_during_path(pstart, path, warp_meta):
-                                issues.append(
-                                    AuditIssue(
-                                        map_label=map_label,
-                                        file=str(asm_path.relative_to(atlas_common.ROOT_DIR)),
-                                        kind="follower-collision",
-                                        severity="warn",
-                                        details={
-                                            "script_label": start_label,
-                                            "line": cmd.line_no,
-                                            "object": obj,
-                                            "player_cell": list(pstart),
-                                            "follower_candidates": [list(t) for t in plausible_follower_cells(pstart, warp_meta)],
-                                            "trigger": trig_kind,
-                                        },
-                                    )
-                                )
-                            # If player moves one step while an NPC is following PLAYER and Pokémon follower is active, warn
-                            if obj == "PLAYER":
-                                npc_followers_of_player = [f for f, leader in ctx.follows.items() if leader == "PLAYER"]
-                                if npc_followers_of_player and include_follower and not ctx.follow_in_sync:
-                                    for fobj in npc_followers_of_player:
-                                        issues.append(
-                                            AuditIssue(
-                                                map_label=map_label,
-                                                file=str(asm_path.relative_to(atlas_common.ROOT_DIR)),
-                                                kind="follower-collision",
-                                                severity="warn",
-                                                details={
-                                                    "script_label": start_label,
-                                                    "line": cmd.line_no,
-                                                    "object": fobj,
-                                                    "player_cell": list(pstart),
-                                                    "follower_cell": list(pstart),
-                                                    "trigger": trig_kind,
-                                                    "reason": "npc-following-player conflicts with pokemon follower during player movement",
-                                                },
-                                            )
-                                        )
-                            for step_xy in path:
-                                _tmp_issues = count_sprite_usage(
-                                        map_label,
-                                        player_cell=pstart,
-                                        moving_npc_cell=step_xy,
-                                        static_npcs=static_npcs_snapshot_local(ctx.visible, ctx.temp_pos, obj),
-                                        follower_cell_override=(pstart if obj == "PLAYER" else None),
-                                        object_meta=object_meta,
-                                        warp_meta=warp_meta,
-                                        include_follower=include_follower,
-                                        include_weather=include_weather,
-                                        scanline_limit=scanline_limit,
-                                        total_limit=total_limit,
-                                        context={
-                                            "script_label": start_label,
-                                            "line": cmd.line_no,
-                                            "trigger": trig_kind,
-                                            "op": op,
-                                            "token": token,
-                                            "object": obj,
-                                            "phase": "main",
-                                            **({"follower_cell": list(pstart)} if obj == "PLAYER" else {}),
-                                        },
-                                    )
-                                for _it in _tmp_issues:
-                                    _it.file = str(asm_path.relative_to(atlas_common.ROOT_DIR))
-                                issues.extend(_tmp_issues)
-                        if path:
-                            if obj == "PLAYER":
-                                ctx.player_cells = [path[-1]]
-                            else:
-                                ctx.temp_pos[obj] = path[-1]
-                    ctx.pc += 1
-                    work.append(ctx)
-                    continue
-
                 # setlasttalked already handled; other ops we ignore but just advance
                 ctx.pc += 1
                 work.append(ctx)
 
+        if on_arrival:
+            for issue in issues[first_issue:]:
+                issue.details["phase"] = "arrival"
+                issue.details.setdefault("arrival_xy", list(arrival))
+
+    for asm_path in _iter_map_asm_files(maps_dir):
+        scan_map(asm_path)
     return issues
 
 

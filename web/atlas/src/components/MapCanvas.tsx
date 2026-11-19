@@ -1448,13 +1448,16 @@ function spatialPaletteRefresher(
   collision: CollisionHelper | null,
   entranceMap?: string | null,
 ): ObjectMarkerEntry["refreshPalette"] {
-  const hasSwaps = Boolean(metadata?.maps[label]?.palette_swaps?.length && paletteName?.startsWith("PAL_OW_COPY_BG_"));
+  const context = cache.getPaletteContext();
+  const pair = context.dualPalettes;
+  const usesBackground = paletteName?.startsWith("PAL_OW_COPY_BG_")
+    || (pair && pair[0] === paletteName && pair[1].startsWith("PAL_OW_COPY_BG_"));
+  const hasSwaps = Boolean(metadata?.maps[label]?.palette_swaps?.length && usesBackground);
   if (!hasSwaps && !(glow && collision)) {
     return undefined;
   }
   const select = hasSwaps && metadata ? createSpatialPaletteSelector(metadata, label, time, entranceMap) : null;
   const transition = glow ? createGlowTransition(glow, cache.glowFadeClock) : null;
-  const context = cache.getPaletteContext();
   let colors = resolveEntranceVariant(metadata, label, entranceMap)?.palettes[time]
     ?? metadata?.maps[label]?.palettes[time] ?? null;
   let previousGlow = "";
@@ -2724,6 +2727,7 @@ export default function MapCanvas({
     }
 
     // Set palette selection context for overlay map
+    cache.setGlowState(UNLIT);
     try {
       const mapMeta = getMapMetadata(state.mapLabel);
       const isOverworld = Boolean(mapMeta?.isOverworld);
@@ -3009,6 +3013,8 @@ export default function MapCanvas({
     timeOfDay,
     bgPalettes,
     getCollisionMetadata,
+    getMapMetadata,
+    computeMapWeather,
     maybeRender,
     editing,
     disableObjectAnimations,
@@ -3667,6 +3673,7 @@ export default function MapCanvas({
       }
 
       // Provide BG palettes for this world map to the cache (if available) before building sprite textures
+      cache.setGlowState(UNLIT);
       try {
         const bg = bgPalettes?.maps?.[entry.placement.label]?.palettes?.[timeOfDay] ?? null;
         cache.setBgPalettes(bg ?? null);

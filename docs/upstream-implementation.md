@@ -15,7 +15,7 @@ There are 1,057 commits and 3,520 changed endpoint paths in the current range.
 ## Current audit status
 
 All 1,057 commits from v3.2.2 through `f8e67fbd` have had a relevance
-screen. The ledger resolves 1,051. All six open commits have specific
+screen. The ledger resolves 1,055. Both open commits have specific
 follow-up work recorded against their diffs. The list of known features is
 preliminary. Auditing the outstanding changes and validating them in the
 Atlas remain part of implementation.
@@ -29,7 +29,13 @@ crash fix. Use the commit diffs to find unreleased master changes.
 
 | Open commit group | Remaining work |
 | --- | --- |
-| Palette swaps, NPC glow and weather | Verify map transitions for background-derived and dual NPC palettes and check weather sprite priority when more than ten tiles share a scanline. Atlas snapshots change weather immediately. The old particle layer was cleared in all four tested room transitions. |
+| Weather rendering and overworld performance | Check weather sprite priority when more than ten tiles share a scanline. Atlas snapshots change weather immediately. The old particle layer was cleared in all four tested room transitions. |
+
+Day and night trips through Vermilion City, Fuchsia Aquarium, Shamouti Island,
+Rugged Road and Route 10 reproduced the source pearl, Goldeen and Exeggutor
+colors on return. All 3,072 compared pixels matched. A separate 4,358,144-pixel
+check included all eight dual-palette facings, six glow types, four clocks
+and each intermediate glow fade step in both directions.
 
 All 22 grotto entrances now lead to a first-visit Pokémon appropriate to the
 entrance. Chrome's displayed textures matched all 5,632 pixels from the
@@ -812,13 +818,7 @@ At that checkpoint the ledger resolved 915 of 1,057 commits. The remaining
 - Check remaining event-dependent tile callbacks, object visibility and weather
   against the shared snapshot. Forced map time is shared across terrain and
   objects. Run the final combined-site checks before deployment.
-- Verify dynamic palette and weather transitions during map changes, together
-  with the remaining map, object and movement findings from the audit.
-- Reconcile dynamic palette rules for variable sprites, map/overlay changes
-  and weather transitions. The real campfire patrol and grass checks cover
-  movement within a map. Map-entry fades and copy-background palette changes
-  across connected maps still need runtime verification.
-- Finish the wider Ruins of Alph redesign review.
+- Finish the weather sprite allocation check for crowded scanlines.
 - Dev builds now require upstream corpus tests after source checkout, checking
   the exact pinned SHA. Extend that corpus coverage alongside further adaptations.
 - Finish the commit ledger, then run full combined-site/browser tests and publish.

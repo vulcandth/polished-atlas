@@ -14277,15 +14277,17 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "Read all twelve changed files. Adds previous/current weather, darkness, overcast and time states; palette fade catch-up; saved object palette clearing at connections; white-fade handling for lightning. Atlas currently builds steady-state palettes and selects UI time directly. Must verify map environment metadata and object palette precedence against the new engine, including later glow integration, before resolving.",
+      "reason": "Map and weather changes select their own object palette time, darkness, overcast, and dual palette pair. The room palette snapshot starts unlit before each object selects its own collision glow.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/91322e3740c5a824cd6224b7c74b6740f62f3582",
         "Full patch read in two file groups; open consumers: generate_bg_palette_metadata.py, generate_object_metadata.py, objectSprites.ts and weather rendering.",
         "Route 10 North storm: captured 296,960 opaque map pixels in each of six fade states at day and night. Every observed channel matched the RGB5 fade from white, including restoration of the original bytes. This isolates the lightning fade; crossing between weather systems remains a separate check.",
-        "Map snapshots replace weather immediately, as documented in docs/development.md. Cooldown-only ROM commits have separate dispositions. Check the outstanding palette interaction using that snapshot policy."
-      ]
+        "Map snapshots replace weather immediately, as documented in docs/development.md. Cooldown-only ROM commits have separate dispositions. Check the outstanding palette interaction using that snapshot policy.",
+        "Chrome visited Vermilion, the aquarium, Shamouti, Rugged Road and Route 10 and returned to the first three in day and night views. All 3,072 compared pearl, Goldeen and dual-palette Exeggutor pixels matched independent art/palette reconstruction on both visits. An independent cache/texture comparison verified 4,358,144 pixels including all 16 fade states in both directions for the six glow types on the eight dual-palette facings and all four clocks. Earlier terrain checks cover all 25 rectangles and 7,568 animated tile positions; the Firebreather patrol and lightning have separate observed fade comparisons."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "d9c6e346cdc28b574ed35b1dd3f6713fd7fc3754",
@@ -14625,13 +14627,15 @@
           "data/maps/setup_scripts.asm"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "Full single-file patch moves MapConnOWFadePalettesInit after ClearSavedObjPals and EnableDynPalUpdatesNoApply. Atlas does not emulate mapsetup calls, but correct per-map object palette context is part of the unresolved dynamic palette verification for 91322e3740c5.",
+      "reason": "Returning across map and overlay changes restores the correct object palettes after the shared cache served another map.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/3adfee12feb6c07b68f4c415aea69f9948271f93",
-        "Full data/maps/setup_scripts.asm patch; MapCanvas.tsx shared sprite cache context checked; full connection visual verification remains open."
-      ]
+        "Full data/maps/setup_scripts.asm patch; MapCanvas.tsx shared sprite cache context checked; full connection visual verification remains open.",
+        "Chrome visited Vermilion, the aquarium, Shamouti, Rugged Road and Route 10 and returned to the first three in day and night views. All 3,072 compared pearl, Goldeen and dual-palette Exeggutor pixels matched independent art/palette reconstruction on both visits. An independent cache/texture comparison verified 4,358,144 pixels including all 16 fade states in both directions for the six glow types on the eight dual-palette facings and all four clocks. Earlier terrain checks cover all 25 rectangles and 7,568 animated tile positions; the Firebreather patrol and lightning have separate observed fade comparisons."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "34d2df23b00ae4076c97851b547eb0eb777d0172",
@@ -57817,9 +57821,9 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "Read all ten changed files. Adds per-entry initialization/state bits with an eight-entry limit, replay of chained NULL entries, previous/current time and overcast palette endpoints, and fade catch-up for BG and copy-BG objects; unrelated DMA fix discards stale VBlank. Spatial composite uses steady-state colors independently at each coordinate, not an emulated player/global fade. Ordered selection and variants are implemented; complete object/animation visual validation remains open.",
+      "reason": "The requested spatial composite evaluates the ordered palette-swap chain independently at each coordinate, including animated tiles and copied sprite palettes. A map change selects the destination snapshot immediately.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/7d1f7827a2f4fa73782b134384a4466d761f293c",
         "Full patch read in two bounded groups covering all ten files.",
@@ -57827,8 +57831,10 @@
         "web/atlas/src/lib/paletteSwaps.test.ts covers moving object palette region selection.",
         "Open: full generated-site visual checks and palette animation interaction.",
         "Route 10 North storm: captured 296,960 opaque map pixels in each of six fade states at day and night. Every observed channel matched the RGB5 fade from white, including restoration of the original bytes. This isolates the lightning fade; crossing between weather systems remains a separate check.",
-        "Map snapshots replace weather immediately, as documented in docs/development.md. Cooldown-only ROM commits have separate dispositions. Check the outstanding palette interaction using that snapshot policy."
-      ]
+        "Map snapshots replace weather immediately, as documented in docs/development.md. Cooldown-only ROM commits have separate dispositions. Check the outstanding palette interaction using that snapshot policy.",
+        "Chrome visited Vermilion, the aquarium, Shamouti, Rugged Road and Route 10 and returned to the first three in day and night views. All 3,072 compared pearl, Goldeen and dual-palette Exeggutor pixels matched independent art/palette reconstruction on both visits. An independent cache/texture comparison verified 4,358,144 pixels including all 16 fade states in both directions for the six glow types on the eight dual-palette facings and all four clocks. Earlier terrain checks cover all 25 rectangles and 7,568 animated tile positions; the Firebreather patrol and lightning have separate observed fade comparisons."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "1cc751673a7559319ec9a5aeace2a1f5837e59df",
@@ -58060,16 +58066,18 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "Adds per-object collision glow states, previous/current palette identity, cache separation, and shared overworld fade catch-up; aquarium adds saturated RGB and campfire selects daytime. Non-object weather effects clear glow. Implemented table export, per-object selection, cache keys, 5-bit adjustment and fade; weather/map fade integration and dual palettes remain open.",
+      "reason": "NPC glow uses the collision at the actor and the shared fade clock for both facing palettes, icons and moving actors. Source color adjustments are applied before the 15-step RGB5 fade.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/e035debe8474b09ec8df1700b8922bbe27a6a36c",
         "Read all five changed files in two bounded patch calls. Focused frontend tests cover saturation, fades, shared NPC fade clock, cache identity and COPY_BG composition. Browser inspected 25 actual sprite samples each at day and night. Open: full-map movement, weather and dual-palette interaction.",
         "Observed the real RuggedRoadNorth Firebreather walking into and out of a DAY_GLOW collision in the browser at day and night. Compared settled and transitional colors to the pinned red sprite palette and RGB5 fade arithmetic. Map/weather transition verification stays open.",
         "Route 10 North storm: captured 296,960 opaque map pixels in each of six fade states at day and night. Every observed channel matched the RGB5 fade from white, including restoration of the original bytes. This isolates the lightning fade; crossing between weather systems remains a separate check.",
-        "Map snapshots replace weather immediately, as documented in docs/development.md. Cooldown-only ROM commits have separate dispositions. Check the outstanding palette interaction using that snapshot policy."
-      ]
+        "Map snapshots replace weather immediately, as documented in docs/development.md. Cooldown-only ROM commits have separate dispositions. Check the outstanding palette interaction using that snapshot policy.",
+        "Chrome visited Vermilion, the aquarium, Shamouti, Rugged Road and Route 10 and returned to the first three in day and night views. All 3,072 compared pearl, Goldeen and dual-palette Exeggutor pixels matched independent art/palette reconstruction on both visits. An independent cache/texture comparison verified 4,358,144 pixels including all 16 fade states in both directions for the six glow types on the eight dual-palette facings and all four clocks. Earlier terrain checks cover all 25 rectangles and 7,568 animated tile positions; the Firebreather patrol and lightning have separate observed fade comparisons."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "930ef831113b5cdf3c3543eaf8887c7d6aafc5e6",

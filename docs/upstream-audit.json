@@ -19981,11 +19981,15 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 32 changed paths. Inspect the overworld call sites and shared state in the assembly refactor for changes observable in the atlas."
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Gives shared RAM buffers purpose-specific names and allocations.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/91d4478fbfd6661876d4947fad5780fc94f54ae4",
+        "Checked the changed-file list and the decoration, field move, Judge Machine and healing machine routines. Field movement still stores and reads the block address, replacement and animation index. The decoration menu retains its selection and change bookkeeping. Atlas reads source tables and has no dependency on these temporary ROM work buffers."
+      ],
+      "triage_note": "Batch screen of 32 changed paths. Inspect the overworld call sites and shared state in the assembly refactor for changes observable in the atlas.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "d15d49b4b55d47bb8e5c5438708ae0baa0984096",
@@ -30689,11 +30693,15 @@
           "maps/Route43.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/RadioTower4F.asm, maps/Route43.asm."
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Replaces the Pink Bow gift with Fairy Feather.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c7374b72db1c2d9779461910a90b60a561c86142",
+        "The two changed map scripts give the item in dialogue and update gift-received flags. The other edits change battle/held items, phone gifts, inventory art, text and documentation. No mapped pickup, sprite or layout changes."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/RadioTower4F.asm, maps/Route43.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "507f1443c34754944b92c954baf30b2fb24000a2",
@@ -31671,11 +31679,15 @@
           "maps/SafariZoneWardensHome.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/PokemonFanClub.asm, maps/SafariZoneWardensHome.asm; object definitions in maps/PokemonFanClub.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The Pokémon Fan Club and Safari Zone Warden's home use distinct layouts.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a2dca03957823186778ff91d97e5cb1440866ee1",
+        "Verified separate endpoint block includes and contents, objects and four-time terrain. Both Fan Club exits return to Vermilion City. Both Warden's home exits return to Fuchsia City."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/PokemonFanClub.asm, maps/SafariZoneWardensHome.asm; object definitions in maps/PokemonFanClub.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "44ad1ffdbf3c45cd07c183760855c1a42e545844",
@@ -35552,11 +35564,15 @@
           "maps/FightingDojo.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/FightingDojo.asm; state changes in maps/FightingDojo.asm."
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Fighting Dojo assigns three variable sprite slots, their coordinates, facing and palettes on entry.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0b9d18d4310f5b53176ae84ad5c22159f5f39599",
+        "FightingDojoSetupRematchesCallback first hides all three slots and gates rematches on EVENT_BEAT_BLUE. Its map-local slot aliases share other maps' IDs. Check the unqualified snapshot and the scheduled trainers when the prerequisite is set."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/FightingDojo.asm; state changes in maps/FightingDojo.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "c69cb066b48d7afd2e54c62c86fa8e6c0fe79b3a",
@@ -38144,11 +38160,15 @@
           "engine/tilesets/tileset_anims.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Atlas loads the game's tileframe schedules, including shared table labels and banked destinations.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/05cf2a86217532fe4cd757c0b5f919451228e036",
+        "Checked the three changed paths. Pinned-corpus tests parse all endpoint schedules and exercise each command. Alias, argument, bank and legacy-fallback regression tests pass. Generated sign, turbine and current tracks were checked across full cycles."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "b263ca1e00795487dd8bcf0925039d2ccacec540",
@@ -38795,11 +38815,15 @@
           "maps/CopycatsHouse2F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CopycatsHouse2F.asm; state changes in maps/CopycatsHouse2F.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Copycat now occupies a single variable sprite slot on her upstairs map.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9ca9b07776062b5a65a969afe2a7ca38ff1b02ea",
+        "Reviewed the removed per-player event flags, the object callback and the conversation-only impersonations. The generated snapshot retains slot 253 and renders SPRITE_LASS at (4,3), as the entry callback directs. All four clock slots and the explicit teal palette are retained."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CopycatsHouse2F.asm; state changes in maps/CopycatsHouse2F.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "755da9a9f9e22b3f6056b948ec9a2fa3b479ba39",
@@ -40255,11 +40279,15 @@
           "maps/BattleTowerBattleRoom.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 78 changed paths. Inspect the overworld call sites and shared state in the assembly refactor for changes observable in the atlas."
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Replaces the ROM's indirect predef dispatcher with direct banked calls.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5cfc8dde33c14f1d1103e9fa5d22ecf3f0a2e591",
+        "Normalized predef/farcall and predef_jump/farjp to their respective call and jump operations and compared targets and order in every changed events, graphics, overworld and map script. Both battle room map scripts change comments only. Inspected the removed dispatcher, pointer and build registrations."
+      ],
+      "triage_note": "Batch screen of 78 changed paths. Inspect the overworld call sites and shared state in the assembly refactor for changes observable in the atlas.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "93c4ac8a76998d282eedf96ff6707e7f5ff53f62",
@@ -40850,11 +40878,15 @@
           "maps/TrainerHouseB1F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 8 changed paths. Check which trainer palette tables feed overworld NPCs and compare the pinned colors independently of battle portraits."
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Separates battle trainer portraits from the custom trainer portrait palette table.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/276171ffbaa9a082e9a25c3537a6081dd84632c8",
+        "The changed lookup feeds GetFrontpicPalettePointer and LoadTrainerPalette. The Trainer House map and overworld scripting hunks only annotate the existing xor instruction. NPC map-object palette overrides use a different table."
+      ],
+      "triage_note": "Batch screen of 8 changed paths. Check which trainer palette tables feed overworld NPCs and compare the pinned colors independently of battle portraits.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "eab10268c252c5b2124bb9b7fd5aea389fcf03bf",
@@ -41704,11 +41736,15 @@
           "maps/SeagallopFerryGate.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/OlivinePort.asm, maps/Route35CoastSouth.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The floating Go-Goggles are exposed as a key item with their new overworld sprite.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4093439bccef36f181187429f4382c200899f201",
+        "Confirmed the 12-tile graphic, Pokémon-style movement, item identity and shared collection flag in both map records at Olivine Port (16,13) and Route 35 Coast South (6,15). The changed coastal terrain is covered by the four-time raster and collision checks."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/OlivinePort.asm, maps/Route35CoastSouth.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "aa0655a453848d0ce9ec2ca5e8cb03462955fb38",
@@ -41770,11 +41806,15 @@
           "gfx/tilesets/port.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The sea-rock update uses the four-tile buoy animation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/aa0655a453848d0ce9ec2ca5e8cb03462955fb38",
+        "The patch inserts AnimateBuoyTiles in the tileset schedules and changes the corresponding graphics and metatiles. The previously verified animated atlas sheets match all four tracks over 80 frames at Olivine Port, Route 35 Coast South and Vermilion Port."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "6dbb676fa590f09b7c063768cc7bfa1e9d83a26f",
@@ -43034,11 +43074,15 @@
           "home/map_objects.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 2 changed paths. Inspect the overworld call sites and shared state in the assembly refactor for changes observable in the atlas."
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Names the existing off-screen and frozen flag bits and consolidates follower reset.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/886a43bd19c99b20097da6499ba86a506e07d212",
+        "Read both changed files. At this revision OFF_SCREEN_F and FROZEN_F are bits 6 and 5. The increment/zero test and decrement preserve the previous -1 sentinel behavior. StopFollow already clears the leader and resets the follower, including the already-absent case."
+      ],
+      "triage_note": "Batch screen of 2 changed paths. Inspect the overworld call sites and shared state in the assembly refactor for changes observable in the atlas.",
+      "review_method": "full-diff"
     },
     {
       "sha": "f7a3ab8283c0a748558e094099e569bca391cc1b",
@@ -46058,11 +46102,15 @@
           "maps/PewterCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/PewterCity.asm; object definitions in maps/PewterCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The Pewter City cliff redesign changes its connection to Route 3.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5b292a0f247c1dfce66259389cf6c1847299ed6f",
+        "Verified that the built Route 3 starts at Pewter's eastern edge and four blocks lower, agreeing with both signed offsets at the pinned head. Checked the city's object/warp declarations, full rasters and collision. The Fly spawn change is player-only."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/PewterCity.asm; object definitions in maps/PewterCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "6b0ee5425d32e71d9bb360379629e5f4839443ba",
@@ -46175,11 +46223,15 @@
           "gfx/tilesets/kanto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Flashing Game Corner signs use the banked four-tile animation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c0981f8a68daac07de00ee68233e8b4124b67084",
+        "Compared each of the four emitted sign tracks in Celadon City and Goldenrod City over all 80 frames in both day and night bundles. The final source tables select the bank and destination."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "dfe4cac308e3a90fafb5440fab081a8fff36e5cf",
@@ -46349,11 +46401,15 @@
           "maps/Route28.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/PokemonLeagueGate.asm, maps/Route22.asm and other files; object definitions in maps/Route22.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The Pokémon League gate's side entrances and connecting routes use revised coordinates.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a1934b2ad8acf37e2230ae7993cd90c4225da5b0",
+        "Checked all eight current gate exits and target positions, including both Route 22 and both Route 28 entrances. Source-to-export checks cover affected maps' dimensions, terrain, collision, and object declarations for the pinned layouts."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/PokemonLeagueGate.asm, maps/Route22.asm and other files; object definitions in maps/Route22.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "9d178869a7fc105860b0cde88c4d9d286f93f40a",
@@ -49480,11 +49536,15 @@
           "maps/NationalPark.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The National Park lamp uses a time-dependent tile animation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f7ed398c6ee894db16f762bab0512c5bfce6ca67",
+        "Checked changed Park graphics, collision, layout and animation code. Compared the actual lamp track over all 88 night frames against decoded tile writes. Daytime has no changing lamp track. The corpus test also exercises evening and morning."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "c2e78131942c091b4f22dbd261e71a8b6452e9f5",
@@ -54477,11 +54537,15 @@
           "maps/VermilionCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Vertical plank artwork changes Kanto terrain and moves the Game Corner sign destination.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/80de88b9a3e04cc791e5b7dd7518898be297ec59",
+        "The changed inputs are tileset art, attributes, collision, metatiles, map blocks and animation schedules. The endpoint rasters and collision were checked for all four clocks. Celadon's four sign tracks also match the decoded tile writes across 80 frames in day and night."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "bca16341dd97252795a9a3638bc0bd97bd457fda",
@@ -54603,11 +54667,15 @@
           "gfx/tilesets/kanto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The Kanto tilesets place the four current tiles in the Indigo Plateau animation schedule.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/efccd6fba396ecc631d3f8ce84ccc8e951e088c7",
+        "The current schedule selects bank 1, tile $49. Compared all four current directions over 80 day and night frames in Uraga Channel East. The direction/period test also covers individual bit and row rotations."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "eb2bc0cb5150195365b4f29958f45952b43873b2",
@@ -55242,11 +55310,15 @@
           "maps/VermilionCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Kanto ocean buoy graphics animate in the affected coastal tilesets.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/35237ed237a997984455dd3b9eea1ffc320a4a8a",
+        "Screened the changed tile resources and layouts and the Uraga Channel background event. Matched the four buoy tracks to decoded graphics over 80 frames each in Cerulean Cape and Uraga Channel East, by day and night."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "9dfe883040fedbc9681339000015335483d8a93c",
@@ -55534,11 +55606,15 @@
           "maps/PokemonMansionB1F.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The Pokémon Mansion graphics update adds animated cable tiles also used in Cinnabar Lab.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8c4da1888d3b114f53b00215fda6e3b779cd7f71",
+        "Reconciled the tile schedule, graphics, collision and affected map layouts. The Cinnabar Lab script edits a step delay. Four cable tracks match the emitted day and night sheets across 96 frames. All four map-time rasters and collision grids were previously checked."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "ea6522f5e158626ceec2a3cd84b2f253ad7d88ed",
@@ -55576,11 +55652,15 @@
           "maps/FastShipB1F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 7 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The SS Aqua's lower-deck floor changes and the Juggler's trash gains a read interaction.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ea6522f5e158626ceec2a3cd84b2f253ad7d88ed",
+        "Reviewed FastShipB1F's new background event, script and two UpdateSprites calls. EcruteakHouse deletes an end immediately before another end. The four source-based FastShipB1F terrain and collision comparisons cover the surviving floor assets."
+      ],
+      "triage_note": "Batch screen of 7 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "326dfb0654d03fbfbe1c6d1b30b51d3e2415b192",
@@ -59589,11 +59669,15 @@
           "gfx/trade/trade_tube_ob.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object and terrain priority in data/sprite_anims/oam.asm."
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Updates the trade movie and its dedicated graphics and palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d02973e66ccaeb959800cd71ce774f4c59ee4d9e",
+        "Traced the shared graphics changes to _CGB_TradePic, _CGB_TradeBG and LoadTradeAnimationMonMiniAndMask. The movie loads miniature and mask graphics for the trade UI. The overworld uses its own sprite and Pokémon icon tables."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object and terrain priority in data/sprite_anims/oam.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "0863255c5a78f4113f04c5d2b5f06cbfd59f796e",
@@ -60647,11 +60731,15 @@
           "maps/YellowForest.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 113 changed paths. Check macro and map-script hunks for any change to persistent object flags, callbacks or warp destinations."
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Item-giving macros now carry a full-Bag failure command inside the argument list. The embedded branch can bypass removal of a mapped object.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6bf2def28150e078ce87117e84ee2d19f948e5f9",
+        "LuckyIsland and HiddenTreeGrotto both follow giveitem with disappear. The movement analyzer handles standalone conditional opcodes. Check equivalent branch coverage for inline failure handlers before closing this record."
+      ],
+      "triage_note": "Batch screen of 113 changed paths. Check macro and map-script hunks for any change to persistent object flags, callbacks or warp destinations.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "f94606e48ddfa408e396d17098b03ff272fdecac",
@@ -63964,11 +64052,15 @@
           "maps/Route8.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/PowerPlant.asm; object definitions in maps/Route5.asm, maps/Route6.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Route 5 and Route 6 no longer have Poké Fans blocking the Underground Path.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2b7590bc4e77ab16bbe1577ea07cee3949f9f7af",
+        "Confirmed both obsolete flagged objects are absent in the built atlas. Reviewed the flag removal in the Power Plant and the reused sign/dialogue labels and source includes."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/PowerPlant.asm; object definitions in maps/Route5.asm, maps/Route6.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "3aba6e58e92aec6dd861eb645f03c0cc46563caf",
@@ -65927,11 +66019,15 @@
           "maps/CeladonCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): palette swaps in maps/CeladonCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The city layout and graphics add coordinate-based palette swaps.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7fa22fe74137759ceb67dfa752664ac7494c1216",
+        "Checked the three ordered Celadon rectangles and the four-time terrain comparison covering 1,556 base tiles and 432 animated positions. The Home Decor Store's two exit cells return to distinct city doors at (14,9) and (15,9). Object and warp declarations match the pinned source."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): palette swaps in maps/CeladonCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "6e96b1d92d21d1ae569cae1846568514fa5d61f2",
@@ -66006,11 +66102,15 @@
           "maps/Route7.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeladonCity.asm, maps/CeladonHomeDecorStore1F.asm; object definitions in maps/CeladonCity.asm, maps/Route7.asm; palette swaps in maps/CeladonCity.asm, maps/Route7.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The Home Decor Store entrance and nearby buildings move, updating the city and Route 7 objects, exits and swap rectangles.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a56884e8e6f997b8e2ce85a747b916cb6ff79a06",
+        "Checked the three ordered Celadon rectangles and the four-time terrain comparison covering 1,556 base tiles and 432 animated positions. The Home Decor Store's two exit cells return to distinct city doors at (14,9) and (15,9). Object and warp declarations match the pinned source."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeladonCity.asm, maps/CeladonHomeDecorStore1F.asm; object definitions in maps/CeladonCity.asm, maps/Route7.asm; palette swaps in maps/CeladonCity.asm, maps/Route7.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "f186a3040ff2820c615009efc3349dcd6551fe1d",
@@ -67175,11 +67275,15 @@
           "maps/SafariZoneWestRestHouse1.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/SafariZoneEastRestHouse.asm, maps/SafariZoneHubRestHouse.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The Safari Zone rest houses gain NPCs and Pokémon in their revised interiors.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3e0018a5af77c877a4d3b00fa33fede968d95aba",
+        "Matched source placements, species/forms, palettes, flags and exits in the four changed rest houses. The East Rest House has four Nidoran-family Pokémon. Checked the split East block include and the ordinary trainer and dialogue changes."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/SafariZoneEastRestHouse.asm, maps/SafariZoneHubRestHouse.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "7df0c560d053208bdcdf665f82eb68224d455530",

@@ -373,6 +373,7 @@ export interface ObjectEventEntry {
   yPixels: number;
   sprite: {
     constant: string | null;
+    resolvedConstant?: string;
     id: number | null;
   };
   movement: {

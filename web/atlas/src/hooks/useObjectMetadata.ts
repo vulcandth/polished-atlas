@@ -65,6 +65,7 @@ type RawObjectEventEntry = {
   y_pixels?: number;
   sprite?: {
     constant?: string | null;
+    resolved_constant?: string;
     id?: number | null;
   };
   movement?: {
@@ -385,6 +386,7 @@ function sanitizeObjectEvent(raw: RawObjectEventEntry | undefined): ObjectEventE
     yPixels: Number.isFinite(raw?.y_pixels) ? Math.trunc(raw?.y_pixels ?? 0) : 0,
     sprite: {
       constant: typeof raw?.sprite?.constant === "string" ? raw!.sprite!.constant : null,
+      resolvedConstant: typeof raw?.sprite?.resolved_constant === "string" ? raw.sprite.resolved_constant : undefined,
       id: Number.isFinite(raw?.sprite?.id) ? Math.trunc(raw!.sprite!.id as number) : null,
     },
     movement: {

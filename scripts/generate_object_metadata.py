@@ -315,6 +315,7 @@ class ObjectEventEntry:
     extra_payload: Dict[str, object] = field(default_factory=dict)
     event_flag_set: bool = False
     sprite_y_offset: Optional[int] = None
+    resolved_sprite: Optional[str] = None
 
     def to_payload(self, block_pixel_size: int, palette_lookup: Sequence[str]) -> Dict[str, object]:
         division = EVENT_CELLS_PER_BLOCK if EVENT_CELLS_PER_BLOCK > 0 else 1
@@ -337,6 +338,7 @@ class ObjectEventEntry:
             "sprite": {
                 "constant": self.sprite_constant,
                 "id": self.sprite_id,
+                **({"resolved_constant": self.resolved_sprite} if self.resolved_sprite else {}),
             },
             "movement": {
                 "constant": self.movement_constant,
@@ -1625,6 +1627,12 @@ def parse_map_objects(
     block_pixel_size = atlas_common.block_pixel_size()
     map_results: List[MapObjectData] = []
     appearance = object_macro_appearance(root)
+    # A variable sprite retains its slot ID in the map object. The game looks
+    # up its graphics in the variable table initialized for a new save.
+    initial_sprites = dict(re.findall(
+        r"^\s*dwb\s+varspriteaddr\s+(SPRITE_\w+),\s*(SPRITE_\w+)\b",
+        (root / "data/events/initialize_events.asm").read_text(encoding="utf-8"), re.M,
+    ))
     cleared = cleared_event_flags or set()
     for script_path in sorted((root / "maps").rglob("*.asm")):
         label = script_path.stem
@@ -1695,6 +1703,7 @@ def parse_map_objects(
             )
             if entry.event_flag and entry.event_flag in map_flags:
                 entry.event_flag_set = True
+            entry.resolved_sprite = initial_sprites.get(entry.sprite_constant)
             if monday_merchant and entry.event_flag == monday_merchant:
                 # The source callback tests the game clock, even though the room uses indoor colors.
                 entry.time_mask = 1 << TIME_OF_DAY_SLUGS.index("morn")

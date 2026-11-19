@@ -42,6 +42,23 @@ class ObjectPaletteTests(unittest.TestCase):
         self.assertEqual(self.movements["SPRITEMOVEDATA_AQUARIUM_BOTTOM"].palette_flags, 0x90)
         self.assertEqual(self.movements["SPRITEMOVEDATA_BIG_HO_OH"].action, "OBJECT_ACTION_BIG_HO_OH")
 
+    def test_initial_variable_sprites_use_their_assigned_graphics(self):
+        maps = objects.parse_map_objects(self.root, self.constants, {}, self.movements, self.names, set())
+        _, headers = objects.parse_sprite_headers(self.root, self.constants)
+        appearances = {}
+        for map_data in maps:
+            for obj in map_data.objects:
+                sprite = obj.to_payload(32, self.names)["sprite"]
+                if "resolved_constant" in sprite:
+                    appearances[map_data.label, sprite["constant"]] = sprite["resolved_constant"]
+                    self.assertTrue(headers[sprite["resolved_constant"]].tile_bytes)
+                    self.assertEqual(sprite["id"], self.constants.get(sprite["constant"]))
+        self.assertEqual(appearances, {
+            ("CopycatsHouse2F", "SPRITE_COPYCAT"): "SPRITE_LASS",
+            ("FuchsiaPokeCenter1F", "SPRITE_JANINE_IMPERSONATOR"): "SPRITE_CUTE_GIRL",
+            **{("FuchsiaGym", f"SPRITE_FUCHSIA_GYM_{i}"): "SPRITE_JANINE" for i in range(1, 5)},
+        })
+
     def test_aquarium_weekday_callback_applies_to_both_floors_only(self):
         weekday_exhibits = {"GOLDEEN", "TENTACOOL", "SQUIRTLE", "SHELLDER"}
         weekend_exhibits = {"QWILFISH", "HORSEA", "SEEL", "KRABBY"}

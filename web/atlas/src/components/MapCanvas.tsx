@@ -817,7 +817,7 @@ function buildPokemonIconFrameSet(
   frameSet: MovementFrameSet | null;
   frameDurationMs: number | null;
 } {
-  const spriteKey = objectEntry.sprite.constant ?? "SPRITE_MON_ICON";
+  const spriteKey = objectEntry.sprite.resolvedConstant ?? objectEntry.sprite.constant ?? "SPRITE_MON_ICON";
   const { species, form } = resolvePokemonSpecies(objectEntry);
   const palette = paletteName ?? null;
   const direction = resolveDirectionFromFacingKey(facingKey) ?? "down";
@@ -1519,7 +1519,7 @@ function applySpriteFrame(
   }
   if (marker.sprite.texture !== texture) marker.sprite.texture = texture;
   if (marker.currentFrameKey !== frame.key) {
-    const spriteName = marker.object.sprite.constant;
+    const spriteName = marker.object.sprite.resolvedConstant ?? marker.object.sprite.constant;
     if (
       import.meta.env?.DEV &&
       spriteName &&
@@ -2780,7 +2780,7 @@ export default function MapCanvas({
       if (!isObjectWithinMapBounds(objectEntry, mapData, cellsPerBlock, baseCellPixelSize)) {
         continue;
       }
-      const spriteKey = objectEntry.sprite.constant;
+      const spriteKey = objectEntry.sprite.resolvedConstant ?? objectEntry.sprite.constant;
       if (!spriteKey) {
         continue;
       }
@@ -3639,7 +3639,7 @@ export default function MapCanvas({
         if (!isObjectWithinMapBounds(objectEntry, mapData, cellsPerBlock, baseCellPixelSize)) {
           continue;
         }
-        const spriteKey = objectEntry.sprite.constant;
+        const spriteKey = objectEntry.sprite.resolvedConstant ?? objectEntry.sprite.constant;
         if (!spriteKey) {
           continue;
         }

@@ -12,6 +12,31 @@ upstream master on November 18, 2026. The first audit pass targeted `704ea9db1`.
 The baseline is `e410d7405e7d5d016b16a0a59bfb6da0b2a9eabf` (v3.2.2).
 There are 1,057 commits and 3,520 changed endpoint paths in the current range.
 
+## Current audit status
+
+All 1,057 commits from v3.2.2 through `f8e67fbd` have had a relevance
+screen. The ledger resolves 939. Of the 118 still open, 107 have leads
+from the scan and 11 have confirmed follow-up work. Auditing the remaining
+diffs and validating the affected Atlas features are part of implementation.
+The list of known features below is preliminary.
+
+The latest batch closed 24 commits. Of the 548 total commits classified
+as having no Atlas impact, 364 were skipped after examining their subject,
+changed paths and consumers. The changelog adds only the v3.2.3 battle
+crash fix. Use the commit diffs to find unreleased master changes.
+
+- The National Park lamp matches the exported 88-frame night cycle and
+  stays steady by day. Both Game Corner signs match all four tracks across
+  their 80-frame day and night cycles.
+- The initial variable sprite table supplies the graphic for Copycat, the
+  four disguised trainers at Fuchsia Gym and the impersonator at the Fuchsia
+  Pokémon Center. Dev now exports each original slot alongside its assigned
+  graphic. The Fighting Dojo separately reassigns its slots on map entry.
+- Inline full-Bag handlers can change the movement analyzer's result.
+  Lucky Island and Hidden Tree Grotto both remove the item object only after
+  a successful pickup. This change remains open alongside the Dojo schedule,
+  palette transitions, NPC glow transitions and Ruins of Alph.
+
 **Planning inspection was preliminary and NOT exhaustive. Auditing every commit
 is implementation work. The known requirements below are not a closed list.**
 
@@ -659,8 +684,8 @@ range. The ledger records why each skipped change is outside atlas scope.
 
 ## NPCs in grass and campfire light
 
-The ledger resolves 915 of 1,057 commits. The remaining 142 include 133
-pending reviews and nine reviewed changes with open work.
+At that checkpoint the ledger resolved 915 of 1,057 commits. The remaining
+142 included 133 pending reviews and nine reviewed changes with open work.
 
 - Dev exports one bit per background pixel indicating whether its Game Boy
   color index is nonzero. Animated tiles carry that information for each

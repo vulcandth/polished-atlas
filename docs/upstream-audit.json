@@ -18781,10 +18781,15 @@
           "maps/Route35CoastSouth.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Adds out-of-bounds duplicates for two objects visible across a border. The corrected Star Piece flag and sprite and the standing fisher are in generated metadata. World rendering clips out-of-bounds duplicates. Verify the visible pair at the Goldenrod Harbor border comes from the adjacent map and appears exactly once.",
+      "evidence": [
+        "git show -U0 acadb9d7d98869dc6d51efc1ef1ec9047d5c2e6b (map events, executable script changes and complete file list screened)",
+        "Pinned map scripts and .build/fixed-objects.json",
+        "web/atlas/src/components/MapCanvas.tsx: object bounds and time-of-day filters"
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "a123655895ae72847be1290bc7322295724fac91",
@@ -52290,10 +52295,15 @@
           "maps/CeladonCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Celadon City gramps uses red at (10,32) during day/night. The green gardener at (9,31) appears in morning/evening. Generated metadata matches both schedules and MapCanvas applies the time filter in both views. Dialogue needs no atlas changes.",
+      "evidence": [
+        "git show -U0 b4c28b4c610aec22ef7176ec0dcca34ade789a42 (map events, executable script changes and complete file list screened)",
+        "Pinned map scripts and .build/fixed-objects.json",
+        "web/atlas/src/components/MapCanvas.tsx: object bounds and time-of-day filters"
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "c29d9183d5c3a585f1f5b2e612c68e3c9a417c44",
@@ -56349,10 +56359,15 @@
           "maps/RuggedRoadSouth.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Generated RuggedRoadSouth metadata contains the Black Belt walking left/right at (13,12) with horizontal range 2. The new item-trade flag controls dialogue and rewards. It does not hide this NPC.",
+      "evidence": [
+        "git show -U0 420a63c867d22bf7645d558b2ce0c90895baa944 (map events, executable script changes and complete file list screened)",
+        "Pinned map scripts and .build/fixed-objects.json",
+        "web/atlas/src/components/MapCanvas.tsx: object bounds and time-of-day filters"
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "d9ed0af5dec86a33abda543ab8cf7dacb7139cc6",
@@ -56770,10 +56785,15 @@
           "maps/RuggedRoadNorth.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Generated RuggedRoadNorth metadata has both scheduled hiker positions (23,9 day/night, 22,10 morning/evening) and the firebreather at (25,10) with horizontal range 1. The item-gift quest changes conversation. Campfire glow coverage is tracked separately.",
+      "evidence": [
+        "git show -U0 ae70f877b72625b2a5c1f757de7b21c1c1ac53c5 (map events, executable script changes and complete file list screened)",
+        "Pinned map scripts and .build/fixed-objects.json",
+        "web/atlas/src/components/MapCanvas.tsx: object bounds and time-of-day filters"
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "9689951667358a01a2a678ea5eea5ff8cb659379",

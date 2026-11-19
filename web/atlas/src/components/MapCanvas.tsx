@@ -473,6 +473,8 @@ function resolveFacingConstant(entry: ObjectEventEntry, metadata: ObjectMetadata
     return "FACING_CUT_TREE";
   }
   if (movementAction === "OBJECT_ACTION_FRUIT") {
+    const facing = entry.extra?.["fruit_facing"];
+    if (typeof facing === "string" && metadata.facings[facing]) return facing;
     const treeNameRaw = entry.extra?.["tree"];
     const treeName = typeof treeNameRaw === "string" ? treeNameRaw : "";
     if (treeName.includes("APRICORN") && metadata.facings["FACING_APRICORN"]) {

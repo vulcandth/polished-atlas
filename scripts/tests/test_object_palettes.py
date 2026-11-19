@@ -19,6 +19,21 @@ class ObjectPaletteTests(unittest.TestCase):
         cls.names = sum((list(group) for group in objects.parse_palette_definitions(cls.root)), [])
         cls.movements = objects.parse_movement_table(cls.root, cls.constants)
 
+    def test_macro_sprites_fruit_facings_and_item_flags(self):
+        flag = "EVENT_GOLDENROD_HARBOR_STAR_PIECE"
+        maps = objects.parse_map_objects(self.root, self.constants, {}, self.movements, self.names, {flag})
+        entries = [obj for m in maps for obj in m.objects]
+        ball, = [obj for m in maps if m.label == "Route35CoastSouth" for obj in m.objects
+                 if obj.extra_payload.get("item") == "STAR_PIECE"]
+        self.assertEqual((ball.sprite_constant, ball.event_flag, ball.event_flag_set),
+                         ("SPRITE_BALL_CUT_TREE", flag, True))
+        self.assertEqual(ball.to_payload(32, self.names)["palette_override"]["constant"], "PAL_OW_ENV_RED")
+        fruits = [obj for obj in entries if obj.macro == "fruittree_event"]
+        self.assertEqual({obj.sprite_constant for obj in fruits}, {"SPRITE_BLANK_FRUIT"})
+        for obj in fruits:
+            apricorn = "APRICORN" in obj.extra_payload["berry"]
+            self.assertEqual(obj.extra_payload["fruit_facing"], "FACING_APRICORN" if apricorn else "FACING_BERRY")
+
     def test_complete_modern_movement_table(self):
         self.assertEqual(len(self.movements), 59)
         self.assertEqual(len(self.movements), self.constants.get("NUM_SPRITEMOVEDATA"))

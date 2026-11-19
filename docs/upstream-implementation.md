@@ -455,6 +455,16 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   1F export matched all 33 rendered frames and their rounded GIF delays across
   its 320-VBlank loop. A regression test covers two independent track periods.
 
+- The Goldenrod Harbor border review exposed obsolete macro graphics and
+  incorrect event flags on 13-argument objects. Dev now reads fixed sprite
+  and palette arguments from the checked-out wrapper macros, reads the flag
+  from the last argument, and chooses fruit artwork using FIRST_BERRY_TREE.
+  Regenerated metadata covers 318 regular item balls, 29 key/TM balls, 61 cut
+  trees and 54 fruit trees. The Harbor seam still needs a visual check.
+- Verified time slots and movement data for the Celadon gardener and Rugged
+  Road hikers, firebreather and Black Belt. The ledger now has 663 resolved,
+  359 pending and 29 reviewed/open. Findings remain preliminary.
+
 ## Immediate remaining implementation work
 
 - Verify palette-swap NPC colors in the full generated site. The frontend now

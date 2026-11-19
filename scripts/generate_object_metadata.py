@@ -1590,6 +1590,22 @@ MACRO_EXPANSIONS = {
 }
 
 
+def object_macro_appearance(root: Path) -> Dict[str, Dict[int, str]]:
+    """Read fixed sprite and palette arguments from the checkout's wrapper macros."""
+    source = (root / "macros/scripts/maps.asm").read_text(encoding="utf-8")
+    result = {}
+    for name, body in re.findall(r"^MACRO (\w+)[^\n]*\n([\s\S]*?)^ENDM", source, re.M):
+        if name not in MACRO_EXPANSIONS:
+            continue
+        calls = [split_arguments(args.partition(";")[0]) for args in
+                 re.findall(r"^\s*object_event[ \t]+([^\n]+)", body, re.M)]
+        if calls:
+            result[name] = {i: calls[0][i] for i in (2, 7)
+                            if re.fullmatch(r"(SPRITE_|PAL_)\w+", calls[0][i])
+                            and all(call[i] == calls[0][i] for call in calls)}
+    return result
+
+
 def parse_map_objects(
     root: Path,
     constants: ASMConstantParser,
@@ -1601,6 +1617,7 @@ def parse_map_objects(
     repo_index = atlas_common.repository(root)
     block_pixel_size = atlas_common.block_pixel_size()
     map_results: List[MapObjectData] = []
+    appearance = object_macro_appearance(root)
     for script_path in sorted((root / "maps").rglob("*.asm")):
         label = script_path.stem
         map_info = repo_index.maps.get(label)
@@ -1628,9 +1645,13 @@ def parse_map_objects(
             except Exception:
                 continue
             object_args, extra_payload = expanded_args, dict(extra)
-            if macro_name in {"strengthboulder_event", "smashrock_event"} and "SPRITE_BOULDER_ROCK" in sprite_lookup:
-                # Master split fossils/ice boulders into a separate sprite.
-                object_args[2] = "SPRITE_BOULDER_ROCK"
+            for arg_index, value in appearance.get(macro_name, {}).items():
+                object_args[arg_index] = value
+            if macro_name == "fruittree_event":
+                tree = constants.get(raw_args[2])
+                first_berry = constants.get("FIRST_BERRY_TREE")
+                if tree is not None and first_berry is not None:
+                    extra_payload["fruit_facing"] = "FACING_APRICORN" if tree < first_berry else "FACING_BERRY"
             index += 1
             entry = build_object_entry(
                 index=index,
@@ -1685,8 +1706,10 @@ def build_object_entry(
     object_type_expr = args[8] if len(args) > 8 else "OBJECTTYPE_SCRIPT"
     command_expr = args[9] if len(args) > 9 else "0"
     script_expr = args[10] if len(args) > 10 else "0"
-    flag_expr = args[11] if len(args) > 11 else "-1"
-    extra_expr = args[12] if len(args) > 12 else None
+    flag_expr = args[-1] if len(args) >= 12 else "-1"
+    extra_expr = args[11] if len(args) == 13 else None
+    if object_type_expr == "OBJECTTYPE_ITEMBALL":
+        extra_payload.update(item=script_expr, quantity=extra_expr or "1")
 
     x_tiles = evaluate_expression(x_expr, constants) or 0
     y_tiles = evaluate_expression(y_expr, constants) or 0

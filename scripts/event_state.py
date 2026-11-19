@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 import re
@@ -38,6 +39,12 @@ def initial_flags(root: Path) -> set[str]:
                     flags.add(flag)
                 else:
                     flags.discard(flag)
+    # New games start with the trendy phrase "Prism". The island callback
+    # reveals the island only for "Lucky". An atlas snapshot can select the
+    # revealed branch by clearing its civilian flag.
+    island = root / 'maps/LuckyIsland.asm'
+    if island.is_file() and 'special CheckIfTrendyPhraseIsLucky' in island.read_text(encoding='utf-8'):
+        flags.add('EVENT_LUCKY_ISLAND_CIVILIANS')
     return flags
 
 
@@ -110,31 +117,51 @@ def _tile_callback(script: Path) -> tuple[list[str], dict[str, int]]:
     return commands, labels
 
 
-def conditional_block_changes(script: Path, events: set[str]) -> tuple[tuple[int, int, int], ...]:
-    """Evaluate the tile callback for this snapshot, committing writes only at endcallback."""
+@dataclass
+class TileCallbackResult:
+    flags: set[str]
+    block_label: str | None = None
+    changes: tuple[tuple[int, int, int], ...] = ()
+
+
+def evaluate_tile_callback(script: Path, events: set[str]) -> TileCallbackResult:
+    """Commit map-local flags and block writes together when the callback returns."""
     commands, labels = _tile_callback(script)
+    flags = set(events)
     changes = []
+    block_label = None
     pos = 0
     checked = None
+    visited = set()
     number = r'(?:\$[0-9a-fA-F]+|\d+)'
-    while pos < len(commands):
+    while pos < len(commands) and pos not in visited:
+        visited.add(pos)
         line = commands[pos]
         pos += 1
         if line == 'endcallback':
-            return tuple(changes)
+            return TileCallbackResult(flags, block_label, tuple(changes))
         if m := re.fullmatch(r'check(?:event|flag)\s+((?:EVENT|ENGINE)_\w+)', line):
-            checked = m[1] in events
+            checked = m[1] in flags
+        elif line == 'special CheckIfTrendyPhraseIsLucky':
+            checked = 'EVENT_LUCKY_ISLAND_CIVILIANS' not in events
+        elif m := re.fullmatch(r'(setevent|clearevent)\s+(EVENT_\w+)', line):
+            if m[1] == 'setevent':
+                flags.add(m[2])
+            else:
+                flags.discard(m[2])
         elif m := re.fullmatch(r'(iftrue|iffalse|sjump)(?:fwd)?\s+(\.\w+)', line):
             if m[1] != 'sjump' and checked is None:
-                return ()
+                break
             if m[1] == 'sjump' or checked == (m[1] == 'iftrue'):
-                target = labels.get(m[2])
-                if target is None or target < pos:
-                    return ()
-                pos = target
+                if m[2] not in labels:
+                    break
+                pos = labels[m[2]]
+        elif m := re.fullmatch(r'changemapblocks\s+(\w+_BlockData)', line):
+            block_label = m[1]
+            changes.clear()
         elif m := re.fullmatch(rf'changeblock\s+({number}),\s*({number}),\s*({number})', line):
             x, y, block = (int(v[1:], 16) if v.startswith('$') else int(v) for v in m.groups())
             changes.append((x, y, block))
         else:
-            return ()
-    return ()
+            break
+    return TileCallbackResult(events)

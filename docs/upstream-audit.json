@@ -17112,11 +17112,15 @@
           "maps/QuietCaveB3F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/QuietCaveB3F.asm; object definitions in maps/QuietCaveB3F.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Don't reuse cave metatileset files for quiet_cave tileset.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/268c2a98b6090be0848925ad08f9020fa2229a6f",
+        "Verified the four Quiet Cave floors use their dedicated quiet_cave collision resource. Matched the endpoint first frames, collision, TM ball and portals. Fire Island also passes the terrain check. Compared pinned renders and collision for FireIsland, QuietCave1F, QuietCaveB1F, QuietCaveB2F, QuietCaveB3F."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/QuietCaveB3F.asm; object definitions in maps/QuietCaveB3F.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "13231338e6c172188d4d1b4376be06731fc6d424",
@@ -18849,13 +18853,15 @@
           "maps/Route35CoastSouth.asm"
         ]
       ],
-      "status": "reviewed",
-      "disposition": "adaptation",
-      "reason": "Adds out-of-bounds duplicates for two objects visible across a border. The corrected Star Piece flag and sprite and the standing fisher are in generated metadata. World rendering clips out-of-bounds duplicates. Verify the visible pair at the Goldenrod Harbor border comes from the adjacent map and appears exactly once.",
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add dummy objects visible in Goldenrod Harbor from Route 35 Coast.",
       "evidence": [
         "git show -U0 acadb9d7d98869dc6d51efc1ef1ec9047d5c2e6b (map events, executable script changes and complete file list screened)",
         "Pinned map scripts and .build/fixed-objects.json",
-        "web/atlas/src/components/MapCanvas.tsx: object bounds and time-of-day filters"
+        "web/atlas/src/components/MapCanvas.tsx: object bounds and time-of-day filters",
+        "https://github.com/Rangi42/polishedcrystal/commit/acadb9d7d98869dc6d51efc1ef1ec9047d5c2e6b",
+        "Both off-map Route 35 Coast South proxies match the Star Piece and Fisher on Goldenrod Harbor at the same world coordinates. Verified bounds and event flags in all four clock layouts. Compared pinned renders and collision for Route35CoastSouth."
       ],
       "review_method": "diff-hunks"
     },
@@ -19313,10 +19319,14 @@
           "maps/ScaryCaveShipwreck.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Change Scary Cave's water and shipwreck.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8630872af72cfd101699f1880f8ac05fdf8ff6b6",
+        "Reviewed the Scary Cave palette, graphics, block data and read-only shipwreck text. Checked both map scripts and the day, night, morning and evening rasters. Compared pinned renders and collision for ScaryCave1F, ScaryCaveShipwreck."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "9932a486937217945416a56b1cbd758fc3751c97",
@@ -19792,10 +19802,14 @@
           "utils/lz_analyze_pack16.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "The upstream ROM uses a new compressor format.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/99b33820e4da60a861ddb4b3c97f4c8eb575d90e",
+        "Reviewed the changed file list, compression decoder/tool and representative assembler resource references including map blocks and tilesets. The atlas consumes the original uncompressed source graphics and blocks, verified by generating the full pinned corpus."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "91d4478fbfd6661876d4947fad5780fc94f54ae4",
@@ -27708,11 +27722,15 @@
           "maps/RuinsOfAlphOmanyteWordRoom.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use one tileset for Ruins of Alph interiors.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/99d54bdb480336728c0a7ca924eea3f5f1ce5840",
+        "Checked the four Ruins word-room registrations, their shared endpoint tileset, complete images and collision, and the palette and removed animation label in the diff. Compared pinned renders and collision for RuinsOfAlphAerodactylWordRoom, RuinsOfAlphHoOhWordRoom, RuinsOfAlphKabutoWordRoom, RuinsOfAlphOmanyteWordRoom."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "bc28953aa67bf721a5f35858ccbaf06ea10ecad3",
@@ -29703,11 +29721,15 @@
           "maps/UndergroundPath.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/GoldenrodUndergroundSwitchRoom.asm, maps/Route5UndergroundEntrance.asm and other files; state changes in maps/GoldenrodUndergroundSwitchRoom.asm; connectivity in maps/Route5.asm, maps/Route5UndergroundEntrance.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Name the Underground Path maps correctly.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/cf08098bcd246e54364b1cf6e6232654e8106f54",
+        "Checked the renamed UndergroundPath entrances, both warp targets and the TM ball. Reviewed the matching map registrations and Goldenrod switch-room event flag rename. Compared pinned renders and collision for GoldenrodUndergroundSwitchRoom, Route5, Route5UndergroundPathEntrance, Route6, Route6UndergroundPathEntrance, UndergroundPath."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/GoldenrodUndergroundSwitchRoom.asm, maps/Route5UndergroundEntrance.asm and other files; state changes in maps/GoldenrodUndergroundSwitchRoom.asm; connectivity in maps/Route5.asm, maps/Route5UndergroundEntrance.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "f2a004aa8e573bc21795c986def4a1c7132122b8",
@@ -29837,11 +29859,15 @@
           "maps/GoldenrodUndergroundSwitchRoom.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/GoldenrodUndergroundSwitchRoom.asm; object definitions in maps/GoldenrodUndergroundSwitchRoom.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Use the `underground` tileset for Goldenrod Underground switch room.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/46f7d69de0d06e6ea82025807a3c56ac94bad2cc",
+        "Verified the switch room uses the underground tileset, relocated objects and portals, and the 11 source door definitions. The regression suite checks the three starting open doors and all 11 toggled separately. Compared pinned renders and collision for GoldenrodUndergroundSwitchRoom."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/GoldenrodUndergroundSwitchRoom.asm; object definitions in maps/GoldenrodUndergroundSwitchRoom.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "93d32bebc34042914b7458b92230d3e2357c00c7",
@@ -31832,10 +31858,14 @@
           "maps/GoldenrodUndergroundWarehouse.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Add shadows to `underground` walls.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/80dd8dcd3c557ddbd1bcc14e22fb528961982e3d",
+        "Checked the underground graphics and three revised interiors. The switch room uses the tested door table for opened and closed wall art and collision. Compared pinned renders and collision for GoldenrodDeptStoreB1F, GoldenrodUndergroundSwitchRoom, GoldenrodUndergroundWarehouse."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "369764538300da1a1851e2d22147bd0bc7b4eae0",
@@ -36601,11 +36631,15 @@
           "maps/CianwoodGym.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CianwoodGym.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Fix the boulder Chuck chucks.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5bbddf56b6349223f2a262f5c4e7565ef7a19619",
+        "Inspected the revised boulder object, fixed facing commands during the cutscene, and two changed gym terrain inputs. Checked Chuck, boulder visibility and all four waterfall blocks with the event set and clear. Compared pinned renders and collision for CianwoodGym."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CianwoodGym.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "aeef12985c2f7a73f3d83e83e83819efa6c7dda2",
@@ -38451,10 +38485,14 @@
           "gfx/tilesets/sprout_tower.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Make Bellsprout statues yellow like G/S.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3ec007806b3c256f60dba463f089237f18d2cf8d",
+        "Reviewed the dedicated Sprout Tower landmark palette and its source include. The tower maps pass the four-time raster check with the current palette and the statue blocks."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "cb3fdf2f7a433b77f95a9907281a2629f6a65a4b",
@@ -38526,10 +38564,14 @@
           "gfx/tilesets/sprout_tower.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Reduce attribute clash for Bellsprout statues.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3b166d9518cffcbae0ef4496872689268ce89e7f",
+        "The only inputs are Sprout Tower tileset colors and graphics. Verified the endpoint first frames and collision on all Sprout Tower floors."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "2ac63ac52e4e02700f49ed16b771f883ef20bfd0",
@@ -38825,10 +38867,14 @@
           "gfx/tilesets/sprout_tower.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix Bellsprout painting palette.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/68375535fb45382ced39e3b796d719682fecd08a",
+        "The only inputs are the Sprout Tower palette and tile attributes. Verified the complete source-based rasters for the painting and surrounding tiles on all floors."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "e652cf7de975f85f3d606ffaff9cf0916a9512e2",
@@ -39567,11 +39613,15 @@
           "maps/Route39.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route35CoastNorth.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Remove the Pokéathlon construction site.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3d478b20bb53e35d8f31a8e38b93a9d8b48ab0a4",
+        "Checked each affected Johto coast layout and removal of the Route35CoastNorth smash rock. The deleted sign was a player interaction. Compared pinned renders and collision for CianwoodCity, OlivineCityRoute35CoastDual, Route35, Route35CoastNorth, Route35CoastSouth, Route38, Route39."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route35CoastNorth.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "a61b060ee7af925e31d989350064e7084402eb12",
@@ -40193,10 +40243,14 @@
           "engine/pokemon/move_mon.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Changes the assembler call mechanism in battle, item and link routines.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/93c4ac8a76998d282eedf96ff6707e7f5ff53f62",
+        "Read all ten file patches. The farcall/farjp replacements retain the called routines, including the field itemball routine. The atlas reads item placement from map declarations."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "a127fcdfd8351260abfb513b4d5e78e88ce5c266",
@@ -42293,11 +42347,15 @@
           "maps/SaffronCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/SaffronCity.asm; object definitions in maps/SaffronCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Edit the layout of Saffron City, and fix visibility from Route 5.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/61cd162821d65c47c63992e357d7dc9906f05223",
+        "Checked shared Kanto tileset art and collision, the changed Saffron object and warp rows, and all endpoint connection placements, including Route5. Compared pinned renders and collision for CeruleanCape, FuchsiaCity, Route24, SaffronCity."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/SaffronCity.asm; object definitions in maps/SaffronCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "896b91701bd9e6545ef6b0f1898ce35459447b2b",
@@ -45809,11 +45867,15 @@
           "maps/Route28.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/Route22.asm, maps/Route26.asm and other files; object definitions in maps/Route22.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Pokémon League gates are all wide with a \"League\" sign.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a456c654ecad72716cdaac234654675761d4e150",
+        "Checked the wider gate layouts, objects, warps and current collision. The separate spawn-point edit moves the player when flying to Route26. Compared pinned renders and collision for FuchsiaCity, Route22, Route26, Route28."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/Route22.asm, maps/Route26.asm and other files; object definitions in maps/Route22.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "d0580c52cad4cd533c76a4cb26202bb268c9120d",
@@ -45856,11 +45918,15 @@
           "maps/Route17South.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route17South.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix height of Cycling Road.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a423093785809cb5859634c8d9ec8c3a09ac1dc3",
+        "Compared Route17South dimensions, object declarations, terrain and collision and checked the connecting road placement in each clock layout. Compared pinned renders and collision for Route17South."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route17South.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "5b292a0f247c1dfce66259389cf6c1847299ed6f",
@@ -46539,11 +46605,15 @@
           "maps/Route19.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route14.asm, maps/Route15.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Tweak fences on Route 16 and grass/dirt on Route 13+14+15.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3432f278b5a02f0d373756475901bdbc7a3a70be",
+        "Checked endpoint layouts and flags after Route13West became Route13. The Route15 off-map tree shares the coordinates and flag of the Route14 tree. Reviewed the fences, grass, dirt and the separate early Route16 layout names. Compared pinned renders and collision for FuchsiaCity, Route14, Route15, Route16East, Route17North, Route17South, Route19."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route14.asm, maps/Route15.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "22cbdb13cb44b481df1de41c0ebaf52cfae11ec4",
@@ -46622,11 +46692,15 @@
           "utils/unused_blocks.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Partial source inspection and adaptation: expand both Route13 south destinations from dual_connections.asm, omit its replaced border proxy, and retain source split coordinates. Layout tests verify Route14/LuckyIsland adjacency and coverage through Fuchsia/Pallet; full-world browser confirms restored Fuchsia and aquarium entry/exit. Full 17-file commit review and broader visual seam validation remain pending. Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, data/maps/dual_connections.asm; weather in data/maps/overcast_maps.asm; object definitions in maps/Route13.asm, maps/Route13East.asm and other files."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Recombine Route 13 East and West using a dual map connection.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/22cbdb13cb44b481df1de41c0ebaf52cfae11ec4",
+        "The current Route 13 spans both actual southern neighbors. Verified the split at cell 18, block offsets 0 and 9, and the 35-block combined width. Both trainer mirrors match across map boundaries. Compared pinned renders and collision for Route13, Route14LuckyIslandDual."
+      ],
+      "triage_note": "Partial source inspection and adaptation: expand both Route13 south destinations from dual_connections.asm, omit its replaced border proxy, and retain source split coordinates. Layout tests verify Route14/LuckyIsland adjacency and coverage through Fuchsia/Pallet; full-world browser confirms restored Fuchsia and aquarium entry/exit. Full 17-file commit review and broader visual seam validation remain pending. Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, data/maps/dual_connections.asm; weather in data/maps/overcast_maps.asm; object definitions in maps/Route13.asm, maps/Route13East.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "bd7b638d03912689d3b0e84ab8bb1d34810c3855",
@@ -46722,11 +46796,15 @@
           "maps/Route15.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Current-source geometry validation confirms Route14 width 9, LuckyIsland offset 9 and split coordinate 18 cells. Both destinations now participate in world layout. Full coastline commit text/binary review and visual seam validation remain pending. Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, data/maps/dual_connections.asm; object definitions in maps/LuckyIsland.asm, maps/Route13.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Tweak the Route 13+14 coastline.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a0efda414c1b6007f3db11d395cd5b9ef53e31da",
+        "Compared the 35-by-3-block source border proxy against Route 14 and Lucky Island in all four clocks. All but the easternmost block on each row agree in pixels and collision. The atlas uses the actual destination map for those three source differences. Exercised the hidden and revealed island layouts, civilian flags and conditional egg. Compared pinned renders and collision for LuckyIsland, Route13, Route14, Route14LuckyIslandDual, Route15."
+      ],
+      "triage_note": "Current-source geometry validation confirms Route14 width 9, LuckyIsland offset 9 and split coordinate 18 cells. Both destinations now participate in world layout. Full coastline commit text/binary review and visual seam validation remain pending. Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, data/maps/dual_connections.asm; object definitions in maps/LuckyIsland.asm, maps/Route13.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "53c6aefc9a2aebd07e6fac0f27e2b16b74fb64a4",
@@ -47112,11 +47190,15 @@
           "maps/Route39.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/Route39.asm; object definitions in maps/Route39.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "A little more space between the Route 39 farm and Rugged Road.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f03a4ae1f815d2ebf0646070f1a7675c6d4608b5",
+        "Compared Route39 dimensions and connections, the farm objects, Pokémon, TM and warp declarations. Its off-map trainer still matches the Route38 marker. Compared pinned renders and collision for Route39."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/Route39.asm; object definitions in maps/Route39.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "3f96552d72f4d588c04d9fa954bc1aff0c01f289",
@@ -49378,10 +49460,14 @@
           "maps/YellowForest.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use light green instead of light yellow.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4caf4bbd3bf559691eb5685d06e65599eb74fe95",
+        "The regular and overcast tables supply seven slots, including the forest highlights. Independently decoded active RGB rows in the pinned source, including if 0 reference sections, and compared the configured regular/overcast palette branches for every clock. Matched emitted snapshot colors and the full terrain raster for YellowForest."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "7c89f77048d1f8075b9efed2efa6a0cd3877009e",
@@ -50848,11 +50934,15 @@
           "maps/Route39.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/EcruteakCity.asm, maps/Route38.asm; object definitions in maps/Route38.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Align Route 38 with Ecruteak City more like how Route 42 is aligned.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/df8edceb3592517afeccaeed4fc09adef8f3cedc",
+        "Verified the Route38 and Route39 Beauty declarations refer to the same world position and flag. Only the Route38 marker is inside its map. Compared pinned renders and collision for EcruteakCity, Route38, Route39."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/EcruteakCity.asm, maps/Route38.asm; object definitions in maps/Route38.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "2b8f91b010938f3aaf8ab029fa5ef20706166413",
@@ -51132,10 +51222,14 @@
           "maps/VermilionCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Adds an invisible Max Ether player interaction at (32,6) in Vermilion City.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9162f69fc0fcf6d03c37fad2c6205784ff197019",
+        "The complete diff adds the event flag and a BGEVENT_ITEM background interaction. It adds no visible object, warp, graphics or terrain."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "4a440ffdecd821ae1b724d6df88280a3f89f158d",
@@ -51533,11 +51627,15 @@
           "maps/VermilionCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route8.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Adjust layout of Route 8.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6d90d84510fd4264c7157fb80136847b61b52f88",
+        "Checked Route8 cut tree and trainer declarations and all changed endpoint terrain. Other map assembly edits move signs. The field move block table describes player Cut interactions. Compared pinned renders and collision for CeladonCity, CinnabarIsland, PewterCity, Route5, Route6, Route7, Route8, SaffronCity, VermilionCity."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route8.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "35f73a0e3279b7f0d78348da5b557f468052f510",
@@ -52524,10 +52622,14 @@
           "data/maps/maps.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The changed map grouping controls which roof the atlas renders.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/26b3f12c1f260d8a75903dc43902b13b697148bc",
+        "Checked the historic registrations and current Route36 group 39 with roof ROOF_PARK. Checked all four generated first-frame rasters, their collision and client neighborhood placement."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "f40fca89baf1edff9ea5a9b53b731324782aca27",
@@ -52922,10 +53024,14 @@
           "maps/Route16North.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The changed map grouping controls which roof the atlas renders.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f88c27c25046c97f3e4755e10461fe4322e1deab",
+        "Checked the historic registrations and current Route16North group 40 with roof ROOF_NEW_BARK. Checked all four generated first-frame rasters, their collision and client neighborhood placement."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "7315cf05b96612701388ff1f8d48e1e99e590e29",
@@ -53195,11 +53301,15 @@
           "maps/GoldenrodCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): palette swaps in maps/GoldenrodCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Give Goldenrod Museum a taupe roof, and the bike shop a teal one.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/86ea9d094b4842f9bd7e306dcdedb906edbba2ec",
+        "The bike shop has a null outside table, preserving the previous rule for a shared slot. Confirmed this in emitted metadata. Checked the engine diff, source tables, and the previously sampled swap rectangles. Rechecked the complete emitted GoldenrodCity terrain across all four clocks. Live fade handling remains separately tracked."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): palette swaps in maps/GoldenrodCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "82f5ed16fec9ad82b3373da2ffa0134bfb95e46e",
@@ -53292,11 +53402,15 @@
           "maps/Route35CoastSouth.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): palette swaps in maps/GoldenrodHarbor.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Different colors for Goldenrod Harbor vendor awnings.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/73a81d687496de1f3449c37b9f14c7ed1feebe1e",
+        "Checked both vendor inside and outside tables, including the Goldenrod roof default. Checked the engine diff, source tables, and the previously sampled swap rectangles. Rechecked the complete emitted GoldenrodHarbor terrain across all four clocks. Live fade handling remains separately tracked."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): palette swaps in maps/GoldenrodHarbor.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "281e49c1989871253a5eb1fac419a77de951946b",
@@ -56569,11 +56683,15 @@
           "maps/RuggedRoadSouth_overcast.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/palettes.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use green-on-brown tall grass in Rugged Road.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/dbd0d0e91ca30bc73c3728cf3de532df5e1f5094",
+        "The original grass colors were superseded. The pinned grass uses the single GREEN slot and only time of day. Independently decoded active RGB rows in the pinned source, including if 0 reference sections, and compared the configured regular/overcast palette branches for every clock. Matched emitted snapshot colors and the full terrain raster for RuggedRoadSouth."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/palettes.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "54e4a0a58f475cab46a9752bb8b87ac3cd94e150",
@@ -56615,10 +56733,14 @@
           "maps/RuggedRoadSouth_overcast.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use arid grass color by coraldev for Rugged Road.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/54e4a0a58f475cab46a9752bb8b87ac3cd94e150",
+        "The arid grass uses the four clock-specific GREEN rows. The Route39 block update is also in the four-time raster comparison. Independently decoded active RGB rows in the pinned source, including if 0 reference sections, and compared the configured regular/overcast palette branches for every clock. Matched emitted snapshot colors and the full terrain raster for RuggedRoadSouth."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "5c673eb1013ac1a29435fb480f9e006e8c796535",
@@ -58314,10 +58436,14 @@
           "maps/CeladonMansionRoof_overcast.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Restore other palettes for Celadon Mansion roof.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0c3236c2d802f24e5e3c4349596add86236d2a77",
+        "Both the Mansion roof and Department Store roof now share the seven-slot color table. Independently decoded active RGB rows in the pinned source, including if 0 reference sections, and compared the configured regular/overcast palette branches for every clock. Matched emitted snapshot colors and the full terrain raster for CeladonMansionRoof."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "03ce0d5d91e674434cfb03fbcb3a2de436157050",
@@ -61367,11 +61493,15 @@
           "maps/VioletOutskirts.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/EcruteakCity.asm and other files; object definitions in maps/Route38.asm, maps/Route39.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Adjust maps so that Ecruteak City gates line up horizontally.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/62b12a473009738da02a6bd5ba8dda4d61774537",
+        "Inspected the dimensions, offset and relocated gate, item and trainer declarations. Matched all Ecruteak, Route38/39/45 and Violet Outskirts objects and exits and checked every generated geographic edge in all four clock views. Compared pinned renders and collision for BlackthornCity, EcruteakCity, Route38, Route39, Route45, VioletOutskirts."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/EcruteakCity.asm and other files; object definitions in maps/Route38.asm, maps/Route39.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "4772cb4c70cf0cd9387a884c41601a1a4eca4c57",
@@ -62147,11 +62277,15 @@
           "maps/VioletOutskirts.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/EcruteakShrineOutside.asm; object definitions in maps/EcruteakShrineOutside.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Straighten the torii path to Ecruteak Shrine.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/31b57a4a2f06ab83d3ba8cbc615d7ac929354aa1",
+        "The changed source attributes are map_attributes border declarations. Checked the pinned layouts, tile art and collision, and matched EcruteakShrineOutside object, Pokémon and warp declarations. Sign interactions do not change the atlas. Compared pinned renders and collision for BellchimeTrail, DragonsDenB1F, EcruteakCity, EcruteakShrineOutside, MahoganyTown, Route26, Route28, SilverCaveOutside, VioletCity, VioletOutskirts."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/EcruteakShrineOutside.asm; object definitions in maps/EcruteakShrineOutside.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "e55d2ae7156bcad5b9dca8821f48a154e06cab03",
@@ -63641,11 +63775,15 @@
           "maps/Route4.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/Route4.asm; object definitions in maps/Route4.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Extend Route 4 to avoid borer block clash over Cerulean Cave.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3aba6e58e92aec6dd861eb645f03c0cc46563caf",
+        "The extended Route4 overlaps Cerulean City at the cave. The off-map guard at (68,6) matches the Cerulean guard at (2,8) in world coordinates, sprite and flag. Compared pinned renders and collision for Route4."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/Route4.asm; object definitions in maps/Route4.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "8ceb94e0a36e7bee8d779484e7cf71e2e705cd1f",
@@ -63913,10 +64051,14 @@
           "maps/IndigoPlateau_overcast.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use FRLG roof color for Pokémon League HQ.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7df1366f3e2978ac32712180a1b5176e0aa419d0",
+        "Four consecutive custom slots now start at RED. Independently decoded active RGB rows in the pinned source, including if 0 reference sections, and compared the configured regular/overcast palette branches for every clock. Matched emitted snapshot colors and the full terrain raster for IndigoPlateau."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "d8c729a76f83b7a1f6d76e7579fa0b8f6f49b999",
@@ -66146,10 +66288,14 @@
           "maps/Route27.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The changed map grouping controls which roof the atlas renders.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/70116a3a36f6256747b1741f8408897c2c57b0ac",
+        "Checked the historic registrations and current Route27 group 40 with roof ROOF_NEW_BARK. Checked all four generated first-frame rasters, their collision and client neighborhood placement."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "ac20bd9e62055d1162b6558c4be34d3b9e348c8c",
@@ -66175,11 +66321,15 @@
           "maps/Route39_overcast.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/palettes.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Make Route 39 barn roof dark gray, not brown.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ac20bd9e62055d1162b6558c4be34d3b9e348c8c",
+        "The barn uses the WATER slot, with a four-color gray palette. Independently decoded active RGB rows in the pinned source, including if 0 reference sections, and compared the configured regular/overcast palette branches for every clock. Matched emitted snapshot colors and the full terrain raster for Route39."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/palettes.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "721013612b73928e5a1213afef0d93b2ee732a78",
@@ -67770,11 +67920,15 @@
           "maps/VermilionPort.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/VermilionPort.asm; object definitions in maps/VermilionPort.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Overlap Vermilion City and Port.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/eec2b68b4f891a3f51e1ce42681d8c685ac20893",
+        "Verified both city-to-port gates, the boardable ship entrance, and the disembark script against the current port layout. The port has its own warp view. Compared pinned renders and collision for FastShip1F, VermilionPort."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/VermilionPort.asm; object definitions in maps/VermilionPort.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "7abff0fea52a410698d2111361a067874d303229",
@@ -67800,11 +67954,15 @@
           "maps/VermilionPort.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/VermilionPort.asm; object definitions in maps/VermilionPort.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Trim unnecessary left block from port.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7abff0fea52a410698d2111361a067874d303229",
+        "Verified the trimmed 13-by-10-block port. Both gates return to city warps 8 and 9, and the Fast Ship disembark coordinates match (3,15) at port warp 2. Compared pinned renders and collision for FastShip1F, VermilionPort."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/VermilionPort.asm; object definitions in maps/VermilionPort.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "2a92c773934cf9db09ce5f0c33fd9962c613e909",
@@ -67986,11 +68144,15 @@
           "maps/Route33.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Connect Union Cave cliffs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3fe78b8925709d3a1621ba6d6f7f0bc78189ae4f",
+        "Confirmed both new cliff connections from source, east with offset -7 and west with +7. Compared full terrain, collision and the projected Route33 and Route32Coast positions. Compared pinned renders and collision for Route32Coast, Route33."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "324bd2221f293303e511d2f10afe0d0aada9d49f",

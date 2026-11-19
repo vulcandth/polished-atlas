@@ -75,6 +75,33 @@ class ObjectPaletteTests(unittest.TestCase):
                            and time in obj.to_payload(32, self.names)["time_of_day"]["slots"]}
                 self.assertEqual(visible, set() if day == 1 and time != "morn" else expected[day], (day, time))
 
+    def test_lucky_island_shares_civilian_egg_and_tree_state(self):
+        hidden = "EVENT_LUCKY_ISLAND_CIVILIANS"
+        collected = "EVENT_GOT_LUCKY_EGG_FROM_LUCKY_ISLAND"
+        for flags in ({hidden}, set(), {collected}):
+            maps = objects.parse_map_objects(self.root, self.constants, {}, self.movements, self.names, flags)
+            island = next(m for m in maps if m.label == "LuckyIsland")
+            egg, = [o for o in island.objects if o.event_flag == "EVENT_LUCKY_ISLAND_LUCKY_EGG"]
+            self.assertEqual(egg.event_flag_set, bool(flags))
+            civilians = [o for o in island.objects if o.event_flag == hidden]
+            self.assertEqual(len(civilians), 11)
+            self.assertTrue(all(o.event_flag_set == (hidden in flags) for o in civilians))
+            for time, berry in zip(objects.TIME_OF_DAY_SLUGS, ("JABOCA_BERRY", "ROWAP_BERRY", "MARANGABERRY", "KEE_BERRY")):
+                visible = [o.extra_payload["berry"] for o in civilians if o.macro == "fruittree_event"
+                           and not o.event_flag_set and time in objects.decode_time_mask(o.time_mask)]
+                self.assertEqual(visible, [] if hidden in flags else [berry])
+
+    def test_chuck_and_gym_boulders_match_the_waterfall_state(self):
+        for solved in (False, True):
+            flags = {"EVENT_BOULDERS_IN_CIANWOOD_GYM"} if solved else set()
+            maps = objects.parse_map_objects(self.root, self.constants, {}, self.movements, self.names, flags)
+            gym = next(m for m in maps if m.label == "CianwoodGym")
+            visible = [o for o in gym.objects if not o.event_flag_set]
+            chuck, = [o for o in visible if (o.x_tiles, o.y_tiles) == (12, 11)]
+            self.assertEqual(chuck.sprite_constant, "SPRITE_CHUCK" if solved else "SPRITE_BIG_HO_OH")
+            self.assertEqual({(o.x_tiles, o.y_tiles) for o in visible if o.y_tiles == 4},
+                             {(12, 4), (13, 4)} if solved else {(9, 4), (16, 4)})
+
     def test_packed_palette_constants_and_components(self):
         self.assertEqual(self.constants.get("PAL_MON_RED"), 0xD1)
         self.assertEqual(self.constants.get("PAL_MON_RED_BLUE"), 0x02)

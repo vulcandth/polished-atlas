@@ -616,6 +616,39 @@ were screened separately from the atlas assets that their commits also touched.
   rendered the selected night view without failed project requests or uncaught
   exceptions.
 
+## Map connections, objects and palette review
+
+This batch brought the ledger to 867 of 1,057 resolved commits. Of the 190
+remaining, 178 await a disposition and 12 have reviewed changes with open
+work. The changelog still provides only the v3.2.3 battle hotfix for this
+range. The ledger records why each skipped change is outside atlas scope.
+
+- Lucky Island now starts hidden, as in a new game with the trendy phrase
+  `Prism`. Clearing `EVENT_LUCKY_ISLAND_CIVILIANS` in the dev event
+  overrides selects the `Lucky` snapshot. Terrain, walkability, civilians
+  and the Lucky Egg follow the same tile callback. The two layouts differ in
+  136 of 494 blocks. Cianwood Gym uses the same callback evaluation to select
+  the waterfall, Chuck's pose and the corresponding boulders.
+- The production client layout aligned all 214 directed connections across
+  29 neighborhoods in each of the four clock views. Verified eight pairs of
+  objects on adjoining maps, including the Goldenrod Harbor Star Piece and
+  Fisher and the City/Harbor Rocket. Checked Route 13's southern split at cell
+  18. The upstream border proxy agrees with the actual Route 14 and Lucky
+  Island maps in 102 of its 105 blocks. Atlas draws the actual neighbor for
+  the three far-eastern blocks where upstream art and collision differ.
+- Independently expanded all 2,917 source object declarations and compared
+  their principal fields to the 612-map export. Checked all 2,083 warp
+  declarations and the coordinates of static destinations. Lavender Radio
+  Tower 1F uses an existing scripted destination encoded as warp 255. The
+  atlas exports that declaration and lacks its conditional upstairs routing.
+- Each clock view matched all 69,174,272 first-frame terrain pixels, 270,212
+  collision cells and 1,211 foreground tile placements. The comparison shares
+  the exporter's source loader and initial animation state. Separately
+  decoded the raw RGB rows for Route 39, Indigo Plateau, Yellow Forest,
+  Rugged Road South and the two Celadon rooftops. Checked regular and
+  overcast selection where the game defines both. The build passed all 77
+  Python tests, including the map-state regressions.
+
 ## Immediate remaining implementation work
 
 - Verify palette-swap NPC colors in the full generated site. The frontend now
@@ -633,8 +666,7 @@ were screened separately from the atlas assets that their commits also touched.
 - Reconcile the dynamic palette rules for variable sprites and the map/overlay
   transition behavior. Complete browser validation of moving NPCs entering
   and leaving lit cells, including interaction with terrain priority.
-- Finish the Route 13/14/Lucky Island dual connection and coastline review,
-  Goldenrod Harbor object overlap, and the wider Ruins of Alph redesign.
+- Finish the wider Ruins of Alph redesign review.
 - Dev builds now require upstream corpus tests after source checkout, checking
   the exact pinned SHA. Extend that corpus coverage alongside further adaptations.
 - Finish the commit ledger, then run full combined-site/browser tests and publish.

@@ -22,6 +22,7 @@ from typing import Dict, Iterable, Iterator, List, Optional, Sequence, Set, Tupl
 import render_map
 
 import atlas_common
+from event_state import evaluate_tile_callback
 from object_glow import load_object_glow
 
 RGB = Tuple[int, int, int]
@@ -1618,6 +1619,7 @@ def parse_map_objects(
     *,
     weekday: int = 1,
     cleared_event_flags: Optional[Set[str]] = None,
+    set_event_flags: Optional[Set[str]] = None,
 ) -> List[MapObjectData]:
     repo_index = atlas_common.repository(root)
     block_pixel_size = atlas_common.block_pixel_size()
@@ -1631,7 +1633,7 @@ def parse_map_objects(
         inside = False
         index = 0
         source = script_path.read_text(encoding="utf-8")
-        map_flags = initial_event_flags
+        map_flags = evaluate_tile_callback(script_path, initial_event_flags).flags
         monday_merchant = None
         if re.search(r"^\s*callback\s+MAPCALLBACK_OBJECTS,\s*GoldenrodUndergroundCheckDayOfWeek\b", source, re.M):
             vendors = {
@@ -1641,7 +1643,7 @@ def parse_map_objects(
                 "EVENT_GOLDENROD_UNDERGROUND_GRANNY": (0, 6),
             }
             closed = {flag for flag, days in vendors.items() if weekday not in days}
-            map_flags = initial_event_flags | (closed - cleared)
+            map_flags = map_flags | closed
             if weekday == 1 and "EVENT_GOLDENROD_UNDERGROUND_GRAMPS" not in cleared:
                 monday_merchant = "EVENT_GOLDENROD_UNDERGROUND_GRAMPS"
         if re.search(r"^\s*callback\s+MAPCALLBACK_OBJECTS,\s*FuchsiaAquariumCheckIfWeekend\b", source, re.M):
@@ -1649,8 +1651,8 @@ def parse_map_objects(
             # leaving the map and must never hide objects in another building.
             hidden = ("EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1" if weekday in (0, 6)
                       else "EVENT_TEMPORARY_UNTIL_MAP_RELOAD_2")
-            if hidden not in cleared:
-                map_flags = initial_event_flags | {hidden}
+            map_flags = map_flags | {hidden}
+        map_flags = (map_flags - cleared) | (set_event_flags or set())
         for raw_line in source.splitlines():
             code, *_ = raw_line.split(";", 1)
             line = code.strip()
@@ -1972,6 +1974,7 @@ def main() -> None:
         initial_event_flags,
         weekday=args.weekday,
         cleared_event_flags=override_clear,
+        set_event_flags=override_set,
     )
     pokemon_icons = gather_pokemon_icon_metadata(polished_root, constants)
     payload = build_payload(

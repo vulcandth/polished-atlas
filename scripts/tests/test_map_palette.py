@@ -8,7 +8,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import atlas_common
 from generate_bg_palette_metadata import build_payload, Options
-from event_state import conditional_block_changes
+from event_state import evaluate_tile_callback
 from map_palette import palette_time, TIME_NAMES
 from render_map import _build_renderer, _load_palette
 from tile_animation_export import context_for_map
@@ -139,6 +139,24 @@ class MapPaletteTests(unittest.TestCase):
                 for x, y, closed, opened in cells:
                     self.assertEqual(blocks[(y // 2) * info.width + x // 2], opened if door in state else closed)
 
+    def test_lucky_island_layout_uses_the_phrase_snapshot(self):
+        info = self.repo.map_info("LuckyIsland")
+        flags = self.repo.initial_event_flags
+        self.assertIn("EVENT_LUCKY_ISLAND_CIVILIANS", flags)
+        hidden = (self.root / "maps/LuckyIslandHidden.ablk").read_bytes()
+        shown = (self.root / "maps/LuckyIsland.ablk").read_bytes()
+        self.assertNotEqual(hidden, shown)
+        self.assertEqual(bytes(self.repo.map_blocks(info, flags)), hidden)
+        self.assertEqual(bytes(self.repo.map_blocks(info, flags - {"EVENT_LUCKY_ISLAND_CIVILIANS"})), shown)
+
+    def test_cianwood_waterfall_blocks_follow_the_boulder_puzzle(self):
+        info = self.repo.map_info("CianwoodGym")
+        flowing = self.repo.map_blocks(info, set())
+        stopped = self.repo.map_blocks(info, {"EVENT_BOULDERS_IN_CIANWOOD_GYM"})
+        changed = {i: v for i, v in enumerate(stopped) if flowing[i] != v}
+        self.assertEqual(changed, {y // 2 * info.width + 6: tile for y, tile in
+                                  [(4, 0x83), (6, 0x7d), (8, 0x7d), (10, 0x8f)]})
+
     def test_snowtop_stairs_and_table_are_applied_without_flags(self):
         info = self.repo.map_info("SnowtopPokeCenter1F")
         blocks = self.repo.map_blocks(info, set())
@@ -148,9 +166,10 @@ class MapPaletteTests(unittest.TestCase):
     def test_unsupported_callback_does_not_apply_partial_block_writes(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / "Test.asm"
-            path.write_text("callback MAPCALLBACK_TILES, TestTiles\nTestTiles:\n"
+            path.write_text("callback MAPCALLBACK_TILES, TestTiles\nTestTiles:\nsetevent EVENT_TEST\n"
                             "changeblock 0, 0, 1\nsjump OtherRoutine\nendcallback\n")
-            self.assertEqual(conditional_block_changes(path, set()), ())
+            state = evaluate_tile_callback(path, set())
+            self.assertEqual((state.changes, state.flags, state.block_label), ((), set(), None))
 
     def test_special_palette_inventory_and_all_declared_variants(self):
         source = (self.root / "data/maps/palettes.asm").read_text(encoding="utf-8")

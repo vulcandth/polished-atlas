@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 from map_palette import palette_time
-from event_state import conditional_block_changes, initial_flags, effective_flags
+from event_state import evaluate_tile_callback, initial_flags, effective_flags
 from fixed_weather import fixed_weather
 import palette_swaps
 
@@ -471,8 +471,13 @@ class RepositoryIndex:
         wet_asset = _OVERCAST_BLOCK_OVERRIDES.get(info.constant)
         if wet_asset and self.get_overcast_index(info, weekday=weekday, events=events) is not None:
             asset = wet_asset
+        callback = evaluate_tile_callback(self.root / "maps" / f"{info.label}.asm", events)
+        if callback.block_label:
+            asset = self.block_asset(callback.block_label)
+            if not asset:
+                raise ValueError(f"Unknown block data {callback.block_label} in {info.label}")
         blocks = _map_block_indices(_read_block_bytes(override or self.root / asset), info.width, info.height)
-        for x, y, block in conditional_block_changes(self.root / "maps" / f"{info.label}.asm", events):
+        for x, y, block in callback.changes:
             if x >= 2 * info.width or y >= 2 * info.height or block > 255:
                 raise ValueError(f"Invalid changeblock in {info.label} at ({x}, {y}): {block}")
             blocks[(y // 2) * info.width + x // 2] = block

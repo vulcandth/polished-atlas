@@ -167,6 +167,11 @@ def evaluate_tile_callback(script: Path, events: set[str], *, scene_id: int = 0,
     """Commit map-local flags and block writes together when the callback returns."""
     commands, labels = _tile_callback(script)
     flags = set(events)
+    if script.stem in {"HiddenTreeGrotto", "HiddenCaveGrotto"}:
+        # HiddenGrottoCallback reveals exactly one kind of content. The
+        # first-visit Pokémon snapshot also suppresses the hidden-item tile.
+        flags.discard("EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1")
+        flags.update(("EVENT_TEMPORARY_UNTIL_MAP_RELOAD_2", "EVENT_TEMPORARY_UNTIL_MAP_RELOAD_3"))
     changes = []
     block_label = None
     pos = 0

@@ -40,6 +40,7 @@ class ObjectSchedule:
     labels: dict[str, int]
     names: list[str]
     rematch_body: list[str]
+    reads_scene: bool
 
     @classmethod
     def parse(cls, source: str) -> ObjectSchedule | None:
@@ -68,6 +69,7 @@ class ObjectSchedule:
         pending = [(labels[entry], False)]
         visited = set()
         has_placements = False
+        reads_scene = False
         while pending:
             pos, has_result = pending.pop()
             if (pos, has_result) in visited:
@@ -78,12 +80,16 @@ class ObjectSchedule:
             line = lines[pos]
             if line == "endcallback":
                 continue
+            if line == "checkscene":
+                reads_scene = True
+                pending.append((pos + 1, True))
+                continue
             if line and not line.endswith(":"):
                 parts = line.split(None, 1)
                 if len(parts) != 2:
                     return None
                 op, rest = parts
-                if op in {"ifequal", "ifequalfwd", "iftruefwd", "iffalsefwd", "sjumpfwd"}:
+                if op in {"ifequal", "ifequalfwd", "ifgreater", "iftruefwd", "iffalsefwd", "sjumpfwd"}:
                     target = labels.get(rest.split(",")[-1].strip())
                     if target is None or target <= pos or (op != "sjumpfwd" and not has_result):
                         return None
@@ -102,18 +108,21 @@ class ObjectSchedule:
                     has_result = True
                     if rest == "UpdateEusineVisibility":
                         has_placements = True
-                elif op in {"checkflag", "checkevent", "checktime"} or (op == "readvar" and rest == "VAR_WEEKDAY"):
+                elif op in {"checkflag", "checkevent", "checktime"} or (op == "readvar" and rest in {"VAR_WEEKDAY", "VAR_UNOWNCOUNT"}):
                     has_result = True
-                elif op != "variablesprite":
+                elif op not in {"variablesprite", "setscene"}:
                     return None
             pending.append((pos + 1, has_result))
-        return cls(entry, lines, labels, names, body) if has_placements else None
+        return cls(entry, lines, labels, names, body, reads_scene) if has_placements else None
 
-    def commands(self, constants: ASMConstantParser, flags: set[str], weekday: int, time: str
+    def commands(self, constants: ASMConstantParser, flags: set[str], weekday: int, time: str,
+                 *, scene: int = 0, unown_count: int = 0
                  ) -> Iterator[tuple[str, list[str]]]:
         pos = self.labels[self.entry]
         visited = set()
         result = None
+        scene_values = {line.split(",")[-1].split()[-1]: index for index, line in enumerate(
+            line for line in self.lines if line.startswith(("scene_script ", "scene_const ")))}
         flags = flags.copy()
         while pos not in visited:
             visited.add(pos)
@@ -123,10 +132,17 @@ class ObjectSchedule:
                 continue
             if line == "endcallback":
                 return
+            if line == "checkscene":
+                result = scene
+                continue
             op, rest = line.split(None, 1)
             args = [arg.strip() for arg in rest.split(",")]
             if op == "readvar" and rest == "VAR_WEEKDAY":
                 result = weekday
+            elif op == "readvar" and rest == "VAR_UNOWNCOUNT":
+                result = unown_count
+            elif op == "setscene":
+                scene = scene_values[rest] if rest in scene_values else _value(constants, rest)
             elif op in ("checkevent", "checkflag"):
                 result = int(rest in flags)
             elif op == "special" and rest == "SpecialBeastsCheck":
@@ -148,8 +164,9 @@ class ObjectSchedule:
                 yield op, args
             elif op == "checktime":
                 result = bool(_value(constants, rest) & (1 << _value(constants, time.upper())))
-            elif op in ("ifequal", "ifequalfwd"):
-                if result == _value(constants, args[0]):
+            elif op in ("ifequal", "ifequalfwd", "ifgreater"):
+                operand = scene_values[args[0]] if args[0] in scene_values else _value(constants, args[0])
+                if (result > operand if op == "ifgreater" else result == operand):
                     pos = self.labels[args[1]]
             elif op in ("iftruefwd", "iffalsefwd", "sjumpfwd"):
                 if op == "sjumpfwd" or bool(result) == (op == "iftruefwd"):

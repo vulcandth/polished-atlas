@@ -142,14 +142,42 @@ class ObjectPaletteTests(unittest.TestCase):
                 sprite = obj.to_payload(32, self.names)["sprite"]
                 if "resolved_constant" in sprite:
                     appearances[map_data.label, sprite["constant"]] = sprite["resolved_constant"]
-                    self.assertTrue(headers[sprite["resolved_constant"]].tile_bytes)
+                    if sprite["resolved_constant"] == "SPRITE_MON_ICON":
+                        self.assertIn("species", obj.extra_payload)
+                    else:
+                        self.assertTrue(headers[sprite["resolved_constant"]].tile_bytes)
                     self.assertEqual(sprite["id"], self.constants.get(sprite["constant"]))
         self.assertEqual(appearances, {
+            ("HiddenTreeGrotto", "SPRITE_GROTTO_MON"): "SPRITE_MON_ICON",
+            ("HiddenCaveGrotto", "SPRITE_GROTTO_MON"): "SPRITE_MON_ICON",
             ("TrainerHouseB1F", "SPRITE_MOM"): "SPRITE_CHRIS",
             ("CopycatsHouse2F", "SPRITE_COPYCAT"): "SPRITE_LASS",
             ("FuchsiaPokeCenter1F", "SPRITE_JANINE_IMPERSONATOR"): "SPRITE_CUTE_GIRL",
             **{("FuchsiaGym", f"SPRITE_FUCHSIA_GYM_{i}"): "SPRITE_JANINE" for i in range(1, 5)},
         })
+
+    def test_first_visit_grotto_and_empty_daycare(self):
+        maps = {m.label: m for m in objects.parse_map_objects(
+            self.root, self.constants, {}, self.movements, self.names, set())}
+        tree = maps["HiddenTreeGrotto"]
+        cave = maps["HiddenCaveGrotto"]
+        self.assertEqual(len(tree.grotto_encounters) + len(cave.grotto_encounters), 22)
+        self.assertEqual(tree.grotto_encounters["VIOLET_OUTSKIRTS"], {"species": "RATTATA", "form": "ALOLAN_FORM"})
+        self.assertEqual(cave.grotto_encounters["ROUTE_47"], {"species": "FARFETCH_D", "form": "GALARIAN_FORM"})
+        for room in (tree, cave):
+            self.assertEqual([o.event_flag_set for o in room.objects], [False, True])
+            callback = objects.evaluate_tile_callback(self.root / "maps" / (room.label + ".asm"), set())
+            self.assertEqual(callback.changes, ())
+        for clock in objects.TIME_OF_DAY_SLUGS:
+            rows = maps["Route34"].objects_by_time[clock]
+            self.assertEqual([o.event_flag_set for o in rows if o.sprite_constant.startswith("SPRITE_DAYCARE_MON")], [True, True])
+        source = (self.root / "maps/RuinsOfAlphOutside.asm").read_text(encoding="utf8")
+        schedule = ObjectSchedule.parse(source)
+        for made, count, dex in product((False, True), (0, 1), (False, True)):
+            flags = {f for value, f in ((made, "EVENT_MADE_UNOWN_APPEAR_IN_RUINS"), (dex, "ENGINE_UNOWN_DEX")) if value}
+            actions = list(schedule.commands(self.constants, flags, 1, "day", unown_count=count))
+            self.assertEqual(actions, [("appear" if made and count and not dex else "disappear",
+                                        ["RUINSOFALPHOUTSIDE_SCIENTIST1"])])
 
     def test_aquarium_weekday_callback_applies_to_both_floors_only(self):
         weekday_exhibits = {"GOLDEEN", "TENTACOOL", "SQUIRTLE", "SHELLDER"}

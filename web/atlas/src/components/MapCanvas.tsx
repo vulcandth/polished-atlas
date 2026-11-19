@@ -2813,7 +2813,10 @@ export default function MapCanvas({
 
     state.objectMarkers = [];
 
-    for (const objectEntry of mapData.objectsByTime?.[timeOfDay] ?? mapData.objects) {
+    const encounter = state.entranceMap && mapData.grottoEncounters?.[state.entranceMap];
+    for (const entry of mapData.objectsByTime?.[timeOfDay] ?? mapData.objects) {
+      const objectEntry = encounter && entry.sprite.constant === "SPRITE_GROTTO_MON"
+        ? { ...entry, extra: { ...entry.extra, ...encounter } } : entry;
       if (!isObjectVisibleAtTime(objectEntry, timeOfDay)) {
         continue;
       }
@@ -3030,7 +3033,8 @@ export default function MapCanvas({
       }
       // Fast path: if the requested overlay is already open for this map, reuse it
       const variant = resolveEntranceVariant(bgPalettes, mapLabel, originMap);
-      const entranceMap = variant ? originMap : undefined;
+      const entranceMap = variant || mapLabel === "HiddenTreeGrotto" || mapLabel === "HiddenCaveGrotto"
+        ? originMap : undefined;
       const existing = overlayStateRef.current;
       if (existing && existing.mapLabel === mapLabel && existing.entranceMap === entranceMap) {
         overlay.visible = true;

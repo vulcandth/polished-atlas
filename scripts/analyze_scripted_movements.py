@@ -992,7 +992,10 @@ def analyze_scripts(
         parsed = parse_map_script(path)
         for spawn in parsed.object_spawns.values():
             spawn.visible = spawn.hide_event not in flags
-        if parsed.schedule:
+        # An arriving script may select a different scene before taking the
+        # warp. Let its scene interpreter execute that callback with the
+        # incoming state instead of precomputing it at the default scene.
+        if parsed.schedule and not parsed.schedule.reads_scene:
             if constants is None:
                 constants = gather_constants(polished_path)
             for command, (name, *args) in parsed.schedule.commands(constants, flags, weekday, time_of_day):

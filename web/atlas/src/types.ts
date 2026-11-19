@@ -417,6 +417,7 @@ export interface ObjectEventEntry {
 }
 
 export interface MapObjectMetadataEntry {
+  grottoEncounters?: Record<string, { species: string; form: string }>;
   label: string;
   mapConstant: string | null;
   mapType: string | null;

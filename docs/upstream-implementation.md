@@ -15,7 +15,7 @@ There are 1,057 commits and 3,520 changed endpoint paths in the current range.
 ## Current audit status
 
 All 1,057 commits from v3.2.2 through `f8e67fbd` have had a relevance
-screen. The ledger resolves 1,048. All nine open commits have specific
+screen. The ledger resolves 1,051. All six open commits have specific
 follow-up work recorded against their diffs. The list of known features is
 preliminary. Auditing the outstanding changes and validating them in the
 Atlas remain part of implementation.
@@ -30,8 +30,12 @@ crash fix. Use the commit diffs to find unreleased master changes.
 | Open commit group | Remaining work |
 | --- | --- |
 | Palette swaps, NPC glow and weather | Verify map transitions for background-derived and dual NPC palettes and check weather sprite priority when more than ten tiles share a scanline. Atlas snapshots change weather immediately. The old particle layer was cleared in all four tested room transitions. |
-| Hidden grottoes and variable Pokémon | Choose one coherent grotto encounter per entrance and verify its sprite and palette. Check daycare deposits and dolls against the snapshot. |
-| Ruins of Alph | Verify the redesigned chambers, the outside layout and entrances. |
+
+All 22 grotto entrances now lead to a first-visit Pokémon appropriate to the
+entrance. Chrome's displayed textures matched all 5,632 pixels from the
+source icons and palettes. The four Ruins puzzle chambers passed all 16
+combinations of floor and wall state. The review also checked 70 warps in
+15 rooms and approaches and both states of the outdoor Sinjoh door.
 
 Chrome followed both Navel Rock border strips to their corresponding cells 11
 blocks across. The Trainer House displayed Cal in the red Chris sprite, and

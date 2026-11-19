@@ -389,6 +389,7 @@ class MapObjectData:
     height_blocks: Optional[int]
     objects: List[ObjectEventEntry]
     objects_by_time: Dict[str, List[ObjectEventEntry]] = field(default_factory=dict)
+    grotto_encounters: Dict[str, dict] = field(default_factory=dict)
 
     def to_payload(self, block_pixel_size: int, palette_lookup: Sequence[str]) -> Dict[str, object]:
         return {
@@ -398,6 +399,7 @@ class MapObjectData:
             "width_blocks": self.width_blocks,
             "height_blocks": self.height_blocks,
             "objects": [entry.to_payload(block_pixel_size, palette_lookup) for entry in self.objects],
+            **({"grotto_encounters": self.grotto_encounters} if self.grotto_encounters else {}),
             **({"objects_by_time": {
                 time: [entry.to_payload(block_pixel_size, palette_lookup) for entry in entries]
                 for time, entries in self.objects_by_time.items()
@@ -1631,6 +1633,34 @@ def representative_trainer_house_sprite(root: Path) -> str:
     return rows[classes.index(selected) - 1]
 
 
+def grotto_encounters(root: Path, constants: ASMConstantParser, maps: dict) -> dict:
+    """Index the first common encounter by the origin map of each entrance."""
+    table = root / "data/events/hidden_grottoes/grottoes.asm"
+    if not table.exists():
+        return {}
+    rows = []
+    for row in re.split(r"^\s*db\s+", table.read_text(encoding="utf-8"), flags=re.M)[1:]:
+        slots = re.findall(r"^\s*dp\s+(\w+)(?:,\s*(\w+))?", row, re.M)
+        if len(slots) != 4:
+            raise ValueError(f"Expected four grotto species in row {len(rows) + 1}")
+        species, form = slots[0]
+        rows.append({"species": species, "form": form or "NO_FORM"})
+    rooms = {"treegrotto": "HiddenTreeGrotto", "cavegrotto": "HiddenCaveGrotto"}
+    result = {room: {} for room in rooms.values()}
+    for label, info in maps.items():
+        script = root / "maps" / f"{label}.asm"
+        if not script.is_file():
+            continue
+        entries = set(re.findall(r"^\s*bg_event[^;\n]*?BGEVENT_JUMPSTD,\s*(treegrotto|cavegrotto),\s*(HIDDENGROTTO_\w+)",
+                                 script.read_text(encoding="utf-8"), re.M))
+        for kind, grotto in entries:
+            index = constants.get(grotto)
+            if not index or not 1 <= index <= len(rows) or info.constant in result[rooms[kind]]:
+                raise ValueError(f"Invalid or ambiguous grotto entrance in {label}: {grotto}")
+            result[rooms[kind]][info.constant] = rows[index - 1]
+    return result
+
+
 def parse_map_objects(
     root: Path,
     constants: ASMConstantParser,
@@ -1647,12 +1677,22 @@ def parse_map_objects(
     block_pixel_size = atlas_common.block_pixel_size()
     map_results: List[MapObjectData] = []
     appearance = object_macro_appearance(root)
+    encounters = grotto_encounters(root, constants, repo_index.maps)
     # A variable sprite retains its slot ID in the map object. The game looks
     # up its graphics in the variable table initialized for a new save.
     initial_sprites = dict(re.findall(
         r"^\s*dwb\s+varspriteaddr\s+(SPRITE_\w+),\s*(SPRITE_\w+)\b",
         (root / "data/events/initialize_events.asm").read_text(encoding="utf-8"), re.M,
     ))
+    for slot in initial_sprites:
+        seen = {slot}
+        sprite = initial_sprites[slot]
+        while sprite in initial_sprites:
+            if sprite in seen:
+                raise ValueError(f"Cyclic variable sprite assignment for {slot}")
+            seen.add(sprite)
+            sprite = initial_sprites[sprite]
+        initial_sprites[slot] = sprite
     cleared = cleared_event_flags or set()
     for script_path in sorted((root / "maps").rglob("*.asm")):
         label = script_path.stem
@@ -1720,10 +1760,14 @@ def parse_map_objects(
                 movement_lookup=movement_lookup,
                 palette_names=palette_names,
                 extra_payload=extra_payload,
+                resolved_sprite=initial_sprites.get(object_args[2]),
             )
             if entry.event_flag and entry.event_flag in map_flags:
                 entry.event_flag_set = True
-            entry.resolved_sprite = initial_sprites.get(entry.sprite_constant)
+            if entry.sprite_constant == "SPRITE_GROTTO_MON" and encounters.get(label):
+                entry.resolved_sprite = "SPRITE_MON_ICON"
+                # Direct map previews use a real encounter from the same room type.
+                entry.extra_payload.update(next(iter(encounters[label].values())))
             if monday_merchant and entry.event_flag == monday_merchant:
                 # The source callback tests the game clock, even though the room uses indoor colors.
                 entry.time_mask = 1 << TIME_OF_DAY_SLUGS.index("morn")
@@ -1739,6 +1783,7 @@ def parse_map_objects(
             width_blocks=map_info.width if map_info else None,
             height_blocks=map_info.height if map_info else None,
             objects=map_objects,
+            grotto_encounters=encounters.get(label, {}),
             objects_by_time=scheduled_objects(source, map_objects, constants, map_flags, weekday,
                                               TIME_OF_DAY_SLUGS, set_event_flags or set(), cleared),
         )
@@ -1757,6 +1802,7 @@ def build_object_entry(
     movement_lookup: Dict[str, MovementInfo],
     palette_names: Sequence[str],
     extra_payload: Dict[str, object],
+    resolved_sprite: Optional[str] = None,
 ) -> ObjectEventEntry:
     def resolve_constant(name: str) -> Optional[int]:
         return constants.get(name)
@@ -1780,6 +1826,8 @@ def build_object_entry(
     y_tiles = evaluate_expression(y_expr, constants) or 0
     sprite_constant = sprite_expr
     sprite_id = resolve_constant(sprite_constant)
+    palette_sprite = resolved_sprite or sprite_constant
+    palette_sprite_id = resolve_constant(palette_sprite)
     movement_constant = movement_expr
     movement_id = resolve_constant(movement_constant)
     range_y = evaluate_expression(range_y_expr, constants)
@@ -1795,9 +1843,9 @@ def build_object_entry(
     palette_constant = None
     # Pokemon sprite palettes are packed light/dark nybbles, except aquarium
     # sprites (also used by volcano Moltres), which use ordinary NPC palettes.
-    if (constants.get("PAL_MON_RED") is not None and sprite_id is not None
-            and (constants.get("SPRITE_POKEMON") or 0) <= sprite_id < (constants.get("SPRITE_VARS") or 0)
-            and sprite_constant != "SPRITE_AQUARIUM_MON" and palette_value is not None and palette_value > 0):
+    if (constants.get("PAL_MON_RED") is not None and palette_sprite_id is not None
+            and (constants.get("SPRITE_POKEMON") or 0) <= palette_sprite_id < (constants.get("SPRITE_VARS") or 0)
+            and palette_sprite != "SPRITE_AQUARIUM_MON" and palette_value is not None and palette_value > 0):
         matching = [name for name, value in constants.symbols.items()
                     if name.startswith("PAL_MON_") and value == palette_value]
         if not matching:
@@ -1823,6 +1871,7 @@ def build_object_entry(
         x_tiles=x_tiles,
         y_tiles=y_tiles,
         sprite_constant=sprite_constant,
+        resolved_sprite=resolved_sprite,
         sprite_id=sprite_id,
         movement_constant=movement_constant,
         movement_id=movement_id,

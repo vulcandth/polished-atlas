@@ -25,6 +25,23 @@ class MapPaletteTests(unittest.TestCase):
             raise unittest.SkipTest("Optional pinned upstream checkout unavailable")
         cls.repo = atlas_common.repository(cls.root)
 
+    def test_ruins_chamber_walls_and_puzzle_floors_vary_independently(self):
+        for name, flag in (("Kabuto", "KABUTO"), ("Aerodactyl", "AERODACTYL"),
+                           ("HoOh", "HO_OH"), ("Omanyte", "OMANYTE")):
+            room = self.repo.maps[f"RuinsOfAlph{name}Chamber"]
+            for opened in (False, True):
+                for solved in (False, True):
+                    flags = set()
+                    if opened:
+                        flags.add(f"EVENT_WALL_OPENED_IN_{flag}_CHAMBER")
+                    if solved:
+                        flags.add(f"EVENT_SOLVED_{flag}_PUZZLE")
+                    blocks = self.repo.map_blocks(room, flags)
+                    with self.subTest(room=name, opened=opened, solved=solved):
+                        self.assertEqual(blocks[2], 0x25 if opened else 0x24)
+                        self.assertEqual(blocks[room.width + 1:room.width + 3],
+                                         [0x14, 0x15] if solved else [1, 2])
+
     def test_every_map_policy_matches_upstream_brightness_table(self):
         source = (self.root / "engine/tilesets/timeofday_pals.asm").read_text(encoding="utf-8")
         rows = re.findall(r"brightlevel\s+(\d),\s*(\d),\s*(\d),\s*(\d)\s*;\s*(PALETTE_\w+)", source)

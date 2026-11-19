@@ -109,6 +109,7 @@ type RawMapObjectEntry = {
   height_blocks?: number | null;
   objects?: RawObjectEventEntry[];
   objects_by_time?: Record<string, RawObjectEventEntry[]>;
+  grotto_encounters?: MapObjectMetadataEntry["grottoEncounters"];
 };
 
 type RawObjectMetadata = {
@@ -454,6 +455,7 @@ function sanitizeMapEntry(
       ? Math.trunc(raw!.height_blocks as number)
       : null,
     objects,
+    grottoEncounters: raw?.grotto_encounters,
     objectsByTime: raw?.objects_by_time && Object.fromEntries(
       Object.entries(raw.objects_by_time).filter(([, entries]) => Array.isArray(entries))
         .map(([time, entries]) => [time, entries.map(sanitizeObjectEvent)]),

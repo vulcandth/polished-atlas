@@ -30,6 +30,12 @@ Trainer House B1F shows Cal at the opponent's position. The game randomly
 selects and saves an eligible trainer each day. For a reproducible Atlas
 snapshot, Cal is the first unrestricted entry in the game's opponent table.
 
+Each hidden grotto shows a possible first visit from its entrance. The game
+guarantees a Pokémon on the first visit and gives the first two species equal
+weight. The Atlas selects the first of those two and uses its declared form and
+icon palette. The ground and item ball use the same encounter state. The
+default snapshot has no daycare deposits and no installed bedroom dolls.
+
 Individual generators retain their `--help` interfaces. `POLISHED_DIR` and
 `ATLAS_MAPS_DIR` set their default source/output roots. Standalone scripts still
 default to `external/polishedcrystal` and `maps`. The normal production pipeline

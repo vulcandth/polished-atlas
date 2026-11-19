@@ -659,7 +659,7 @@ range. The ledger records why each skipped change is outside atlas scope.
 
 ## NPCs in grass and campfire light
 
-The ledger resolves 907 of 1,057 commits. The remaining 150 include 141
+The ledger resolves 915 of 1,057 commits. The remaining 142 include 133
 pending reviews and nine reviewed changes with open work.
 
 - Dev exports one bit per background pixel indicating whether its Game Boy
@@ -687,12 +687,18 @@ pending reviews and nine reviewed changes with open work.
 - Compared the source regular and overcast roof palettes for all 42 groups
   across four clock settings. Verified 6,298 zero-valued block placements
   in 126 maps and the two passable clock-tower blocks at Celadon University.
+- Verified the clean dev build at `3a7c102` after assembly with stable. The
+  combined artifact is 127,821,109 bytes. Chrome switched from stable to dev,
+  loaded the dev night view and returned to stable. The retained-site check
+  passed for both channels.
+- Checked all 25 palette-swap rectangles across 17 maps, covering 19,312
+  base tiles and 7,568 animated positions. Observed both Vermilion City
+  pearl objects that copy the outside green palette in all four browser time
+  views. All 1,536 displayed pixels matched the source PNG, facing and RGB
+  table. These two objects are stationary in the pinned game data.
 
 ## Immediate remaining implementation work
 
-- Verify palette-swap NPC colors in the full generated site. The frontend now
-  consumes swap metadata and rebuilds background-derived NPC frames when movement
-  crosses a color boundary; focused tests cover selection and boundary changes.
 - Check remaining event-dependent tile callbacks, object visibility and weather
   against the shared snapshot. Forced map time is shared across terrain and
   objects. Run the final combined-site checks before deployment.

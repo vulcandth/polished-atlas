@@ -41211,11 +41211,15 @@
           "gfx/tilesets/port.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 6 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Avoid attribute clash on the Seagallop Ferry.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c4e2be5cba59266f30784b73fbe936fdb42f88ec",
+        "Checked ValenciaPort automatic clock selection and directly compared its four YELLOW-slot colors for all four clocks with gfx/tilesets/port.pal. Verified the endpoint port art, tile attributes and collision export."
+      ],
+      "triage_note": "Batch screen of 6 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "c7ed65443a267a8d33be94503a9586a2b3e83da7",
@@ -52923,11 +52927,15 @@
           "maps/SaffronCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): weather in engine/gfx/color.asm; palette swaps in maps/SaffronCity.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Allow multiple `paletteswap`s per map, using one for Mr. Psychic's house.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/36becc776f6e6ee92fa716c6052d66468d2d8dd7",
+        "Rechecked all 25 ordered swap rectangles on 17 maps, including multi-rule Saffron City, independently against source coordinates, palette names and rows. The clean-site probe checked 19,312 static tiles and 7,568 animated positions. Browser checks independently matched both active copy-background consumers across the four times. The subsequent fade implementation has its own open ledger entries."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in engine/gfx/color.asm; palette swaps in maps/SaffronCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "2007154a7181e9a6c795a1807797e4f6ab69fc2f",
@@ -53003,11 +53011,15 @@
           "maps/CeladonCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeladonCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add rainbow (RGB) flowers outside Celadon Gym.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/82becdf67f8441022249e381723f926f59c9ae17",
+        "Inspected the moved Gramps object and the Kanto Urban attribute, collision, metatile and Celadon layout edits. Verified all city objects and all four generated flower/terrain rasters; the Kanto flower animation also has whole-cycle verification in CeladonCity."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeladonCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "b4c28b4c610aec22ef7176ec0dcca34ade789a42",
@@ -53794,11 +53806,15 @@
           "utils/unused_blocks.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/VermilionCity.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Use `kanto_urban` tileset for Vermilion City and Routes 6 and 11, and make Blue's roof blue.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2e9db7cf8f37c0b30da0ea51ce6db5abcdef2f13",
+        "Verified Kanto Urban tileset identity and whole-map renders for Vermilion City, Route6 and Route11. Verified that its current Battle Factory callback writes $f7 at (28,6) only before power is restored. Inspected the shared tilesets, field move and unused block table changes; actual city palette swaps were rechecked in the clean build."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/VermilionCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "515a05936fec55bb627d4e58edf8ad4027bd5cfd",
@@ -54537,11 +54553,15 @@
           "gfx/tilesets/kanto_urban.kanto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Separate `kanto` and `kanto_urban` graphics (no shared tiles).",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b3dc0406c79d7f03ca3bb4288183af285c983bc1",
+        "Read both graphics pointer revisions and animation tables. The clean build renders Kanto Urban from its own source graphics across four clocks. Checked the emitted banked fountain and Game Corner tracks in CeladonCity against full source animation cycles."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "efccd6fba396ecc631d3f8ce84ccc8e951e088c7",
@@ -54800,11 +54820,15 @@
           "maps/VermilionCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/VermilionCity.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Cover the more blatant Battle Factory corners with tree sprites.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/df058aa6a0d6b7815d5837bca9c2272352005495",
+        "The historical SPRITE_MISC objects are now SPRITE_PEARL at the same positions. Captured their actual client frames in Vermilion City at (26,1) and (30,1). All 1,536 displayed RGBA pixels across the four clocks agree with the source pearl art, arch-tree facing and selected outside green swap palette."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/VermilionCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "9ab209a4a57f975b6d6b1c4b28bc57bffdccc317",
@@ -55743,11 +55767,15 @@
           "maps/ViridianForest.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 7 changed paths. Trace the forest palette change through later replacements and compare the surviving forest palettes and terrain."
+      "status": "resolved",
+      "disposition": "superseded",
+      "reason": "Add dappled sunlight to Viridian Forest.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d07e6836fd39f64633f3b66a3a75279d5602081b",
+        "The later 9df8776c change removes dappled sunlight. Verified the surviving ViridianForest layout and its five active single-variant source palette slots for all four rendered clocks."
+      ],
+      "triage_note": "Batch screen of 7 changed paths. Trace the forest palette change through later replacements and compare the surviving forest palettes and terrain.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "9df8776ca948d0a700f20b6987ef3177e2a06320",
@@ -55785,11 +55813,15 @@
           "maps/ViridianForest.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Remove dappled sunlight from Viridian Forest and add custom-palette tree trunks.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9df8776ca948d0a700f20b6987ef3177e2a06320",
+        "Compared the current five ViridianForest custom color rows with the source and checked the full forest rasters, attributes and collision. The new Kanto flower animation operation has full-cycle source verification plus static forest coverage."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "6fb81b37aacfbb71d873342814baefb609b204ce",

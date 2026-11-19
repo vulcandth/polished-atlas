@@ -14283,7 +14283,8 @@
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/91322e3740c5a824cd6224b7c74b6740f62f3582",
         "Full patch read in two file groups; open consumers: generate_bg_palette_metadata.py, generate_object_metadata.py, objectSprites.ts and weather rendering.",
-        "Route 10 North storm: captured 296,960 opaque map pixels in each of six fade states at day and night. Every observed channel matched the RGB5 fade from white, including restoration of the original bytes. This isolates the lightning fade; crossing between weather systems remains a separate check."
+        "Route 10 North storm: captured 296,960 opaque map pixels in each of six fade states at day and night. Every observed channel matched the RGB5 fade from white, including restoration of the original bytes. This isolates the lightning fade; crossing between weather systems remains a separate check.",
+        "Map snapshots replace weather immediately, as documented in docs/development.md. Cooldown-only ROM commits have separate dispositions. Check the outstanding palette interaction using that snapshot policy."
       ]
     },
     {
@@ -16006,7 +16007,7 @@
       ],
       "status": "reviewed",
       "disposition": null,
-      "reason": "Fixed/scheduled per-map weather, indoor snow, Cherrygrove petals, Rugged Road sand and Route 10 lightning have source and runtime checks. Random regional rolls are excluded by the snapshot policy. Finish the weather cooldown and scanline checks tracked under 65ee5c14 and 3b3e2af9.",
+      "reason": "Fixed and scheduled weather and its rendering passed the source and room checks. The policy for immediate snapshot changes covers the ROM cooldown. Verify the remaining weather scanline allocation change under 3b3e2af9.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/88efa64840fd0b0f36386ae0f36db8af78616ff9",
         "Fixed/scheduled per-map weather, indoor snow, Cherrygrove petals, Rugged Road sand and Route 10 lightning have source and runtime checks. Random regional rolls are excluded by the snapshot policy. Finish the weather cooldown and scanline checks tracked under 65ee5c14 and 3b3e2af9."
@@ -57819,7 +57820,8 @@
         "scripts/tests/test_palette_swaps.py covers ordering, NULL, all eight time/weather variants and list length limits.",
         "web/atlas/src/lib/paletteSwaps.test.ts covers moving object palette region selection.",
         "Open: full generated-site visual checks and palette animation interaction.",
-        "Route 10 North storm: captured 296,960 opaque map pixels in each of six fade states at day and night. Every observed channel matched the RGB5 fade from white, including restoration of the original bytes. This isolates the lightning fade; crossing between weather systems remains a separate check."
+        "Route 10 North storm: captured 296,960 opaque map pixels in each of six fade states at day and night. Every observed channel matched the RGB5 fade from white, including restoration of the original bytes. This isolates the lightning fade; crossing between weather systems remains a separate check.",
+        "Map snapshots replace weather immediately, as documented in docs/development.md. Cooldown-only ROM commits have separate dispositions. Check the outstanding palette interaction using that snapshot policy."
       ]
     },
     {
@@ -58059,7 +58061,8 @@
         "https://github.com/Rangi42/polishedcrystal/commit/e035debe8474b09ec8df1700b8922bbe27a6a36c",
         "Read all five changed files in two bounded patch calls. Focused frontend tests cover saturation, fades, shared NPC fade clock, cache identity and COPY_BG composition. Browser inspected 25 actual sprite samples each at day and night. Open: full-map movement, weather and dual-palette interaction.",
         "Observed the real RuggedRoadNorth Firebreather walking into and out of a DAY_GLOW collision in the browser at day and night. Compared settled and transitional colors to the pinned red sprite palette and RGB5 fade arithmetic. Map/weather transition verification stays open.",
-        "Route 10 North storm: captured 296,960 opaque map pixels in each of six fade states at day and night. Every observed channel matched the RGB5 fade from white, including restoration of the original bytes. This isolates the lightning fade; crossing between weather systems remains a separate check."
+        "Route 10 North storm: captured 296,960 opaque map pixels in each of six fade states at day and night. Every observed channel matched the RGB5 fade from white, including restoration of the original bytes. This isolates the lightning fade; crossing between weather systems remains a separate check.",
+        "Map snapshots replace weather immediately, as documented in docs/development.md. Cooldown-only ROM commits have separate dispositions. Check the outstanding palette interaction using that snapshot policy."
       ]
     },
     {
@@ -58091,7 +58094,7 @@
       "reason": "The pinned no-fade list names the two connected Rugged Road maps. The Atlas keeps both map palettes active as the camera crosses their shared edge.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/930ef831113b5cdf3c3543eaf8887c7d6aafc5e6",
-        "Compared two 240-by-24-pixel strips in Chrome after panning north to south and back, by day and night. The two rasters met with zero gap or horizontal offset. 69,113 of 69,120 framebuffer pixels matched the underlying map PNGs. Seven pixels differed in the last capture, outside the general terrain comparison."
+        "Compared two 240-by-24-pixel strips in Chrome after panning north to south and back, by day and night. The two rasters met with zero gap or horizontal offset. 69,113 of 69,120 framebuffer pixels matched the underlying map PNGs. The seven differing pixels were in the final night capture."
       ],
       "triage_note": "Batched changed-line scan (follow-up leads only): weather in engine/gfx/fade.asm.",
       "review_method": "diff-hunks"
@@ -61418,12 +61421,13 @@
           "engine/overworld/movement.asm"
         ]
       ],
-      "status": "reviewed",
-      "disposition": null,
-      "reason": "The ROM reserves the weather palette while precipitation clears, and skips invisible or offscreen actors. The Atlas gives particles and NPCs separate textures. Verify that hidden and newly visible actors retain their own colors when the precipitation kind changes.",
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Weather particles and NPCs use independent textures in the Atlas, including when a map is replaced. Hidden actors skip texture allocation.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/7ade18b7689b25241d12ac823d4a90328de368e6",
-        "The ROM reserves the weather palette while precipitation clears, and skips invisible or offscreen actors. The Atlas gives particles and NPCs separate textures. Verify that hidden and newly visible actors retain their own colors when the precipitation kind changes."
+        "The ROM reserves the weather palette while precipitation clears, and skips invisible or offscreen actors. The Atlas gives particles and NPCs separate textures. Verify that hidden and newly visible actors retain their own colors when the precipitation kind changes.",
+        "Inspected the changed dynamic-palette ROM routine and both the indoor and world marker loops. Each filters out masked actors before resolving a texture. The browser showed Eusine visible at home and absent at the tower in the same snapshot, and the four weather layers used separate particles and were disposed on exit."
       ],
       "triage_note": "Batched changed-line scan (follow-up leads only): weather in engine/gfx/dynamic_pals.asm.",
       "review_method": "diff-hunks"
@@ -63198,13 +63202,14 @@
           "engine/overworld/weather.asm"
         ]
       ],
-      "status": "reviewed",
-      "disposition": null,
-      "reason": "During a weather cooldown the game draws remaining particles with their previous graphics and colors. The Atlas currently clears a replaced layer immediately. The Route 10 North lightning-fade check is complete; the former-weather particle lifetime and colors still need a transition decision or adaptation.",
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The upstream fix keeps previous-weather art and colors until the hardware cooldown ends. Atlas map snapshots switch weather immediately under the documented fixed-weather policy.",
       "evidence": [
         "Route 10 North storm: captured 296,960 opaque map pixels in each of six fade states at day and night. Every observed channel matched the RGB5 fade from white, including restoration of the original bytes. This isolates the lightning fade; crossing between weather systems remains a separate check.",
         "https://github.com/Rangi42/polishedcrystal/commit/65ee5c1489434c7432500e29b52a7121965f7ea5",
-        "During a weather cooldown the game draws remaining particles with their previous graphics and colors. The Atlas currently clears a replaced layer immediately. The Route 10 North lightning-fade check is complete; the former-weather particle lifetime and colors still need a transition decision or adaptation."
+        "During a weather cooldown the game draws remaining particles with their previous graphics and colors. The Atlas currently clears a replaced layer immediately. The Route 10 North lightning-fade check is complete; the former-weather particle lifetime and colors still need a transition decision or adaptation.",
+        "Checked the four weather graphics and palette allocation changes against docs/development.md and the live WeatherSystem lifecycle. Chrome alternated indoor snow, cherry petals, sand and Route 10 lightning. On exiting each room the old system was destroyed and its lightning filter removed; the new map used its own particle type and palette."
       ],
       "triage_note": "Batch screen of 4 changed paths. Inspect palette, weather and map transition code under a scripted map change, including cooldown behavior.",
       "review_method": "diff-hunks"

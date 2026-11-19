@@ -15,12 +15,12 @@ There are 1,057 commits and 3,520 changed endpoint paths in the current range.
 ## Current audit status
 
 All 1,057 commits from v3.2.2 through `f8e67fbd` have had a relevance
-screen. The ledger resolves 1,041. All 16 open commits now have specific
+screen. The ledger resolves 1,043. All 14 open commits now have specific
 follow-up work recorded against their diffs. The list of known features is
 preliminary. Auditing the outstanding changes and validating them in the
 Atlas remain part of implementation.
 
-The latest batch closed 19 commits, including Celadon’s rooftops, Moomoo
+The latest batches closed 21 commits, including Celadon’s rooftops, Moomoo
 Farm’s day and night occupants, Faraway Island’s ferry landing, Fuchsia’s
 four timed Tauros, and the Rugged Road palette boundary. Of the 552 total commits classified
 as having no Atlas impact, 364 were skipped after examining their subject,
@@ -29,7 +29,7 @@ crash fix. Use the commit diffs to find unreleased master changes.
 
 | Open commit group | Remaining work |
 | --- | --- |
-| Palette swaps, NPC glow and weather | Verify map transitions for background-derived and dual NPC palettes, weather particles that survive a change of weather, and sprite priority when more than ten tiles share a scanline. |
+| Palette swaps, NPC glow and weather | Verify map transitions for background-derived and dual NPC palettes and check weather sprite priority when more than ten tiles share a scanline. Atlas snapshots change weather immediately. The old particle layer was cleared in all four tested room transitions. |
 | Navel Rock and hidden grottoes | Represent the offset north/south self-connection. Choose one coherent grotto encounter state per entrance and resolve its sprite and palette. |
 | Variable NPCs and Pokémon | Replace the Trainer House’s placeholder sprite with an eligible daily opponent. Check the fourth player choice, daycare deposits and dolls against the snapshot. |
 | Ruins of Alph and map scripts | Check the redesigned chambers and entrances, the research scientist’s entry-scene position and the script commands that dispatch through tables or return after showing text. |

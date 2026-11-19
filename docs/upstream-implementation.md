@@ -8,19 +8,19 @@ Publish both together manually. Future upstream updates require reviewed SHA
 changes, not an automatically moving master reference.
 
 The dev target is `f8e67fbd53ad7a99870d8ab87fd73612e6c6a679`, verified against
-upstream master on November 18, 2026. The first audit pass targeted `704ea9db1`.
+upstream master on November 19, 2026. The first audit pass targeted `704ea9db1`.
 The baseline is `e410d7405e7d5d016b16a0a59bfb6da0b2a9eabf` (v3.2.2).
 There are 1,057 commits and 3,520 changed endpoint paths in the current range.
 
 ## Current audit status
 
 All 1,057 commits from v3.2.2 through `f8e67fbd` have had a relevance
-screen. The ledger resolves 1,000. Of the 57 still open, 49 have leads
-from the scan and 8 have confirmed follow-up work. Auditing the remaining
+screen. The ledger resolves 1,003. Of the 54 still open, 47 have leads
+from the scan and 7 have confirmed follow-up work. Auditing the remaining
 diffs and validating the affected Atlas features are part of implementation.
 The list of known features below is preliminary.
 
-The latest batch closed 21 commits. Of the 552 total commits classified
+The latest batches closed 24 commits. Of the 552 total commits classified
 as having no Atlas impact, 364 were skipped after examining their subject,
 changed paths and consumers. The changelog adds only the v3.2.3 battle
 crash fix. Use the commit diffs to find unreleased master changes.
@@ -51,6 +51,12 @@ indices across the seven environments matched the pinned source.
   The default scene now applies all 43 writes, including the end of Nugget
   Bridge at (20,14). The alternate scene changes all 43 blocks. Route 47
   also opens the Ruins of Alph door at (8,22) when its event flag is set.
+  In the clean dev build this corrected two cells on Route 24 at (20,14)
+  and (21,14) from water to wall. Both blocks use the same visible artwork.
+- Assembled the 6,640-byte upstream background palette section with RGBDS.
+  All 93 declarations matched in order. Compared 2,168 ordinary selections
+  and 616 selections from the four special routines, including regular and
+  overcast colors, regional Pokémon Center floors and grotto entrance colors.
 - Checked the revised Route 16/17 gates and map seams, Sinjoh Ruins entrances
   and roof, Snowtop Mountain exits and lookout, the Battle Factory entrance
   in both power states, and the new Johto roof graphics. Banked animation
@@ -778,3 +784,8 @@ At that checkpoint the ledger resolved 915 of 1,057 commits. The remaining
 - Dev builds now require upstream corpus tests after source checkout, checking
   the exact pinned SHA. Extend that corpus coverage alongside further adaptations.
 - Finish the commit ledger, then run full combined-site/browser tests and publish.
+
+The clean dev build at `facbdbf` passed all 87 Python tests and generated 612
+maps. It assembled with stable `f4e515e` into a 128,053,312-byte local Pages
+site. Chrome loaded each channel, switched dev to night, and followed the
+link back to stable. Retained-site validation passed for both channels.

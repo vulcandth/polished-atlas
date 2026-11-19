@@ -53493,11 +53493,15 @@
           "maps/YellowForest_overcast.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/palettes.asm, data/maps/palettes_overcast.asm and other files."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "The regular and overcast map palettes occupy consecutive time variants. The ordered map palette rules select a map-specific override before the generic overcast fallback.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/cfdc29265d6ec9807eb5d361daef878f6de5d85b",
+        "Assembled the endpoint palette section with RGBDS and compared the source colors for normal and overcast conditions at all four clocks, including Violet/Ecruteak, the department store and Mansion roofs, Bellchime Trail, Tin Tower roof, Sinjoh Ruins and Yellow Forest. The pinned Rugged Road North entry selects time only. Stormy Beach, Lake of Rage and Route 43 each selected the assembled generic overcast palette in their Monday storm state."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/palettes.asm, data/maps/palettes_overcast.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "87d5a5ebff6007cf3c4fde2619314922e849d3c3",
@@ -55889,14 +55893,15 @@
           "maps/Route24.asm"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "Adds Cerulean/Route24 bridge coordinate triggers, shared scene state and wWalkingOnBridge updates. Retain open to reconcile atlas bridge appearance/collision and movement analysis; no complete implementation evidence for dynamic bridge state yet.",
+      "reason": "Cerulean City and Route 24 share bridge state. The atlas renders the initial entry scene and applies its bridge blocks to collision. The in-game landmark sign is triggered by walking across the connection.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/1f9e29dbc993a73c839e3dfd9292a57ce8166b77",
-        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason."
+        "Complete changed-file scope inspected; full text patches reviewed except the two explicitly normalized conversions. Atlas consumers and generated target data checked as stated in reason.",
+        "Checked all four Cerulean approach events, shared scene variable, both sets of 12 bridge writes, and the pinned Route 24 triggers. The clean build changed precisely the two erroneous WATER cells at (20,14) and (21,14) to WALL. The base terrain PNG is visually identical for these two metatiles."
       ],
-      "review_method": "full-diff"
+      "review_method": "diff-hunks"
     },
     {
       "sha": "3d5047bae5a2ab4bebc8168c94d4c2ee4faba564",
@@ -57046,11 +57051,15 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Relevant breaking format confirmed: inspected full engine/gfx/color.asm and engine/tilesets/tileset_palettes.asm diffs plus target macro/table. Adapted subset slot/count, TIMEWEATHER stride, nested if 0 reference palettes, aliases, special routines and copied BG slots. All 93 target declarations parse; every declared variant and representative raw RGB values tested. Entire 85-file commit and binary attribute change still require reconciliation; not counted as a complete commit review. Batched changed-line scan (follow-up leads only): weather in data/maps/palettes.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "The palette loader starts from environment colors and replaces exactly the declared destination slots using source variants, palette copies and four special routines.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f1f20988dc34c2a8d819c08503adad025073b9c9",
+        "Checked all 93 ordered declarations against the source, then compared 2,168 ordinary and 616 special map/time/weather selections against 6,640 bytes assembled by RGBDS and verified the surrounding environment slots. Covered all four special routines, the Magnet Train TOWN exception, all 13 generic Mart block aliases, regional upstairs floors and the three grotto entrance palette copies. Sprout Tower terrain and collision are covered by the four-clock corpus."
+      ],
+      "triage_note": "Relevant breaking format confirmed: inspected full engine/gfx/color.asm and engine/tilesets/tileset_palettes.asm diffs plus target macro/table. Adapted subset slot/count, TIMEWEATHER stride, nested if 0 reference palettes, aliases, special routines and copied BG slots. All 93 target declarations parse; every declared variant and representative raw RGB values tested. Entire 85-file commit and binary attribute change still require reconciliation; not counted as a complete commit review. Batched changed-line scan (follow-up leads only): weather in data/maps/palettes.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "c6ed0a1aacf8608980d465605afeb75c19b3179a",

@@ -1,4 +1,5 @@
 """Validate compact animation assets before publishing a Pages bundle."""
+import base64
 import math
 from pathlib import Path
 import struct
@@ -34,6 +35,14 @@ def validate_compact_animation(animation: dict, metadata_path: Path, root: Path)
 
     if png_size(animation.get("image")) != (width, height):
         raise ValueError("Compact map image dimensions do not match metadata")
+    if (coverage := animation.get("backgroundCoverage")) is not None:
+        tile_count = animation.get("tileAnimation", {}).get("tileCount", 0)
+        if not isinstance(coverage, dict) or type(tile_count) is not int or width % 8:
+            raise ValueError("Invalid background coverage")
+        for key, size in (("base", width // 8 * height), ("frames", tile_count * 8)):
+            value = coverage.get(key)
+            if not isinstance(value, str) or len(base64.b64decode(value, validate=True)) != size:
+                raise ValueError(f"Invalid background coverage {key}")
     for field in ("tileAnimation", "terrainPriority"):
         tiles = animation.get(field)
         if tiles is None:

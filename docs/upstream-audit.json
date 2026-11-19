@@ -16318,11 +16318,15 @@
           "maps/YellowForest.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 28 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add tiles to the bottom of waterfalls.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/919fa567cd8042bc0a5565cc28bd0470fad11a63",
+        "Checked changed banked tileset graphics, metatile attributes and collisions, the five named layouts, plus the separately verified waterfall-bottom animation tracks."
+      ],
+      "triage_note": "Batch screen of 28 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "d3058e1e239c9262c964fb5a5a77c5b3085540bc",
@@ -17827,11 +17831,15 @@
           "maps/PewterGym.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 7 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Make Pewter Gym more like FRLG.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0e189669c3610527ba8bb9e5e99fd6f9d828b4e3",
+        "Checked the Pewter Gym layout and complete terrain and independently decoded its five current custom RGB palette slots at every clock."
+      ],
+      "triage_note": "Batch screen of 7 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "b2a8bb26a75c62a1db5cf8e8f7638c6d8d7e8098",
@@ -18608,11 +18616,15 @@
           "maps/BellchimeTrail.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 6 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add lanterns and river rocks to Bellchime Trail.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9a57ce4187613c6a3b0053e22b88ca3f1161ec30",
+        "The Bellchime Trail changes add terrain artwork, a palette and a read-only river text event. Checked the endpoint raster and the current landmark terrain in each time setting."
+      ],
+      "triage_note": "Batch screen of 6 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "18cbbfc5e6580bbd5a529d53915e1ea5379545f1",
@@ -18765,11 +18777,15 @@
           "gfx/tilesets/roofs/statue.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 9 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Do not build Ecruteak Shrine statues with roof tiles.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6680be2adee2c7c8a1ffc0272fc690890fc36d15",
+        "The historical shrine statue change removed the special roof graphic. Checked endpoint shrine exterior terrain and collision, its current roof assignment, and both complete roof color tables."
+      ],
+      "triage_note": "Batch screen of 9 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "cb3fd678f56caf28bdc9a888a21fab8299e63c80",
@@ -18844,11 +18860,15 @@
           "maps/Route35CoastSouth.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 10 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables."
+      "status": "resolved",
+      "disposition": "superseded",
+      "reason": "Use a roof for Goldenrod City to save blocks.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0cf634bcdf684d3c493eceea9faf5365aa1dafa8",
+        "The historical Goldenrod Roof graphics registration was removed later. The pinned city uses its current tileset art and ROOF_PARK for underground entrances. Verified the city/coast rasters and the current group-11 roof colors."
+      ],
+      "triage_note": "Batch screen of 10 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "acadb9d7d98869dc6d51efc1ef1ec9047d5c2e6b",
@@ -19638,11 +19658,15 @@
           "gfx/tilesets/johto_outlands.johto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 3 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Reorganize johto_outlands tileset.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b25c748be560f7273563bd1393ab9af553a021b9",
+        "Checked the loader registration, metatiles and Johto Outlands graphics against all four terrain exports. The endpoint renders both banks for the Rugged Road maps."
+      ],
+      "triage_note": "Batch screen of 3 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "99b33820e4da60a861ddb4b3c97f4c8eb575d90e",
@@ -29972,11 +29996,15 @@
           "gfx/tilesets/hidden_grotto.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 7 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix `CutGrassBlockPointers` data in field_move_blocks.asm.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5c2e1125bee81b43ce813d8bfed3763cad364533",
+        "The field-move table determines which blocks a player can cut. Checked the retained hidden-grotto and Indigo Plateau terrain and collision changes; the default HiddenTreeGrotto grid has no tall-grass cells."
+      ],
+      "triage_note": "Batch screen of 7 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "d9e14d8c013f7d03ebd73f3c3a1389847bf54123",
@@ -31992,11 +32020,15 @@
           "maps/VioletGym.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 9 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Improve some Johto gyms (#1412).",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a0b322f6d3df279904bf1153b401b621758340a3",
+        "Checked both Blackthorn floors and Violet Gym, the shared gym art/collision, and all four Mahogany Gym custom color slots against the source in every time setting."
+      ],
+      "triage_note": "Batch screen of 9 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "c115ca13940b41d0a195fa2774ecfab882f8c10b",
@@ -32109,11 +32141,15 @@
           "maps/EcruteakGym.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 7 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add lamps to Ecruteak Gym.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/fba391b9c3203e64b6ee0d002249ad3ab83c52b7",
+        "Verified Ecruteak Gym lamp terrain and its dedicated YELLOW slot directly against the current RGB source at all four times."
+      ],
+      "triage_note": "Batch screen of 7 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "034de7c65c856f654fa0560c81729c665d784bcb",
@@ -41959,14 +41995,16 @@
           "maps/GoldenrodPokecomCenterOffice.asm"
         ]
       ],
-      "status": "reviewed",
-      "disposition": "adaptation",
-      "reason": "All three text diffs reviewed: changes object movement/priority flags, a PokeCom WALL collision to COUNTER, and office Meowth from OBJECTTYPE_POKEMON to OBJECTTYPE_SCRIPT while removing a background event. Modern movement parsing now exports these flags, but priority, on-map placement and collision behavior remain open for validation.",
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Update some map object movement data flag values.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/6f2c9b5a7592da43bc4f839f22e249d25536c394",
-        "Full three-file text diff inspected; current-source movement corpus checks and object metadata generation pass. Remaining integration validation stated in reason."
+        "Full three-file text diff inspected; current-source movement corpus checks and object metadata generation pass. Remaining integration validation stated in reason.",
+        "https://github.com/Rangi42/polishedcrystal/commit/6f2c9b5a7592da43bc4f839f22e249d25536c394",
+        "Checked current movement flags and ordinary/foreground object ordering; exercised the actual client-selected Meowth species, script type and icon frames at (4,1) in GoldenrodPokecomCenterOffice. Verified both COUNTER cells and all office collision."
       ],
-      "review_method": "full-diff"
+      "review_method": "diff-hunks"
     },
     {
       "sha": "d17d23d6452949c998bec4005cf3a4b6efe7931e",
@@ -42021,11 +42059,15 @@
           "engine/overworld/movement.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 5 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Correct some map object-related constant names and labels.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e92d31e403cb59931dcf11fe7171889dc1a061de",
+        "Traced the renamed IN_GRASS and COLL_VISUAL_GRASS constants into the OAM flag and collision tables. Dev reads VISUAL_GRASS, LONG_GRASS and TALL_GRASS collision IDs and relative facing attributes. Real browser/raster checks cover tall grass and long grass."
+      ],
+      "triage_note": "Batch screen of 5 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "c93039d0ab6be2a2b93e696547b5ccffd8bc44dc",
@@ -42281,11 +42323,15 @@
           "maps/Route17North.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 8 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Remove some unused blocks in `indigo_plateau`.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/deb32e994ae68c76bfa44bec124f13b2e565584e",
+        "The historical edits replace unused Indigo Plateau blocks and remap Route12South, Route13East, Route15 and Route17North. Verified the surviving route layouts after the Route13 merge, including terrain, collision and border connections."
+      ],
+      "triage_note": "Batch screen of 8 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "3f63609a2691d5414152ad5659825b2d2ff1b16a",
@@ -42722,11 +42768,15 @@
           "maps/MahoganyGym.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 6 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use Jace's floor tiles in Mahogany Gym.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/da935dfd4e95e3785a0b9636f02a526ec2303360",
+        "Verified the updated Mahogany floor, gym collision and current four-slot palette from the source RGB rows in all four views."
+      ],
+      "triage_note": "Batch screen of 6 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "d21b67a6b2827f1dc0e6743708265e2888bf1cef",
@@ -45669,11 +45719,15 @@
           "maps/LavenderTown.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 5 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add radio dishes to Lavender Town's Radio Tower.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7172f8b9b977816f1b108ac2ef3067fe8f8d975b",
+        "Verified the Lavender Town terrain changes and Kanto tileset resources against each clock. Later dish objects and their priority have a separate ledger entry."
+      ],
+      "triage_note": "Batch screen of 5 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "8ae2e8dee8b7034cecdb560f7b9cd052ce8bf6b7",
@@ -46217,11 +46271,15 @@
           "maps/Route28.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 16 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Red roofs for Pokémon League buildings.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/452800ddaecc78eb3104962d60f847eb76e5d134",
+        "Checked source group colors for 42 map groups and all clock variants. Verified the endpoint Route22/23South/26/28 layouts, their map groups, tileset resources and collision."
+      ],
+      "triage_note": "Batch screen of 16 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "a1934b2ad8acf37e2230ae7993cd90c4225da5b0",
@@ -49480,11 +49538,15 @@
           "maps/YellowForest.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 12 changed paths. Trace the forest palette change through later replacements and compare the surviving forest palettes and terrain."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Reduce attribute clash in Yellow Forest trees.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c2e78131942c091b4f22dbd261e71a8b6452e9f5",
+        "The Yellow Forest palette exception is covered by pinned source tests. Verified the final normal and overcast seven-slot palettes, all four rendered backgrounds, current tile attributes and the distinct regular/overcast map-group roof tables."
+      ],
+      "triage_note": "Batch screen of 12 changed paths. Trace the forest palette change through later replacements and compare the surviving forest palettes and terrain.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "4caf4bbd3bf559691eb5685d06e65599eb74fe95",
@@ -50207,11 +50269,15 @@
           "gfx/tilesets/roofs_overcast.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 5 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Sea Cottage roof is green.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/695652062756aea1313ba117867ad344f25f5c87",
+        "Checked the Sea Cottage area in CeruleanCape group 38, both raw regular and overcast roof tables for all clock variants and the actual endpoint raster."
+      ],
+      "triage_note": "Batch screen of 5 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "1b55168afaebad0447952cfcbacf847be94b71e4",
@@ -50294,11 +50360,15 @@
           "utils/unused_blocks.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 9 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision."
+      "status": "resolved",
+      "disposition": "superseded",
+      "reason": "Use `johto_outlands` tileset for Dragon's Den.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/175f9cc587783f69a886cf5cbf3c722c38b9fb8b",
+        "The historical map switched DragonsDenB1F to Johto Outlands. The pinned den now uses Johto Sacred. Both Rugged Road maps retain Outlands and all three pass complete source-based renders and collision. The additional utility audits unused blocks."
+      ],
+      "triage_note": "Batch screen of 9 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "1c771f860df609c1396ad90c698d95f9f2481ee8",
@@ -50475,11 +50545,15 @@
           "gfx/tilesets/snowtop_mountain.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 5 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use shared roof tiles for Snowtop Mountain's Pokémon Center.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/20a367242687077288bedfd7e2dc65954e2703bd",
+        "Verified group 36 uses ROOF_SINJOH and the endpoint SnowtopMountainOutside layout and shared roof resources. Its special palette exception is covered by pinned corpus tests; the group roof art and color-selection mechanisms were checked separately."
+      ],
+      "triage_note": "Batch screen of 5 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "4e56db40e33a3f975e95868a649a3df1cb4c77e5",
@@ -51975,11 +52049,15 @@
           "maps/Route27.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/NewBarkTown.asm; connectivity in maps/Route27.asm; object definitions in maps/Route27.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Pokémon League gates all use its dark red roofs.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ac225fba3f1413bfbf7a8a3dbc15c049fd47499f",
+        "Inspected the introduction of League roof groups plus Route27 warps and New Bark coordinate triggers. Compared the current route and town records with the export, including portal destinations. Checked the final group roof colors for every clock."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/NewBarkTown.asm; connectivity in maps/Route27.asm; object definitions in maps/Route27.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "1f460ca366c3b767f9396bb2b400acc1f616fbd4",
@@ -52222,11 +52300,15 @@
           "maps/CeladonCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm; connectivity in maps/CeladonCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add clock tower to Celadon University.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d3dc208fbb5fb0880d9aaf2b88bc706635be5589",
+        "Inspected the addition of the clock tower and university warp changes. The current city contains both university entrances, the full city raster and the later foreground-priority tower at those two blocks."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm; connectivity in maps/CeladonCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "3e56a473b9cf627fee22107aed3d7e4a70221701",
@@ -53048,11 +53130,15 @@
           "gfx/tilesets/roofs_overcast.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 2 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Change Viridian and Celadon roofs to actual viridian and celadon colors.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b7d026eef54ba134d6fcb2743c9ebed0e7821cf5",
+        "Only the normal and overcast roof tables change. Independently parsed every RGB channel in all 42 rows of both source files and matched all four clock results, including Viridian group 23 and Celadon group 21."
+      ],
+      "triage_note": "Batch screen of 2 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "f88c27c25046c97f3e4755e10461fe4322e1deab",
@@ -54215,11 +54301,15 @@
           "maps/VermilionCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 8 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add sign directing people to S.S. Aqua and Seagallop Ferry.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/76751e307eb8386cfe9d5a625ead4222eacd4c95",
+        "The sign in Vermilion City adds a read-only background event. Verified current tile art and collision for the pier and city plus the checked port warps."
+      ],
+      "triage_note": "Batch screen of 8 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "98773a2949a86c8a2f83176e6338226b4081d0b1",
@@ -54785,11 +54875,15 @@
           "gfx/tilesets/roofs/goldenrod.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 7 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use the hard-coded Goldenrod roofs instead of a `ROOF_GOLDENROD`.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3d0b61d5ad493bc10b6ac91ded976c93a3b5a91c",
+        "The obsolete ROOF_GOLDENROD art was removed and city tiles were reassigned. Verified the current group-11 assignment, both roof-palette tables and Goldenrod City terrain."
+      ],
+      "triage_note": "Batch screen of 7 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "3c78cfc91820467bd255562968df44d63553b51c",
@@ -54823,11 +54917,15 @@
           "gfx/tilesets/johto_modern.johto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 6 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use `ROOF_PARK` instead of hard-coded tiles for the Underground entrances.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3c78cfc91820467bd255562968df44d63553b51c",
+        "Verified that Goldenrod group 11 uses ROOF_PARK, checked the endpoint city graphics/terrain and both roof color tables for all 42 groups."
+      ],
+      "triage_note": "Batch screen of 6 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "a54b7a73f73178874e260857e60b3cc0b52fb53c",
@@ -56292,11 +56390,15 @@
           "maps/EcruteakCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object and terrain priority in data/sprites/map_objects.asm; object definitions in maps/DragonsDenB1F.asm, maps/EcruteakCity.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Allow walking behind pagoda rooftops.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6f8736a098295a7409bd156af577c326e78d661c",
+        "Checked the four pagoda halves on EcruteakCity and DragonsDenB1F in all clocks. The client selected the down and up facings of the two halves and the high-priority object group. Checked copy-BG-white palette handling and the corresponding terrain/collision exports."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object and terrain priority in data/sprites/map_objects.asm; object definitions in maps/DragonsDenB1F.asm, maps/EcruteakCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "f1f20988dc34c2a8d819c08503adad025073b9c9",
@@ -56953,11 +57055,15 @@
           "maps/SnowtopMountainInside.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/palettes.asm; object definitions in maps/RuggedRoadNorth.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Add campfire to Rugged Road.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2396daf159fb3aed77a034b182da5958486bfe3b",
+        "Verified the campfire object at (23,10), dedicated sprite and PAL_OW_CAMPFIRE, both Outlands banks and current RuggedRoadNorth/SnowtopMountainInside palette rows. The patrol traverses a daytime-lit cell next to this campfire at night."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/palettes.asm; object definitions in maps/RuggedRoadNorth.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "6d457dfd5d1fd559cdfe2084e5e860e5fbbb0f56",
@@ -57078,13 +57184,16 @@
           "data/tilesets/johto_outlands_metatiles.bin"
         ]
       ],
-      "status": "reviewed",
-      "disposition": "adaptation",
-      "reason": "Changes Johto Outlands block f1, tile offset 6, from tile 5a to 30 and attribute 05 to 0d, selecting bank 1 while retaining palette 5. Existing bank-aware terrain loader must retain this glow-adjacent rock artwork.",
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fire glows on the rock corner.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/683f5b3bde648d9ddcb6d5a36300a6102c4b5c6e",
-        "Both binary files compared byte-for-byte: exactly one changed byte in each, with unchanged lengths of 4000. Open: full terrain animation/visual validation."
-      ]
+        "Both binary files compared byte-for-byte: exactly one changed byte in each, with unchanged lengths of 4000. Open: full terrain animation/visual validation.",
+        "https://github.com/Rangi42/polishedcrystal/commit/683f5b3bde648d9ddcb6d5a36300a6102c4b5c6e",
+        "The complete patch changes Johto Outlands metatile and attribute data. Checked RuggedRoadNorth with source bank and attribute flips in all four full rasters. Verified the adjacent lit-cell behavior with the Firebreather’s actual patrol in Chrome."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "b22fa2a84707d7a0de3835e55bfa414fa0243e15",
@@ -57178,11 +57287,15 @@
           "maps/RuggedRoadSouth.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/RuggedRoadNorth.asm, maps/RuggedRoadSouth.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add trainers to Rugged Road.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d9ed0af5dec86a33abda543ab8cf7dacb7139cc6",
+        "Inspected the new objects and battle/dialogue scripts in both Rugged Road maps. Compared every declared trainer and movement to the export. The overlapping campfire light affects the actual Firebreather patrol in the browser."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/RuggedRoadNorth.asm, maps/RuggedRoadSouth.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "de359533c9abfe016c18f1380804646d9dc72bd0",
@@ -57499,7 +57612,8 @@
       "reason": "Adds per-object collision glow states, previous/current palette identity, cache separation, and shared overworld fade catch-up; aquarium adds saturated RGB and campfire selects daytime. Non-object weather effects clear glow. Implemented table export, per-object selection, cache keys, 5-bit adjustment and fade; weather/map fade integration and dual palettes remain open.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/e035debe8474b09ec8df1700b8922bbe27a6a36c",
-        "Read all five changed files in two bounded patch calls. Focused frontend tests cover saturation, fades, shared NPC fade clock, cache identity and COPY_BG composition. Browser inspected 25 actual sprite samples each at day and night. Open: full-map movement, weather and dual-palette interaction."
+        "Read all five changed files in two bounded patch calls. Focused frontend tests cover saturation, fades, shared NPC fade clock, cache identity and COPY_BG composition. Browser inspected 25 actual sprite samples each at day and night. Open: full-map movement, weather and dual-palette interaction.",
+        "Observed the real RuggedRoadNorth Firebreather walking into and out of a DAY_GLOW collision in the browser at day and night. Compared settled and transitional colors to the pinned red sprite palette and RGB5 fade arithmetic. Map/weather transition verification stays open."
       ]
     },
     {
@@ -61157,11 +61271,15 @@
           "gfx/tilesets/snowtop_mountain.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 4 changed paths. Compare the modified facing in data/sprites/facings.asm with the two actual rendered Snowtop sprite tiles."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Fix #1642.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3695982aca00bce7273e1e83955bebba1bac9eb9",
+        "The revised tiny-windows facing contains two copies of tile $84 at (0,8) and (8,8). Compared its complete 16-by-16 alpha mask with source tile 16 at dusk and night through the real client facing resolver, at the Snowtop object (16,14)."
+      ],
+      "triage_note": "Batch screen of 4 changed paths. Compare the modified facing in data/sprites/facings.asm with the two actual rendered Snowtop sprite tiles.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "f22d31a52cbbf1387d27ba63f5bf2fa959955d37",
@@ -62630,11 +62748,15 @@
           "maps/CeladonCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 5 changed paths. Check terrain collision and foreground coverage with an NPC standing or walking behind the affected terrain."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Make Celadon University's clock tower walk-behindable.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7211ea67e982413dbc4efe17e8da4ed54352ab5f",
+        "Located the exact two tower blocks in the original CeladonCity layout diff at (2,12) and (3,12). Confirmed all 32 current 8px tiles have foreground priority in all four time views. All eight movement cells are floor."
+      ],
+      "triage_note": "Batch screen of 5 changed paths. Check terrain collision and foreground coverage with an NPC standing or walking behind the affected terrain.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "2165aad84539479dae51108567609ce77829c1a6",
@@ -64237,11 +64359,15 @@
           "maps/IndigoPlateau_overcast.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 5 changed paths. Compare the lit window colors in the night render with the source map palette and unchanged daylight appearance."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Make Indigo Plateau windows glow at night.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/cee4ba086b0fa13eac45ee2b9929ae459c3a514d",
+        "Checked the Indigo Plateau window art and attributes and independently decoded the four custom slots from the normal and overcast RGB tables at all four times, including the lit night appearance."
+      ],
+      "triage_note": "Batch screen of 5 changed paths. Compare the lit window colors in the night render with the source map palette and unchanged daylight appearance.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "10780a66808b9c99aa445d97f68c8f671af90aa9",
@@ -65079,11 +65205,15 @@
           "maps/YellowForest.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 6 changed paths. Check terrain collision and foreground coverage with an NPC standing or walking behind the affected terrain."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Add long grass to Yellow Forest.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6c9708c502a5dcdb63438a9ab08ff6bbb2179dec",
+        "Yellow Forest exports 115 long-grass collision cells. Checked the updated forest tiles and the encounter-selection assembly. Verified the source long-grass priority rule with 67 replaced sprite pixels on a Safari Zone trainer in the live night map."
+      ],
+      "triage_note": "Batch screen of 6 changed paths. Check terrain collision and foreground coverage with an NPC standing or walking behind the affected terrain.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "4c92ad192fa11733d7fa955d906945392ac2edbd",
@@ -67212,14 +67342,16 @@
           "home/map.asm"
         ]
       ],
-      "status": "reviewed",
-      "disposition": "adaptation",
-      "reason": "Full diff reviewed: block $00 is now rendered normally and the off-map buffer is initialized with the actual border block. Atlas _render_map already indexes metatile 0 directly, but retain open for connected-map/border and collision validation against the new block-zero assets (d213221f668e).",
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Treat block ID $00 normally instead of turning into the border block.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/616a497cb1733c2d0f14e86a33c472c7cea62c9e",
-        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason."
+        "Full text diff inspected; compared with atlas source consumers. Remaining validation is stated in reason.",
+        "https://github.com/Rangi42/polishedcrystal/commit/616a497cb1733c2d0f14e86a33c472c7cea62c9e",
+        "Checked 6,298 zero-valued block placements across 126 pinned maps, including 335 edge placements across 29 connected maps with nonzero border declarations. All exported source-based terrain and collision agree. Outside playable map rectangles the geographic view draws neighboring maps or canvas space."
       ],
-      "review_method": "full-diff"
+      "review_method": "diff-hunks"
     },
     {
       "sha": "c11396b4f9c58bfa1347b0867db92aa777a03d02",
@@ -67793,11 +67925,15 @@
           "utils/unused_blocks.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 125 changed paths. Check all pinned consumers of block zero against the separate engine change and the border block on each map."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use block $00 for trees or water in overworld tilesets.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d213221f668e6a61e134c2271a6db16e20888a48",
+        "Inspected all 125 paths, including the 60 added border declarations and unused-block utility. Checked the same 6,298 displayed zero blocks across 126 maps and the complete assets, ordinary collision and client connections."
+      ],
+      "triage_note": "Batch screen of 125 changed paths. Check all pinned consumers of block zero against the separate engine change and the border block on each map.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "06e43dc3f38866bb681468249273a2f2812a12b4",

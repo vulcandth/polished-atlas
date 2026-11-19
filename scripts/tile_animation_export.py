@@ -1,5 +1,6 @@
 """Export a map image plus compact, independently timed 8px tile tracks."""
 from functools import lru_cache
+import base64
 import json
 from pathlib import Path
 
@@ -51,6 +52,17 @@ def _tile_rgb(data: bytes, attribute: int, colors, *, priority: bool = False) ->
     return bytes(pixels)
 
 
+def _coverage(data, attribute):
+    """One bit per nonzero CGB background color, in display order."""
+    rows = bytes(lo | hi for lo, hi in zip(data[::2], data[1::2]))
+    if attribute & 0x20:
+        rows = rows.translate(_REVERSE_BITS)
+    return rows[::-1] if attribute & 0x40 else rows
+
+
+_REVERSE_BITS = bytes(int(f"{value:08b}"[::-1], 2) for value in range(256))
+
+
 def write_animation(root: Path, renderer, png, metadata_path: Path, context: Context) -> dict:
     import palette_swaps
     from render_map import _write_png
@@ -86,6 +98,7 @@ def write_animation(root: Path, renderer, png, metadata_path: Path, context: Con
     active_colors = [list(row) for row in cycle.palette]
     animated_colors = {key for _, changes in cycle.changes for key in changes}
     images = []
+    masks = []
     priority_images = {}
     image_ids = {}
     for frame, (tiles, changed_colors) in enumerate(cycle.changes):
@@ -104,11 +117,13 @@ def write_animation(root: Path, renderer, png, metadata_path: Path, context: Con
                 rgb = _tile_rgb(data, attr, palette)
                 foreground = _tile_rgb(data, attr, palette, priority=True) if attr & 0x80 else None
                 # Preserve index-zero coverage even when RGB frames are equal.
-                image_key = (rgb, foreground)
+                mask = _coverage(data, attr)
+                image_key = (rgb, foreground is not None, mask)
                 image_id = image_ids.get(image_key)
                 if image_id is None:
                     image_id = len(images)
                     images.append(rgb)
+                    masks.append(mask)
                     image_ids[image_key] = image_id
                     if foreground is not None:
                         priority_images[image_id] = foreground
@@ -117,6 +132,7 @@ def write_animation(root: Path, renderer, png, metadata_path: Path, context: Con
 
     width, height = renderer.width * 32, renderer.height * 32
     rows = [bytearray(width * 3) for _ in range(height)]
+    coverage = bytearray(width // 8 * height)
     tracks = {}
     priority_tracks = {}
     for key, frames in zip(keys, history):
@@ -124,6 +140,7 @@ def write_animation(root: Path, renderer, png, metadata_path: Path, context: Con
         first = images[frames[0]]
         for x, y in positions:
             for row in range(8):
+                coverage[(y + row) * (width // 8) + x // 8] = masks[frames[0]][row]
                 rows[y + row][x * 3:(x + 8) * 3] = first[row * 24:(row + 1) * 24]
         compact = compact_track(frames)
         if key[2] & 0x80:
@@ -148,6 +165,10 @@ def write_animation(root: Path, renderer, png, metadata_path: Path, context: Con
         raise ValueError(f"Animated tile atlas exceeds texture limit: {metadata_path}")
     payload = {"version": 2, "image": image_path.name, "frameWidth": width, "frameHeight": height,
                "frameCount": 1, "sheetColumns": 1, "frameDurationsMs": [FRAME_MS], "loopDurationMs": FRAME_MS}
+    payload["backgroundCoverage"] = {
+        "base": base64.b64encode(coverage).decode("ascii"),
+        "frames": base64.b64encode(b"".join(masks[tile] for tile in used)).decode("ascii"),
+    }
     if used:
         tile_path = metadata_path.with_suffix(".tiles.png")
         _write_png(tile_path, columns * 8, tile_rows * 8, patch_rows, png)

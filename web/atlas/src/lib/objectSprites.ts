@@ -7,9 +7,11 @@ import type {
   RgbTuple,
 } from "@/types";
 import { decodeBase64 } from "@/lib/base64";
+import { facingPriority, type FacingPriority } from "./objectOcclusion";
 import { applyGlowAdjustment, fadeGlowPalette, GlowFadeClock, NO_GLOW, UNLIT, type GlowState } from "@/lib/objectGlow";
 
 type FacingTextureRecord = {
+  priority?: FacingPriority;
   texture: Texture;
   offsetX: number;
   offsetY: number;
@@ -374,6 +376,9 @@ export class ObjectSpriteCache {
         break;
       }
       const buffer = new Uint8Array(width * height * 4);
+      const attributes = new Uint8Array(width * height);
+      // SetFacingBounce alternates STEP_DOWN_0 and STEP_UP_0.
+      const facing = this.resolveFacingEntry(frameIndex % 2 ? "FACING_STEP_UP_0" : "FACING_STEP_DOWN_0");
       for (let tileRow = 0; tileRow < tilesPerColumn; tileRow += 1) {
         for (let tileCol = 0; tileCol < tilesPerRow; tileCol += 1) {
           const tileIndex = tileRow * tilesPerRow + tileCol;
@@ -399,6 +404,7 @@ export class ObjectSpriteCache {
                 colors[pixelValue] ??
                 DEFAULT_PALETTE[Math.min(pixelValue, DEFAULT_PALETTE.length - 1)];
               const offset = (destY * width + destX) * 4;
+              attributes[offset / 4] = facing?.tiles[tileIndex]?.attributes ?? 0;
               buffer[offset] = color[0];
               buffer[offset + 1] = color[1];
               buffer[offset + 2] = color[2];
@@ -410,6 +416,7 @@ export class ObjectSpriteCache {
       const baseTexture = BaseTexture.fromBuffer(buffer, width, height);
       const texture = new Texture(baseTexture);
       frames.push({
+        priority: facingPriority(buffer, attributes),
         texture,
         offsetX: -Math.floor(width / 2),
         offsetY: -Math.floor(height / 2),
@@ -579,6 +586,7 @@ export class ObjectSpriteCache {
     const buffer = new Uint8Array(width * height * 4);
     const colors = clampPalette(palette);
     const secondaryColors = clampPalette(secondaryPalette);
+    const pixelAttributes = new Uint8Array(width * height);
 
     for (const tileEntry of facing.tiles) {
       const dx = tileEntry.dx ?? 0;
@@ -617,6 +625,7 @@ export class ObjectSpriteCache {
           const color =
             tileColors[pixelValue] ?? DEFAULT_PALETTE[Math.min(pixelValue, DEFAULT_PALETTE.length - 1)];
           const offset = (destY * width + destX) * 4;
+          pixelAttributes[offset / 4] = attributes;
           buffer[offset] = color[0];
           buffer[offset + 1] = color[1];
           buffer[offset + 2] = color[2];
@@ -635,6 +644,7 @@ export class ObjectSpriteCache {
     return {
       texture,
       offsetX: minX,
+      priority: facingPriority(buffer, pixelAttributes),
       offsetY: minY,
       width,
       height,

@@ -1,9 +1,11 @@
-import { Assets, BaseTexture, Rectangle, Texture, type Container } from "pixi.js";
+import { Assets, BaseImageResource, BaseTexture, Rectangle, Texture, type Container } from "pixi.js";
 import type { MapAnimationMetadata, TileAnimationMetadata } from "@/types";
 import { withVersion } from "@/lib/basePath";
 import { createTileAnimationPlayer, validateTileAnimation } from "@/lib/tileAnimation";
+import { createBackgroundCoverage } from "./backgroundCoverage";
 
 export interface MapAnimationResource {
+  backgroundCoverage?: ReturnType<typeof createBackgroundCoverage>;
   textures: Texture[];
   frameDurations: number[];
   loopDuration: number;
@@ -17,6 +19,25 @@ export interface MapAnimationResource {
 }
 
 const resolvedUrlCache = new Map<string, string>();
+
+function imagePixelReader(texture: BaseTexture | undefined) {
+  let image: ImageData | undefined;
+  return (x: number, y: number) => {
+    if (!image) {
+      if (!(texture?.resource instanceof BaseImageResource)) throw new Error("Missing map image for object priority");
+      const canvas = document.createElement("canvas");
+      canvas.width = texture.realWidth;
+      canvas.height = texture.realHeight;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Unable to read map image for object priority");
+      // These resources are browser-decoded PNGs from Assets.load.
+      context.drawImage(texture.resource.source as CanvasImageSource, 0, 0);
+      image = context.getImageData(0, 0, canvas.width, canvas.height);
+    }
+    const i = (y * image.width + x) * 4;
+    return (image.data[i] << 16) | (image.data[i + 1] << 8) | image.data[i + 2];
+  };
+}
 
 export async function loadMapAnimation(assetUrl: string): Promise<MapAnimationResource> {
   const attemptedUrls: string[] = [];
@@ -130,6 +151,15 @@ export async function loadMapAnimation(assetUrl: string): Promise<MapAnimationRe
           foreground(parent, elapsedMs, enabled);
         };
       }
+      const backgroundCoverage = createBackgroundCoverage(metadata, imagePixelReader(baseTexture),
+        imagePixelReader(tileTextures?.[0]?.baseTexture));
+      if (backgroundCoverage) {
+        const draw = applyTiles;
+        applyTiles = (parent, elapsed, enabled = true) => {
+          backgroundCoverage.setTime(enabled ? elapsed : 0);
+          draw?.(parent, elapsed, enabled);
+        };
+      }
       const durations = [...metadata.frameDurationsMs];
       const loopDuration =
         metadata.loopDurationMs > 0
@@ -149,6 +179,7 @@ export async function loadMapAnimation(assetUrl: string): Promise<MapAnimationRe
         priorityTextures,
         priorityImageUrl,
         applyTiles,
+        backgroundCoverage,
       };
     } catch (error) {
       lastError = error;

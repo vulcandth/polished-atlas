@@ -1,3 +1,4 @@
+import base64
 import copy
 import json
 from pathlib import Path
@@ -63,6 +64,8 @@ class TileAnimationExportTests(unittest.TestCase):
                 return bytes(data)
             base = read_image(payload["image"])
             metadata = payload["tileAnimation"]
+            mask_base = base64.b64decode(payload["backgroundCoverage"]["base"])
+            mask_frames = base64.b64decode(payload["backgroundCoverage"]["frames"])
             atlas = read_image(metadata["image"])
             atlas_width = metadata["sheetColumns"] * 8
             priority = payload["terrainPriority"]
@@ -73,6 +76,7 @@ class TileAnimationExportTests(unittest.TestCase):
                 for (bank, index), data in changes.items():
                     state[bank][index * 16:(index + 1) * 16] = data
                 pixels = bytearray(base)
+                coverage = bytearray(mask_base)
                 for track in metadata["tracks"]:
                     remaining = tick % sum(track["durations"])
                     for image, duration in zip(track["frames"], track["durations"]):
@@ -82,6 +86,7 @@ class TileAnimationExportTests(unittest.TestCase):
                     ax, ay = (image % metadata["sheetColumns"]) * 8, (image // metadata["sheetColumns"]) * 8
                     for x, y in track["positions"]:
                         for row in range(8):
+                            coverage[(y + row) * 4 + x // 8] = mask_frames[image * 8 + row]
                             start = ((ay + row) * atlas_width + ax) * 3
                             dest = ((y + row) * 32 + x) * 3
                             pixels[dest:dest + 24] = atlas[start:start + 24]
@@ -109,11 +114,14 @@ class TileAnimationExportTests(unittest.TestCase):
                         ty = 7 - y % 8 if attr & 0x40 else y % 8
                         shade = decoded[bool(attr & 8)][renderer.metatile_data[cell]][ty * 8 + tx]
                         index = y * 32 + x
+                        self.assertEqual(bool(coverage[y * 4 + x // 8] & (128 >> (x % 8))), bool(shade))
                         self.assertEqual(foreground[index * 4 + 3], 255 if attr & 0x80 and shade else 0,
                                          f"priority VBlank {tick} at {x},{y}")
                         if attr & 0x80:
                             self.assertEqual(foreground[index * 4:index * 4 + 3], pixels[index * 3:index * 3 + 3])
-            for mutate in (lambda p: p["tileAnimation"].update(image="missing.png"),
+            for mutate in (lambda p: p["backgroundCoverage"].update(base=""),
+                           lambda p: p["backgroundCoverage"].update(frames="bad%"),
+                           lambda p: p["tileAnimation"].update(image="missing.png"),
                            lambda p: p["tileAnimation"]["tracks"][0]["frames"].__setitem__(0, 999999),
                            lambda p: p["tileAnimation"]["tracks"][0]["positions"].append([32, 0]),
                            lambda p: p["tileAnimation"]["tracks"][0]["durations"].__setitem__(0, 0)):
@@ -124,6 +132,7 @@ class TileAnimationExportTests(unittest.TestCase):
             # Validate foreground even when the map has no animated background.
             static = copy.deepcopy(payload)
             static.pop("tileAnimation")
+            static["backgroundCoverage"]["frames"] = ""
             validate_compact_animation(static, path, Path(temp))
             # An opaque replacement would hide color-zero pixels and must not publish.
             opaque_path = path.parent / "opaque.png"

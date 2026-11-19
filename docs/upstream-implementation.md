@@ -657,6 +657,37 @@ range. The ledger records why each skipped change is outside atlas scope.
   versions, loaded dev night assets and returned to stable using the channel
   links. All 54 frontend tests and the TypeScript check passed.
 
+## NPCs in grass and campfire light
+
+The ledger resolves 907 of 1,057 commits. The remaining 150 include 141
+pending reviews and nine reviewed changes with open work.
+
+- Dev exports one bit per background pixel indicating whether its Game Boy
+  color index is nonzero. Animated tiles carry that information for each
+  frame. The client applies it to the facing tiles with fixed priority or
+  grass-dependent priority. It paints the selected terrain color over those
+  sprite pixels, which also preserves the result when two NPCs overlap.
+  This matches the documented order of Game Boy Color drawing operations.
+  [Pan Docs, object drawing priority](https://gbdev.io/pandocs/OAM.html#drawing-priority)
+- Checked all 69,174,272 first-frame coverage bits in each of the four clock
+  exports against the source tile planes and flips. The complete 612-map
+  comparison also checked RGB, collision and foreground tile placement.
+  A smaller animated fixture checked coverage through every frame of its cycle.
+- Observed the Rugged Road North Firebreather walking across the campfire's
+  daytime-light collision in headless Chrome. In the night view its red
+  palette fades from the night colors to the day colors and back. In the day
+  view both sides use the day colors. Independently checked the observed
+  shades, including intermediate fade steps, against the pinned RGB5 rows
+  and game fade arithmetic.
+- Observed 37 covered pixels on the Route 1 Schoolboy in tall grass and 67 on
+  the Safari Zone North Youngster in long grass. Reconstructed each displayed
+  sprite frame from its facing and terrain, including all background RGB
+  substitutions. These browser checks used the actual movement and rendering
+  code with observation hooks in a local unminified bundle.
+- Compared the source regular and overcast roof palettes for all 42 groups
+  across four clock settings. Verified 6,298 zero-valued block placements
+  in 126 maps and the two passable clock-tower blocks at Celadon University.
+
 ## Immediate remaining implementation work
 
 - Verify palette-swap NPC colors in the full generated site. The frontend now
@@ -667,13 +698,10 @@ range. The ledger records why each skipped change is outside atlas scope.
   objects. Run the final combined-site checks before deployment.
 - Verify dynamic palette and weather transitions during map changes, together
   with the remaining map, object and movement findings from the audit.
-- Finish grass occlusion and per-facing RELATIVE_ATTRIBUTES/OAM_PRIO behavior.
-  Static object priority groups and BG attribute priority are implemented as
-  recorded above; broader glow and runtime object-priority interaction validation
-  remains open.
-- Reconcile the dynamic palette rules for variable sprites and the map/overlay
-  transition behavior. Complete browser validation of moving NPCs entering
-  and leaving lit cells, including interaction with terrain priority.
+- Reconcile dynamic palette rules for variable sprites, map/overlay changes
+  and weather transitions. The real campfire patrol and grass checks cover
+  movement within a map. Map-entry fades and copy-background palette changes
+  across connected maps still need runtime verification.
 - Finish the wider Ruins of Alph redesign review.
 - Dev builds now require upstream corpus tests after source checkout, checking
   the exact pinned SHA. Extend that corpus coverage alongside further adaptations.

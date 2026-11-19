@@ -124,6 +124,7 @@ export interface MapAnimationMetadata {
   sheetColumns?: number;
   tileAnimation?: TileAnimationMetadata;
   terrainPriority?: TileAnimationMetadata;
+  backgroundCoverage?: { base: string; frames: string };
 }
 
 export interface TileAnimationMetadata {

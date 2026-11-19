@@ -33,6 +33,7 @@ import { ObjectSpriteCache, isPokemonIconSprite } from "@/lib/objectSprites";
 import { computeObjectPosition, computeObjectPriority, type PlacementContext } from "@/lib/objectPlacement";
 import { canCrossSideWall, createCollisionHelper, type CollisionHelper } from "@/lib/collision";
 import { createGlowTransition, NO_GLOW, UNLIT } from "@/lib/objectGlow";
+import { createObjectOcclusion, type FacingPriority } from "@/lib/objectOcclusion";
 import { getMovementModel } from "@/lib/movementModel";
 import { getStaticObjectAnimation, resolveFacingConstant } from "@/lib/objectAnimation";
 import { simulateNpcMovement } from "@/lib/movementSimulation";
@@ -66,6 +67,7 @@ type CardinalDirection = "down" | "up" | "left" | "right";
 type Offset = { dx: number; dy: number };
 
 type SpriteFrameRef = {
+  priority?: FacingPriority;
   key: string;
   texture: Texture;
   offsetX: number;
@@ -134,6 +136,8 @@ type IdleMovementAnimator = {
 type MovementAnimator = PathMovementAnimator | SpinMovementAnimator | IdleMovementAnimator;
 
 type ObjectMarkerEntry = {
+  occlusion?: ReturnType<typeof createObjectOcclusion>;
+  inGrass?: (dx: number, dy: number) => boolean;
   object: ObjectEventEntry;
   sprite: Sprite;
   movementSummary: MovementSummary | null;
@@ -641,6 +645,7 @@ function createSpriteFrameRef(
   return {
     key,
     texture: record.texture,
+    priority: record.priority,
     offsetX: record.offsetX,
     offsetY: record.offsetY,
   };
@@ -825,6 +830,7 @@ function buildPokemonIconFrameSet(
     return {
       key: `${spriteKey}:${species ?? "UNKNOWN"}:${form ?? "NO_FORM"}:${index}`,
       texture: frameRecord.texture,
+      priority: frameRecord.priority,
       offsetX: frameRecord.offsetX + halfWidth,
       offsetY: frameRecord.offsetY + halfHeight,
     };
@@ -1441,6 +1447,20 @@ function spatialPaletteRefresher(
   };
 }
 
+function markerOcclusion(resource: MapAnimationResource, sprite: Sprite, collision: CollisionHelper | null,
+  object: ObjectEventEntry, constants?: Record<string, number>) {
+  if (!resource.backgroundCoverage) return {};
+  const grass = new Set(["COLL_TALL_GRASS", "COLL_LONG_GRASS", "COLL_VISUAL_GRASS"]
+    .map(name => constants?.[name]).filter(value => value !== undefined));
+  return {
+    occlusion: createObjectOcclusion(sprite, resource.backgroundCoverage.colorAt),
+    inGrass(dx: number, dy: number) {
+      const tile = collision?.getValue(object.xTiles + dx, object.yTiles + dy);
+      return tile != null && grass.has(tile);
+    },
+  };
+}
+
 function applySpriteFrame(
   marker: ObjectMarkerEntry,
   direction: CardinalDirection | null,
@@ -1449,6 +1469,8 @@ function applySpriteFrame(
   dy = 0,
   collisionDx = dx,
   collisionDy = dy,
+  fromDx = collisionDx,
+  fromDy = collisionDy,
 ): void {
   marker.refreshPalette?.(marker, dx, dy, collisionDx, collisionDy);
   const frameSet = marker.frameSet;
@@ -1486,8 +1508,17 @@ function applySpriteFrame(
   if (!frame) {
     frame = frameSet.defaultFrame;
   }
+  let texture = frame.texture;
+  if (marker.occlusion && frame.priority) {
+    // Crossing into grass sets IN_GRASS on arrival. Starting a walk out
+    // clears it as soon as InitStep samples the destination collision.
+    const grass = Boolean(marker.inGrass?.(collisionDx, collisionDy) && marker.inGrass(fromDx, fromDy));
+    const x = Math.round((marker.basePosition.x + dx * marker.cellPixelSize) / marker.spriteScale + frame.offsetX);
+    const y = Math.round((marker.basePosition.y + dy * marker.cellPixelSize) / marker.spriteScale + frame.offsetY);
+    texture = marker.occlusion(frame.texture, frame.priority, x, y, grass);
+  }
+  if (marker.sprite.texture !== texture) marker.sprite.texture = texture;
   if (marker.currentFrameKey !== frame.key) {
-    marker.sprite.texture = frame.texture;
     const spriteName = marker.object.sprite.constant;
     if (
       import.meta.env?.DEV &&
@@ -1568,7 +1599,8 @@ function updateMarkerAnimation(marker: ObjectMarkerEntry, elapsedMs: number): vo
       const strideFrameIndex = parity === 0 ? 1 : 3;
       const frameIndex = inStride ? strideFrameIndex : baseFrameIndex;
       // InitStep caches the destination collision before pixel movement begins.
-      applySpriteFrame(marker, activeSegment.direction, frameIndex, interpDx, interpDy, activeSegment.to.dx, activeSegment.to.dy);
+      applySpriteFrame(marker, activeSegment.direction, frameIndex, interpDx, interpDy,
+        activeSegment.to.dx, activeSegment.to.dy, activeSegment.from.dx, activeSegment.from.dy);
       marker.sprite.x = baseX + marker.spriteOffset.x + interpDx * cellSize;
       marker.sprite.y = baseY + marker.spriteOffset.y + interpDy * cellSize;
       marker.currentStepIndex = activeSegment.stepIndex;
@@ -2876,6 +2908,7 @@ export default function MapCanvas({
       }
       const stepCount = animator?.kind === "path" ? animator.stepCount : null;
       state.objectMarkers.push({
+        ...markerOcclusion(state.resource, spriteInstance, state.collisionHelper, objectEntry, warpMetadataRef.current?.collisionConstants),
         refreshPalette: spatialPaletteRefresher(cache, bgPalettes, state.mapLabel, timeOfDay, spriteKey, spriteDef, paletteName, facingKey, metadata.glow, state.collisionHelper, state.entranceMap),
         object: objectEntry,
         sprite: spriteInstance,
@@ -3739,6 +3772,7 @@ export default function MapCanvas({
         }
         const stepCount = animator?.kind === "path" ? animator.stepCount : null;
         entry.objectMarkers.push({
+          ...markerOcclusion(entry.resource, sprite, entry.collisionHelper, objectEntry, warpMetadataRef.current?.collisionConstants),
           refreshPalette: spatialPaletteRefresher(cache, bgPalettes, entry.placement.label, timeOfDay, spriteKey, spriteDef, paletteName, facingKey, metadata.glow, entry.collisionHelper),
           object: objectEntry,
           sprite,

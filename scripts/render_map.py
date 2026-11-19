@@ -14,6 +14,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass
+from functools import cached_property
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
@@ -466,16 +467,19 @@ class RepositoryIndex:
         return self._block_assets.get(block_label)
 
     def map_blocks(self, info: MapInfo, events: Set[str], override: Optional[Path] = None,
-                   *, weekday: Optional[int] = None) -> List[int]:
+                   *, weekday: Optional[int] = None, entrance_map: Optional[str] = None) -> List[int]:
         asset = self.block_asset(info.block_label) or f"maps/{info.label}.ablk"
         wet_asset = _OVERCAST_BLOCK_OVERRIDES.get(info.constant)
         if wet_asset and self.get_overcast_index(info, weekday=weekday, events=events) is not None:
             asset = wet_asset
         callback = evaluate_tile_callback(self.root / "maps" / f"{info.label}.asm", events)
-        if callback.block_label:
-            asset = self.block_asset(callback.block_label)
+        block_label = callback.block_label
+        if info.constant == "POKECENTER_2F" and self.center_entrance_regions.get(entrance_map) == 1:
+            block_label = "KantoPokeCenter2F_BlockData"
+        if block_label:
+            asset = self.block_asset(block_label)
             if not asset:
-                raise ValueError(f"Unknown block data {callback.block_label} in {info.label}")
+                raise ValueError(f"Unknown block data {block_label} in {info.label}")
         blocks = _map_block_indices(_read_block_bytes(override or self.root / asset), info.width, info.height)
         for x, y, block in callback.changes:
             if x >= 2 * info.width or y >= 2 * info.height or block > 255:
@@ -1110,9 +1114,13 @@ class RepositoryIndex:
         if len(selected) != entry.count or any(len(row) != 4 for row in selected):
             raise ValueError(f"Incomplete {source} palette variant {variant} for {map_info.label}")
         colors[entry.start:entry.start + entry.count] = selected
-        if special and entry.source == "PokeCenterSpecialCase" and map_info.region != 2:
-            slot = 3 if map_info.region == 1 else 5 if map_info.location == "SNOWTOP_MOUNTAIN" else 1
-            colors[6] = list(colors[slot])
+        if special and entry.source == "PokeCenterSpecialCase":
+            region = map_info.region
+            if map_info.constant == "POKECENTER_2F":
+                region = self.center_entrance_regions.get(entrance_map, region)
+            if region != 2:
+                slot = 3 if region == 1 else 5 if map_info.location == "SNOWTOP_MOUNTAIN" else 1
+                colors[6] = list(colors[slot])
         elif special and entry.source == "MartSpecialCase":
             asset = self.block_asset(map_info.block_label)
             if asset and re.search(r"(?:^|/)Mart\.ablk(?:\.lz[p]?)?$", asset.replace("\\", "/")):
@@ -1259,6 +1267,28 @@ class RepositoryIndex:
             if palettes is not None:
                 return palettes
         return None
+
+    @cached_property
+    def center_entrance_regions(self) -> dict[str, int]:
+        # RegionCheck uses the backup map landmark in the shared upstairs.
+        script = self.root / "maps/PokeCenter2F.asm"
+        if not script.is_file() or "changemapblocks KantoPokeCenter2F_BlockData" not in script.read_text(encoding="utf-8"):
+            return {}
+        entrances = {}
+        for origin in self.maps.values():
+            if origin.region not in (1, 2):
+                continue
+            path = self.root / "maps" / f"{origin.label}.asm"
+            if path.is_file() and re.search(r"^\s*warp_event\s+\d+,\s*\d+,\s*POKECENTER_2F,\s*1\b",
+                                            path.read_text(encoding="utf-8"), re.M):
+                entrances[origin.constant] = origin.region
+        return entrances
+
+    def entrance_assets(self, map_info: MapInfo) -> dict[str, str]:
+        if map_info.constant == "POKECENTER_2F":
+            return {origin: f"{map_info.label}--{('KANTO' if region == 1 else 'SHAMOUTI')}"
+                    for origin, region in self.center_entrance_regions.items()}
+        return {origin: f"{map_info.label}--{origin}" for origin in self.entrance_palette_slots(map_info)}
 
     def entrance_palette_slots(self, map_info: MapInfo) -> dict[str, int]:
         """Origin-dependent copies in the pinned HiddenGrottoSpecialCase routine.
@@ -2352,7 +2382,7 @@ def _build_renderer(
     overcast_index = repo_index.get_overcast_index(map_info, weekday=weekday, events=events)
     if events is None:
         events = effective_flags(repo_index.initial_event_flags)
-    block_indices = repo_index.map_blocks(map_info, events, weekday=weekday)
+    block_indices = repo_index.map_blocks(map_info, events, weekday=weekday, entrance_map=entrance_map)
     allows_roof_palette = map_info.map_type in {"TOWN", "ROUTE", "ISOLATED"}
     special_palette = repo_index.special_background_palette(
         map_info,

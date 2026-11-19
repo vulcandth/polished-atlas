@@ -230,6 +230,30 @@ class MapPaletteTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Unsupported palette condition"):
                 _load_palette(path)
 
+    def test_pokecenter_upstairs_regional_layout_and_floor(self):
+        info = self.repo.map_info("PokeCenter2F")
+        assets = self.repo.entrance_assets(info)
+        self.assertEqual(list(assets.values()).count("PokeCenter2F--KANTO"), 11)
+        self.assertEqual(assets["SHAMOUTI_POKECENTER_1F"], "PokeCenter2F--SHAMOUTI")
+        self.assertNotIn("AZALEA_POKECENTER_1F", assets)
+        png = atlas_common.png_module(self.root)
+        source = self.root / self.repo.tileset_resources(info.tileset).collision_path
+        collisions = re.findall(r"^\s*tilecoll\s+([^;\n]+)", source.read_text(), re.M)
+        default = (self.root / "maps/JohtoPokeCenter2F.ablk").read_bytes()
+        kanto = (self.root / "maps/KantoPokeCenter2F.ablk").read_bytes()
+        self.assertEqual(sum(j != k for j, k in zip(default, kanto)), 18)
+        self.assertEqual([collisions[j].strip() for j in default], [collisions[k].strip() for k in kanto])
+        for origin, blocks, floor in [
+            ("AZALEA_POKECENTER_1F", default, (248,152,192)),
+            ("INDIGO_PLATEAU_POKECENTER_1F", kanto, (120,168,248)),
+            ("SHAMOUTI_POKECENTER_1F", default, (248,168,80)),
+        ]:
+            for time in range(4):
+                renderer = _build_renderer(png, self.root, self.repo, info.label,
+                                           time_of_day=time, entrance_map=origin)
+                self.assertEqual(bytes(renderer.block_indices), blocks)
+                self.assertEqual(renderer.attributes.colors[6][1], floor)
+
     def test_hidden_grotto_origin_colors_match_terrain_and_object_metadata(self):
         # Expected RGB5 colors are from the pinned source, independent of the
         # copy routine. ROOF color 0 must survive all three variants.
@@ -241,8 +265,8 @@ class MapPaletteTests(unittest.TestCase):
         png = atlas_common.png_module(self.root)
         payload = build_payload(Options(self.root, Path("unused.json"), 1, None))
         variant_maps = {label for label, entry in payload["maps"].items() if entry.get("entrance_variants")}
-        self.assertEqual(variant_maps, {"HiddenTreeGrotto", "HiddenCaveGrotto"})
-        for label in variant_maps:
+        self.assertEqual(variant_maps, {"HiddenTreeGrotto", "HiddenCaveGrotto", "PokeCenter2F"})
+        for label in ("HiddenTreeGrotto", "HiddenCaveGrotto"):
             info = self.repo.map_info(label)
             entry = payload["maps"][label]
             for time, slug in enumerate(TIME_NAMES):

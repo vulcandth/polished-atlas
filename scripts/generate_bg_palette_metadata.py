@@ -214,15 +214,15 @@ def build_payload(opts: Options) -> Dict[str, object]:
             "palette_swaps": repo.palette_swaps.metadata(label),
             "overcast": repo.get_overcast_index(info, weekday=opts.weekday, events=initial_flags) is not None,
         }
-        origins = repo.entrance_palette_slots(info)
+        origins = repo.entrance_assets(info)
         if origins:
             maps_payload[label]["entrance_variants"] = {
                 origin: {
-                    "asset_label": f"{label}--{origin}",
+                    "asset_label": asset_label,
                     "palettes": compute_map_palettes(repo, info, weekday=opts.weekday,
                                                      events=initial_flags, entrance_map=origin),
                 }
-                for origin in origins
+                for origin, asset_label in origins.items()
             }
 
     return {

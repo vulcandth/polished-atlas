@@ -133,6 +133,7 @@ def _render_variant(
     time_of_day: int,
     weekday: int,
     entrance_map: Optional[str] = None,
+    asset_label: Optional[str] = None,
 ) -> Tuple[str, Path]:
     # Keep the heavy work in a helper so the thread pool stays focused on rendering.
     events = atlas_common.effective_flags(repo_index.initial_event_flags)
@@ -146,7 +147,7 @@ def _render_variant(
         events=events,
         entrance_map=entrance_map,
     )
-    asset_label = f"{map_label}--{entrance_map}" if entrance_map else map_label
+    asset_label = asset_label or map_label
     if format_choice == "gif":
         destination = output_dir / f"{asset_label}.gif"
         render_map._write_map_gif(destination, polished_path, renderer, png_module, repo_index, time_of_day, events)
@@ -186,9 +187,13 @@ def _render_single(
 ) -> Tuple[str, Path]:
     result = _render_variant(png_module, polished_path, repo_index, map_label,
                              output_dir, format_choice, time_of_day, weekday)
-    for origin in repo_index.entrance_palette_slots(repo_index.map_info(map_label)):
+    rendered = set()
+    for origin, asset_label in repo_index.entrance_assets(repo_index.map_info(map_label)).items():
+        if asset_label in rendered:
+            continue
         _render_variant(png_module, polished_path, repo_index, map_label,
-                        output_dir, format_choice, time_of_day, weekday, origin)
+                        output_dir, format_choice, time_of_day, weekday, origin, asset_label)
+        rendered.add(asset_label)
     return result
 
 

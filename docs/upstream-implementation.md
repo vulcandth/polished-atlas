@@ -15,12 +15,12 @@ There are 1,057 commits and 3,520 changed endpoint paths in the current range.
 ## Current audit status
 
 All 1,057 commits from v3.2.2 through `f8e67fbd` have had a relevance
-screen. The ledger resolves 956. Of the 101 still open, 91 have leads
-from the scan and 10 have confirmed follow-up work. Auditing the remaining
+screen. The ledger resolves 974. Of the 83 still open, 74 have leads
+from the scan and 9 have confirmed follow-up work. Auditing the remaining
 diffs and validating the affected Atlas features are part of implementation.
 The list of known features below is preliminary.
 
-The latest batch closed 17 commits. Of the 548 total commits classified
+The latest batch closed 18 commits. Of the 548 total commits classified
 as having no Atlas impact, 364 were skipped after examining their subject,
 changed paths and consumers. The changelog adds only the v3.2.3 battle
 crash fix. Use the commit diffs to find unreleased master changes.
@@ -35,11 +35,17 @@ crash fix. Use the commit diffs to find unreleased master changes.
 - The movement analyzer follows the success and failure branches of item
   gifts. Checked 158 inline handlers across the upstream map scripts, including
   the two pickups that disappear only when there is room in the Bag.
-- The new review also covered the Route 30 railway connections and the Power
-  Plant turbines. One open finding concerns the Kanto Pokémon Center upstairs.
-  Its regional callback selects a layout that differs from Johto in 18 of 32
-  blocks. Both layouts need validation. Palette transitions, NPC glow
-  transitions and Ruins of Alph also have open records.
+- Eleven Kanto Pokémon Centers share an upstairs layout that differs from
+  Johto in 18 of 32 blocks. Shamouti uses Johto's geometry with an orange
+  floor. All 128 collision cells agree. Chrome verified the three floor
+  palettes and the return routes through the Trade Center and Colosseum.
+- The original palette-swap command is resolved. Rendering checks cover all
+  25 rectangles in 17 maps. The later fade-aware swap and NPC glow transition
+  changes retain separate open records.
+- Browser textures matched source graphics and map palettes for the Ecruteak
+  gates and pagoda tips, Lavender radio dishes and Yellow Forest lilypads.
+  Shallow sand occupies 761 collision cells across 21 maps. Its footprints
+  appear in the game after a player step.
 
 **Planning inspection was preliminary and NOT exhaustive. Auditing every commit
 is implementation work. The known requirements below are not a closed list.**

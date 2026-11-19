@@ -3373,6 +3373,18 @@ export default function MapCanvas({
           }
           return;
         }
+        // An explicit return warp (such as the Trade Center exit) must also
+        // restore the entrance used for the previous map's regional layout.
+        const backlink = backlinkRef.current;
+        if (backlink?.applicableTo === currentMapLabel && backlink.mapLabel === targetLabel
+            && backlink.warpIndex === target.warpIndex) {
+          backlinkRef.current = backlink.previous;
+          void openOverlay(targetLabel, {
+            xCells: target.xCells,
+            yCells: target.yCells,
+          }, backlink.entranceMap);
+          return;
+        }
         const sourceMeta = getMapMetadata(currentMapLabel);
         backlinkRef.current = {
           applicableTo: targetLabel,

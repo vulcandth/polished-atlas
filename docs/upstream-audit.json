@@ -18971,11 +18971,15 @@
           "maps/Route35CoastSouth.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/OlivineCity.asm."
+      "status": "resolved",
+      "disposition": "superseded",
+      "reason": "Olivine briefly used two blank fruit sprites to replace a metatile. The later boardwalk redesign removes them.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d30484555a39327f7b40e425e1ce8b2a6914288b",
+        "Traced both sprite removals to d3b7cd35. Neither survives in the endpoint map. The final terrain and collision were checked for Olivine City, Goldenrod City and Route 35 Coast South."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/OlivineCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "2f3481263a51a4ba249bf54858f7e3338bcd30ff",
@@ -31384,11 +31388,15 @@
           "utils/unused_blocks.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 16 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Bellchime Trail’s tileset split changes its block numbers, palette and border.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ac13126f561b8401916516431657ed32069da175",
+        "Verified the surviving Johto Sacred tileset and all four terrain/collision reports for the five affected maps. The other changes handle the player’s Cut move and the developer’s unused-block report."
+      ],
+      "triage_note": "Batch screen of 16 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "ffcfec6f5ce7e7339e5591ca84f19fcdab9b4814",
@@ -31890,11 +31898,15 @@
           "maps/TrainerHouseB1F.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/PowerPlant.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The facility tileset consolidates blocks also used by the Power Plant turbines.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8c303bc65d4695a498a1d4d78326ee428440ba15",
+        "Matched endpoint terrain and collision for the facility interiors and verified all four turbine tile changes under the restored-power flag. The separate daily opponent callback in Trainer House remains a distinct review."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/PowerPlant.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "80dd8dcd3c557ddbd1bcc14e22fb528961982e3d",
@@ -32266,11 +32278,15 @@
           "maps/OlivineGym.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/LancesRoom.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Olivine Gym uses the gym tileset and Lance’s Room uses new door metatiles.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/08de4d722d2ac80195831dcf76a922e352477335",
+        "Verified both endpoint tilesets, terrain and collisions. Exercised the entrance-closed and exit-open flags together and individually against the source callback coordinates."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/LancesRoom.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "fb2f4c275719acb3c9f466fa752650ed14c0ba3b",
@@ -36649,11 +36665,15 @@
           "maps/SaffronCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; object definitions in maps/CeladonCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Saffron and Celadon gain exterior details, and the city fountain is animated.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f62b335841e737e3d563ad0f66fc3114637ff4f4",
+        "Checked one fountain track through all 80 frames, Celadon’s Rich Boy at (4,15), and the pinned city layouts and collision in all four clock views."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; object definitions in maps/CeladonCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "765ea064cab9c742301a1380e1deb7f2738d3411",
@@ -40857,11 +40877,15 @@
           "maps/Route38.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/GoldenrodGym.asm, maps/Route33.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The map sprites use new dark NPC palette overrides alongside the trainer battle palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c105afe181edbee53c67be1429813a100077a875",
+        "Matched all 3 changed map objects by script identity and verified their surviving sprite and palette overrides. Checked four clock variants in the object palette export. Separate trainer palette files are consumed during battles."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/GoldenrodGym.asm, maps/Route33.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "276171ffbaa9a082e9a25c3537a6081dd84632c8",
@@ -41025,11 +41049,15 @@
           "maps/ShamoutiCoast.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/BeautifulBeach.asm, maps/CeruleanCape.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The map sprites use new dark NPC palette overrides alongside the trainer battle palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/eab10268c252c5b2124bb9b7fd5aea389fcf03bf",
+        "Matched all 20 changed map objects by script identity and verified their surviving sprite and palette overrides. Checked four clock variants in the object palette export. Separate trainer palette files are consumed during battles."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/BeautifulBeach.asm, maps/CeruleanCape.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "8254af78add9088cfeb69b5ac4274e2565b4dbd9",
@@ -42020,11 +42048,15 @@
           "maps/SeafoamGym.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeladonGameCorner.asm, maps/Route37.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The map sprites use new dark NPC palette overrides alongside the trainer battle palettes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/79c9043441734f19593a6b03e24370be36d999b0",
+        "Matched all 3 changed map objects by script identity and verified their surviving sprite and palette overrides. Checked four clock variants in the object palette export. Separate trainer palette files are consumed during battles."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeladonGameCorner.asm, maps/Route37.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "f9fe4298de5b04abc2993c12e25c6830c634d002",
@@ -49535,11 +49567,15 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route32Coast.asm, maps/Route40.asm and other files; state changes in maps/SnowtopMountainOutside.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Adds shallow-sand collision and coastal map layouts in Johto.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f477d808edea2198ce5540af414f8bb67fa4cac6",
+        "Compared all affected endpoint map rasters and collisions. The export contains 761 shallow-sand cells across 21 maps. Scanned every tile used by the 612 default layouts: none reference shared bank-1 slots $f0–$f6. RenderCoastSandTracks writes those tiles after the player stops on sand; the atlas shows untracked terrain."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route32Coast.asm, maps/Route40.asm and other files; state changes in maps/SnowtopMountainOutside.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "f7ed398c6ee894db16f762bab0512c5bfce6ca67",
@@ -52681,11 +52717,15 @@
           "ram/wramx.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): weather in engine/gfx/color.asm; palette swaps in macros/scripts/events.asm, macros/scripts/maps.asm and other files."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Recognize usepaletteswap in map command queues and evaluate ordered paletteswap rectangles for terrain, animated graphics and background-colored objects.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/77e3e5be38a80a954181338922768a4272d9f242",
+        "Matched all 25 rectangles in 17 endpoint maps and their eight time/weather variants; checked 19,312 affected base tiles and 7,568 animated positions. Browser checks also compared the two green Vermilion pearl sprites in four clock views. Inspected stone-table callback renames and the separate Fly-leaf palette. Later fade behavior is tracked in its own open records."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in engine/gfx/color.asm; palette swaps in macros/scripts/events.asm, macros/scripts/maps.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "943e6a7ebb1573b8a046182626134d5b4100a336",
@@ -55503,11 +55543,15 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 19 changed paths. Identify permanent coastal sand terrain separately from transient tracks left by the player."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Shares the temporary walker and bicycle track graphics across tilesets.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5234357c1a80212be960575d261f82dcafb36469",
+        "Compared all affected endpoint map rasters and collisions. The export contains 761 shallow-sand cells across 21 maps. Scanned every tile used by the 612 default layouts: none reference shared bank-1 slots $f0–$f6. RenderCoastSandTracks writes those tiles after the player stops on sand; the atlas shows untracked terrain."
+      ],
+      "triage_note": "Batch screen of 19 changed paths. Identify permanent coastal sand terrain separately from transient tracks left by the player.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "16704c8b32df01c7d9712d2f187bde0678b557fb",
@@ -55585,11 +55629,15 @@
           "maps/UragaChannelWest.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeruleanCape.asm, maps/Route19.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Adds shallow-sand collision and moves trainers on the Kanto sea routes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/16704c8b32df01c7d9712d2f187bde0678b557fb",
+        "Compared all affected endpoint map rasters and collisions. The export contains 761 shallow-sand cells across 21 maps. Scanned every tile used by the 612 default layouts: none reference shared bank-1 slots $f0–$f6. RenderCoastSandTracks writes those tiles after the player stops on sand; the atlas shows untracked terrain."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/CeruleanCape.asm, maps/Route19.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "8c4da1888d3b114f53b00215fda6e3b779cd7f71",
@@ -62658,11 +62706,15 @@
           "maps/EcruteakShrineOutside.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/EcruteakCity.asm, maps/EcruteakShrineOutside.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Gate ends use sprite halves with the background green palette.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e55d2ae7156bcad5b9dca8821f48a154e06cab03",
+        "Eight green gate-end sprites on the two maps. Compared actual browser texture pixels against the upstream PNG, per-tile facing and local background palette. Checked movement flags, offsets and the changed map resources."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/EcruteakCity.asm, maps/EcruteakShrineOutside.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "89084450e318062819ae4c17e33c34bf3fabeb84",
@@ -62708,11 +62760,15 @@
           "maps/EcruteakShrineOutside.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/EcruteakShrineOutside.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Ecruteak Shrine pagoda tips copy the roof palette.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/692cd7da2abeb0d4b4781f0636d0725032a90b1f",
+        "Two roof-colored pagoda halves at (5,2) and (6,2). Compared actual browser texture pixels against the upstream PNG, per-tile facing and local background palette. Checked movement flags, offsets and the changed map resources."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/EcruteakShrineOutside.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "15a3be51fd8a9ddcfeffadad2d022ef8fb49142c",
@@ -64382,11 +64438,15 @@
           "maps/IndigoPlateau_overcast.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/palettes.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Indigo Plateau uses time/weather palettes to color the League entrance.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7271087459a781cc1be971472237b86a507c5d65",
+        "Matched all eight source palette variants for the four active slots and verified the four normal clock exports, entrance terrain and collision. Later upstream revisions expand the original WATER-only subset."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in data/maps/palettes.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "7df1366f3e2978ac32712180a1b5176e0aa419d0",
@@ -64799,11 +64859,15 @@
           "maps/Route10South.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object and terrain priority in data/sprites/map_objects.asm; object definitions in maps/LavenderTown.asm, maps/Route10South.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The Lavender radio dishes are background-offset sprites on both adjoining maps.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0a45af16300aeefcb6df1595d56900d27860d3f2",
+        "Two gray dish textures. Both Route 10 copies are at y=19 on an 18-cell map and coincide exactly with the Lavender pair in the connected world layout. Compared actual browser texture pixels against the upstream PNG, per-tile facing and local background palette. Checked movement flags, offsets and the changed map resources."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object and terrain priority in data/sprites/map_objects.asm; object definitions in maps/LavenderTown.asm, maps/Route10South.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "de9f6d91b2782852caa8ae85ecf07f889cef5eb4",
@@ -65471,11 +65535,15 @@
           "maps/YellowForest.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object and terrain priority in data/sprites/map_objects.asm; object definitions in maps/YellowForest.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Yellow Forest lilypads use background-aligned static sprites with green copied from the terrain.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/571e8edb8cf7472a7d96cf127652109bb19759e2",
+        "All three lilypads at (42,32), (30,34) and (32,36), with the special GRASS copy selecting BG colors 0,0,1,2. Compared actual browser texture pixels against the upstream PNG, per-tile facing and local background palette. Checked movement flags, offsets and the changed map resources."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object and terrain priority in data/sprites/map_objects.asm; object definitions in maps/YellowForest.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "72d00e21d40d4f5af79fd1bfc69e6c9a063912f0",
@@ -66503,12 +66571,13 @@
           "utils/dupe_blocks.py"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "Deduplicated block IDs reach both regional upstairs Pokémon Center layouts. Verify the alternate Kanto entrance before closing the change.",
+      "reason": "Renumbered blocks and the Snowtop stairs callback are supported, including the alternate Kanto upstairs layout.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/e351e6480f864ebd8508e7df29a34265de889b27",
-        "The Snowtop stairs callback writes the expected $24 and $34 cells. JohtoPokeCenter2F and KantoPokeCenter2F are two assets for PokeCenter2F. The generic tile callback stops at callasm .CheckKanto; the four-time default map verification does not establish the alternate Kanto layout."
+        "The Snowtop stairs callback writes the expected $24 and $34 cells. JohtoPokeCenter2F and KantoPokeCenter2F are two assets for PokeCenter2F. The generic tile callback stops at callasm .CheckKanto; the four-time default map verification does not establish the alternate Kanto layout.",
+        "Verified affected terrain and Snowtop block writes. Kanto upstairs differs in 18 of 32 blocks. Verified all 128 collision cells and three regional floor palettes, and checked the loaded PNG pixels and return warps via Trade Center and Colosseum in Chrome from Azalea, Vermilion, Shamouti and Indigo Plateau."
       ],
       "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/SnowtopPokeCenter1F.asm.",
       "review_method": "diff-hunks"

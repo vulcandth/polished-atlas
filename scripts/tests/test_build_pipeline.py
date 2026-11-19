@@ -137,6 +137,17 @@ class PublicationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Missing day entrance variant for Test from ORIGIN"):
                 assemble_pages.validate_bundle(root, "dev")
 
+    def test_common_entrance_variant_can_publish_for_all_clocks(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = fixture(Path(folder) / "bundle", "dev")
+            common = root / "maps/common/animated"
+            (common / "Test--KANTO.animation.json").write_bytes((common / "Test.animation.json").read_bytes())
+            palettes = {time: [[[0, 0, 0]] * 4] * 8 for time in ("morn", "day", "nite", "eve")}
+            (root / "maps/bg_palette_metadata.json").write_text(json.dumps({"maps": {
+                "Test": {"entrance_variants": {"ORIGIN": {"asset_label": "Test--KANTO", "palettes": palettes}}}
+            }}))
+            assemble_pages.validate_bundle(root, "dev")
+
 
 if __name__ == "__main__":
     unittest.main()

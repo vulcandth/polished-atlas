@@ -17720,10 +17720,16 @@
           "maps/CeladonGym.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add thresholds to Celadon Gym. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "5 generated map consumers across the changed resources. Examples: CeladonGym, GoldenrodMagnetTrainStation, MountMoonSquareCableCarGate, Route3CableCarGate, SaffronTrainStation",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 1 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "0e189669c3610527ba8bb9e5e99fd6f9d828b4e3",
@@ -18882,10 +18888,16 @@
           "maps/GoldenrodHarbor.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Save another block from `johto_modern`. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "6 generated map consumers across the changed resources. Examples: GoldenrodCity, GoldenrodHarbor, MagnetTunnelWest, Route34, Route34Coast, StormyBeach",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 3 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "a693ba7c5e71658a9c83bdb8ff03c978efa8553e",
@@ -19248,10 +19260,16 @@
           "gfx/tilesets/cave.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use a smaller crater in Mt. Moon. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "50 generated map consumers across the changed resources. Examples: BurnedTowerB1F, CeruleanCave1F, CeruleanCave2F, CeruleanCaveB1F, CinnabarVolcano1F, CinnabarVolcanoB1F",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 1 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "b59632901b0c186a2cb09b3a30ebd03f25c05fc9",
@@ -29744,10 +29762,16 @@
           "maps/KarensRoom.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Remove unused `gym` blocks and tiles. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "12 generated map consumers across the changed resources. Examples: AzaleaGym, BlackthornGym1F, BlackthornGym2F, BrunosRoom, CianwoodGym, GoldenrodGym",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 13 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "5c2e1125bee81b43ce813d8bfed3763cad364533",
@@ -31384,10 +31408,16 @@
           "engine/gfx/dynamic_pals.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Upstream resolves variable sprite IDs recursively before choosing the packed monster palette. Atlas recognizes literal monster sprite IDs, with the aquarium exception, but has no equivalent variable sprite lookup before choosing artwork or palette. Verify initial visibility and identity for each affected object and resolve determinable sources. Daycare deposits and grotto encounter choices can depend on game state.",
+      "evidence": [
+        "Complete text diff: git show dd1056beceb22bd97598baeb6bf7282de7a21f90",
+        "Pinned engine/gfx/dynamic_pals.asm .resolve_variable_sprite and .check_mon_sprite_range",
+        "scripts/generate_object_metadata.py packed-palette branch checks the literal sprite ID",
+        "Consumers include PlayersHouse2F, Route34, HiddenTreeGrotto and HiddenCaveGrotto"
+      ],
+      "review_method": "full-diff"
     },
     {
       "sha": "a2dca03957823186778ff91d97e5cb1440866ee1",
@@ -31715,10 +31745,16 @@
           "maps/VioletGym.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Consolidate `gym` tileset. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "12 generated map consumers across the changed resources. Examples: AzaleaGym, BlackthornGym1F, BlackthornGym2F, BrunosRoom, CianwoodGym, GoldenrodGym",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 12 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "a0b322f6d3df279904bf1153b401b621758340a3",
@@ -31801,10 +31837,16 @@
           "maps/EcruteakGym.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Consistent carpets for Johto gyms. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "21 generated map consumers across the changed resources. Examples: BurnedTower1F, CianwoodGym, EcruteakGym, EcruteakHouse, EmbeddedTower, MystriStage",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 1 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "9cec1887d9217db4f4043a49c56bac148471d6f6",
@@ -32013,10 +32055,16 @@
           "maps/TinTower2F.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add tiles for better `sprout_tower` fenceposts. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "20 generated map consumers across the changed resources. Examples: BurnedTower1F, EcruteakGym, EcruteakHouse, EmbeddedTower, MystriStage, SproutTower1F",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 2 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "353436de0902e4e175f1c5dc3561734cf2f4c710",
@@ -32131,10 +32179,16 @@
           "maps/AzaleaGym.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use dirt in Azalea Gym. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "12 generated map consumers across the changed resources. Examples: AzaleaGym, BlackthornGym1F, BlackthornGym2F, BrunosRoom, CianwoodGym, GoldenrodGym",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 15 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "b27a62679cb1083cab07f6f80bc2e95cfbac01b3",
@@ -35284,10 +35338,16 @@
           "maps/CeruleanCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Avoid the awkward ledge-fence intersection in Cerulean City. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "8 generated map consumers across the changed resources. Examples: CeruleanCape, CeruleanCity, Route10North, Route24, Route25, Route4",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 1 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "29df138540f6d4f8e4941fb31749c2498128474e",
@@ -35609,10 +35669,16 @@
           "data/tilesets/kanto_house_metatiles.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix collision for the octagonal table. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "51 generated map consumers across the changed resources. Examples: BillsHouse, BluesHouse1F, BluesHouse2F, CeladonChiefHouse, CeladonDevelopmentSpeechHouse, CeladonMansionRoofHouse",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 4 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6d4faa575ab031d8d9f811eaf3b7bb49fdbd64cc",
@@ -38402,10 +38468,16 @@
           "maps/GoldenrodCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Remove unused block. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "5 generated map consumers across the changed resources. Examples: GoldenrodCity, MagnetTunnelWest, Route34, Route34Coast, StormyBeach",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 2 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "9ca9b07776062b5a65a969afe2a7ca38ff1b02ea",
@@ -38444,10 +38516,16 @@
           "data/tilesets/johto_outlands_metatiles.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Shorter waterfalls on Route 45. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "12 generated map consumers across the changed resources. Examples: AzaleaTown, BlackthornCity, LakeOfRage, Route33, Route43, Route45",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 4 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "cf0425f2b787444bf7ccf2b310547382f147a265",
@@ -38673,10 +38751,16 @@
           "maps/TinTower2F.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "More `sprout_tower` tileset tweaks. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "20 generated map consumers across the changed resources. Examples: BurnedTower1F, EcruteakGym, EcruteakHouse, EmbeddedTower, MystriStage, SproutTower1F",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 9 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "c9ff4753a3c6a7df7a78fdefe1cd74102ac90430",
@@ -38816,10 +38900,16 @@
           "maps/PewterGym.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add back walls to Goldenrod Gym and Pewter Gym. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "22 generated map consumers across the changed resources. Examples: AzaleaGym, BlackthornGym1F, BlackthornGym2F, BrunosRoom, CeladonGym, CeladonHotelPool",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 5 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "86b80072b8ae3e539e2fc211d8ec1d9158c65282",
@@ -41657,10 +41747,16 @@
           "maps/VioletGym.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add stair elevation to Violet Gym. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "12 generated map consumers across the changed resources. Examples: AzaleaGym, BlackthornGym1F, BlackthornGym2F, BrunosRoom, CianwoodGym, GoldenrodGym",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 7 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "273846e06f9469d977ee7ee0adead8dddd513e9f",
@@ -42494,10 +42590,16 @@
           "maps/DimCave5F.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add mineshaft support beams to Dim Cave. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "50 generated map consumers across the changed resources. Examples: BurnedTowerB1F, CeruleanCave1F, CeruleanCave2F, CeruleanCaveB1F, CinnabarVolcano1F, CinnabarVolcanoB1F",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 3 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "1975e75a23df7f0468982ac26c056f0aa1caa847",
@@ -43076,10 +43178,15 @@
           "gfx/tilesets/mart.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "More consistent border lines on Dept. Store counters. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "31 generated map consumers across the changed resources. Examples: AzaleaMart, BlackthornMart, CeladonDeptStore1F, CeladonDeptStore2F, CeladonDeptStore3F, CeladonDeptStore4F",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "01af6b619570259245785cf0e414071e403e1593",
@@ -43195,10 +43302,16 @@
           "maps/VioletCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Cliff instead of dirt tiles in front of Burned Tower. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "22 generated map consumers across the changed resources. Examples: CherrygroveBay, CherrygroveCity, CherrygroveTrainTrackDual, DragonsDenB1F, EcruteakCity, MagnetTunnelEast",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 9 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "2b42d744e9bbe67103b0cf2e40f4350b060e6e59",
@@ -44797,10 +44910,16 @@
           "maps/YellowForest.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add lilypads to Yellow Forest, and alternating tiles to Murky Swamp. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "4 generated map consumers across the changed resources. Examples: IlexForest, MurkySwamp, ViridianForest, YellowForest",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 1 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "2dcf9f9289fdfa9fb8fc82d5116079b408d0d692",
@@ -44974,10 +45093,16 @@
           "maps/FuchsiaCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Make Safari Zone roofs brown. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "27 generated map consumers across the changed resources. Examples: CinnabarIsland, FuchsiaCity, LavenderTown, MountMoonSquare, PalletTown, PewterCity",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 3 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "cd2ac371482d915c1910e4442f0f3e5c18eeb574",
@@ -45023,10 +45148,16 @@
           "maps/Route8.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Consistent roofs for Underground Path entrances. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "33 generated map consumers across the changed resources. Examples: CeruleanCape, CeruleanCity, CinnabarIsland, FuchsiaCity, LavenderTown, MountMoonSquare",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 2 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "8f846a8d0e1854733de04acf994e65951232638d",
@@ -48224,10 +48355,16 @@
           "maps/GoldenrodCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Red striped roof for the flower shop. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "5 generated map consumers across the changed resources. Examples: GoldenrodCity, MagnetTunnelWest, Route34, Route34Coast, StormyBeach",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 4 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "eba0369c3054100f7d49371d21f75ca9d749a664",
@@ -48307,10 +48444,16 @@
           "maps/VioletCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Restore taller school roof from G/S. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "21 generated map consumers across the changed resources. Examples: CherrygroveBay, CherrygroveCity, CherrygroveTrainTrackDual, EcruteakCity, MagnetTunnelEast, MahoganyTown",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 4 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "f2199494080b0fdda15c0f103dd4420aaa2cad73",
@@ -48430,10 +48573,16 @@
           "maps/VioletCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Remove the unused short-middle-traditional-roof block in `johto_traditional`. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "21 generated map consumers across the changed resources. Examples: CherrygroveBay, CherrygroveCity, CherrygroveTrainTrackDual, EcruteakCity, MagnetTunnelEast, MahoganyTown",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 5 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "bc3b1ae4adfa0c4075c03c3666bb3b9c4d7971c1",
@@ -48463,10 +48612,16 @@
           "maps/OlivineCityRoute35CoastDual.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Remove two unused blocks from `johto_coast`. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "10 generated map consumers across the changed resources. Examples: CianwoodCity, GoldenrodHarbor, OlivineCity, OlivineCityRoute35CoastDual, Route35CoastNorth, Route35CoastSouth",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 6 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "04ee0edcb030d766ba2bd018678544359be453e8",
@@ -49057,10 +49212,16 @@
           "data/tilesets/johto_coast_collision.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix coast sand collision. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "10 generated map consumers across the changed resources. Examples: CianwoodCity, GoldenrodHarbor, OlivineCity, OlivineCityRoute35CoastDual, Route35CoastNorth, Route35CoastSouth",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 2 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "0306aa3942c6abd970b8c3d74ac0bc1f67e2ae43",
@@ -49389,10 +49550,16 @@
           "maps/CeladonMansionRoof.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Make windows larger-scale on rooftop maps. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "32 generated map consumers across the changed resources. Examples: AzaleaMart, BlackthornMart, CeladonDeptStore1F, CeladonDeptStore2F, CeladonDeptStore3F, CeladonDeptStore4F",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 3 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e0bef44540034f130033eb500c9d7d818208656f",
@@ -49418,10 +49585,16 @@
           "maps/Route34.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Make the Day-Care building red. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "5 generated map consumers across the changed resources. Examples: GoldenrodCity, MagnetTunnelWest, Route34, Route34Coast, StormyBeach",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 6 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "93414c053614fed5d040d85e9cdcb8bfb83424b5",
@@ -49644,10 +49817,16 @@
           "maps/VioletOutskirts.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use colored traditional roofs for Violet and Ecruteak. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "22 generated map consumers across the changed resources. Examples: CherrygroveBay, CherrygroveCity, CherrygroveTrainTrackDual, EcruteakCity, MagnetTunnelEast, MahoganyTown",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 32 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6344316c00997c86b486b36c161aeab228a2acb3",
@@ -49685,10 +49864,16 @@
           "maps/VioletOutskirts.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Keep brown traditional roofs for now. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "21 generated map consumers across the changed resources. Examples: CherrygroveBay, CherrygroveCity, CherrygroveTrainTrackDual, EcruteakCity, MagnetTunnelEast, MahoganyTown",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 14 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "20a367242687077288bedfd7e2dc65954e2703bd",
@@ -50324,10 +50509,16 @@
           "maps/VermilionCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Clean up large Kanto roofs, and match Vermilion shoreline to FRLG. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "30 generated map consumers across the changed resources. Examples: CeladonCity, CinnabarIsland, FuchsiaCity, LavenderTown, MountMoonSquare, PalletTown",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 14 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "53ed09a7a7dd538b9410ef97ee7172c5f2ca2180",
@@ -50672,10 +50863,15 @@
           "gfx/tilesets/kanto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use same signposts in Kanto as in Johto. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "51 generated map consumers across the changed resources. Examples: CeladonCity, CeruleanCape, CeruleanCity, CinnabarIsland, FuchsiaCity, IndigoPlateau",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6f7344590e4651bc9d5b026589ba396149adc0ee",
@@ -50762,10 +50958,15 @@
           "maps/Route7.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Tweak dirt/grass blocks on a few routes. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "4 generated map consumers across the changed resources. Examples: Route10North, Route12North, Route12South, Route7",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6d90d84510fd4264c7157fb80136847b61b52f88",
@@ -50952,10 +51153,16 @@
           "maps/SaffronCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Silph Co buildings have windows on the bottom floor too. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "7 generated map consumers across the changed resources. Examples: CeladonCity, Route11, Route16East, Route6, Route7, SaffronCity",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 6 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ffa6d68e53d1a728d225eceb8ca8f7b3e0364695",
@@ -51092,10 +51299,16 @@
           "maps/SaffronCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Silph Co buildings are gray and have more windows lit. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "7 generated map consumers across the changed resources. Examples: CeladonCity, Route11, Route16East, Route6, Route7, SaffronCity",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 3 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ac225fba3f1413bfbf7a8a3dbc15c049fd47499f",
@@ -51269,10 +51482,16 @@
           "maps/SaffronCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "More consistent dirt and grass in Saffron City. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "15 generated map consumers across the changed resources. Examples: CeladonCity, CeruleanCape, CeruleanCity, Route10North, Route11, Route16East",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 16 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "b00347e446eea4f4e15b6c0b913e83d210180b43",
@@ -51675,10 +51894,16 @@
           "maps/CeladonCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Restore grass in front of Celadon Gym. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "7 generated map consumers across the changed resources. Examples: CeladonCity, Route11, Route16East, Route6, Route7, SaffronCity",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 8 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "b8455f5b3032ad2dcc0b085b2dbf998420657918",
@@ -52882,10 +53107,16 @@
           "maps/Route5.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Make the house on Route 5 red. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "8 generated map consumers across the changed resources. Examples: CeruleanCape, CeruleanCity, Route10North, Route24, Route25, Route4",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 4 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ddde0a46545e48e10202291e1b9920ec6136c63b",
@@ -53121,10 +53352,15 @@
           "maps/VioletCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Keep some related blocks together. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "21 generated map consumers across the changed resources. Examples: CherrygroveBay, CherrygroveCity, CherrygroveTrainTrackDual, EcruteakCity, MagnetTunnelEast, MahoganyTown",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "90b0c05d478e3b9b24899901b628cb1ee1e7c9cd",
@@ -53440,10 +53676,15 @@
           "gfx/tilesets/kanto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Rearrange some tiles. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "51 generated map consumers across the changed resources. Examples: CeladonCity, CeruleanCape, CeruleanCity, CinnabarIsland, FuchsiaCity, IndigoPlateau",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "b3dc0406c79d7f03ca3bb4288183af285c983bc1",
@@ -53567,10 +53808,16 @@
           "maps/UragaChannelEast.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Move some tiles and blocks. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "51 generated map consumers across the changed resources. Examples: CeladonCity, CeruleanCape, CeruleanCity, CinnabarIsland, FuchsiaCity, IndigoPlateau",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 4 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "404ad647f991e1b2a33e42ab9ce6c7021d7d34c3",
@@ -53667,10 +53914,16 @@
           "data/tilesets/johto_coast_metatiles.bin"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix inconsistent rock placement. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "10 generated map consumers across the changed resources. Examples: CianwoodCity, GoldenrodHarbor, OlivineCity, OlivineCityRoute35CoastDual, Route35CoastNorth, Route35CoastSouth",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 2 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "f42006b61e99755a7fb54e344d2290b566e596be",
@@ -54520,10 +54773,16 @@
           "data/tilesets/kanto_collision.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Fix buoy collision. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "23 generated map consumers across the changed resources. Examples: CinnabarIsland, FuchsiaCity, LavenderTown, MountMoonSquare, PalletTown, PewterCity",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 6 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "6890f8d6918fedd0d25644fe9fdd1e4210f4b597",
@@ -54963,10 +55222,16 @@
           "maps/Route32.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Remove Route 27 whirlpool to make room for horizontal boards. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "21 generated map consumers across the changed resources. Examples: CherrygroveBay, CherrygroveCity, CherrygroveTrainTrackDual, EcruteakCity, MagnetTunnelEast, MahoganyTown",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 2 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "c9c7f68d93a222e1e8490ee027fb9c803324b838",
@@ -55070,10 +55335,16 @@
           "maps/Route39Barn.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use hay tiles from TCG2. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "16 generated map consumers across the changed resources. Examples: CharcoalKiln, CianwoodPharmacy, DanceTheatre, EcruteakCherishBallHouse, EcruteakDestinyKnotHouse, EcruteakItemfinderHouse",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 7 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "e1622ba511839c3cbab1245fa62ebba54dac721f",
@@ -55107,10 +55378,16 @@
           "maps/ViridianCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use some small Kanto trees intentionally. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "9 generated map consumers across the changed resources. Examples: CeruleanCape, CeruleanCity, Route10North, Route24, Route25, Route4",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 1 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "b2f60ddc8db08ca99ddd68f33e4cf63883a9ce30",
@@ -55140,10 +55417,16 @@
           "maps/PewterGym.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use TCG2 rocks in Pewter Gym. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "10 generated map consumers across the changed resources. Examples: CeladonGym, CeladonHotelPool, CeladonUniversityPool, CeruleanGym, FightingDojo, FuchsiaGym",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 6 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "83e173101d5f3fa895ba26a947f561ffad924857",
@@ -57126,10 +57409,16 @@
           "maps/WhirlIslandSW.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Remove unused volcano blocks from `cave` tileset. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "47 generated map consumers across the changed resources. Examples: BurnedTowerB1F, CeruleanCave1F, CeruleanCave2F, CeruleanCaveB1F, CliffCave, CliffEdgeGate",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 29 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "4bda3e7ac8d998c62d91d1e61cc29c554a29ed47",
@@ -60983,10 +61272,16 @@
           "maps/VermilionCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Edit path in front of Celadon University. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "7 generated map consumers across the changed resources. Examples: CeladonCity, Route11, Route16East, Route6, Route7, SaffronCity",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 15 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "005261bac0fe083874cfe5a13d30b8e75e1cf384",
@@ -62941,10 +63236,16 @@
           "maps/Route22.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use cliff instead of bollards on Route 22. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "23 generated map consumers across the changed resources. Examples: CinnabarIsland, FuchsiaCity, LavenderTown, MountMoonSquare, PalletTown, PewterCity",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 3 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "547e1be7cca910c85d96a61cf8bbb4dac2540a3a",
@@ -63206,10 +63507,16 @@
           "maps/Route24.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Move support pillars to the edges like in SW97. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "38 generated map consumers across the changed resources. Examples: CeladonCity, CeruleanCape, CeruleanCity, CinnabarIsland, FuchsiaCity, LavenderTown",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 3 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "0a45af16300aeefcb6df1595d56900d27860d3f2",
@@ -63268,10 +63575,16 @@
           "maps/LavenderTown.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add pillars to Lavender Radio Tower. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "23 generated map consumers across the changed resources. Examples: CinnabarIsland, FuchsiaCity, LavenderTown, MountMoonSquare, PalletTown, PewterCity",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 2 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "04a803bdb5abfec6151f63295c6e70a2457cfa67",
@@ -64639,10 +64952,16 @@
           "maps/CeladonCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add more grass to Celadon City. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "7 generated map consumers across the changed resources. Examples: CeladonCity, Route11, Route16East, Route6, Route7, SaffronCity",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 2 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "4cad409f467fb7722bb0cc6e573a2a4e99d8b1d9",
@@ -64672,10 +64991,16 @@
           "maps/VermilionCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Pave paths in front of Game Corner and houses. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "7 generated map consumers across the changed resources. Examples: CeladonCity, Route11, Route16East, Route6, Route7, SaffronCity",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 10 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "ea13aff5c5e9d80c520f94f5bcfd8380193b5170",
@@ -65385,10 +65710,16 @@
           "maps/Route8.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Shift ledges on Route 8. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "23 generated map consumers across the changed resources. Examples: CinnabarIsland, FuchsiaCity, LavenderTown, MountMoonSquare, PalletTown, PewterCity",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 2 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "22c209d088f3b93fbc44bd7bf04e80a3799b6cf8",
@@ -65514,10 +65845,16 @@
           "maps/CeladonCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Extend path in front of Celadon University. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "7 generated map consumers across the changed resources. Examples: CeladonCity, Route11, Route16East, Route6, Route7, SaffronCity",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 1 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "11f68c6f38bbe1f8990835ce2436ac53c46b1933",
@@ -66682,10 +67019,16 @@
           "maps/OlivinePort.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use Johto-style pier supports in Olivine Port. All touched files are existing inputs for terrain or collision generation. Every path has a consumer in the pinned source index and all of those maps have generated animation metadata in the verified dev build.",
+      "evidence": [
+        "Commit subject and complete changed-path inventory. Binary changes screened by resource type and consuming map, without per-pixel review.",
+        "6 generated map consumers across the changed resources. Examples: OlivinePort, SeagallopFerryNavelGate, SeagallopFerryShamoutiGate, SeagallopFerryVermilionGate, ValenciaPort, VermilionPort",
+        "scripts/render_map.py: RepositoryIndex and map renderer; scripts/generate_warp_metadata.py: collision tables.",
+        "Checked all 2 added/removed text lines in the collision diffs for tilecoll rows and comments."
+      ],
+      "review_method": "scope-screen"
     },
     {
       "sha": "9849f3f2368e3debba345ac788c5001e563e310b",

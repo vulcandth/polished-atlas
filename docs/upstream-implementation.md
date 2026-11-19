@@ -443,14 +443,25 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   metadata. With Rattata resolved, 603 commits are resolved, 421 pending and
   27 reviewed/open. The audit is incomplete.
 
+- A batch of 65 commits changed only existing terrain assets. The audit resolved
+  57 after matching every changed path to consumers in the pinned source index
+  and each consuming map to a built asset. Changed collision source lines were
+  checked for ordinary tilecoll records. Eight candidates remain pending for
+  further review. The binary assets received file-scope review.
+- Full review of dd1056be found a remaining variable-sprite palette gap for
+  dolls, daycare and grotto Pokémon. Including that open finding, the ledger
+  now has 660 resolved, 363 pending and 28 reviewed/open.
+- Both GIF commands now use the modern compact tile tracks. The Sprout Tower
+  1F export matched all 33 rendered frames and their rounded GIF delays across
+  its 320-VBlank loop. A regression test covers two independent track periods.
+
 ## Immediate remaining implementation work
 
 - Verify palette-swap NPC colors in the full generated site. The frontend now
   consumes swap metadata and rebuilds background-derived NPC frames when movement
   crosses a color boundary; focused tests cover selection and boundary changes.
 - Finish animation integration with animated background-derived object colors,
-  shared event state. Forced map time is now shared across terrain and objects. Modern GIF output still fails explicitly
-  on modern tables and needs adaptation. Backport compact-asset validation into
+  shared event state. Forced map time is now shared across terrain and objects. Backport compact-asset validation into
   main's shared publication tooling, then verify combined deployment.
 - Complete NPC glow effects, weather integration verification, dual-palette integration validation,
   and all map/object/movement findings from the audit.

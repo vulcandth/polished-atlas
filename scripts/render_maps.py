@@ -148,17 +148,8 @@ def _render_variant(
     )
     asset_label = f"{map_label}--{entrance_map}" if entrance_map else map_label
     if format_choice == "gif":
-        animations = render_map._load_tileset_animations(polished_path, renderer, png_module)
-        period = render_map._animation_period(animations)
-        frames = []
-        for timer in range(period):
-            animated_tiles = render_map._apply_tile_animations(renderer.bank0_tiles, animations, timer)
-            frames.append(render_map._render_with_tiles(renderer, animated_tiles, renderer.bank1_tiles))
-        # Deduplicate consecutive identical frames to reduce output size
-        if frames:
-            frames, _ = render_map._dedupe_animation_frames(frames, render_map._GIF_FRAME_DURATION_MS)
         destination = output_dir / f"{asset_label}.gif"
-        render_map._write_gif(destination, frames, render_map._GIF_FRAME_DURATION_MS)
+        render_map._write_map_gif(destination, polished_path, renderer, png_module, repo_index, time_of_day, events)
         return map_label, destination
 
     if format_choice == "png":

@@ -1967,6 +1967,30 @@ def _write_modern_animation(polished_path, renderer, png_module, repo_index, tim
     return write_animation(polished_path, renderer, png_module, metadata_path, context)
 
 
+def _write_map_gif(destination, polished_path, renderer, png, repo_index, time_of_day, events):
+    from tempfile import TemporaryDirectory
+    from animation_gif import write_track_gif
+
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if (polished_path / "data/tileset_anims.asm").exists():
+        with TemporaryDirectory(dir=destination.parent) as temporary:
+            folder = Path(temporary)
+            metadata = _write_modern_animation(polished_path, renderer, png, repo_index,
+                                               time_of_day, events, folder / "animation.json")
+            output = folder / "map.gif"
+            write_track_gif(metadata, folder, output)
+            output.replace(destination)
+        return
+    animations = _load_tileset_animations(polished_path, renderer, png)
+    frames = [
+        _render_with_tiles(renderer, _apply_tile_animations(renderer.bank0_tiles, animations, timer),
+                           renderer.bank1_tiles)
+        for timer in range(_animation_period(animations))
+    ]
+    frames, _ = _dedupe_animation_frames(frames, _GIF_FRAME_DURATION_MS)
+    _write_gif(destination, frames, _GIF_FRAME_DURATION_MS)
+
+
 def _animation_period(animations: Sequence[TileAnimation]) -> int:
     period = 1
     for animation in animations:
@@ -2543,17 +2567,7 @@ def main() -> None:
     output_target = (args.output or default_output).resolve()
 
     if format_choice == "gif":
-        animations = _load_tileset_animations(polished_path, renderer, png)
-        output_target.parent.mkdir(parents=True, exist_ok=True)
-        period = _animation_period(animations)
-        frames: List[Tuple[int, int, List[List[int]]]] = []
-        for timer in range(period):
-            animated_tiles = _apply_tile_animations(renderer.bank0_tiles, animations, timer)
-            frames.append(_render_with_tiles(renderer, animated_tiles, renderer.bank1_tiles))
-        # Deduplicate consecutive identical frames for smaller GIFs
-        if frames:
-            frames, _durations = _dedupe_animation_frames(frames, _GIF_FRAME_DURATION_MS)
-        _write_gif(output_target, frames, _GIF_FRAME_DURATION_MS)
+        _write_map_gif(output_target, polished_path, renderer, png, repo_index, time_of_day, events)
         print(f"Wrote {output_target}")
         return
 

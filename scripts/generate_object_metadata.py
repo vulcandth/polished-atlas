@@ -24,6 +24,7 @@ import render_map
 import atlas_common
 from event_state import evaluate_tile_callback
 from object_glow import load_object_glow
+from object_schedule import scheduled_objects
 
 RGB = Tuple[int, int, int]
 
@@ -387,6 +388,7 @@ class MapObjectData:
     width_blocks: Optional[int]
     height_blocks: Optional[int]
     objects: List[ObjectEventEntry]
+    objects_by_time: Dict[str, List[ObjectEventEntry]] = field(default_factory=dict)
 
     def to_payload(self, block_pixel_size: int, palette_lookup: Sequence[str]) -> Dict[str, object]:
         return {
@@ -396,6 +398,10 @@ class MapObjectData:
             "width_blocks": self.width_blocks,
             "height_blocks": self.height_blocks,
             "objects": [entry.to_payload(block_pixel_size, palette_lookup) for entry in self.objects],
+            **({"objects_by_time": {
+                time: [entry.to_payload(block_pixel_size, palette_lookup) for entry in entries]
+                for time, entries in self.objects_by_time.items()
+            }} if self.objects_by_time else {}),
         }
 
 
@@ -1717,6 +1723,8 @@ def parse_map_objects(
             width_blocks=map_info.width if map_info else None,
             height_blocks=map_info.height if map_info else None,
             objects=map_objects,
+            objects_by_time=scheduled_objects(source, map_objects, constants, map_flags, weekday,
+                                              TIME_OF_DAY_SLUGS, set_event_flags or set(), cleared),
         )
         map_results.append(data)
     return map_results

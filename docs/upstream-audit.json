@@ -16683,11 +16683,15 @@
           "maps/ShamoutiIsland.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/NoisyForest.asm, maps/RockyBeach.asm and other files; state changes in maps/NoisyForest.asm, maps/ShamoutiIsland.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Wilhomena replaces the Pikablu trainer across the three Shamouti maps.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c12270faca44a2745148ebc8ce3b6012399fca67",
+        "Verified the green Aroma Lady, her coordinates and the three distinct story flags in Noisy Forest, Rocky Beach and Shamouti Island. Checked the renamed appear, disappear and walk operands in the quest script."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/NoisyForest.asm, maps/RockyBeach.asm and other files; state changes in maps/NoisyForest.asm, maps/ShamoutiIsland.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "1d19458a16e9895f9d532fd1b62aecc2d0001c29",
@@ -19607,11 +19611,15 @@
           "gfx/tilesets/johto_outlands.johto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): weather in constants/tileset_constants.asm, data/collision/field_move_blocks.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The Johto Outlands tileset replaces the old overcast tileset name.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/bd39d1826031d1edbd07c33fe5420e386ee2987d",
+        "Checked the renamed tileset, palette/graphics paths and field-move block dispatch against the endpoint. Compared actual terrain and collision for Outlands consumers including Route 47, Route 48 and Rugged Road North at all four clocks."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in constants/tileset_constants.asm, data/collision/field_move_blocks.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "1ed36aee7cb3cca60ca63453eb73265f400c8bc8",
@@ -31470,11 +31478,15 @@
           "maps/PowerPlant.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; state changes in maps/PowerPlant.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Power restoration selects active turbine metatiles. The facility and hideout schedules animate them.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6a501e43ca245a97cd41f59f1aad5a9dba5f52f0",
+        "Exercised the pinned Power Plant callback with power off and on (zero versus four block writes). Compared all four emitted turbine tracks with decoded graphics over 96 frames on Team Rocket Base B2F. The power-on interaction uses the same block coordinates."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm; state changes in maps/PowerPlant.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "278df4b0225b8d641e0ae2af8db6a642d0777c84",
@@ -35564,12 +35576,13 @@
           "maps/FightingDojo.asm"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "Fighting Dojo assigns three variable sprite slots, their coordinates, facing and palettes on entry.",
+      "reason": "The Dojo entry callback assigns each rematch trainer’s graphic, visibility, position, facing and palette.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/0b9d18d4310f5b53176ae84ad5c22159f5f39599",
-        "FightingDojoSetupRematchesCallback first hides all three slots and gates rematches on EVENT_BEAT_BLUE. Its map-local slot aliases share other maps' IDs. Check the unqualified snapshot and the scheduled trainers when the prerequisite is set."
+        "FightingDojoSetupRematchesCallback first hides all three slots and gates rematches on EVENT_BEAT_BLUE. Its map-local slot aliases share other maps' IDs. Check the unqualified snapshot and the scheduled trainers when the prerequisite is set.",
+        "Exercised every weekday and clock with three story states. Chrome rendered Falkner and Janine in the Monday daytime postgame slot and only the Black Belt at night or before Blue. The movement analyzer also found the two rematch talk triggers only in their active schedule."
       ],
       "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/FightingDojo.asm; state changes in maps/FightingDojo.asm.",
       "review_method": "diff-hunks"
@@ -36307,11 +36320,15 @@
           "maps/ValeriesHouse.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/ValeriesHouse.asm; state changes in maps/ValeriesHouse.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Valerie’s house uses a single book whose palette follows the weekday. Her appearance depends on the story and her morning walk.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3ff33399fd1f24af2713797a7e33703aded73735",
+        "Checked all seven book colors at all four times and three progress states. Chrome rendered the Monday brown book at (3,3) from both snapshots. Removed the seven obsolete event overrides."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/ValeriesHouse.asm; state changes in maps/ValeriesHouse.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "5bfb31194abaf3295ac4fc9997c89214edc1046f",
@@ -38909,11 +38926,15 @@
           "gfx/tilesets/sprout_tower.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Mystri Stage and Embedded Tower use new graphics and metatiles. The tower pillar source and animation destinations move.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8181530854d61e34c7a3ed59c76134d5d4c62835",
+        "Checked the endpoint terrain and collision for both maps and all four Sprout Tower pillar groups (13 tracks across 320 frames on 1F). The pinned banked schedule supplies the moved destinations."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "d4114294f01353b5a5c824ed9c7242f9de79699f",
@@ -39874,11 +39895,15 @@
           "maps/WhirlIslandNW.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/DimCave2F.asm, maps/GiovannisCave.asm and other files; object definitions in maps/DimCave2F.asm, maps/GiovannisCave.asm and other files."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Caves formerly sharing block files acquire independent geometry and adjusted exits.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e8f55c93421464e2de9b4077e722754af46e30b5",
+        "Compared the pinned cave rasters, collision and object/warp declarations across the affected interiors. The Giovanniâ€™s Cave exit to Tohjo Falls is (5,7). The source changes also relocate hidden items and scripted actor/warp coordinates with the split."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/DimCave2F.asm, maps/GiovannisCave.asm and other files; object definitions in maps/DimCave2F.asm, maps/GiovannisCave.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "c46369ac4240496357db6cf494796559f1d700c1",
@@ -41882,11 +41907,15 @@
           "maps/Route10North.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm; object definitions in maps/Route10North.asm; state changes in maps/Route10North.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The facility and hideout schedules retime turbine frames. A floating Electrode is added and the Lawrence encounter uses a named scene.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1ead8bcbe4dc3c92102144c07ad574ef9d518f66",
+        "Checked the final four turbine tracks over their 96-frame sequence on a map from each schedule. Checked the named Route 10 scene trigger and the floating Electrode object at (5,10) with its event flag."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm; object definitions in maps/Route10North.asm; state changes in maps/Route10North.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "74e9e0174f0bdd657977a3f919f38995ae6186af",
@@ -44727,11 +44756,15 @@
           "maps/Route9.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeruleanCity.asm; object definitions in maps/CeruleanCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Cerulean streets, doors, trainers and bridge triggers move with the new northern Kanto blocks.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/33953aca1160e1d90209067fde6bda3188492c36",
+        "Verified endpoint warps and objects for the changed maps, including the Gym entrance at (26,17) after later revisions. Checked all four clock rasters and collision. The subsequent shared bridge-scene change is audited separately."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeruleanCity.asm; object definitions in maps/CeruleanCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "71d1c666f8f858b909dcde7eef32ea60173c0abf",
@@ -45733,11 +45766,15 @@
           "maps/Route8.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route8.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Route 8 uses separate battle trainer palettes and updates Zekeâ€™s overworld color.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8f846a8d0e1854733de04acf994e65951232638d",
+        "Verified the red, green and dark blue overworld overrides in both three-biker groups. The other new palettes are consumed by trainer battles."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route8.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "7172f8b9b977816f1b108ac2ef3067fe8f8d975b",
@@ -48038,11 +48075,15 @@
           "maps/Route30.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/Route30.asm; object definitions in maps/Route30.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Route 30 expands for railway tracks, shifting its houses, trainers and both connections.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/fb0786b6584603a8d91472070c15142c4fc74a6d",
+        "Verified the published-layout coordinates in the local bundle: Route 30 touches Cherrygrove and Route 31 with four- and nine-block horizontal offsets. Mr. PokÃ©monâ€™s house is at (19,5). The full map comparison covers the terrain, object placements and collision."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in data/maps/attributes.asm, maps/Route30.asm; object definitions in maps/Route30.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "d03ae5e60af8c44c1ad1995be67649e05a4289b2",
@@ -51360,11 +51401,15 @@
           "maps/VermilionCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/BattleFactory1F.asm, maps/VermilionCity.asm; object definitions in maps/VermilionCity.asm; state changes in maps/VermilionCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The Battle Factory has one exterior doorway, two interior exit cells, and a power-dependent entrance block.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7a278ff01d8ad1ad71246ca12216e0ca9194f99f",
+        "Verified the surviving exterior door at (28,7), both exit cells, and the active/inactive Vermilion callback in both power states. Terrain and collision match the pinned source for all clocks."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/BattleFactory1F.asm, maps/VermilionCity.asm; object definitions in maps/VermilionCity.asm; state changes in maps/VermilionCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "5455d91510ef6345c41b32ae06c48adefe8ad3ad",
@@ -58354,11 +58399,15 @@
           "maps/DragonsDenB1F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/DragonShrine.asm, maps/DragonsDenB1F.asm; state changes in maps/DragonShrine.asm, maps/DragonsDenB1F.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Kimono Girl Mina moves from Dragonâ€™s Den B1F into Dragon Shrine.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6d566dd76abf66c4d1bc6ea86b10385f53a01afb",
+        "Verified her permanent pink sprite at (3,2) and her absence from B1F. The other hunks guard the deferred entrance cutscene by the previous warp and move her conversation and battle."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/DragonShrine.asm, maps/DragonsDenB1F.asm; state changes in maps/DragonShrine.asm, maps/DragonsDenB1F.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "1df26d6168b53240cf2223cfe5133aeebbc572fb",
@@ -60731,12 +60780,13 @@
           "maps/YellowForest.asm"
         ]
       ],
-      "status": "reviewed",
+      "status": "resolved",
       "disposition": "adaptation",
-      "reason": "Item-giving macros now carry a full-Bag failure command inside the argument list. The embedded branch can bypass removal of a mapped object.",
+      "reason": "Item-giving macros branch on the inventory result before a pickup can disappear.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/6bf2def28150e078ce87117e84ee2d19f948e5f9",
-        "LuckyIsland and HiddenTreeGrotto both follow giveitem with disappear. The movement analyzer handles standalone conditional opcodes. Check equivalent branch coverage for inline failure handlers before closing this record."
+        "LuckyIsland and HiddenTreeGrotto both follow giveitem with disappear. The movement analyzer handles standalone conditional opcodes. Check equivalent branch coverage for inline failure handlers before closing this record.",
+        "Compared every inline item branch in the pinned map scripts (158 handlers) to the analyzerâ€™s operations and source locations. Tests cover both inventory outcomes, including conditional text returns inside a subroutine, standalone instructions, and the two pickup-removal scripts."
       ],
       "triage_note": "Batch screen of 113 changed paths. Check macro and map-script hunks for any change to persistent object flags, callbacks or warp destinations.",
       "review_method": "diff-hunks"
@@ -64586,11 +64636,15 @@
           "maps/SaffronCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/Route10North.asm; object definitions in maps/Route10North.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Pillars change the Power Plant and Silph Co. approaches. Lawrence and the Power Plant entrance move.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3bd8eadd78bad8d0d11e2d185596ecc6a3c282f6",
+        "The sole Power Plant entrance is (4,51) and Lawrence stands at (7,52). Reviewed the shortened approach movement and matched the four changed maps to their endpoint terrain and collision."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/Route10North.asm; object definitions in maps/Route10North.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "86748ec474dd092df3325e53e7aead06887c72d3",
@@ -66283,11 +66337,15 @@
           "maps/Route16FuchsiaSpeechHouse.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route16FuchsiaSpeechHouse.asm; state changes in maps/Route16FuchsiaSpeechHouse.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Route 16 North gets its own roof palette and the woman in the house gives Blunder Policy.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/ea13aff5c5e9d80c520f94f5bcfd8380193b5170",
+        "Checked group 40 against all four clocks in both normal and overcast roof tables. Verified the indoor NPC links to the gift script and the new inline full-Bag handler is included in the map corpus check."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route16FuchsiaSpeechHouse.asm; state changes in maps/Route16FuchsiaSpeechHouse.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "e351e6480f864ebd8508e7df29a34265de889b27",
@@ -66445,11 +66503,15 @@
           "utils/dupe_blocks.py"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/SnowtopPokeCenter1F.asm."
+      "status": "reviewed",
+      "disposition": "adaptation",
+      "reason": "Deduplicated block IDs reach both regional upstairs Pokémon Center layouts. Verify the alternate Kanto entrance before closing the change.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e351e6480f864ebd8508e7df29a34265de889b27",
+        "The Snowtop stairs callback writes the expected $24 and $34 cells. JohtoPokeCenter2F and KantoPokeCenter2F are two assets for PokeCenter2F. The generic tile callback stops at callasm .CheckKanto; the four-time default map verification does not establish the alternate Kanto layout."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/SnowtopPokeCenter1F.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "b5450f3e9a9288d0becfa88ab3aa53e7fb834766",
@@ -67372,11 +67434,15 @@
           "maps/SnowtopMountainOutside.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/SnowtopMountainOutside.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "A skier and a boarder alternate at the Snowtop viewpoint.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1078faec49c313479a9dea808db20e11756fc447",
+        "Verified a single (12,22) location with mutually exclusive morning/day and evening/night masks in the map bundle. Reviewed the talk and panning scripts and the B-button cancellation change."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/SnowtopMountainOutside.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "4a9e37b133f75411b3dfeb52666eadaa8a7a9b2a",

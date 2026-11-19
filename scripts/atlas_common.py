@@ -10,15 +10,35 @@ from __future__ import annotations
 
 import importlib
 import os
+import re
 import sys
 from functools import lru_cache
 from pathlib import Path
 from types import ModuleType
-from typing import Dict, Optional, Set, Tuple
+from typing import Dict, Iterable, Optional, Set, Tuple
 
 import render_map
 from map_palette import palette_time
 from event_state import effective_flags
+
+
+def scoped_map_lines(lines: Iterable[str]) -> Iterable[str]:
+    """Qualify RGBDS local labels and references while preserving source line numbers."""
+    scope = ""
+    for raw in lines:
+        code = raw.partition(";")[0].strip()
+        definition = re.fullmatch(r"(\w+)::?", code)
+        if definition:
+            scope = definition[1]
+            yield scope + ":"
+            continue
+        if re.fullmatch(r"\.\w+:{0,2}", code):
+            yield scope + code.rstrip(":") + ":"
+            continue
+        # A period in a quoted dialogue line or an already-qualified label
+        # does not introduce a local reference.
+        yield re.sub(r'"[^"]*"|(?<![\w.])(\.\w+)', lambda m: scope + m[1] if m[1] else m[0], code)
+
 
 ROOT_DIR: Path = Path(__file__).resolve().parent.parent
 DEFAULT_POLISHED_PATH: Path = Path(os.environ.get("POLISHED_DIR", str(ROOT_DIR / "external/polishedcrystal")))

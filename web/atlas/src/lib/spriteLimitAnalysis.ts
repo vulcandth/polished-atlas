@@ -705,7 +705,7 @@ export function analyzeMapSpriteLimits(
   (ctx as any).currentMapLabel = map.label;
 
   // Prepare NPC movement summaries and facing profiles
-  const npcEntries = (map.objects ?? []).filter((obj) =>
+  const npcEntries = (map.objectsByTime?.[options.timeOfDay] ?? map.objects ?? []).filter((obj) =>
     isObjectVisibleAtTime(obj, options.timeOfDay),
   );
   const npcRecords: Array<{

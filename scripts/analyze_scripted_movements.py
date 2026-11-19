@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+from copy import deepcopy
 import json
 import re
 from dataclasses import dataclass, field
@@ -35,6 +36,9 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import atlas_common
+from event_state import initial_flags
+from generate_object_metadata import gather_constants
+from object_schedule import ObjectSchedule
 
 
 # ---------------------------- Constants ----------------------------
@@ -118,6 +122,7 @@ class ParsedMapScript:
     callbacks: List[MapCallback]
     movement_blocks: Dict[str, MovementBlock]
     script_labels: Dict[str, ScriptLabel]
+    schedule: Optional[ObjectSchedule] = None
 
 
 @dataclass
@@ -202,14 +207,13 @@ def _parse_object_const_block(lines: List[str], start: int) -> Tuple[List[str], 
     return constants, i
 
 
-def _parse_object_events(lines: List[str], constants: List[str]) -> Dict[str, ObjectSpawn]:
+def _parse_object_events(lines: List[str], constants: List[str], include_unnamed: bool = False) -> Dict[str, ObjectSpawn]:
     """Parse def_object_events section, mapping constants -> (x,y, script_label).
 
     The order of object_event declarations corresponds to the order of constants
     defined by object_const_def. We'll associate by index.
     """
     spawns: Dict[str, ObjectSpawn] = {}
-    idx_by_name: Dict[str, int] = {name: i + 1 for i, name in enumerate(constants)}
     # Extract only the def_object_events block
     in_section = False
     decls: List[Tuple[Optional[int], Optional[int], Optional[str], Optional[str]]] = []  # x,y,script_label,hide_event
@@ -248,14 +252,17 @@ def _parse_object_events(lines: List[str], constants: List[str]) -> Dict[str, Ob
                     hide_event = last
             decls.append((int(x) if x is not None else None, int(y) if y is not None else None, script_label, hide_event))
     # Associate by order with constants
-    for i, const_name in enumerate(constants):
+    names = list(constants)
+    if include_unnamed:
+        names.extend(f"OBJECT_{i + 1}" for i in range(len(names), len(decls)))
+    for i, const_name in enumerate(names):
         if i < len(decls):
             x, y, script_label, hide_event = decls[i]
             if x is None or y is None:
                 continue
             spawns[const_name] = ObjectSpawn(
                 label=const_name,
-                index=idx_by_name.get(const_name),
+                index=i + 1,
                 x=x,
                 y=y,
                 script_label=script_label,
@@ -401,7 +408,7 @@ _SCRIPT_CMD_RE = re.compile(
     r"moveobject|writeobjectxy|appear|disappear|warpfacing|warp|faceobject|turnobject|"
     r"follow|stopfollow|follownotexact|setlasttalked|"
     r"setevent|clearevent|checkevent|"
-    r"readvar|"
+    r"readvar|(?:verbose)?giveitems?(?:_unsafe)?|verbosegiveitemvar|"
     r"opentext|closetext|showtext|"
     r"sjumpfwd|sjump|farsjump|memjump|jump|priorityjump|jumpstd|stopandsjump|"
     r"scallfwd|scall|farscall|memcall|call|callasm|callstd|"
@@ -412,11 +419,33 @@ _SCRIPT_CMD_RE = re.compile(
 )
 
 
+_ITEM_OPERANDS = {"giveitem": 1, "giveitems": 2, "verbosegiveitem": 1,
+                  "verbosegiveitems": 2, "verbosegiveitemvar": 2}
+_CONDITIONAL_TEXT_END = {"iffalse_endtext", "iftrue_endtext", "iffalse_jumpopenedtext", "iftrue_jumpopenedtext"}
+
+
+def _script_commands(code: str, line_no: int) -> Iterable[ScriptCommand]:
+    match = _SCRIPT_CMD_RE.fullmatch(code)
+    if not match:
+        return
+    op, rest = match.groups()
+    args = tuple(arg.strip() for arg in rest.split(",") if arg.strip())
+    count = _ITEM_OPERANDS.get(op)
+    if count is not None and len(args) > count:
+        handler = ", ".join(args[count:])
+        if _SCRIPT_CMD_RE.fullmatch(handler):
+            # RGBDS expands the trailing arguments into a separate command.
+            yield ScriptCommand(op, args[:count], line_no)
+            yield from _script_commands(handler, line_no)
+            return
+    yield ScriptCommand(op, args, line_no)
+
+
 def _parse_script_labels(lines: List[str]) -> Dict[str, ScriptLabel]:
     labels: Dict[str, ScriptLabel] = {}
     current: Optional[str] = None
     for idx, raw in enumerate(lines, start=1):
-        code = _strip_comment(raw).rstrip()
+        code = _strip_comment(raw).strip()
         if not code:
             continue
         if code.endswith(":"):
@@ -424,27 +453,14 @@ def _parse_script_labels(lines: List[str]) -> Dict[str, ScriptLabel]:
             labels.setdefault(current, ScriptLabel(name=current))
             continue
         if current:
-            m = _SCRIPT_CMD_RE.match(code)
-            if m:
-                op = m.group(1)
-                rest = m.group(2).strip()
-                args: Tuple[str, ...] = tuple(a.strip() for a in rest.split(",") if a.strip()) if rest else tuple()
-                labels[current].commands.append(ScriptCommand(opcode=op, args=args, line_no=idx))
-        
-        # Try matching opcodes with leading indentation as well
-        if current and not m:
-            s = code.lstrip()
-            m2 = _SCRIPT_CMD_RE.match(s)
-            if m2:
-                op = m2.group(1)
-                rest = m2.group(2).strip()
-                args: Tuple[str, ...] = tuple(a.strip() for a in rest.split(",") if a.strip()) if rest else tuple()
-                labels[current].commands.append(ScriptCommand(opcode=op, args=args, line_no=idx))
+            labels[current].commands.extend(_script_commands(code, idx))
     return labels
 
 
 def parse_map_script(path: Path) -> ParsedMapScript:
-    lines = path.read_text(encoding="utf-8").splitlines()
+    source = path.read_text(encoding="utf-8")
+    schedule = ObjectSchedule.parse(source)
+    lines = list(atlas_common.scoped_map_lines(source.splitlines()))
     label = path.stem
     # Extract object constants
     object_constants: List[str] = []
@@ -455,7 +471,7 @@ def parse_map_script(path: Path) -> ParsedMapScript:
             object_constants = consts
             break
     # Object spawns from object_event section
-    spawns = _parse_object_events(lines, object_constants)
+    spawns = _parse_object_events(lines, object_constants, include_unnamed=schedule is not None)
     coord_events = _parse_coord_events(lines)
     callbacks = _parse_callbacks(lines)
     movement_blocks = _parse_movement_blocks(lines)
@@ -469,6 +485,7 @@ def parse_map_script(path: Path) -> ParsedMapScript:
         callbacks=callbacks,
         movement_blocks=movement_blocks,
         script_labels=script_labels,
+        schedule=schedule,
     )
 
 
@@ -482,46 +499,6 @@ def load_warp_metadata(path: Path) -> Tuple[dict, dict]:
 
 def load_object_metadata(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
-
-
-def load_initial_events(polished_root: Path) -> Tuple[set[str], set[str]]:
-    """Parse InitialEvents and InitialEngineFlags from polishedcrystal ASM.
-
-    Returns (initial_events, initial_engine_flags) as sets of symbol names.
-    """
-    events_file = polished_root / "data" / "events" / "initialize_events.asm"
-    initial: set[str] = set()
-    engines: set[str] = set()
-    if not events_file.exists():
-        return initial, engines
-    lines = events_file.read_text(encoding="utf-8").splitlines()
-    mode = None
-    for raw in lines:
-        line = _strip_comment(raw).strip()
-        if not line:
-            continue
-        if line.endswith(":"):
-            tag = line[:-1]
-            if tag in {"InitialEvents", "InitialEngineFlags"}:
-                mode = tag
-            else:
-                mode = None
-            continue
-        if mode in {"InitialEvents", "InitialEngineFlags"}:
-            if not line.lower().startswith("dw"):
-                continue
-            parts = [p.strip() for p in line.split()[1:]]
-            if not parts:
-                continue
-            sym = parts[0].rstrip(',')
-            if sym in {"-1", "$ffff"}:
-                mode = None
-                continue
-            if mode == "InitialEvents":
-                initial.add(sym)
-            else:
-                engines.add(sym)
-    return initial, engines
 
 
 def collision_grid_from_meta(map_meta: dict, aux: dict) -> Optional[CollisionGrid]:
@@ -948,7 +925,7 @@ def _collect_label_flow(parsed: ParsedMapScript, start_label: str, max_depth: in
                 walk(args[0], depth + 1)
                 # continue to next command after call
             # Simple conditional forward branch: also explore target label but continue linear flow
-            if op.startswith('if'):
+            if op.startswith('if') and op not in _CONDITIONAL_TEXT_END:
                 # try last arg as label when plausible
                 target: Optional[str] = None
                 if args:
@@ -1003,6 +980,7 @@ def analyze_scripts(
     *,
     scope: str = "all",
     time_of_day: str = "day",
+    weekday: int = 1,
     include_follower: bool = True,
     include_weather: bool = True,
     scanline_limit: int = DEFAULT_SCANLINE_LIMIT,
@@ -1031,38 +1009,56 @@ def analyze_scripts(
     def _norm_label_key(s: str) -> str:
         return ''.join(ch for ch in s if ch not in {'_', ' '}).upper()
     warp_label_by_norm: Dict[str, str] = { _norm_label_key(lbl): lbl for lbl in warp_maps.keys() }
-    initial_events, initial_engine_flags = load_initial_events(polished_path / "external" / "polishedcrystal")
-    # Apply CLI overrides
-    if assume_set_events:
-        initial_events = set(initial_events) | set(assume_set_events)
-    if assume_clear_events:
-        initial_events = set(e for e in initial_events if e not in set(assume_clear_events))
+    has_initial_flags = (polished_path / "data/events/initialize_events.asm").is_file()
+    initial_events = initial_flags(polished_path) if has_initial_flags else set()
+    forced_set: set[str] = set()
+    forced_clear: set[str] = set()
 
-    # Apply scenario presets and/or event override file
-    # Scenario presets are simple JSON files at scripts/scenarios/<name>.json with shape {"set": [], "clear": []}
+    def override(enabled: Iterable[str], disabled: Iterable[str]) -> None:
+        forced_set.update(enabled)
+        forced_set.difference_update(disabled)
+        forced_clear.difference_update(enabled)
+        forced_clear.update(disabled)
+
+    files = []
     if scenario:
-        scen_path = (atlas_common.ROOT_DIR / "scripts" / "scenarios" / f"{scenario}.json")
-        if scen_path.exists():
-            try:
-                scen = json.loads(scen_path.read_text(encoding="utf-8"))
-                scen_set = set(scen.get("set", []) or [])
-                scen_clear = set(scen.get("clear", []) or [])
-                initial_events = (set(initial_events) | scen_set) - scen_clear
-            except Exception as e:
-                if debug:
-                    print(f"[warn] failed to load scenario '{scenario}' from {scen_path}: {e}")
-        else:
-            if debug:
-                print(f"[info] scenario '{scenario}' not found at {scen_path}; skipping")
+        files.append(atlas_common.ROOT_DIR / "scripts" / "scenarios" / f"{scenario}.json")
     if event_overrides_path:
+        files.append(event_overrides_path)
+    for path in files:
         try:
-            ov = json.loads(event_overrides_path.read_text(encoding="utf-8"))
-            ov_set = set(ov.get("set", []) or [])
-            ov_clear = set(ov.get("clear", []) or [])
-            initial_events = (set(initial_events) | ov_set) - ov_clear
-        except Exception as e:
+            state = json.loads(path.read_text(encoding="utf-8"))
+            override(state.get("set", []), state.get("clear", []))
+        except (OSError, ValueError, TypeError, AttributeError) as exc:
             if debug:
-                print(f"[warn] failed to load event overrides from {event_overrides_path}: {e}")
+                print(f"[warn] failed to load event overrides from {path}: {exc}")
+    override(assume_set_events or [], assume_clear_events or [])
+    initial_events = (initial_events - forced_clear) | forced_set
+    constants = None
+
+    def entry_state(path: Path, flags: set[str]) -> ParsedMapScript:
+        nonlocal constants
+        parsed = parse_map_script(path)
+        for spawn in parsed.object_spawns.values():
+            spawn.visible = spawn.hide_event not in flags
+        if parsed.schedule:
+            if constants is None:
+                constants = gather_constants(polished_path)
+            for command, (name, *args) in parsed.schedule.commands(constants, flags, weekday, time_of_day):
+                if command == "moveobject":
+                    spawn = parsed.object_spawns[name]
+                    spawn.x, spawn.y = map(int, args)
+                elif command in ("appear", "disappear"):
+                    parsed.object_spawns[name].visible = command == "appear"
+            for spawn in parsed.object_spawns.values():
+                if spawn.hide_event in forced_set:
+                    spawn.visible = False
+                elif spawn.hide_event in forced_clear:
+                    spawn.visible = True
+            # The known entry script has already run. Replaying a flattened
+            # copy here would combine positions from mutually exclusive days.
+            parsed.callbacks = [cb for cb in parsed.callbacks if cb.label != parsed.schedule.entry]
+        return parsed
 
     # Precompute inverse warp mapping: target map label -> list of (dest_x, dest_y)
     incoming_spawns: Dict[str, List[Tuple[int, int]]] = {}
@@ -1080,8 +1076,7 @@ def analyze_scripts(
     label_filters_norm = [s.lower() for s in (label_filters or [])]
 
     for asm_path in _iter_map_asm_files(maps_dir):
-        parsed = parse_map_script(asm_path)
-        map_label = parsed.label
+        map_label = asm_path.stem
         if map_filters_norm:
             label_lc = map_label.lower()
             if not any(sub in label_lc for sub in map_filters_norm):
@@ -1092,6 +1087,7 @@ def analyze_scripts(
             continue
         if scope == "indoor" and is_overworld:
             continue
+        parsed = entry_state(asm_path, initial_events)
         stats['maps_scanned'] += 1
 
         # Index source warp tiles for this map: (x,y) -> (dest_map, (dx,dy))
@@ -1111,13 +1107,7 @@ def analyze_scripts(
         if debug:
             print(f"[map] {map_label}: coord_events={len(parsed.coord_events)} callbacks={len(parsed.callbacks)} objects={len(parsed.object_spawns)} movements={len(parsed.movement_blocks)} labels={len(parsed.script_labels)}")
 
-        # Compute base visibility from initial events: objects with a hide_event set are hidden when that event is set
-        base_visible_by_name: Dict[str, bool] = {}
-        for name, spawn in parsed.object_spawns.items():
-            if spawn.hide_event and spawn.hide_event in initial_events:
-                base_visible_by_name[name] = False
-            else:
-                base_visible_by_name[name] = spawn.visible
+        base_visible_by_name = {name: spawn.visible for name, spawn in parsed.object_spawns.items()}
 
         # Build triggers:
         triggers: List[Tuple[str, str, List[Tuple[int, int]], Optional[str]]] = []
@@ -1175,11 +1165,13 @@ def analyze_scripts(
         object_pos: Dict[str, Tuple[int, int]] = {name: (spawn.x, spawn.y) for name, spawn in parsed.object_spawns.items()}
 
         # Helper: run immediate arrival sequence on a destination map at dest_xy
-        def _run_arrival_on_map(dest_map_label: str, dest_xy: Tuple[int, int]) -> None:
+        def _run_arrival_on_map(dest_map_label: str, dest_xy: Tuple[int, int], events: Dict[str, int]) -> None:
             dest_asm = maps_dir / f"{dest_map_label}.asm"
             if not dest_asm.exists():
                 return
-            dest_parsed = parse_map_script(dest_asm)
+            dest_flags = initial_events | {key for key, state in events.items() if state == EV_TRUE}
+            dest_flags.difference_update(key for key, state in events.items() if state == EV_FALSE)
+            dest_parsed = entry_state(dest_asm, dest_flags)
             dest_warp_meta = get_warp_meta(warp_maps, dest_map_label)
             # Build narrow triggers: callbacks on load, plus coord events matching dest_xy
             arrival_triggers: List[Tuple[str, str, List[Tuple[int, int]], Optional[str]]] = []
@@ -1572,9 +1564,8 @@ def analyze_scripts(
             for ev in initial_events:
                 _ev_set(ev_state, ev, EV_TRUE)
             # CLI explicit clears override
-            if assume_clear_events:
-                for ev in assume_clear_events:
-                    _ev_set(ev_state, ev, EV_FALSE)
+            for ev in forced_clear:
+                _ev_set(ev_state, ev, EV_FALSE)
 
             # Visibility snapshot seeded from base, but will be updated by events during traversal
             base_vis: Dict[str, bool] = dict(base_visible_by_name)
@@ -1722,6 +1713,14 @@ def analyze_scripts(
                     continue
 
                 # Variable ops
+                if op.removesuffix("_unsafe") in _ITEM_OPERANDS:
+                    # Inventory is not part of a map snapshot. Both pickup
+                    # outcomes are possible regardless of earlier event checks.
+                    ctx.last_check = None
+                    ctx.last_var_name = None
+                    ctx.pc += 1
+                    work.append(ctx)
+                    continue
                 if op == "readvar" and len(args) >= 1:
                     # Track last variable read so we can interpret equality branches that rely on VAR_RESULT.
                     ctx.last_var_name = args[0]
@@ -1863,7 +1862,8 @@ def analyze_scripts(
                                         if ctx_fall.player_cells:
                                             work.append(ctx_fall)
                                 continue
-                    if target:
+                    ends_script = op in _CONDITIONAL_TEXT_END
+                    if target or ends_script:
                         cond = ctx.last_check
                         ctx.last_check = None
                         take_jump = None
@@ -1877,21 +1877,19 @@ def analyze_scripts(
                                 take_jump = False
                             elif cond == EV_FALSE:
                                 take_jump = True
-                        if take_jump is None:
-                            # Unknown: fork
-                            if branches < max_branches:
+                        if take_jump is not False and (take_jump or branches < max_branches):
+                            branch = ctx if take_jump else deepcopy(ctx)
+                            if take_jump is None:
                                 branches += 1
-                                # jump branch
-                                work.append(Ctx(label=target, pc=0, ret=list(ctx.ret), temp_pos=dict(ctx.temp_pos), visible=dict(ctx.visible), player_cells=list(ctx.player_cells), last_talked=ctx.last_talked, ev=dict(ctx.ev)))
-                                # fallthrough branch
-                                ctx2 = Ctx(label=ctx.label, pc=ctx.pc + 1, ret=list(ctx.ret), temp_pos=dict(ctx.temp_pos), visible=dict(ctx.visible), player_cells=list(ctx.player_cells), last_talked=ctx.last_talked, ev=dict(ctx.ev))
-                                work.append(ctx2)
-                            # else drop both to cap explosion
-                        else:
-                            if take_jump:
-                                ctx.label, ctx.pc = target, 0
+                            if ends_script:
+                                if branch.ret:
+                                    branch.label, branch.pc = branch.ret.pop()
+                                    work.append(branch)
                             else:
-                                ctx.pc += 1
+                                branch.label, branch.pc = target, 0
+                                work.append(branch)
+                        if take_jump is not True:
+                            ctx.pc += 1
                             work.append(ctx)
                         continue
                     # If no resolvable label, just fall through
@@ -2073,7 +2071,7 @@ def analyze_scripts(
                                                 },
                                             )
                                         )
-                                        _run_arrival_on_map(d_map, (dx, dy))
+                                        _run_arrival_on_map(d_map, (dx, dy), ctx.ev)
                                         # terminate this path on this map after warp
                                         path = []
                                         break
@@ -2312,6 +2310,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--warp-meta", type=Path, default=atlas_common.DEFAULT_MAPS_DIR / "warp_metadata.json", help="Path to warp_metadata.json")
     p.add_argument("--scope", choices=["all", "overworld", "indoor"], default="all")
     p.add_argument("--time", dest="time_of_day", choices=["morn", "day", "nite", "eve"], default="day")
+    p.add_argument("--weekday", type=int, choices=range(7), default=1, help="Game weekday (0=Sunday, 1=Monday)")
     p.add_argument("--no-follower", dest="include_follower", action="store_false", help="Disable follower reservation and collision checks")
     p.add_argument("--no-weather", dest="include_weather", action="store_false", help="Disable weather sprite reservation on overworld")
     p.add_argument("--scanline-limit", type=int, default=DEFAULT_SCANLINE_LIMIT)
@@ -2338,6 +2337,7 @@ def main() -> None:
         warp_meta_path=args.warp_meta.resolve(),
         scope=args.scope,
         time_of_day=args.time_of_day,
+        weekday=args.weekday,
         include_follower=args.include_follower,
         include_weather=args.include_weather,
         scanline_limit=max(0, int(args.scanline_limit)),

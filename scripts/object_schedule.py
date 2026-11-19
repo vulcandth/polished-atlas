@@ -1,0 +1,126 @@
+"""Evaluate the map-entry scripts that schedule Dojo rematches and Valerie's fairy book."""
+from __future__ import annotations
+
+from dataclasses import dataclass, replace
+import re
+from typing import TYPE_CHECKING, Iterator
+
+import atlas_common
+
+if TYPE_CHECKING:
+    from generate_object_metadata import ASMConstantParser, ObjectEventEntry
+
+
+@dataclass
+class ObjectSchedule:
+    entry: str
+    lines: list[str]
+    labels: dict[str, int]
+    names: list[str]
+    rematch_body: list[str]
+
+    @classmethod
+    def parse(cls, source: str) -> ObjectSchedule | None:
+        callback = re.search(
+            r"^\s*callback\s+MAPCALLBACK_OBJECTS,\s*(FightingDojoSetupRematchesCallback|SetupValerieAfterMorningWalkScript)\b",
+            source, re.M,
+        )
+        if not callback:
+            return None
+        macro = re.search(r"^\s*MACRO\s+rematch\b[^\n]*\n(.*?)^\s*ENDM\b", source, re.M | re.S)
+        # Earlier versions use separate event-controlled objects in these rooms.
+        if not macro and not re.search(r"^\s*setmapobjectpal\s+VALERIESHOUSE_FAIRY_BOOK,", source, re.M):
+            return None
+        lines = list(atlas_common.scoped_map_lines(source.splitlines()))
+        names = []
+        for line in lines[lines.index("object_const_def") + 1:]:
+            if not line:
+                continue
+            if not line.startswith("const "):
+                break
+            names.append(line.split()[1])
+        labels = {line[:-1]: i + 1 for i, line in enumerate(lines) if line.endswith(":")}
+        body = [line.strip() for line in macro[1].splitlines() if line.strip()] if macro else []
+        return cls(callback[1], lines, labels, names, body)
+
+    def commands(self, constants: ASMConstantParser, flags: set[str], weekday: int, time: str
+                 ) -> Iterator[tuple[str, list[str]]]:
+        pos = self.labels[self.entry]
+        visited = set()
+        result = None
+        while pos not in visited:
+            visited.add(pos)
+            line = self.lines[pos]
+            pos += 1
+            if not line or line.endswith(":"):
+                continue
+            if line == "endcallback":
+                return
+            op, rest = line.split(None, 1)
+            args = [arg.strip() for arg in rest.split(",")]
+            if op == "readvar" and rest == "VAR_WEEKDAY":
+                result = weekday
+            elif op in ("checkevent", "checkflag"):
+                result = int(rest in flags)
+            elif op == "checktime":
+                result = bool(_value(constants, rest) & (1 << _value(constants, time.upper())))
+            elif op in ("ifequal", "ifequalfwd"):
+                if result == _value(constants, args[0]):
+                    pos = self.labels[args[1]]
+            elif op in ("iftruefwd", "iffalsefwd", "sjumpfwd"):
+                if op == "sjumpfwd" or bool(result) == (op == "iftruefwd"):
+                    pos = self.labels[args[0]]
+            elif op == "rematch":
+                for cmd in self.rematch_body:
+                    expanded = re.sub(r"\\(\d+)", lambda m: args[int(m[1]) - 1], cmd)
+                    name, operands = expanded.split(None, 1)
+                    yield name, [arg.strip() for arg in operands.split(",")]
+            else:
+                yield op, args
+        raise ValueError(f"Cyclic schedule in {self.entry}")
+
+
+def _value(constants: ASMConstantParser, expression: str) -> int:
+    value = constants.evaluate(expression)
+    if value is None:
+        raise ValueError(f"Unresolved map object schedule operand {expression}")
+    return value
+
+
+def scheduled_objects(source: str, objects: list[ObjectEventEntry], constants: ASMConstantParser,
+                      flags: set[str], weekday: int, times: tuple[str, ...],
+                      forced_set: set[str], forced_clear: set[str]) -> dict[str, list[ObjectEventEntry]]:
+    schedule = ObjectSchedule.parse(source)
+    if schedule is None:
+        return {}
+    by_time = {}
+    for time in times:
+        rows = [replace(obj) for obj in objects]
+        named = dict(zip(schedule.names, rows))
+        slots = {obj.sprite_constant: obj for obj in rows}
+        for command, (name, *args) in schedule.commands(constants, flags, weekday, time):
+            if command in ("appear", "disappear"):
+                named[name].event_flag_set = command == "disappear"
+            elif command == "setmapobjectpal":
+                named[name].palette_value = _value(constants, args[0])
+                named[name].palette_constant = None
+            elif command == "variablesprite":
+                slots[name].resolved_sprite = args[0]
+            elif command == "moveobject":
+                named[name].x_tiles, named[name].y_tiles = (_value(constants, arg) for arg in args)
+            elif command == "turnobject":
+                obj = named[name]
+                if not obj.movement_constant.startswith("SPRITEMOVEDATA_STANDING_"):
+                    raise ValueError(f"Unexpected scheduled movement for {name}")
+                obj.movement_constant = "SPRITEMOVEDATA_STANDING_" + args[0]
+                obj.movement_id = _value(constants, obj.movement_constant)
+            else:
+                raise ValueError(f"Unsupported object callback operation in {schedule.entry}: {command}")
+        for obj in rows:
+            if obj.event_flag in forced_set:
+                obj.event_flag_set = True
+            elif obj.event_flag in forced_clear:
+                obj.event_flag_set = False
+        if rows != objects:
+            by_time[time] = rows
+    return by_time

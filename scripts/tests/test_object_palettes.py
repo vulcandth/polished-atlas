@@ -42,6 +42,54 @@ class ObjectPaletteTests(unittest.TestCase):
         self.assertEqual(self.movements["SPRITEMOVEDATA_AQUARIUM_BOTTOM"].palette_flags, 0x90)
         self.assertEqual(self.movements["SPRITEMOVEDATA_BIG_HO_OH"].action, "OBJECT_ACTION_BIG_HO_OH")
 
+    def test_dojo_and_valerie_schedules(self):
+        all_maps = objects.parse_map_objects(self.root, self.constants, {}, self.movements, self.names, set())
+        maps = {m.label: m for m in all_maps}
+        def schedule(name, weekday, flags):
+            rows = maps[name].objects
+            source = (self.root / "maps" / (name + ".asm")).read_text(encoding="utf-8")
+            variants = objects.scheduled_objects(source, rows, self.constants, flags, weekday,
+                                                 objects.TIME_OF_DAY_SLUGS, set(), set())
+            return {time: [obj for obj in variants.get(time, rows) if not obj.event_flag_set]
+                    for time in objects.TIME_OF_DAY_SLUGS}
+
+        # Morning, day, evening/night. Each late leader also requires their own victory flag.
+        expected = (
+            ("JASMINE ERIKA", "JASMINE ERIKA", "SABRINA"),
+            ("FALKNER JANINE", "FALKNER JANINE", "WALKER"),
+            ("PRYCE BLAINE", "PRYCE BLAINE", "LORELEI"),
+            ("BROCK MISTY", "BROCK MISTY BLUE", "BLUE"),
+            ("BUGSY", "PALMER", "MORTY"),
+            ("SURGE", "YELLOW", "CLAIR"),
+            ("WHITNEY", "WHITNEY CHUCK", "AGATHA"),
+        )
+        optional = {"WALKER", "LORELEI", "PALMER", "YELLOW", "AGATHA"}
+        flags = {"EVENT_BEAT_" + name for name in ("BLUE", "WALKER", "LORELEI_AGAIN", "PALMER", "YELLOW", "AGATHA")}
+        book = ("PINK", "BROWN", "RED", "BLUE", "GREEN", "ENV_YELLOW", "PURPLE")
+        for day, (morning, daytime, night) in enumerate(expected):
+            for progress in (set(), {"EVENT_BEAT_BLUE"}, flags):
+                dojo = schedule("FightingDojo", day, progress)
+                for time, names in zip(("morn", "day", "eve", "nite"), (morning, daytime, night, night)):
+                    expected_guests = [n for n in names.split() if progress and (n not in optional or progress == flags)]
+                    guests = [obj for obj in dojo[time] if obj.resolved_sprite]
+                    self.assertEqual([obj.resolved_sprite for obj in guests],
+                                     ["SPRITE_" + n for n in expected_guests])
+                    for obj in guests:
+                        self.assertGreater(obj.x_tiles, 0)
+                        self.assertGreater(obj.palette_value, 0)
+                        self.assertEqual(obj.movement_id, self.constants.get(obj.movement_constant))
+                    if day == 1 and time == "day" and progress:
+                        self.assertEqual([(o.x_tiles, o.y_tiles, o.movement_constant, o.palette_value) for o in guests],
+                                         [(3, 5, "SPRITEMOVEDATA_STANDING_RIGHT", self.constants.get("PAL_NPC_BLUE")),
+                                          (6, 5, "SPRITEMOVEDATA_STANDING_LEFT", self.constants.get("PAL_NPC_PURPLE"))])
+            for progress in (set(), {"EVENT_FOUGHT_SUICUNE", "EVENT_BEAT_VALERIE"},
+                             {"EVENT_FOUGHT_SUICUNE", "EVENT_BEAT_VALERIE", "ENGINE_VALERIE_MORNING_WALK"}):
+                for time, rows in schedule("ValeriesHouse", day, progress).items():
+                    fairy_book, = [o for o in rows if o.sprite_constant == "SPRITE_BOOK_PAPER_POKEDEX"]
+                    self.assertEqual(fairy_book.palette_value, self.constants.get("PAL_NPC_" + book[day]))
+                    self.assertEqual(any(o.sprite_constant == "SPRITE_VALERIE" for o in rows),
+                                     bool(progress) and (time != "morn" or "ENGINE_VALERIE_MORNING_WALK" in progress))
+
     def test_initial_variable_sprites_use_their_assigned_graphics(self):
         maps = objects.parse_map_objects(self.root, self.constants, {}, self.movements, self.names, set())
         _, headers = objects.parse_sprite_headers(self.root, self.constants)

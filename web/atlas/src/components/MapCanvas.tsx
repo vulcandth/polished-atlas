@@ -2770,7 +2770,7 @@ export default function MapCanvas({
 
     state.objectMarkers = [];
 
-    for (const objectEntry of mapData.objects) {
+    for (const objectEntry of mapData.objectsByTime?.[timeOfDay] ?? mapData.objects) {
       if (!isObjectVisibleAtTime(objectEntry, timeOfDay)) {
         continue;
       }
@@ -3629,7 +3629,7 @@ export default function MapCanvas({
         cache.setPaletteContext({ indoor: false, overcast: false, darkness: false });
       }
 
-      for (const objectEntry of mapData.objects) {
+      for (const objectEntry of mapData.objectsByTime?.[timeOfDay] ?? mapData.objects) {
         if (!isObjectVisibleAtTime(objectEntry, timeOfDay)) {
           continue;
         }

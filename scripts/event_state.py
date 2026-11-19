@@ -21,7 +21,7 @@ def initial_flags(root: Path) -> set[str]:
         elif section in {'InitialEvents', 'InitialEngineFlags'} and line.startswith('dw '):
             for token in line[3:].split(','):
                 token = token.strip()
-                if token == '-1':
+                if token.lower() in ('-1', '$ffff'):
                     section = None
                     break
                 if not re.fullmatch(r'(EVENT|ENGINE)_\w+', token):

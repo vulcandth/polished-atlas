@@ -416,6 +416,7 @@ export interface MapObjectMetadataEntry {
   widthBlocks: number | null;
   heightBlocks: number | null;
   objects: ObjectEventEntry[];
+  objectsByTime?: Record<string, ObjectEventEntry[]>;
 }
 
 export interface ObjectMetadata {

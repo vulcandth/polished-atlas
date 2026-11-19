@@ -15,27 +15,31 @@ There are 1,057 commits and 3,520 changed endpoint paths in the current range.
 ## Current audit status
 
 All 1,057 commits from v3.2.2 through `f8e67fbd` have had a relevance
-screen. The ledger resolves 939. Of the 118 still open, 107 have leads
-from the scan and 11 have confirmed follow-up work. Auditing the remaining
+screen. The ledger resolves 956. Of the 101 still open, 91 have leads
+from the scan and 10 have confirmed follow-up work. Auditing the remaining
 diffs and validating the affected Atlas features are part of implementation.
 The list of known features below is preliminary.
 
-The latest batch closed 24 commits. Of the 548 total commits classified
+The latest batch closed 17 commits. Of the 548 total commits classified
 as having no Atlas impact, 364 were skipped after examining their subject,
 changed paths and consumers. The changelog adds only the v3.2.3 battle
 crash fix. Use the commit diffs to find unreleased master changes.
 
-- The National Park lamp matches the exported 88-frame night cycle and
-  stays steady by day. Both Game Corner signs match all four tracks across
-  their 80-frame day and night cycles.
-- The initial variable sprite table supplies the graphic for Copycat, the
-  four disguised trainers at Fuchsia Gym and the impersonator at the Fuchsia
-  Pokémon Center. Dev now exports each original slot alongside its assigned
-  graphic. The Fighting Dojo separately reassigns its slots on map entry.
-- Inline full-Bag handlers can change the movement analyzer's result.
-  Lucky Island and Hidden Tree Grotto both remove the item object only after
-  a successful pickup. This change remains open alongside the Dojo schedule,
-  palette transitions, NPC glow transitions and Ruins of Alph.
+- The Dojo uses the map-entry script to assign each rematch trainer’s position,
+  facing, palette and graphic. All seven weekdays and four time slots were
+  checked with three sets of story flags. On Monday, Chrome displayed Falkner
+  and Janine by day after Blue was defeated. Both slots were empty at night.
+- Valerie’s house now uses a single fairy book with seven weekday palettes.
+  Chrome rendered the brown Monday book at (3,3). The movement analyzer and
+  the map renderer both use the scheduled object placements.
+- The movement analyzer follows the success and failure branches of item
+  gifts. Checked 158 inline handlers across the upstream map scripts, including
+  the two pickups that disappear only when there is room in the Bag.
+- The new review also covered the Route 30 railway connections and the Power
+  Plant turbines. One open finding concerns the Kanto Pokémon Center upstairs.
+  Its regional callback selects a layout that differs from Johto in 18 of 32
+  blocks. Both layouts need validation. Palette transitions, NPC glow
+  transitions and Ruins of Alph also have open records.
 
 **Planning inspection was preliminary and NOT exhaustive. Auditing every commit
 is implementation work. The known requirements below are not a closed list.**

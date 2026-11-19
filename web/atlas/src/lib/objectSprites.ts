@@ -718,17 +718,6 @@ export class ObjectSpriteCache {
       }
     }
 
-    if (spriteName === "SPRITE_BIG_GYARADOS") {
-      // The large Gyarados sprite dedicates the second bank to follow the first
-      // half directly, so mirror that layout for the atlas textures.
-      const half = Math.floor(limit / 2);
-      const offset = rawIndex & 0x7f;
-      const adjusted = half + offset;
-      if (adjusted >= 0 && adjusted < limit) {
-        return adjusted;
-      }
-    }
-
     if (spriteName === "SPRITE_BIG_SNORLAX") {
       // Big Snorlax only ships a single bank of tiles; the upper-half indices
       // simply repeat the base sheet. Strip the bank bit and reuse the first
@@ -753,7 +742,12 @@ export class ObjectSpriteCache {
     if (spriteDef.spriteType === "WALKING_SPRITE") {
       return Math.floor(limit / 2);
     }
-    if (spriteDef.spriteType === "BIG_GYARADOS_SPRITE" || spriteName === "SPRITE_SAILBOAT") {
+    if (spriteDef.spriteType === "BIG_GYARADOS_SPRITE") {
+      // GetSprite loads 15 tiles in its first transfer, even when the
+      // graphics end partway through the second transfer (Alolan Exeggutor).
+      return 15;
+    }
+    if (spriteName === "SPRITE_SAILBOAT") {
       return Math.floor(limit / 2);
     }
     return 0;

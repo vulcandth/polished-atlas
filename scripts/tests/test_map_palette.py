@@ -8,6 +8,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import atlas_common
 from generate_bg_palette_metadata import build_payload, Options
+from event_state import conditional_block_changes
 from map_palette import palette_time, TIME_NAMES
 from render_map import _build_renderer, _load_palette
 from tile_animation_export import context_for_map
@@ -78,6 +79,34 @@ class MapPaletteTests(unittest.TestCase):
         self.assertEqual([blocks[True][i] for i in indices], list(range(0x49, 0x4f)))
         changes = {i for i, (a, b) in enumerate(zip(blocks[False], blocks[True])) if a != b}
         self.assertEqual(changes, set(indices))
+
+    def test_volcano_boulder_flags_select_independent_blocks(self):
+        info = self.repo.map_info("CinnabarVolcanoB1F")
+        baseline = self.repo.map_blocks(info, set())
+        changes = [(12, 24, 0x2f), (24, 22, 0x2f), (22, 12, 0x2d), (14, 10, 0x2d)]
+        for mask in range(16):
+            expected = baseline.copy()
+            flags = set()
+            for i, (x, y, block) in enumerate(changes):
+                if mask & (1 << i):
+                    flags.add(f"EVENT_BOULDER_IN_CINNABAR_VOLCANO_1F_{i+1}")
+                    index = (y // 2) * info.width + x // 2
+                    self.assertNotEqual(baseline[index], block)
+                    expected[index] = block
+            self.assertEqual(self.repo.map_blocks(info, flags), expected)
+
+    def test_snowtop_stairs_and_table_are_applied_without_flags(self):
+        info = self.repo.map_info("SnowtopPokeCenter1F")
+        blocks = self.repo.map_blocks(info, set())
+        self.assertEqual([blocks[(y // 2) * info.width + x // 2]
+                          for x, y in [(0, 6), (8, 4), (8, 6)]], [0x49, 0x24, 0x34])
+
+    def test_unsupported_callback_does_not_apply_partial_block_writes(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "Test.asm"
+            path.write_text("callback MAPCALLBACK_TILES, TestTiles\nTestTiles:\n"
+                            "changeblock 0, 0, 1\nsjump OtherRoutine\nendcallback\n")
+            self.assertEqual(conditional_block_changes(path), ())
 
     def test_special_palette_inventory_and_all_declared_variants(self):
         source = (self.root / "data/maps/palettes.asm").read_text(encoding="utf-8")

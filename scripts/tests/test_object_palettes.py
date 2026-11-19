@@ -42,6 +42,23 @@ class ObjectPaletteTests(unittest.TestCase):
         self.assertEqual(self.movements["SPRITEMOVEDATA_AQUARIUM_BOTTOM"].palette_flags, 0x90)
         self.assertEqual(self.movements["SPRITEMOVEDATA_BIG_HO_OH"].action, "OBJECT_ACTION_BIG_HO_OH")
 
+    def test_aquarium_weekday_callback_applies_to_both_floors_only(self):
+        weekday_exhibits = {"GOLDEEN", "TENTACOOL", "SQUIRTLE", "SHELLDER"}
+        weekend_exhibits = {"QWILFISH", "HORSEA", "SEEL", "KRABBY"}
+        permanent = {"MAGIKARP", "CORSOLA", "CHINCHOU", "REMORAID", "MANTINE", "STARYU"}
+        for day in range(7):
+            maps = objects.parse_map_objects(self.root, self.constants, {}, self.movements,
+                                             self.names, set(), weekday=day)
+            fish = {obj.species_constant for m in maps if m.label.startswith("FuchsiaAquarium")
+                    for obj in m.objects if obj.sprite_constant == "SPRITE_AQUARIUM_MON"
+                    and not obj.event_flag_set}
+            with self.subTest(day=day):
+                self.assertEqual(fish, permanent | (weekend_exhibits if day in (0, 6) else weekday_exhibits))
+                shrine_elders = [obj for m in maps if m.label == "DragonShrine" for obj in m.objects
+                                 if obj.event_flag == "EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1"]
+                self.assertEqual(len(shrine_elders), 3)
+                self.assertFalse(any(obj.event_flag_set for obj in shrine_elders))
+
     def test_packed_palette_constants_and_components(self):
         self.assertEqual(self.constants.get("PAL_MON_RED"), 0xD1)
         self.assertEqual(self.constants.get("PAL_MON_RED_BLUE"), 0x02)

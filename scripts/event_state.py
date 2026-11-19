@@ -60,8 +60,8 @@ def effective_flags(initial: Iterable[str], path: Path | None = None) -> set[str
 
 
 @lru_cache(maxsize=1024)
-def conditional_block_changes(script: Path) -> tuple[tuple[str, int, int, int], ...]:
-    """Recognize tile callbacks consisting entirely of one flag-guarded run of changeblock."""
+def conditional_block_changes(script: Path) -> tuple[tuple[str | None, int, int, int], ...]:
+    """Read straight-line changeblock commands and forward, flag-guarded groups in source order."""
     if not script.is_file():
         return ()
     lines = [raw.partition(';')[0].strip() for raw in script.read_text(encoding='utf-8').splitlines()]
@@ -71,14 +71,28 @@ def conditional_block_changes(script: Path) -> tuple[tuple[str, int, int, int], 
         return ()
     number = r'(?:\$[0-9a-fA-F]+|\d+)'
     block = rf'changeblock\s+({number}),\s*({number}),\s*({number})'
-    match = re.search(
-        rf'^{callbacks[0]}::?\ncheck(?:event|flag) (?P<flag>\w+)\niffalsefwd (?P<skip>\.\w+)\n'
-        rf'(?P<blocks>(?:{block}\n)+)(?P=skip):?\nendcallback$', source, re.M)
-    if not match:
+    body = re.search(rf'^{callbacks[0]}::?\n(.*?)^endcallback$', source, re.M | re.S)
+    if not body:
         return ()
+    guarded = re.compile(rf'check(?:event|flag) (?P<flag>\w+)\niffalse(?:fwd)? (?P<skip>\.\w+)\n'
+                         rf'(?P<blocks>(?:{block}\n)+)(?P=skip):?\n')
+    plain = re.compile(block + r'\n')
 
     def value(token: str) -> int:
         return int(token[1:], 16) if token.startswith('$') else int(token)
 
-    return tuple((match['flag'], value(x), value(y), value(block_id))
-                 for x, y, block_id in re.findall(block, match['blocks']))
+    commands = body[1]
+    changes = []
+    pos = 0
+    while pos < len(commands):
+        if group := guarded.match(commands, pos):
+            changes.extend((group['flag'], value(x), value(y), value(tile))
+                           for x, y, tile in plain.findall(group['blocks']))
+            pos = group.end()
+        elif direct := plain.match(commands, pos):
+            changes.append((None, *(value(arg) for arg in direct.groups())))
+            pos = direct.end()
+        else:
+            # A jump or unrecognized command can change which writes execute.
+            return ()
+    return tuple(changes)

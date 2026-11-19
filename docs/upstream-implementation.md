@@ -552,6 +552,36 @@ and one was already supported. Coverage remains preliminary.
   source as the terrain renderer. The regression compares the full dry and wet
   cell grids against the source block and collision tables for all four maps.
 
+### Aquarium schedules, glow and volcano callbacks
+
+The next pass resolved 38 commits. The ledger now has **773 resolved,
+269 pending and 15 reviewed with open work**. Twenty-three map-data commits
+were checked in a batch against the changed assembly directives, current
+asset consumers and generated map metadata. For shared Johto and volcano
+graphics, the alternate PNGs are byte-identical to the files named by the
+upstream tileset pointers.
+
+- Matched all 377 glow cells across 612 maps to upstream collision quadrants.
+  All ten cave mouths and five glowing ladders have warps to valid destination
+  cells. The eight glowing Dragon Shrine walls block movement across the
+  corresponding edge in both directions.
+- Compared 104,192 sprite pixels across four clock times. The checks used a
+  real NPC frame on all 20 map/glow combinations, both icon frames of all 14
+  aquarium exhibits and volcano Moltres, and all eight dual-palette facings
+  of Ho-Oh, Lugia and Alolan Exeggutor. Some checks place a sprite on a glow
+  cell to exercise a lighting condition it can encounter during movement.
+  Corrected two Exeggutor poses that were reading tile 12 where the engine
+  reads tile 15.
+- Both aquarium floors now apply their shared weekday callback. On weekdays
+  the rotating exhibits show Goldeen, Tentacool, Squirtle and Shellder.
+  On weekends they show Hisuian Qwilfish, Horsea, Seel and Krabby. Checked all
+  seven days, the six permanent exhibits and visibility on a separate map.
+- The terrain and collision generators now honor consecutive flag-guarded
+  block writes and unconditional block writes. Checked all 16 combinations
+  of four boulder flags in Cinnabar Volcano B1F, and the stairs and table in
+  Snowtop Pokémon Center. Callbacks with other control flow require separate
+  review.
+
 ## Immediate remaining implementation work
 
 - Verify palette-swap NPC colors in the full generated site. The frontend now
@@ -560,18 +590,15 @@ and one was already supported. Coverage remains preliminary.
 - Check remaining event-dependent tile callbacks, object visibility and weather
   against the shared snapshot. Forced map time is shared across terrain and
   objects. Run the final combined-site checks before deployment.
-- Complete NPC glow effects, weather integration verification, dual-palette integration validation,
-  and all map/object/movement findings from the audit.
+- Verify dynamic palette and weather transitions during map changes, together
+  with the remaining map, object and movement findings from the audit.
 - Finish grass occlusion and per-facing RELATIVE_ATTRIBUTES/OAM_PRIO behavior.
   Static object priority groups and BG attribute priority are implemented as
   recorded above; broader glow and runtime object-priority interaction validation
   remains open.
-- Finish glow validation on Dragon Shrine, cave mouths, underground lamps and lava
-  ladders, including directional walls/warps and secondary palettes. Verify
-  `SPRITE_AQUARIUM_MON` handling (also used for volcano Moltres), and reconcile
-  all remaining dynamic-palette rules; explicit map time now replaces the indoor/day
-  heuristic for current metadata. Hidden-grotto entrance-dependent terrain and
-  background palettes are implemented and verified as recorded above.
+- Reconcile the dynamic palette rules for variable sprites and the map/overlay
+  transition behavior. Complete browser validation of moving NPCs entering
+  and leaving lit cells, including interaction with terrain priority.
 - Finish the Route 13/14/Lucky Island dual connection and coastline review,
   Goldenrod Harbor object overlap, and the wider Ruins of Alph redesign.
 - Dev builds now require upstream corpus tests after source checkout, checking

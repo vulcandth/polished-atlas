@@ -408,6 +408,8 @@ def decode_time_mask(mask: Optional[int]) -> List[str]:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate overworld object metadata for polished-atlas.")
+    parser.add_argument("--weekday", type=render_map.parse_weekday, default=1,
+                        help="Game weekday for object visibility (default Monday).")
     parser.add_argument(
         "--polishedcrystal",
         type=Path,
@@ -1613,6 +1615,9 @@ def parse_map_objects(
     movement_lookup: Dict[str, MovementInfo],
     palette_names: Sequence[str],
     initial_event_flags: Set[str],
+    *,
+    weekday: int = 1,
+    cleared_event_flags: Optional[Set[str]] = None,
 ) -> List[MapObjectData]:
     repo_index = atlas_common.repository(root)
     block_pixel_size = atlas_common.block_pixel_size()
@@ -1624,7 +1629,16 @@ def parse_map_objects(
         map_objects: List[ObjectEventEntry] = []
         inside = False
         index = 0
-        for raw_line in script_path.read_text(encoding="utf-8").splitlines():
+        source = script_path.read_text(encoding="utf-8")
+        map_flags = initial_event_flags
+        if re.search(r"^\s*callback\s+MAPCALLBACK_OBJECTS,\s*FuchsiaAquariumCheckIfWeekend\b", source, re.M):
+            # The same entry callback serves both floors. Its flags expire on
+            # leaving the map and must never hide objects in another building.
+            hidden = ("EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1" if weekday in (0, 6)
+                      else "EVENT_TEMPORARY_UNTIL_MAP_RELOAD_2")
+            if not cleared_event_flags or hidden not in cleared_event_flags:
+                map_flags = initial_event_flags | {hidden}
+        for raw_line in source.splitlines():
             code, *_ = raw_line.split(";", 1)
             line = code.strip()
             if not line:
@@ -1664,7 +1678,7 @@ def parse_map_objects(
                 palette_names=palette_names,
                 extra_payload=extra_payload,
             )
-            if entry.event_flag and entry.event_flag in initial_event_flags:
+            if entry.event_flag and entry.event_flag in map_flags:
                 entry.event_flag_set = True
             map_objects.append(entry)
         if not map_objects:
@@ -1940,6 +1954,8 @@ def main() -> None:
         movements,
         palette_names,
         initial_event_flags,
+        weekday=args.weekday,
+        cleared_event_flags=override_clear,
     )
     pokemon_icons = gather_pokemon_icon_metadata(polished_root, constants)
     payload = build_payload(

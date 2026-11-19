@@ -177,6 +177,11 @@ describe("ObjectSpriteCache normalization for large sprites", () => {
     ]);
   });
 
+  it("reads the second Exeggutor head tile from the source transfer boundary", () => {
+    const sprite = { ...metadata.sprites.SPRITE_BIG_GYARADOS, tileCount: 24 };
+    expect(normalizer.normalizeTileIndex("SPRITE_ALOLAN_EXEGGUTOR", sprite, 24, 0x80, 0)).toBe(15);
+  });
+
   it("keeps the entire Snorlax sheet accessible", () => {
     expect(indicesFor("SPRITE_BIG_SNORLAX", "FACING_BIG_DOLL_SYM")).toEqual([
       0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7,

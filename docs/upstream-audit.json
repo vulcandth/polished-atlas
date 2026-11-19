@@ -16359,11 +16359,15 @@
           "maps/MagnetTunnelInside.pal"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/MagnetTunnelInside.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Magnet Tunnel selects the broken screen or pit blocks and uses the revised red palette.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d3058e1e239c9262c964fb5a5a77c5b3085540bc",
+        "Read the palette, tileset, collision and script changes. Checked all 32 lodestone flag combinations, including the early return when the pit takes precedence, and the red row for all four times."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/MagnetTunnelInside.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "070574ac2e64691c8061a4d3695f4f5a424d0092",
@@ -18055,10 +18059,14 @@
           "engine/overworld/player_movement.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Simplifies the player state register used to select walking, surfing or cycling.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3477abd37c36b7e50ef9d5fe1bae026d6206e5b3",
+        "Player sprite table, state constants and player map entry/movement routines only. No atlas-controlled player or world data."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "1ccbf7d23d754461ebb13a9f0abecdc3f0ede7fd",
@@ -18549,10 +18557,14 @@
           "gfx/sprites/kris_run.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Introduces running graphics for playable characters.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2432b4a4657aea800e790f4c011a15dd781a9148",
+        "Checked changed resource declarations, input state, palette and graphics destinations. The run sprites are selected by the controlled player, with no map object declarations using them at the pin."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "9a57ce4187613c6a3b0053e22b88ca3f1161ec30",
@@ -18763,10 +18775,14 @@
           "maps/GoldenrodHarbor.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Trim invisible edge of Goldenrod Harbor map. Regenerates from the pinned map and tileset data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/cb3fd678f56caf28bdc9a888a21fab8299e63c80",
+        "Checked every changed input type and traced shared resources to 1 exported map(s). Compared 405,504 first-frame RGB pixels, nonzero BG priority coverage and every collision quadrant with reconstructed day/common snapshots. Reconciled literal objects and warp records including empty maps in GoldenrodHarbor. "
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "0cf634bcdf684d3c493eceea9faf5365aa1dafa8",
@@ -27879,11 +27895,15 @@
           "maps/PewterGym.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/EcruteakGym.asm; object definitions in maps/EcruteakGym.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Make Ecruteaĸ Gym taller, and fix some Gym floor logos. Regenerates from the pinned map and tileset data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9eade388bc01654a284439686f09d2fb58816cda",
+        "Checked every changed input type and traced shared resources to 21 exported map(s). Compared 1,348,608 first-frame RGB pixels, nonzero BG priority coverage and every collision quadrant with reconstructed day/common snapshots. Reconciled literal objects and warp records including empty maps in EcruteakGym. "
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/EcruteakGym.asm; object definitions in maps/EcruteakGym.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "14b4baa31ddfcf5eb5030c7f1d9d83b00d08e03a",
@@ -29767,11 +29787,15 @@
           "maps/GoldenrodUndergroundWarehouse.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/GoldenrodUnderground.asm, maps/GoldenrodUndergroundSwitchRoom.asm and other files."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "The eleven switch-room door flags control single and paired blocks.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/85d5955cb9fafa6d310cfab6f77fd025f5c4bc58",
+        "Read the eleven source door declarations, reset flags on both approaches, and map-load macro. Verified the 17 cells against closed/open block IDs for the default, closed, open and eleven single-door snapshots. Reconciled object and warp coordinates in the switch room, Underground and warehouse."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/GoldenrodUnderground.asm, maps/GoldenrodUndergroundSwitchRoom.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "46f7d69de0d06e6ea82025807a3c56ac94bad2cc",
@@ -30841,11 +30865,15 @@
           "gfx/tilesets/fire/2.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The two kiln fire tiles now come from the banked traditional-house graphics.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5c1f4f225d7b19fbc3495674c3f7e4f9613dc017",
+        "Reviewed the animation and graphics patch scope at 5c1f4f22. Verified current AnimateFireTiles at a representative position in each of 2 distinct CharcoalKiln tracks for all 48 source VBlanks, checking frame RGB, order and duration. Also compared every first-frame pixel and collision cell in the day/common map corpus."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "2568077d54ac7e5f628e5c9f459e6b62cee8b396",
@@ -31704,11 +31732,15 @@
           "maps/UndergroundPathEntrance.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/Route5UndergroundPathEntrance.asm, maps/Route6UndergroundPathEntrance.asm; object definitions in maps/Route5UndergroundPathEntrance.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use `gate` tileset for Underground Path entrances. Regenerates from the pinned map and tileset data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/744d29fa57fa8a8754cc211abee85a6e384e065f",
+        "Checked every changed input type and traced shared resources to 46 exported map(s). Compared 1,321,984 first-frame RGB pixels, nonzero BG priority coverage and every collision quadrant with reconstructed day/common snapshots. Reconciled literal objects and warp records including empty maps in Route5UndergroundPathEntrance, Route6UndergroundPathEntrance. "
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/Route5UndergroundPathEntrance.asm, maps/Route6UndergroundPathEntrance.asm; object definitions in maps/Route5UndergroundPathEntrance.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "8c303bc65d4695a498a1d4d78326ee428440ba15",
@@ -32041,14 +32073,16 @@
           "home/vblank.asm"
         ]
       ],
-      "status": "reviewed",
-      "disposition": "adaptation",
-      "reason": "Full diff reviewed: consistent VBlank AnimateTileset execution is represented by the one-command-per-VBlank engine. Retain open with animation integration/visual verification; timing is not cycle-accurate.",
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Reorders hardware VBlank transfers and makes tileset animation run consistently.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/034de7c65c856f654fa0560c81729c665d784bcb",
-        "Full commit diff inspected; unresolved work is stated in reason."
+        "Full commit diff inspected; unresolved work is stated in reason.",
+        "https://github.com/Rangi42/polishedcrystal/commit/034de7c65c856f654fa0560c81729c665d784bcb",
+        "Read both ROM hunks, including the moved AnimateTileset call and transfer gating. Atlas already advances one tileset command each VBlank independently of ROM DMA scheduling."
       ],
-      "review_method": "full-diff"
+      "review_method": "diff-hunks"
     },
     {
       "sha": "08de4d722d2ac80195831dcf76a922e352477335",
@@ -35560,14 +35594,16 @@
           "engine/overworld/weather.asm"
         ]
       ],
-      "status": "reviewed",
-      "disposition": "adaptation",
-      "reason": "Full diff reviewed. Atlas now clears previous weather particles on type changes, hides disabled layers and destroys overlay weather on close. Cherrygrove day/night and weather-off/on browser checks pass without console errors. Indoor snow overlay round-trip and rapid teardown/async-load lifecycle verification remain open.",
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Clears stale weather sprites from the ROM shadow OAM when weather stops.",
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/1c69513eafedd940d91e630650a3b4637ba6af77",
-        "Full commit diff inspected; unresolved work is stated in reason."
+        "Full commit diff inspected; unresolved work is stated in reason.",
+        "https://github.com/Rangi42/polishedcrystal/commit/1c69513eafedd940d91e630650a3b4637ba6af77",
+        "Read the added hide loop and its bounded scan of WEATHER_TILE_1/2 and PAL_OW_WEATHER. Atlas weather rendering has no hardware OAM slots to retain."
       ],
-      "review_method": "full-diff"
+      "review_method": "diff-hunks"
     },
     {
       "sha": "64d4594a09cc93cf123b83ac225409f10b56b86e",
@@ -36535,11 +36571,15 @@
           "gfx/tilesets/kanto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Waterfall bottoms copy two consecutive tiles per phase.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/765ea064cab9c742301a1380e1deb7f2738d3411",
+        "Reviewed the animation and graphics patch scope at 765ea064. Verified current AnimateWaterfallTiles at a representative position in each of 1 distinct CeruleanCape tracks for all 80 source VBlanks, checking frame RGB, order and duration. Also compared every first-frame pixel and collision cell in the day/common map corpus."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "5bbddf56b6349223f2a262f5c4e7565ef7a19619",
@@ -36662,11 +36702,15 @@
           "maps/DanceTheatre.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/DanceTheatre.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The overworld Kimono Girl uses her explicit source palette.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c27dc8d4d2b9a5845c63d14863aaa8f72c526332",
+        "Inspected every map object hunk and checked GenericTrainerKimono_girlMiki with PAL_OW_YELLOW in DanceTheatre; remaining paths are trainer portrait colors. Verified Zuki uses BLACK."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/DanceTheatre.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "f97f27695567e863c852d9cd218e5941c6b61f3f",
@@ -36737,11 +36781,15 @@
           "maps/SnowtopMountainInside.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/SnowtopMountainInside.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The overworld Kimono Girl uses her explicit source palette.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8c3e6682599c9a9bed9ffe57c09886b96c1b9d73",
+        "Inspected every map object hunk and checked KimonoGirlAmiScript with PAL_OW_AZURE in SnowtopMountainInside; remaining paths are trainer portrait colors."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/SnowtopMountainInside.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "0e22ddca3b3c34dcb9e9cfd8237293e6d21a1e66",
@@ -37893,11 +37941,15 @@
           "gfx/tilesets/sprout_tower.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The final pillar animation uses the eight-step forward/back frame sequence.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d87661b459c455f3181dba5e1044477e1cf551e1",
+        "Reviewed the animation and graphics patch scope at d87661b4. Verified current AnimateTowerPillarTiles2 at a representative position in each of 3 distinct SproutTower2F tracks for all 320 source VBlanks, checking frame RGB, order and duration. Also compared every first-frame pixel and collision cell in the day/common map corpus."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in engine/tilesets/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "48095b6062da6082035d4707f7d6d623a7f3b48c",
@@ -38294,11 +38346,15 @@
           "gfx/tilesets/sprout_tower.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The fourth pillar segment includes the upper gradient in bank 1.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d9bd6239b4c97714fd42b7dea4273938b4a2381f",
+        "Reviewed the animation and graphics patch scope at d9bd6239. Verified current AnimateTowerPillarTiles4 at a representative position in each of 3 distinct SproutTower2F tracks for all 320 source VBlanks, checking frame RGB, order and duration. Also compared every first-frame pixel and collision cell in the day/common map corpus."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "b4934a716e562ab3e3d5f325d2b54c7e23b672ff",
@@ -39241,11 +39297,15 @@
           "gfx/tilesets/gym.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Five star destinations use tileset graphics and distinct alternating phases in Karen’s room.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1e14e613a430476c302a78d9ed56dc5879bed1b4",
+        "Reviewed the animation and graphics patch scope at 1e14e613. Verified current AnimateDoubleStarTile at a representative position in each of 1 distinct KarensRoom tracks for all 88 source VBlanks, checking frame RGB, order and duration. Also compared every first-frame pixel and collision cell in the day/common map corpus."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "e57a98e1e931dc292b6817fb3e93efca318b546c",
@@ -39263,10 +39323,14 @@
           "gfx/sprites/daisy.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Daisy uses the revised sprite and green default overworld palette.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e57a98e1e931dc292b6817fb3e93efca318b546c",
+        "Independently packed the source PNG into planar 2bpp and matched every byte of the exported walking sprite. Verified PAL_OW_GREEN."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "40b7753c6994209dc3375db98c2ead8a32cb6333",
@@ -41969,10 +42033,14 @@
           "gfx/tilesets/animations/buoy.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The historic buoy source for sea rocks is now the dedicated rocks PNG, copied in three-tile groups.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d1fcbeaf4cfed2a1f8abd3a7a26e39690cc8c393",
+        "Reviewed the animation and graphics patch scope at d1fcbeaf. Verified current AnimateRockTiles at a representative position in each of 3 distinct DragonsDenB1F tracks for all 80 source VBlanks, checking frame RGB, order and duration. Also compared every first-frame pixel and collision cell in the day/common map corpus."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "08fee08542196f2467db92cae6d2a5b0803db889",
@@ -42941,10 +43009,14 @@
           "engine/overworld/movement.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Parameterizes DigStep/ReturnDig in the ROM scripted movement interpreter.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7968d58888eae363943656cb1d41ce9d44506e8e",
+        "The movement table selects STEP_TYPE_SLEEP or STEP_TYPE_RETURN_DIG. The engine consolidation does not change a map or autonomous sprite movement definition."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "7902670bb684b5c3b77599feb86b0c096628d322",
@@ -42974,11 +43046,15 @@
           "gfx/tilesets/champions_room.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The torch uses bank 1 and alternates two frames.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7902670bb684b5c3b77599feb86b0c096628d322",
+        "Reviewed the animation and graphics patch scope at 7902670b. Verified current AnimateTorchTile at a representative position in each of 1 distinct LancesRoom tracks for all 48 source VBlanks, checking frame RGB, order and duration. Also compared every first-frame pixel and collision cell in the day/common map corpus."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "a7f9e67c2395c6150ee9c46e9b4c721f8dfdd327",
@@ -42996,10 +43072,14 @@
           "ram/wram0.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Removes an intermediate player movement byte.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/a7f9e67c2395c6150ee9c46e9b4c721f8dfdd327",
+        "The two-file diff rewrites the player input queue and reserves the old RAM byte. Atlas has no controlled player."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "70852708dae6231ec2e590838d01d916854df120",
@@ -43929,11 +44009,15 @@
           "maps/GoldenrodUndergroundWarehouse.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Reads the four-tile tube light transfer plus the changed Underground layouts and collision.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2b06b733aace0dd6ff3eced693f4ec3419a01a64",
+        "Reviewed the animation and graphics patch scope at 2b06b733. Verified current AnimateTubeLightTiles at a representative position in each of 2 distinct GoldenrodUndergroundWarehouse tracks for all 52 source VBlanks, checking frame RGB, order and duration. Also compared every first-frame pixel and collision cell in the day/common map corpus."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "596faccb26688bb94d06797f70c940cb6303cb3a",
@@ -43955,11 +44039,15 @@
           "gfx/tilesets/underground.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "VBlank bit 1 selects the tube lights’ four-tile source from $48 or $4c.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/596faccb26688bb94d06797f70c940cb6303cb3a",
+        "Reviewed the animation and graphics patch scope at 596faccb. Verified current AnimateTubeLightTiles at a representative position in each of 2 distinct GoldenrodUndergroundSwitchRoom tracks for all 52 source VBlanks, checking frame RGB, order and duration. Also compared every first-frame pixel and collision cell in the day/common map corpus."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "e69aa35e4b3605fe4aa032cf596f4403d5bbd9ad",
@@ -43977,10 +44065,14 @@
           "maps/GoldenrodUndergroundSwitchRoom.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The switch art is regenerated and the four direction-limited switch interactions belong to the game scripts.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e69aa35e4b3605fe4aa032cf596f4403d5bbd9ad",
+        "Read the eleven source door declarations, reset flags on both approaches, and map-load macro. Verified the 17 cells against closed/open block IDs for the default, closed, open and eleven single-door snapshots. Reconciled object and warp coordinates in the switch room, Underground and warehouse. Reviewed all four BGEVENT_UP replacements and the Underground graphics change."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "83cb9f335a10153a6f844b392109d946ef69354e",
@@ -45216,11 +45308,15 @@
           "maps/UndergroundPath.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/UndergroundPath.asm; object definitions in maps/UndergroundPath.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add carpets to Underground Path. Regenerates from the pinned map and tileset data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/63415bc08bf8ee7283ce953ccddd5cfd14b11cc7",
+        "Checked every changed input type and traced shared resources to 4 exported map(s). Compared 375,808 first-frame RGB pixels, nonzero BG priority coverage and every collision quadrant with reconstructed day/common snapshots. Reconciled literal objects and warp records including empty maps in UndergroundPath. Matched TM_EXPLOSION at (4,21), with its script, flag and item metadata."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/UndergroundPath.asm; object definitions in maps/UndergroundPath.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "861fca491f7e959d255799bb54f5a545544dd17d",
@@ -46264,10 +46360,14 @@
           "gfx/tilesets/animations/water_kanto.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The current Kanto water routine reads eight source PNG frames.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/8e89b412b51e443f2052f63c2b2dacff45f0d9cf",
+        "Reviewed the animation and graphics patch scope at 8e89b412. Verified current AnimateKantoWaterTile at a representative position in each of 1 distinct CeladonCity tracks for all 80 source VBlanks, checking frame RGB, order and duration. Also compared every first-frame pixel and collision cell in the day/common map corpus."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "f9dcd5c114a10b453814b3251a63375455420dab",
@@ -46340,11 +46440,15 @@
           "gfx/tilesets/cave.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The four signed scroll directions are applied to adjacent cave tiles in the same tick.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/08a96514a63b4aeb2013eb2dff4bb131ca6d579b",
+        "Reviewed the animation and graphics patch scope at 08a96514. Verified current ScrollFourTilesUpDownLeftRight at a representative position in each of 4 distinct ScaryCaveB1F tracks for all 96 source VBlanks, checking frame RGB, order and duration. Also compared every first-frame pixel and collision cell in the day/common map corpus."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "786bf72dfc2ceae642b55f228ca41875a152600b",
@@ -46859,11 +46963,15 @@
           "maps/SnowtopMountainOutside.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The distant rocks use the later TinyRock name, with two four-tile frames from bank 1.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/83a8893b01ca5173a6ee5b28ac76e348920545c2",
+        "Reviewed the animation and graphics patch scope at 83a8893b. Verified current AnimateTinyRockTiles at a representative position in each of 4 distinct SnowtopMountainOutside tracks for all 80 source VBlanks, checking frame RGB, order and duration. Also compared every first-frame pixel and collision cell in the day/common map corpus."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "ca0f28c6e4bd40bba70d2a027650b03114a85bd7",
@@ -46971,10 +47079,14 @@
           "maps/Route39.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Taller barn. Regenerates from the pinned map and tileset data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/12eebd507e37e817755e96949738f37460cd41d0",
+        "Checked every changed input type and traced shared resources to 15 exported map(s). Compared 4,727,808 first-frame RGB pixels, nonzero BG priority coverage and every collision quadrant with reconstructed day/common snapshots. "
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "f03a4ae1f815d2ebf0646070f1a7675c6d4608b5",
@@ -47190,11 +47302,15 @@
           "gfx/tilesets/animations/water_cave.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The cave water source has four frames, held for two tile-timer increments apiece.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/0fa2d42184c2faa6d07f7c2b697423b355f94b03",
+        "Reviewed the animation and graphics patch scope at 0fa2d421. Verified current AnimateCaveWaterTile at a representative position in each of 1 distinct ScaryCaveB1F tracks for all 96 source VBlanks, checking frame RGB, order and duration. Also compared every first-frame pixel and collision cell in the day/common map corpus."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "6aaa38dd11a7063e9f8fa6a4967765ec8b566942",
@@ -47275,11 +47391,15 @@
           "gfx/tilesets/port.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Port buoy art uses four adjacent tiles copied every two tile-timer increments.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/897620ca96645003d7b23c8dbd1859fc5cf1b948",
+        "Reviewed the animation and graphics patch scope at 897620ca. Verified current AnimateBuoyTiles at a representative position in each of 4 distinct OlivinePort tracks for all 80 source VBlanks, checking frame RGB, order and duration. Also compared every first-frame pixel and collision cell in the day/common map corpus."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): tile animation in data/tileset_anims.asm, engine/tilesets/tileset_anims.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "b3fde9c4baed2adee35d59678c582a356e5c2b68",
@@ -47297,10 +47417,14 @@
           "gfx/tilesets/animations/whirlpool.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The four-tile whirlpool advances every two timer increments.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b3fde9c4baed2adee35d59678c582a356e5c2b68",
+        "Reviewed the animation and graphics patch scope at b3fde9c4. Verified current AnimateWhirlpoolTiles at a representative position in each of 4 distinct DragonsDenB1F tracks for all 80 source VBlanks, checking frame RGB, order and duration. Also compared every first-frame pixel and collision cell in the day/common map corpus."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "169075e920bdde59bdfcdd3f3caad88abb106d48",
@@ -47711,10 +47835,14 @@
           "maps/BattleTowerOutside.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add Battle Tower logo on the path outside. Regenerates from the pinned map and tileset data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d03ae5e60af8c44c1ad1995be67649e05a4289b2",
+        "Checked every changed input type and traced shared resources to 2 exported map(s). Compared 411,648 first-frame RGB pixels, nonzero BG priority coverage and every collision quadrant with reconstructed day/common snapshots. "
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "12fe1d2c370b9d89e1513df43c0e7ec635090c67",
@@ -48783,10 +48911,14 @@
           "maps/EcruteakShrineOutside.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The winding Ecruteak trail uses the current Johto Sacred tileset.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f2199494080b0fdda15c0f103dd4420aaa2cad73",
+        "Checked all changed paths. Upstream 4e56db40e removed the intermediate ecruteak_shrine tileset files and registered Johto Sacred. Verified target first-frame RGB, priority and collision for EcruteakCity, EcruteakShrineOutside, using the current tileset bank pointers."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "6e7bbbb9cd197f86f884b9fc0b814bd30054a959",
@@ -48828,10 +48960,14 @@
           "maps/Route45.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Switch some blocks in `johto_outlands` to correspond with `johto_traditional`. Regenerates from the pinned map and tileset data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6e7bbbb9cd197f86f884b9fc0b814bd30054a959",
+        "Checked every changed input type and traced shared resources to 12 exported map(s). Compared 3,847,168 first-frame RGB pixels, nonzero BG priority coverage and every collision quadrant with reconstructed day/common snapshots. "
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "8c96f5d2415795b77cbaa4ded2bf06d19f2fb6e5",
@@ -49688,10 +49824,14 @@
           "maps/OlivineCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Olivine Lighthouse has a brick roof like its interior, not the default gatehouse roof. Regenerates from the pinned map and tileset data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/36c9c31dbebfb2644058f2cb7e93447e7f0f1e6d",
+        "Checked every changed input type and traced shared resources to 16 exported map(s). Compared 5,006,336 first-frame RGB pixels, nonzero BG priority coverage and every collision quadrant with reconstructed day/common snapshots. "
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "522851adeed402a2586b6cb8b5e9d4a605ae0629",
@@ -49968,10 +50108,14 @@
           "maps/Route10North.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add smokestacks to Power Plant. Regenerates from the pinned map and tileset data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1b55168afaebad0447952cfcbacf847be94b71e4",
+        "Checked every changed input type and traced shared resources to 8 exported map(s). Compared 2,477,056 first-frame RGB pixels, nonzero BG priority coverage and every collision quadrant with reconstructed day/common snapshots. "
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "175f9cc587783f69a886cf5cbf3c722c38b9fb8b",
@@ -50054,10 +50198,14 @@
           "maps/VioletCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The Violet City island shoreline uses the regenerated Johto tiles.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1c771f860df609c1396ad90c698d95f9f2481ee8",
+        "Checked all changed paths. Upstream 4e56db40e removed the intermediate ecruteak_shrine tileset files and registered Johto Sacred. Verified target first-frame RGB, priority and collision for VioletCity, using the current tileset bank pointers."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "1e2e7dbf8511cf6b7f67e737b214615e598852e9",
@@ -51013,10 +51161,14 @@
           "gfx/tilesets/kanto_urban.kanto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Rearrange tiles. Regenerates from the pinned map and tileset data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/4a440ffdecd821ae1b724d6df88280a3f89f158d",
+        "Checked every changed input type and traced shared resources to 30 exported map(s). Compared 7,195,648 first-frame RGB pixels, nonzero BG priority coverage and every collision quadrant with reconstructed day/common snapshots. "
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "e4da18b52b16dd46d9c5103216436e292441f8b1",
@@ -51134,10 +51286,14 @@
           "gfx/tilesets/kanto_urban.kanto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use tall trees in Kanto. Regenerates from the pinned map and tileset data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9d49d20b1151726d3740786e4af81010d91dc3eb",
+        "Checked every changed input type and traced shared resources to 51 exported map(s). Compared 13,523,968 first-frame RGB pixels, nonzero BG priority coverage and every collision quadrant with reconstructed day/common snapshots. "
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "5fa6c05d09eabd28621d0e8e0aeb2b906d7c7a9e",
@@ -51572,10 +51728,14 @@
           "maps/SaffronCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Revise Silph Co and Power Plant roofs. Regenerates from the pinned map and tileset data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/619febf95da88a07627e3a33ebf04537dc9e8ba9",
+        "Checked every changed input type and traced shared resources to 38 exported map(s). Compared 9,672,704 first-frame RGB pixels, nonzero BG priority coverage and every collision quadrant with reconstructed day/common snapshots. "
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "1867f0c66e14b60b2c74d3c0cef582cd1599c018",
@@ -51740,11 +51900,15 @@
           "maps/ViridianCity.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/ViridianCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Tweak some blocks in Viridian City, and fix some errors. Regenerates from the pinned map and tileset data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/9e98888fee7f6746a4bc42445204c63af63650a7",
+        "Checked every changed input type and traced shared resources to 30 exported map(s). Compared 7,195,648 first-frame RGB pixels, nonzero BG priority coverage and every collision quadrant with reconstructed day/common snapshots. Reconciled literal objects and warp records including empty maps in ViridianCity. "
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/ViridianCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "16e58eb740090f54af614ee53b66fa5ec0f2e472",
@@ -52248,11 +52412,15 @@
           "maps/TeamRocketBaseB2F.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/TeamRocketBaseB2F.asm."
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "The transmitter door opens independently, and the four machine blocks change only after all three Electrode flags are set.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/b8455f5b3032ad2dcc0b085b2dbf998420657918",
+        "Inspected every changed path and both callback branches. Tested all 16 flag combinations against exact block IDs; rebuilt hideout art and collision and matched TeamRocketBaseB2F day pixels and collision cells."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): state changes in maps/TeamRocketBaseB2F.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "c455a59d86bbf4b00245da20fa37fe3233925924",
@@ -52654,10 +52822,14 @@
           "gfx/tilesets/kanto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The sign image is present in the static tilesets and the two-frame GAMES animation.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c29d9183d5c3a585f1f5b2e612c68e3c9a417c44",
+        "Reviewed the animation and graphics patch scope at c29d9183. Verified current AnimateGameCornerTiles at a representative position in each of 4 distinct CeladonCity tracks for all 80 source VBlanks, checking frame RGB, order and duration. Also compared every first-frame pixel and collision cell in the day/common map corpus."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "e2a35e0b28ffdf2ed37e604ee91db3746336e898",
@@ -52679,10 +52851,14 @@
           "engine/tilesets/tileset_palettes.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The station tileset uses the Mart yellow palette.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/e2a35e0b28ffdf2ed37e604ee91db3746336e898",
+        "Checked the SPECIAL YELLOW entry, the TOWN exception for the train cutscene, the shared Mart row, the two map-specific CableCarGatePalette overrides, and all four exported palettes for GoldenrodMagnetTrainStation, MountMoonSquareCableCarGate, Route3CableCarGate, SaffronTrainStation."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "e62e6b3e5174c28110eae3e8a938be0e0705b591",
@@ -52978,10 +53154,14 @@
           "maps/StormyBeach.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Darker trees where Murky Swamp exists to blend in with the warp carpet. Regenerates from the pinned map and tileset data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/85c057f0bacda96118dd82a1ff3baeb9a5fabbf6",
+        "Checked every changed input type and traced shared resources to 15 exported map(s). Compared 4,727,808 first-frame RGB pixels, nonzero BG priority coverage and every collision quadrant with reconstructed day/common snapshots. "
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "86ea9d094b4842f9bd7e306dcdedb906edbba2ec",
@@ -53142,10 +53322,14 @@
           "gfx/tilesets/johto_modern.johto_common.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use more varied brick pattern in Goldenrod City. Regenerates from the pinned map and tileset data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/281e49c1989871253a5eb1fac419a77de951946b",
+        "Checked every changed input type and traced shared resources to 15 exported map(s). Compared 4,727,808 first-frame RGB pixels, nonzero BG priority coverage and every collision quadrant with reconstructed day/common snapshots. "
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "920a4ca123175460ed87d6546e6c5ba6bfc15245",
@@ -53204,11 +53388,15 @@
           "maps/Route4.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeruleanCity.asm; object definitions in maps/CeruleanCity.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Use other standard roof for Cerulean bike shop, and tweak benches. Regenerates from the pinned map and tileset data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/df08847a8da61827a08f95c51ef16f7bb261808a",
+        "Checked every changed input type and traced shared resources to 8 exported map(s). Compared 2,477,056 first-frame RGB pixels, nonzero BG priority coverage and every collision quadrant with reconstructed day/common snapshots. Reconciled literal objects and warp records including empty maps in CeruleanCity. "
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/CeruleanCity.asm; object definitions in maps/CeruleanCity.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "0ee8fcfa24482dea6f84ec235ff2c1aa80a1d98c",
@@ -55670,11 +55858,15 @@
           "maps/Route39Barn.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/EcruteakShrineInside.asm; object definitions in maps/EcruteakShrineInside.asm."
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Add Capumon shrine and flowers to Ecruteak Shrine. Regenerates from the pinned map and tileset data.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c9c7f68d93a222e1e8490ee027fb9c803324b838",
+        "Checked every changed input type and traced shared resources to 16 exported map(s). Compared 342,016 first-frame RGB pixels, nonzero BG priority coverage and every collision quadrant with reconstructed day/common snapshots. Reconciled literal objects and warp records including empty maps in EcruteakShrineInside. "
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): connectivity in maps/EcruteakShrineInside.asm; object definitions in maps/EcruteakShrineInside.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "07cf8dedba3c8b69d2063917665e113488e7f4b0",
@@ -58067,11 +58259,15 @@
           "maps/VioletOutskirts.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/BurnedTowerB1F.asm, maps/CianwoodCity.asm and other files."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Applies the Azure Suicune icon palette.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3b809054df210e7960f7639d13979610c16afdb0",
+        "Checked the default icon palette table and the six changed maps. All six exported regular Suicune entries select PAL_MON_AZURE; the separate white illusion is preserved."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/BurnedTowerB1F.asm, maps/CianwoodCity.asm and other files.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "32d875bbe551c3aeb13c87dff1af23d96164ee32",
@@ -59508,10 +59704,14 @@
           "ram/hram.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Names the six Game Boy BG transfer modes.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/2c320ebcce599d56d034dd18828099739016203b",
+        "Compared unique changed operations across all patches: numeric VRAM transfer values become symbolic constants, with comments, assertions and RAM label cleanup. Atlas reads source assets directly."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "787882162cc7a10afed9ef03bf3ea3bc1d288629",
@@ -60136,10 +60336,14 @@
           "gfx/tilesets/magnet_train.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Updates the travel cutscene and its shared Magnet Train graphics.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/f94606e48ddfa408e396d17098b03ff272fdecac",
+        "The cutscene tilemap has no atlas consumer. Followed the shared tileset PNG through both VRAM banks and matched the generated source raster for GoldenrodMagnetTrainStation, MountMoonSquareCableCarGate, Route3CableCarGate, SaffronTrainStation."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "af4099f28b29f9adcf555b6975acbdcc5ca3defd",
@@ -66614,11 +66818,15 @@
           "maps/Route35CoastSouth.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route35CoastNorth.asm, maps/Route35CoastSouth.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "Lass Rose has moved to Route 35 Coast North.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/7df0c560d053208bdcdf665f82eb68224d455530",
+        "Read both map diffs including her battle text. Verified one north-side trainer at (6,18) with the source sprite and idle movement and no remaining south-side trainer."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): object definitions in maps/Route35CoastNorth.asm, maps/Route35CoastSouth.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "00677057ff76a9ad1e2505ecd87247967651136d",

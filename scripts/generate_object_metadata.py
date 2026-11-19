@@ -1623,6 +1623,7 @@ def parse_map_objects(
     block_pixel_size = atlas_common.block_pixel_size()
     map_results: List[MapObjectData] = []
     appearance = object_macro_appearance(root)
+    cleared = cleared_event_flags or set()
     for script_path in sorted((root / "maps").rglob("*.asm")):
         label = script_path.stem
         map_info = repo_index.maps.get(label)
@@ -1631,12 +1632,24 @@ def parse_map_objects(
         index = 0
         source = script_path.read_text(encoding="utf-8")
         map_flags = initial_event_flags
+        monday_merchant = None
+        if re.search(r"^\s*callback\s+MAPCALLBACK_OBJECTS,\s*GoldenrodUndergroundCheckDayOfWeek\b", source, re.M):
+            vendors = {
+                "EVENT_GOLDENROD_UNDERGROUND_GRAMPS": (1,),
+                "EVENT_GOLDENROD_UNDERGROUND_OLDER_HAIRCUT_BROTHER": (2, 4, 6),
+                "EVENT_GOLDENROD_UNDERGROUND_YOUNGER_HAIRCUT_BROTHER": (0, 3, 5),
+                "EVENT_GOLDENROD_UNDERGROUND_GRANNY": (0, 6),
+            }
+            closed = {flag for flag, days in vendors.items() if weekday not in days}
+            map_flags = initial_event_flags | (closed - cleared)
+            if weekday == 1 and "EVENT_GOLDENROD_UNDERGROUND_GRAMPS" not in cleared:
+                monday_merchant = "EVENT_GOLDENROD_UNDERGROUND_GRAMPS"
         if re.search(r"^\s*callback\s+MAPCALLBACK_OBJECTS,\s*FuchsiaAquariumCheckIfWeekend\b", source, re.M):
             # The same entry callback serves both floors. Its flags expire on
             # leaving the map and must never hide objects in another building.
             hidden = ("EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1" if weekday in (0, 6)
                       else "EVENT_TEMPORARY_UNTIL_MAP_RELOAD_2")
-            if not cleared_event_flags or hidden not in cleared_event_flags:
+            if hidden not in cleared:
                 map_flags = initial_event_flags | {hidden}
         for raw_line in source.splitlines():
             code, *_ = raw_line.split(";", 1)
@@ -1680,6 +1693,9 @@ def parse_map_objects(
             )
             if entry.event_flag and entry.event_flag in map_flags:
                 entry.event_flag_set = True
+            if monday_merchant and entry.event_flag == monday_merchant:
+                # The source callback tests the game clock, even though the room uses indoor colors.
+                entry.time_mask = 1 << TIME_OF_DAY_SLUGS.index("morn")
             map_objects.append(entry)
         if not map_objects:
             continue

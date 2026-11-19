@@ -582,6 +582,40 @@ upstream tileset pointers.
   Snowtop Pokémon Center. Callbacks with other control flow require separate
   review.
 
+## Batched terrain, animation and callback review
+
+The ledger now resolves 826 of 1,057 upstream commits. The remaining 231
+include pending reviews and changes with open compatibility work. This pass
+resolved 53 commits using shared verification across maps with the same input
+formats. Hardware transfers, player-only movement and trainer portrait changes
+were screened separately from the atlas assets that their commits also touched.
+
+- Independently reconstructed the Monday day/common first frame using the pinned
+  graphics, block indices and palette data plus the animation simulator's initial
+  cycle state. All 612 exported images matched across 69,174,272 pixels. The
+  check also matched all 270,212 collision cells and all 1,211 foreground tile
+  placements, including color-index-zero coverage. This comparison checks atlas
+  export and composition. It shares the source loader and animation simulator
+  with the exporter.
+- Checked one position per distinct animated track on selected maps over complete
+  VBlank cycles. Examples include the kiln fire, Karen's stars, Lance's torch,
+  the Underground lights, sea rocks and all four Sprout Tower pillar segments.
+  The selected maps exercised 33 destination operations.
+- Tile callbacks now follow forward flag branches, shared destinations and
+  multiple returns. Regression checks cover all 16 combinations of the Rocket
+  base transmitter door and three Electrode flags. All 32 combinations of the
+  Magnet Tunnel lodestone and pit flags were also checked. The map renderer and
+  collision exporter consume the same selected blocks.
+- Goldenrod's switch room now starts with the eight doors opened by either
+  approach. Each of the eleven event flags drives the source door definition,
+  including doors spanning two blocks. The Underground vendors follow the
+  weekday schedule and the bargain merchant appears only on Monday morning.
+  The weekday test checks all four clock settings for all seven days.
+- The preceding combined build was exercised in headless Chrome. Following
+  stable → dev → stable preserved the intended URL and revision, and dev
+  rendered the selected night view without failed project requests or uncaught
+  exceptions.
+
 ## Immediate remaining implementation work
 
 - Verify palette-swap NPC colors in the full generated site. The frontend now

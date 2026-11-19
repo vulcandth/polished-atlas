@@ -26,6 +26,18 @@ def initial_flags(root: Path) -> set[str]:
                 if not re.fullmatch(r'(EVENT|ENGINE)_\w+', token):
                     raise ValueError(f'Invalid initial event flag: {token}')
                 flags.add(token)
+    # Both approaches to the switch room run this reset before the room loads.
+    # Apply it to the starting snapshot so explicit set/clear overrides still win.
+    approach = root / 'maps/GoldenrodUnderground.asm'
+    if approach.is_file():
+        source = approach.read_text(encoding='utf-8')
+        reset = re.search(r'^GoldenrodUndergroundResetSwitches:\s*\n(.*?)^\s*endcallback\b', source, re.M | re.S)
+        if reset:
+            for operation, flag in re.findall(r'^\s*(setevent|clearevent)\s+(EVENT_DOOR_\d+_OPEN)\b', reset[1], re.M):
+                if operation == 'setevent':
+                    flags.add(flag)
+                else:
+                    flags.discard(flag)
     return flags
 
 
@@ -60,39 +72,69 @@ def effective_flags(initial: Iterable[str], path: Path | None = None) -> set[str
 
 
 @lru_cache(maxsize=1024)
-def conditional_block_changes(script: Path) -> tuple[tuple[str | None, int, int, int], ...]:
-    """Read straight-line changeblock commands and forward, flag-guarded groups in source order."""
+def _tile_callback(script: Path) -> tuple[list[str], dict[str, int]]:
     if not script.is_file():
-        return ()
+        return [], {}
     lines = [raw.partition(';')[0].strip() for raw in script.read_text(encoding='utf-8').splitlines()]
-    source = '\n'.join(line for line in lines if line)
-    callbacks = re.findall(r'^callback\s+MAPCALLBACK_TILES,\s*(\w+)$', source, re.M)
+    callbacks = [m[1] for line in lines if (m := re.fullmatch(r'callback\s+MAPCALLBACK_TILES,\s*(\w+)', line))]
     if len(callbacks) != 1:
-        return ()
-    number = r'(?:\$[0-9a-fA-F]+|\d+)'
-    block = rf'changeblock\s+({number}),\s*({number}),\s*({number})'
-    body = re.search(rf'^{callbacks[0]}::?\n(.*?)^endcallback$', source, re.M | re.S)
-    if not body:
-        return ()
-    guarded = re.compile(rf'check(?:event|flag) (?P<flag>\w+)\niffalse(?:fwd)? (?P<skip>\.\w+)\n'
-                         rf'(?P<blocks>(?:{block}\n)+)(?P=skip):?\n')
-    plain = re.compile(block + r'\n')
+        return [], {}
+    entry = next((i for i, line in enumerate(lines) if line.rstrip(':') == callbacks[0]), None)
+    if entry is None:
+        return [], {}
+    commands = []
+    labels = {}
+    if callbacks[0] == 'GoldenrodUndergroundSwitchRoomUpdateDoorPositions':
+        # Its assembler loop expands one flag check per ugdoor_def. Closed
+        # doors retain the block from the .ablk, just as on map entry.
+        doors = [line.split(None, 1)[1] for line in lines if line.startswith('ugdoor_def ')]
+        for door, definition in enumerate(doors, start=1):
+            _, *fields = [field.strip() for field in definition.split(',')]
+            if not fields or len(fields) % 4:
+                raise ValueError(f'Invalid ugdoor_def in {script}: {definition}')
+            skip = f'.door_{door}_closed'
+            commands.extend((f'checkevent EVENT_DOOR_{door}_OPEN', f'iffalsefwd {skip}'))
+            for i in range(0, len(fields), 4):
+                x, y, _, opened = fields[i:i+4]
+                commands.append(f'changeblock {x}, {y}, {opened}')
+            labels[skip] = len(commands)
+        commands.append('endcallback')
+        return commands, labels
+    for line in lines[entry + 1:]:
+        if re.fullmatch(r'\w+::?', line):
+            break
+        if re.fullmatch(r'\.\w+:?', line):
+            labels[line.rstrip(':')] = len(commands)
+        elif line:
+            commands.append(line)
+    return commands, labels
 
-    def value(token: str) -> int:
-        return int(token[1:], 16) if token.startswith('$') else int(token)
 
-    commands = body[1]
+def conditional_block_changes(script: Path, events: set[str]) -> tuple[tuple[int, int, int], ...]:
+    """Evaluate the tile callback for this snapshot, committing writes only at endcallback."""
+    commands, labels = _tile_callback(script)
     changes = []
     pos = 0
+    checked = None
+    number = r'(?:\$[0-9a-fA-F]+|\d+)'
     while pos < len(commands):
-        if group := guarded.match(commands, pos):
-            changes.extend((group['flag'], value(x), value(y), value(tile))
-                           for x, y, tile in plain.findall(group['blocks']))
-            pos = group.end()
-        elif direct := plain.match(commands, pos):
-            changes.append((None, *(value(arg) for arg in direct.groups())))
-            pos = direct.end()
+        line = commands[pos]
+        pos += 1
+        if line == 'endcallback':
+            return tuple(changes)
+        if m := re.fullmatch(r'check(?:event|flag)\s+((?:EVENT|ENGINE)_\w+)', line):
+            checked = m[1] in events
+        elif m := re.fullmatch(r'(iftrue|iffalse|sjump)(?:fwd)?\s+(\.\w+)', line):
+            if m[1] != 'sjump' and checked is None:
+                return ()
+            if m[1] == 'sjump' or checked == (m[1] == 'iftrue'):
+                target = labels.get(m[2])
+                if target is None or target < pos:
+                    return ()
+                pos = target
+        elif m := re.fullmatch(rf'changeblock\s+({number}),\s*({number}),\s*({number})', line):
+            x, y, block = (int(v[1:], 16) if v.startswith('$') else int(v) for v in m.groups())
+            changes.append((x, y, block))
         else:
-            # A jump or unrecognized command can change which writes execute.
             return ()
-    return tuple(changes)
+    return ()

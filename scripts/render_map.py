@@ -472,11 +472,10 @@ class RepositoryIndex:
         if wet_asset and self.get_overcast_index(info, weekday=weekday, events=events) is not None:
             asset = wet_asset
         blocks = _map_block_indices(_read_block_bytes(override or self.root / asset), info.width, info.height)
-        for flag, x, y, block in conditional_block_changes(self.root / "maps" / f"{info.label}.asm"):
-            if flag is None or flag in events:
-                if x >= 2 * info.width or y >= 2 * info.height or block > 255:
-                    raise ValueError(f"Invalid changeblock in {info.label} at ({x}, {y}): {block}")
-                blocks[(y // 2) * info.width + x // 2] = block
+        for x, y, block in conditional_block_changes(self.root / "maps" / f"{info.label}.asm", events):
+            if x >= 2 * info.width or y >= 2 * info.height or block > 255:
+                raise ValueError(f"Invalid changeblock in {info.label} at ({x}, {y}): {block}")
+            blocks[(y // 2) * info.width + x // 2] = block
         return blocks
 
     @property

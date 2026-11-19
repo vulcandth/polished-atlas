@@ -59,6 +59,22 @@ class ObjectPaletteTests(unittest.TestCase):
                 self.assertEqual(len(shrine_elders), 3)
                 self.assertFalse(any(obj.event_flag_set for obj in shrine_elders))
 
+    def test_underground_vendors_follow_the_game_clock(self):
+        expected = [
+            {"YOUNGER_HAIRCUT_BROTHER", "GRANNY"}, {"GRAMPS"}, {"OLDER_HAIRCUT_BROTHER"},
+            {"YOUNGER_HAIRCUT_BROTHER"}, {"OLDER_HAIRCUT_BROTHER"}, {"YOUNGER_HAIRCUT_BROTHER"},
+            {"OLDER_HAIRCUT_BROTHER", "GRANNY"},
+        ]
+        prefix = "EVENT_GOLDENROD_UNDERGROUND_"
+        for day in range(7):
+            maps = objects.parse_map_objects(self.root, self.constants, {}, self.movements, self.names, set(), weekday=day)
+            underground = next(m for m in maps if m.label == "GoldenrodUnderground")
+            vendors = underground.objects[:4]
+            for time in objects.TIME_OF_DAY_SLUGS:
+                visible = {obj.event_flag.removeprefix(prefix) for obj in vendors if not obj.event_flag_set
+                           and time in obj.to_payload(32, self.names)["time_of_day"]["slots"]}
+                self.assertEqual(visible, set() if day == 1 and time != "morn" else expected[day], (day, time))
+
     def test_packed_palette_constants_and_components(self):
         self.assertEqual(self.constants.get("PAL_MON_RED"), 0xD1)
         self.assertEqual(self.constants.get("PAL_MON_RED_BLUE"), 0x02)

@@ -95,6 +95,50 @@ class MapPaletteTests(unittest.TestCase):
                     expected[index] = block
             self.assertEqual(self.repo.map_blocks(info, flags), expected)
 
+    def test_rocket_door_and_turbines_use_independent_and_compound_conditions(self):
+        info = self.repo.map_info("TeamRocketBaseB2F")
+        door = "EVENT_OPENED_DOOR_TO_ROCKET_HIDEOUT_TRANSMITTER"
+        defeated = [f"EVENT_TEAM_ROCKET_BASE_B2F_ELECTRODE_{i}" for i in range(1, 4)]
+        raw = self.repo.map_blocks(info, set())
+        for mask in range(16):
+            flags = {flag for i, flag in enumerate([door, *defeated]) if mask & (1 << i)}
+            expected = raw.copy()
+            changes = [(14, 12, 0x0d)] if door in flags else []
+            if set(defeated) <= flags:
+                changes += [(12, 4, 0x94), (16, 4, 0x95), (12, 6, 0x96), (16, 6, 0x97)]
+            for x, y, block in changes:
+                index = (y // 2) * info.width + x // 2
+                self.assertNotEqual(raw[index], block)
+                expected[index] = block
+            self.assertEqual(self.repo.map_blocks(info, flags), expected)
+
+    def test_goldenrod_basement_key_selects_a_second_return_path(self):
+        info = self.repo.map_info("GoldenrodUnderground")
+        locked = self.repo.map_blocks(info, set())
+        unlocked = self.repo.map_blocks(info, {"EVENT_USED_BASEMENT_KEY"})
+        cell = 3 * info.width + 8
+        self.assertEqual(locked[cell], 0x3d)
+        self.assertNotEqual(unlocked[cell], locked[cell])
+        self.assertEqual([i for i, pair in enumerate(zip(locked, unlocked)) if pair[0] != pair[1]], [cell])
+
+    def test_switch_room_initial_approach_and_individual_doors(self):
+        info = self.repo.map_info("GoldenrodUndergroundSwitchRoom")
+        tables = [
+            [(16, 4, 0x51, 0x62)], [(4, 4, 0x41, 0x60)], [(4, 8, 0x49, 0x61)],
+            [(10, 8, 0x51, 0x62)], [(16, 8, 0x41, 0x60)],
+            [(12, 4, 0x5a, 0x5b), (12, 6, 0x4e, 0x4f)], [(6, 4, 0x42, 0x43), (6, 6, 0x46, 0x47)],
+            [(18, 8, 0x42, 0x43), (18, 10, 0x46, 0x47)], [(12, 8, 0x52, 0x53), (12, 10, 0x56, 0x57)],
+            [(6, 8, 0x4a, 0x4b), (6, 10, 0x4e, 0x4f)], [(20, 8, 0x5c, 0x64), (22, 8, 0x5d, 0x18)],
+        ]
+        flags = [f"EVENT_DOOR_{n}_OPEN" for n in range(1, 12)]
+        initial = self.repo.initial_event_flags
+        self.assertEqual({n for n, f in enumerate(flags, 1) if f in initial}, {1, 2, 3, 4, 5, 6, 9, 10})
+        for state in [initial, set(), set(flags), *({flag} for flag in flags)]:
+            blocks = self.repo.map_blocks(info, state)
+            for door, cells in zip(flags, tables):
+                for x, y, closed, opened in cells:
+                    self.assertEqual(blocks[(y // 2) * info.width + x // 2], opened if door in state else closed)
+
     def test_snowtop_stairs_and_table_are_applied_without_flags(self):
         info = self.repo.map_info("SnowtopPokeCenter1F")
         blocks = self.repo.map_blocks(info, set())
@@ -106,7 +150,7 @@ class MapPaletteTests(unittest.TestCase):
             path = Path(folder) / "Test.asm"
             path.write_text("callback MAPCALLBACK_TILES, TestTiles\nTestTiles:\n"
                             "changeblock 0, 0, 1\nsjump OtherRoutine\nendcallback\n")
-            self.assertEqual(conditional_block_changes(path), ())
+            self.assertEqual(conditional_block_changes(path, set()), ())
 
     def test_special_palette_inventory_and_all_declared_variants(self):
         source = (self.root / "data/maps/palettes.asm").read_text(encoding="utf-8")

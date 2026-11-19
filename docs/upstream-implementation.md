@@ -465,14 +465,25 @@ commit/file inventory. Never skip a change solely because it is undocumented.
   Road hikers, firebreather and Black Belt. The ledger now has 663 resolved,
   359 pending and 29 reviewed/open. Findings remain preliminary.
 
+- Local main commit a44f8e0 validates dev compact animation layers and
+  entrance variants in both publication and rollback. The clean combined build
+  used main a44f8e0 and dev 187cd96 at the configured project URLs. Assembly
+  and retained-site verification passed at 97,727,559 bytes. The two entries
+  reference their respective JavaScript and CSS assets. All 1,010 generated
+  stable map PNGs matched the previous v3.2.2 output byte for byte.
+- Dev now applies the upstream side-wall direction masks on entry and exit for
+  axis movement, reachable-cell exploration and animated wandering. Left/right
+  glow wall IDs retain the directional behavior of their ordinary counterparts.
+  TypeScript and all 48 frontend tests passed. This change follows the combined
+  build above. Final combined browser and publication checks remain open.
+
 ## Immediate remaining implementation work
 
 - Verify palette-swap NPC colors in the full generated site. The frontend now
   consumes swap metadata and rebuilds background-derived NPC frames when movement
   crosses a color boundary; focused tests cover selection and boundary changes.
 - Finish animation integration with animated background-derived object colors,
-  shared event state. Forced map time is now shared across terrain and objects. Backport compact-asset validation into
-  main's shared publication tooling, then verify combined deployment.
+  shared event state. Forced map time is now shared across terrain and objects. Run the final combined-site checks before deployment.
 - Complete NPC glow effects, weather integration verification, dual-palette integration validation,
   and all map/object/movement findings from the audit.
 - Finish grass occlusion and per-facing RELATIVE_ATTRIBUTES/OAM_PRIO behavior.

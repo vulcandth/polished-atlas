@@ -31,7 +31,7 @@ import { registerPixiExtensions } from "@/pixi/registerExtensions";
 import { loadMapAnimation, type MapAnimationResource } from "@/lib/loadMapAnimation";
 import { ObjectSpriteCache, isPokemonIconSprite } from "@/lib/objectSprites";
 import { computeObjectPosition, computeObjectPriority, type PlacementContext } from "@/lib/objectPlacement";
-import { createCollisionHelper, type CollisionHelper } from "@/lib/collision";
+import { canCrossSideWall, createCollisionHelper, type CollisionHelper } from "@/lib/collision";
 import { createGlowTransition, NO_GLOW, UNLIT } from "@/lib/objectGlow";
 import { getMovementModel } from "@/lib/movementModel";
 import { getStaticObjectAnimation } from "@/lib/objectAnimation";
@@ -1192,6 +1192,7 @@ function createWanderAnimator(
   summary: MovementSummary,
   objectEntry: ObjectEventEntry,
   frameSet: MovementFrameSet | null,
+  collision: CollisionHelper | null,
 ): PathMovementAnimator | null {
   const bounds = summary.bounds ?? {
     left: summary.startCell.x,
@@ -1236,6 +1237,7 @@ function createWanderAnimator(
       if (reachableSet && !reachableSet.has(`${absX},${absY}`)) {
         continue;
       }
+      if (!canCrossSideWall(collision, absX - delta.dx, absY - delta.dy, delta.dx, delta.dy)) continue;
       candidates.push(direction);
     }
     if (!candidates.length) {
@@ -1465,6 +1467,7 @@ function createMovementAnimator(
   summary: MovementSummary | null,
   objectEntry: ObjectEventEntry,
   frameSet: MovementFrameSet | null,
+  collision: CollisionHelper | null,
 ): MovementAnimator | null {
   if (!summary) {
     return null;
@@ -1473,7 +1476,7 @@ function createMovementAnimator(
     return createAxisPathAnimator(summary, objectEntry, frameSet);
   }
   if (summary.model.category === "random-walk") {
-    return createWanderAnimator(summary, objectEntry, frameSet);
+    return createWanderAnimator(summary, objectEntry, frameSet, collision);
   }
   if (summary.model.category === "spin") {
     return createSpinAnimator(summary, objectEntry, frameSet);
@@ -2961,7 +2964,7 @@ export default function MapCanvas({
         : computeMovementSummaryForObject(objectEntry, state.collisionHelper);
       let animator = disableObjectAnimations
         ? null
-        : createMovementAnimator(movementSummary, objectEntry, frameSet);
+        : createMovementAnimator(movementSummary, objectEntry, frameSet, state.collisionHelper);
       if (
         !disableObjectAnimations &&
         !animator &&
@@ -3820,7 +3823,7 @@ export default function MapCanvas({
           : computeMovementSummaryForObject(objectEntry, entry.collisionHelper);
         let animator = disableObjectAnimations
           ? null
-          : createMovementAnimator(movementSummary, objectEntry, frameSet);
+          : createMovementAnimator(movementSummary, objectEntry, frameSet, entry.collisionHelper);
         if (
           !disableObjectAnimations &&
           !animator &&

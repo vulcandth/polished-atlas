@@ -10,6 +10,22 @@ export interface CollisionHelper {
 
 const DEFAULT_PERMISSION_TABLE: number[] = Array.from({ length: 0x100 }, () => 0);
 
+// GetSideWallDirectionMask uses the low three bits for ordinary and glowing walls alike.
+const WALL_MASKS = [8, 4, 1, 2, 10, 6, 9, 5];
+
+export function canCrossSideWall(helper: CollisionHelper | null, x: number, y: number, dx: number, dy: number): boolean {
+  if (!helper) return true;
+  const wall = (value: number | null) =>
+    value !== null && (value & 0xf0) === 0xb0 ? WALL_MASKS[value & 7] : 0;
+  const from = wall(helper.getValue(x, y));
+  const to = wall(helper.getValue(x + dx, y + dy));
+  if (dx === 1) return !(from & 8 || to & 4);
+  if (dx === -1) return !(from & 4 || to & 8);
+  if (dy === 1) return !(from & 2 || to & 1);
+  if (dy === -1) return !(from & 1 || to & 2);
+  return true;
+}
+
 function clampToInt(value: number): number {
   if (!Number.isFinite(value)) {
     return 0;

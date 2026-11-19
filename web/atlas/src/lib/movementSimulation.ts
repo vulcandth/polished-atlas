@@ -8,7 +8,7 @@ import type {
   MovementStep,
   ObjectEventEntry,
 } from "@/types";
-import type { CollisionHelper } from "@/lib/collision";
+import { canCrossSideWall, type CollisionHelper } from "@/lib/collision";
 
 export interface SimulateNpcMovementOptions {
   object: ObjectEventEntry;
@@ -130,7 +130,7 @@ function simulateAxisWalk(
         y: start.y + delta.dy * step,
       };
       const { passable } = ensurePassable(collisionHelper, cell, medium);
-      if (!passable) {
+      if (!passable || !canCrossSideWall(collisionHelper, cell.x - delta.dx, cell.y - delta.dy, delta.dx, delta.dy)) {
         const reached = step - 1;
         blockedNotes.push(
           reached > 0
@@ -277,7 +277,7 @@ function simulateRandomWalk(
         continue;
       }
       const { passable } = ensurePassable(collisionHelper, next, medium);
-      if (!passable) {
+      if (!passable || !canCrossSideWall(collisionHelper, cell.x, cell.y, dx, dy)) {
         continue;
       }
       addToQueue(next);

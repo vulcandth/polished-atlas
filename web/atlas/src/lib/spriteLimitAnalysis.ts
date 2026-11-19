@@ -376,10 +376,7 @@ function analyzeForPlayerCell(
     }
   }
 
-  // Weather reservation: applies only to overworld maps, reserves 1 sprite in totals and per-scanline
-  const currentMapLabel: string = (ctx as any).currentMapLabel ?? "";
-  const isOverworld = Boolean(ctx.warpMetadata?.maps?.[currentMapLabel]?.isOverworld);
-  if (ctx.includeWeather && isOverworld) {
+  if (ctx.includeWeather) {
     const ref: SpriteLimitEntityRef = {
       kind: "weather",
       cell: { ...playerCell },
@@ -674,8 +671,9 @@ export interface AnalyzeOptions {
   totalLimit?: number;
   // Whether to consider a follower Pokémon adjacent to the player
   includeFollower?: boolean;
-  // Whether to reserve sprite capacity for weather (overworld only)
+  // Reserve one sprite for a map whose snapshot has weather.
   includeWeather?: boolean;
+  weatherMaps?: ReadonlySet<string>;
 }
 
 export function analyzeMapSpriteLimits(
@@ -699,7 +697,7 @@ export function analyzeMapSpriteLimits(
     scanlineLimit: Math.max(0, Math.trunc(options.scanlineLimit ?? SCANLINE_SPRITE_LIMIT)),
     totalLimit: Math.max(0, Math.trunc(options.totalLimit ?? TOTAL_SPRITE_LIMIT)),
     includeFollower: Boolean(options.includeFollower),
-    includeWeather: Boolean(options.includeWeather),
+    includeWeather: Boolean(options.includeWeather && (options.weatherMaps?.has(map.label) ?? warp?.maps[map.label]?.isOverworld)),
   };
   // attach current map label for downstream inclusion
   (ctx as any).currentMapLabel = map.label;

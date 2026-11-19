@@ -15,10 +15,10 @@ There are 1,057 commits and 3,520 changed endpoint paths in the current range.
 ## Current audit status
 
 All 1,057 commits from v3.2.2 through `f8e67fbd` have had a relevance
-screen. The ledger resolves 1,055. Both open commits have specific
-follow-up work recorded against their diffs. The list of known features is
-preliminary. Auditing the outstanding changes and validating them in the
-Atlas remain part of implementation.
+screen and a recorded disposition. The implementation audit resolves all
+1,057 at this revision. The planning feature list was preliminary. The
+scope screens and targeted runtime checks establish coverage for the
+reviewed changes, with gameplay outside the Atlas skipped as documented.
 
 The previous batches closed 21 commits, including Celadon’s rooftops, Moomoo
 Farm’s day and night occupants, Faraway Island’s ferry landing, Fuchsia’s
@@ -27,9 +27,11 @@ as having no Atlas impact, 364 were skipped after examining their subject,
 changed paths and consumers. The changelog adds only the v3.2.3 battle
 crash fix. Use the commit diffs to find unreleased master changes.
 
-| Open commit group | Remaining work |
-| --- | --- |
-| Weather rendering and overworld performance | Check weather sprite priority when more than ten tiles share a scanline. Atlas snapshots change weather immediately. The old particle layer was cleared in all four tested room transitions. |
+The weather renderer shares each Game Boy screen's sprite budget between
+map actors and weather. On Rugged Road, Chrome showed that two Firebreather
+tiles and the eight highest eligible weather slots survived a crowded line.
+The two rejected slots became available again. Indoor snow and the return
+to clear weather were checked on the same trip.
 
 Day and night trips through Vermilion City, Fuchsia Aquarium, Shamouti Island,
 Rugged Road and Route 10 reproduced the source pearl, Goldeen and Exeggutor
@@ -122,7 +124,7 @@ indices across the seven environments matched the pinned source.
   palettes and the return routes through the Trade Center and Colosseum.
 - The original palette-swap command is resolved. Rendering checks cover all
   25 rectangles in 17 maps. The later fade-aware swap and NPC glow transition
-  changes retain separate open records.
+  changes have separate verified records.
 - Browser textures matched source graphics and map palettes for the Ecruteak
   gates and pagoda tips, Lavender radio dishes and Yellow Forest lilypads.
   Shallow sand occupies 761 collision cells across 21 maps. Its footprints
@@ -813,15 +815,11 @@ At that checkpoint the ledger resolved 915 of 1,057 commits. The remaining
   views. All 1,536 displayed pixels matched the source PNG, facing and RGB
   table. These two objects are stationary in the pinned game data.
 
-## Immediate remaining implementation work
+## Publication checks
 
-- Check remaining event-dependent tile callbacks, object visibility and weather
-  against the shared snapshot. Forced map time is shared across terrain and
-  objects. Run the final combined-site checks before deployment.
-- Finish the weather sprite allocation check for crowded scanlines.
-- Dev builds now require upstream corpus tests after source checkout, checking
-  the exact pinned SHA. Extend that corpus coverage alongside further adaptations.
-- Finish the commit ledger, then run full combined-site/browser tests and publish.
+Run the complete-ledger check against the pinned upstream checkout, assemble
+both clean channel builds, verify the combined site in a browser, and check
+the published revision manifests after deployment.
 
 The clean dev build at `facbdbf` passed all 87 Python tests and generated 612
 maps. It assembled with stable `f4e515e` into a 128,053,312-byte local Pages

@@ -11,6 +11,9 @@ import { decodeBase64 } from "@/lib/base64";
 import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
 import { cherrySpawnPoint, type WeatherPoint, type WeatherType } from "@/lib/weatherState";
 import { fadeColorStep, GAME_FRAME_MS } from "@/lib/objectGlow";
+import { weatherOamClips, type OamPoint } from "@/lib/weatherOam";
+
+export type WeatherActor = { sprite: Sprite; tiles: OamPoint[] };
 
 export type { WeatherType } from "@/lib/weatherState";
 
@@ -65,14 +68,13 @@ function whiteFadeTable(): Texture {
 }
 
 type Particle = {
+  slot: number;
   kind: typeof RAINDROP | typeof RAINSPLASH | typeof SNOWFLAKE | typeof SAND | typeof CHERRY;
   sprite: Sprite;
   alive: boolean;
   // Screen-space integer positions
   x: number;
   y: number;
-  // Used to emulate IsEvenSpriteIndex on GB (index / 4 parity); we approximate randomly
-  evenBias: boolean;
   // For splash lifetime control
   ttlFrames: number;
 };
@@ -80,6 +82,7 @@ type Particle = {
 // removed unused helpers makeRectTextureWithRenderer and clamp
 
 export class WeatherSystem {
+  private oamMasks = new Map<Sprite, Graphics>();
   private lightningFilter: Filter | null = null;
   private lightningStart = 0;
   private layer: Container;
@@ -236,7 +239,10 @@ export class WeatherSystem {
 
   public setEnabled(next: boolean): void {
     this.enabled = !!next;
-    if (!this.enabled) this.endLightning();
+    if (!this.enabled) {
+      this.endLightning();
+      this.clearOamMasks();
+    }
     this.layer.visible = this.enabled && this.weather !== "none";
   }
 
@@ -273,6 +279,7 @@ export class WeatherSystem {
   }
 
   public clear(): void {
+    this.clearOamMasks();
     for (const p of this.particles) {
       try {
         p.sprite.destroy();
@@ -391,12 +398,12 @@ export class WeatherSystem {
     sprite.anchor.set(0.5, 0.5);
     sprite.alpha = 1;
     const p: Particle = {
+      slot: 0,
       kind,
       sprite,
       alive: true,
       x: 0,
       y: 0,
-      evenBias: Math.random() < 0.5,
       ttlFrames: 0,
     };
     this.layer.addChild(sprite);
@@ -408,9 +415,11 @@ export class WeatherSystem {
     const texture = this.textureFor(kind);
     if (!texture) return;
     const p = this.pool.pop() ?? this.alloc(kind);
+    const used = new Set(this.particles.map(particle => particle.slot));
+    p.slot = 0;
+    while (used.has(p.slot)) p.slot++;
     p.kind = kind;
     p.alive = true;
-    p.evenBias = Math.random() < 0.5;
     p.ttlFrames = kind === RAINSPLASH ? 4 : 0; // ~3.75 frames in GB; 4 is fine
     p.x = x;
     p.y = y;
@@ -439,7 +448,7 @@ export class WeatherSystem {
   }
 
   // cameraStep is the delta (in px) of the world relative to screen this tick
-  public update(cameraStepX: number, cameraStepY: number): void {
+  public update(cameraStepX: number, cameraStepY: number, actors: WeatherActor[] = []): void {
     if (!this.ready) return;
     if (this.lightningFilter) {
       const step = Math.floor((performance.now() - this.lightningStart) / LIGHTNING_STEP_MS);
@@ -449,8 +458,11 @@ export class WeatherSystem {
     // Only update on odd frames to emulate GB 30fps weather cadence
     this.frameCounter = (this.frameCounter + 1) & 0xff;
     const runThisFrame = (this.frameCounter & 1) === 1;
-    if (!runThisFrame) return;
     if (!this.enabled || this.weather === "none") return;
+    if (!runThisFrame) {
+      this.limitSprites(actors);
+      return;
+    }
 
     // Spawning based on weather kind
     if (this.weather === "rain" || this.weather === "thunderstorm") {
@@ -481,6 +493,7 @@ export class WeatherSystem {
     for (let i = 0; i < this.particles.length; i++) {
       const p = this.particles[i];
       if (!p || !p.alive) continue;
+      const slotParity = p.slot & 1; // IsEvenSpriteIndex returns bit 0 of the OAM slot.
 
       if (p.kind === RAINDROP) {
         // 5% chance of splashing
@@ -492,9 +505,9 @@ export class WeatherSystem {
           p.sprite.rotation = 0;
         } else {
           // y: min 8 + (even?2:0) - 4*stepY
-          const y = p.y - stepY4 + (p.evenBias ? 2 : 0) + 8;
+          const y = p.y - stepY4 + 2 * slotParity + 8;
           // x: base -4 - 4*stepX - (even?2:0)
-          const x = p.x - stepX4 - 4 - (p.evenBias ? 2 : 0);
+          const x = p.x - stepX4 - 4 - 2 * slotParity;
           p.x = x;
           p.y = y;
           p.sprite.x = x;
@@ -533,7 +546,7 @@ export class WeatherSystem {
           continue;
         }
         // y: min 2 + (even?1:0) - 2*stepY
-        const y = p.y - stepY2 + (p.evenBias ? 1 : 0) + 2;
+        const y = p.y - stepY2 + slotParity + 2;
         // x wiggle: 50% chance to add 1 to the step; x -= (2*stepX + wiggle)
         const wiggle = Math.random() < 0.5 ? 1 : 0;
         const x = p.x - (stepX2 + wiggle);
@@ -549,9 +562,9 @@ export class WeatherSystem {
 
       if (p.kind === SAND) {
         // y rises: -4 + (even?2:0) - 4*stepY
-        const y = p.y - stepY4 - 4 + (p.evenBias ? 2 : 0);
+        const y = p.y - stepY4 - 4 + 2 * slotParity;
         // x drifts left strongly: -12 - 4*stepX - (even?2:0)
-        const x = p.x - stepX4 - 12 - (p.evenBias ? 2 : 0);
+        const x = p.x - stepX4 - 12 - 2 * slotParity;
         p.x = x;
         p.y = y;
         p.sprite.x = x;
@@ -561,6 +574,53 @@ export class WeatherSystem {
         }
         continue;
       }
+    }
+    this.limitSprites(actors);
+  }
+
+  private clearOamMasks(): void {
+    for (const [sprite, mask] of this.oamMasks) {
+      if (!sprite.destroyed) sprite.mask = null;
+      if (!mask.destroyed) mask.destroy();
+    }
+    this.oamMasks.clear();
+  }
+
+  private limitSprites(actors: WeatherActor[]): void {
+    const particles = [...this.particles].sort((a, b) => b.slot - a.slot);
+    const groups = [...actors, ...particles.map(p => ({
+      sprite: p.sprite, weatherSlot: p.slot, tiles: [{ x: Math.round(p.x - 4), y: Math.round(p.y - 4) }],
+    }))];
+    const clips = weatherOamClips(groups, this.width, this.height);
+    const active = new Set<Sprite>();
+    for (const [index, rectangles] of clips) {
+      const sprite = groups[index].sprite;
+      if (index >= actors.length && !rectangles.length) {
+        // Hidden weather OAM slots are immediately available for another spawn.
+        this.despawn(this.particles.indexOf(particles[index - actors.length]));
+        continue;
+      }
+      active.add(sprite);
+      let mask = this.oamMasks.get(sprite);
+      if (!mask) {
+        mask = new Graphics();
+        mask.eventMode = "none";
+        sprite.addChild(mask);
+        sprite.mask = mask;
+        this.oamMasks.set(sprite, mask);
+      }
+      mask.clear().beginFill(0xffffff);
+      for (const rect of rectangles) {
+        mask.drawRect((rect.x - sprite.x) / sprite.scale.x, (rect.y - sprite.y) / sprite.scale.y,
+          rect.width / sprite.scale.x, rect.height / sprite.scale.y);
+      }
+      mask.endFill();
+    }
+    for (const [sprite, mask] of this.oamMasks) {
+      if (active.has(sprite)) continue;
+      if (!sprite.destroyed) sprite.mask = null;
+      if (!mask.destroyed) mask.destroy();
+      this.oamMasks.delete(sprite);
     }
   }
 

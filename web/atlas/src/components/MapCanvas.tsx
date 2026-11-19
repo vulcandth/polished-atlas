@@ -11,7 +11,7 @@ import {
   Sprite,
   Texture,
 } from "pixi.js";
-import { WeatherSystem } from "@/lib/weather";
+import { WeatherSystem, type WeatherActor } from "@/lib/weather";
 import { weatherType } from "@/lib/weatherState";
 import { joinBasePath, withBasePath, withVersion } from "@/lib/basePath";
 import { channelStorageKey } from "@/lib/channel";
@@ -157,6 +157,34 @@ type ObjectMarkerEntry = {
   animationElapsedMs?: number;
   refreshPalette?: (marker: ObjectMarkerEntry, dx: number, dy: number, collisionDx: number, collisionDy: number) => void;
 };
+
+function weatherActors(markers: ObjectMarkerEntry[], metadata: ObjectMetadata | null): WeatherActor[] {
+  const actors: WeatherActor[] = [];
+  for (const marker of markers) {
+    const sprite = marker.sprite;
+    if (!sprite.visible || !sprite.renderable) continue;
+    const facing = metadata?.facings[marker.currentFrameKey ?? ""];
+    const tiles = [];
+    if (facing?.tiles.length) {
+      const left = Math.min(0, ...facing.tiles.map(tile => tile.dx));
+      const top = Math.min(0, ...facing.tiles.map(tile => tile.dy));
+      for (const tile of facing.tiles) {
+        tiles.push({ x: Math.round(sprite.x + (tile.dx - left) * sprite.scale.x),
+                     y: Math.round(sprite.y + (tile.dy - top) * sprite.scale.y) });
+      }
+    } else {
+      // Species icons use a rectangular tile grid with two animation frames.
+      for (let y = 0; y < sprite.texture.height; y += 8) {
+        for (let x = 0; x < sprite.texture.width; x += 8) {
+          tiles.push({ x: Math.round(sprite.x + x * sprite.scale.x), y: Math.round(sprite.y + y * sprite.scale.y) });
+        }
+      }
+    }
+    actors.push({ sprite, tiles });
+  }
+  // InitSprites writes LOW, NORMAL, HIGH starting at the end of OAM.
+  return actors.sort((a, b) => a.sprite.zIndex - b.sprite.zIndex);
+}
 
 interface MapCanvasProps {
   atlas: AtlasLayout | null;
@@ -2178,6 +2206,8 @@ export default function MapCanvas({
         totalLimit: Math.max(0, Math.trunc(spriteTotalLimit || 0)),
         includeFollower: Boolean(spriteIncludeFollower),
         includeWeather: Boolean(spriteIncludeWeather),
+        weatherMaps: weatherStateRef.current?.maps && new Set(Object.entries(weatherStateRef.current.maps)
+          .filter(([, state]) => weatherType(state.weather) !== "none").map(([label]) => label)),
       });
       const filtered = spriteOnlyErrors
         ? results.filter((r: SpriteLimitIssue) => r.severity === "exceeds")
@@ -4060,10 +4090,14 @@ export default function MapCanvas({
         if (disableMapAnimations) return;
         const overlay = overlayStateRef.current;
         if (overlay) {
-          overlay.weather?.update(0, 0);
+          if (overlay.weather?.container.visible) {
+            overlay.weather.update(0, 0, weatherActors(overlay.objectMarkers, objectMetadataRef.current));
+          }
         } else {
           for (const entry of animationsRef.current) {
-            if (entry.visible !== false) entry.weather?.update(0, 0);
+            if (entry.visible !== false && entry.weather?.container.visible) {
+              entry.weather.update(0, 0, weatherActors(entry.objectMarkers, objectMetadataRef.current));
+            }
           }
         }
       };
@@ -5447,7 +5481,6 @@ export default function MapCanvas({
               />
               <span>Follower Pokémon</span>
             </label>
-            {/* Weather toggle (overworld only when applied in analysis) */}
             <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
               <input
                 type="checkbox"

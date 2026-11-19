@@ -65,7 +65,7 @@ def validate(repo: Path, ledger: dict) -> None:
         raise ValueError("Endpoint file inventory is stale or incomplete")
     allowed = {"adaptation", "regeneration", "already-supported", "no-atlas-impact", "superseded"}
     unresolved = [c["sha"] for c in commits if c["status"] != "resolved"
-                  or c["disposition"] not in allowed or not c["reason"] or not c["evidence"]]
+                  or c["disposition"] not in allowed or not c.get("review_method") or not c["reason"] or not c["evidence"]]
     if unresolved:
         raise ValueError(f"{len(unresolved)} commits still require review/resolution")
 

@@ -23,6 +23,10 @@ the global Slowpoke story gate, Zapdos/Team Rocket conditions, weekly rain/thund
 snow, sandstorms and guaranteed early Cherrygrove blossoms. Random regional weather
 and random blossoms after Mystery Egg delivery are omitted. Particle positions and
 motion remain randomized. Weather palettes follow each map's effective palette time.
+The panorama uses adjacent 160-by-144-pixel Game Boy views for sprite limits.
+An actor facing reserves its OAM slots before particles. Each view admits
+up to ten tiles per scanline in reverse OAM order, including the visible
+portions of tiles at a view boundary.
 Map snapshots switch weather immediately rather than simulating the ROM's 32-frame
 gameplay transition cooldown. See the implementation tracker for validation status.
 

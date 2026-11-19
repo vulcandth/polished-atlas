@@ -38,6 +38,7 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import atlas_common
 from event_state import initial_flags
+from fixed_weather import fixed_weather
 from generate_object_metadata import MACRO_EXPANSIONS, gather_constants, split_arguments
 from object_schedule import ObjectSchedule, caught_beasts, eusine_masks, eusine_state
 
@@ -607,8 +608,7 @@ def count_sprite_usage(
             for y in range(sy, ey + 1):
                 scanline_counts[y] += 1
 
-    # Weather reservation (overworld only)
-    if include_weather and warp_meta.is_overworld:
+    if include_weather:
         total_sprites += 1
         for y in range(SCREEN_HEIGHT_PX):
             scanline_counts[y] += 1
@@ -1064,6 +1064,9 @@ def analyze_scripts(
             if not any(sub in label_lc for sub in map_filters_norm):
                 return
         warp_meta = get_warp_meta(warp_maps, map_label)
+        constant = warp_maps.get(map_label, {}).get("map_constant")
+        map_weather = include_weather and (fixed_weather(constant, weekday, flags).weather != "none"
+                                           if constant else warp_meta.is_overworld)
         is_overworld = warp_meta.is_overworld
         if not on_arrival and ((scope == "overworld" and not is_overworld) or (scope == "indoor" and is_overworld)):
             return
@@ -1736,7 +1739,7 @@ def analyze_scripts(
                                             object_meta=object_meta,
                                             warp_meta=warp_meta,
                                             include_follower=include_follower,
-                                            include_weather=include_weather,
+                                            include_weather=map_weather,
                                             scanline_limit=scanline_limit,
                                             total_limit=total_limit,
                                             context={
@@ -1828,7 +1831,7 @@ def analyze_scripts(
                                                 object_meta=object_meta,
                                                 warp_meta=warp_meta,
                                                 include_follower=include_follower,
-                                                include_weather=include_weather,
+                                                include_weather=map_weather,
                                                 scanline_limit=scanline_limit,
                                                 total_limit=total_limit,
                                                 context={
@@ -1898,7 +1901,7 @@ def analyze_scripts(
                                             object_meta=object_meta,
                                             warp_meta=warp_meta,
                                             include_follower=include_follower,
-                                            include_weather=include_weather,
+                                            include_weather=map_weather,
                                             scanline_limit=scanline_limit,
                                             total_limit=total_limit,
                                             context={
@@ -1943,7 +1946,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--time", dest="time_of_day", choices=["morn", "day", "nite", "eve"], default="day")
     p.add_argument("--weekday", type=int, choices=range(7), default=1, help="Game weekday (0=Sunday, 1=Monday)")
     p.add_argument("--no-follower", dest="include_follower", action="store_false", help="Disable follower reservation and collision checks")
-    p.add_argument("--no-weather", dest="include_weather", action="store_false", help="Disable weather sprite reservation on overworld")
+    p.add_argument("--no-weather", dest="include_weather", action="store_false", help="Disable the sprite reservation on maps with weather")
     p.add_argument("--scanline-limit", type=int, default=DEFAULT_SCANLINE_LIMIT)
     p.add_argument("--total-limit", type=int, default=DEFAULT_TOTAL_LIMIT)
     p.add_argument("--json", dest="json_output", type=Path, default=None, help="Write full JSON report to this path")

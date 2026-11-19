@@ -618,9 +618,9 @@ were screened separately from the atlas assets that their commits also touched.
 
 ## Map connections, objects and palette review
 
-This batch brought the ledger to 867 of 1,057 resolved commits. Of the 190
-remaining, 178 await a disposition and 12 have reviewed changes with open
-work. The changelog still provides only the v3.2.3 battle hotfix for this
+The ledger now resolves 872 of 1,057 commits. All 173 pending entries have
+a recorded lead from the batch screen. A further 12 have reviewed changes
+with open work. The changelog adds only the v3.2.3 battle hotfix for this
 range. The ledger records why each skipped change is outside atlas scope.
 
 - Lucky Island now starts hidden, as in a new game with the trendy phrase
@@ -648,6 +648,14 @@ range. The ledger records why each skipped change is outside atlas scope.
   Rugged Road South and the two Celadon rooftops. Checked regular and
   overcast selection where the game defines both. The build passed all 77
   Python tests, including the map-state regressions.
+- Checked two large graphics commits in one pass by independently converting
+  the pinned PNGs to Game Boy tile bytes. All 218 exported static sprite
+  sheets and 393 Pokémon species/form records matched. Those forms use 362
+  distinct icon files. The atlas does not consume party-menu miniatures.
+- Assembled the clean dev build `e92333b` with the stable build and verified
+  the retained 97,758,278-byte Pages bundle. Headless Chrome rendered both
+  versions, loaded dev night assets and returned to stable using the channel
+  links. All 54 frontend tests and the TypeScript check passed.
 
 ## Immediate remaining implementation work
 

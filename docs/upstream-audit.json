@@ -16321,7 +16321,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 28 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles."
     },
     {
       "sha": "d3058e1e239c9262c964fb5a5a77c5b3085540bc",
@@ -16756,10 +16757,14 @@
           "gfx/pokemon/extras.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Adds the Orange Islands Arbok form to the species/form tables.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1d19458a16e9895f9d532fd1b62aecc2d0001c29",
+        "The ARBOK_ORANGE_FORM overworld icon shares gfx/icons/arbok with the other forms. Its bytes match the source PNG. Remaining changes concern encounters, battle pictures and their animation data."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "e8130326beb4c6377fc30cf6019d76ceced8467e",
@@ -17825,7 +17830,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 7 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision."
     },
     {
       "sha": "b2a8bb26a75c62a1db5cf8e8f7638c6d8d7e8098",
@@ -18605,7 +18611,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 6 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles."
     },
     {
       "sha": "18cbbfc5e6580bbd5a529d53915e1ea5379545f1",
@@ -18761,7 +18768,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 9 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables."
     },
     {
       "sha": "cb3fd678f56caf28bdc9a888a21fab8299e63c80",
@@ -18839,7 +18847,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 10 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables."
     },
     {
       "sha": "acadb9d7d98869dc6d51efc1ef1ec9047d5c2e6b",
@@ -19632,7 +19641,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 3 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision."
     },
     {
       "sha": "99b33820e4da60a861ddb4b3c97f4c8eb575d90e",
@@ -19950,7 +19960,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 32 changed paths. Inspect the overworld call sites and shared state in the assembly refactor for changes observable in the atlas."
     },
     {
       "sha": "d15d49b4b55d47bb8e5c5438708ae0baa0984096",
@@ -23248,10 +23259,14 @@
           "gfx/sprites/rattata_back.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Updated all OW and Party icons for pokemon.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/d15d49b4b55d47bb8e5c5438708ae0baa0984096",
+        "Independently converted the pinned PNG shades using the four fixed DMG levels, packed each 8-by-8 tile into the two hardware bit planes and matched every byte in 218 static sprites and 393 species/form records from 362 distinct icon files. Party-menu miniatures and masks have no atlas consumer."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "6b0ccd597cdb1529f9f5cdc358f1403c5aed9325",
@@ -23760,7 +23775,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 124 changed paths. Check macro and map-script hunks for any change to persistent object flags, callbacks or warp destinations."
     },
     {
       "sha": "040deac0e1499e1dcfbfd207457319c18bdebe7c",
@@ -23786,10 +23802,14 @@
           "gfx/icons/unown.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Removes unused icon assets and renames the Mr. Mime icon.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/040deac0e1499e1dcfbfd207457319c18bdebe7c",
+        "Both exported Mr. Mime forms use the current mr__mime and mr__mime_galarian graphics. Independently converted the pinned PNG shades using the four fixed DMG levels, packed each 8-by-8 tile into the two hardware bit planes and matched every byte in 218 static sprites and 393 species/form records from 362 distinct icon files. Party-menu miniatures and masks have no atlas consumer."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "35423586f752c8880b05b879cc3b8d00eea68d3e",
@@ -27071,10 +27091,14 @@
           "gfx/sprites/scientist.png"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Reun palfix.py on new icon+mini PNGs to re-encode as 2-bit grayscale.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/35423586f752c8880b05b879cc3b8d00eea68d3e",
+        "Independently converted the pinned PNG shades using the four fixed DMG levels, packed each 8-by-8 tile into the two hardware bit planes and matched every byte in 218 static sprites and 393 species/form records from 362 distinct icon files. Party-menu miniatures and masks have no atlas consumer."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "ea79a7bcc27f8e5a05e1635def0f351d6f33a583",
@@ -29951,7 +29975,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 7 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision."
     },
     {
       "sha": "d9e14d8c013f7d03ebd73f3c3a1389847bf54123",
@@ -31318,7 +31343,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 16 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision."
     },
     {
       "sha": "ffcfec6f5ce7e7339e5591ca84f19fcdab9b4814",
@@ -31969,7 +31995,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 9 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles."
     },
     {
       "sha": "c115ca13940b41d0a195fa2774ecfab882f8c10b",
@@ -32085,7 +32112,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 7 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles."
     },
     {
       "sha": "034de7c65c856f654fa0560c81729c665d784bcb",
@@ -36208,7 +36236,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 13 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables."
     },
     {
       "sha": "3ff33399fd1f24af2713797a7e33703aded73735",
@@ -40193,7 +40222,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 78 changed paths. Inspect the overworld call sites and shared state in the assembly refactor for changes observable in the atlas."
     },
     {
       "sha": "93c4ac8a76998d282eedf96ff6707e7f5ff53f62",
@@ -40787,7 +40817,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 8 changed paths. Check which trainer palette tables feed overworld NPCs and compare the pinned colors independently of battle portraits."
     },
     {
       "sha": "eab10268c252c5b2124bb9b7fd5aea389fcf03bf",
@@ -41147,7 +41178,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 6 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision."
     },
     {
       "sha": "c7ed65443a267a8d33be94503a9586a2b3e83da7",
@@ -41992,7 +42024,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 5 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted."
     },
     {
       "sha": "c93039d0ab6be2a2b93e696547b5ccffd8bc44dc",
@@ -42251,7 +42284,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 8 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision."
     },
     {
       "sha": "3f63609a2691d5414152ad5659825b2d2ff1b16a",
@@ -42691,7 +42725,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 6 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision."
     },
     {
       "sha": "d21b67a6b2827f1dc0e6743708265e2888bf1cef",
@@ -42948,7 +42983,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 2 changed paths. Inspect the overworld call sites and shared state in the assembly refactor for changes observable in the atlas."
     },
     {
       "sha": "f7a3ab8283c0a748558e094099e569bca391cc1b",
@@ -43007,7 +43043,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 2 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted."
     },
     {
       "sha": "425539cfcccd4d0bc3f0dab3407620bb402d319a",
@@ -43028,7 +43065,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 2 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted."
     },
     {
       "sha": "63f1187495d80fe490aaed59e520be722ba1ffaf",
@@ -43335,7 +43373,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 5 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted."
     },
     {
       "sha": "4a8267d3722bfd4d3f97d2c5ff57e9e40ddedba1",
@@ -43373,7 +43412,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 1 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted."
     },
     {
       "sha": "34964da25711259567de4af168f7287e9a1f3440",
@@ -43423,7 +43463,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 4 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted."
     },
     {
       "sha": "792f2ce9163fae3e0f45d1b94a52bed67232edf7",
@@ -43448,7 +43489,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 3 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted."
     },
     {
       "sha": "c6170dddeda2c1d141b1dc584ba8a2c1c5d87db0",
@@ -44394,7 +44436,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 11 changed paths. Compare the visible shared block on both sides of the Azalea and Route 34 connection at all four times."
     },
     {
       "sha": "33c4fab6964556a3e999d3baa3286e6c3c6f1a39",
@@ -45629,7 +45672,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 5 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles."
     },
     {
       "sha": "8ae2e8dee8b7034cecdb560f7b9cd052ce8bf6b7",
@@ -46176,7 +46220,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 16 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables."
     },
     {
       "sha": "a1934b2ad8acf37e2230ae7993cd90c4225da5b0",
@@ -49438,7 +49483,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 12 changed paths. Trace the forest palette change through later replacements and compare the surviving forest palettes and terrain."
     },
     {
       "sha": "4caf4bbd3bf559691eb5685d06e65599eb74fe95",
@@ -50164,7 +50210,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 5 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables."
     },
     {
       "sha": "1b55168afaebad0447952cfcbacf847be94b71e4",
@@ -50250,7 +50297,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 9 changed paths. Verify each retained tileset consumer after later map and asset reorganizations. Inspect the affected layouts and collision."
     },
     {
       "sha": "1c771f860df609c1396ad90c698d95f9f2481ee8",
@@ -50430,7 +50478,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 5 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables."
     },
     {
       "sha": "4e56db40e33a3f975e95868a649a3df1cb4c77e5",
@@ -53002,7 +53051,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 2 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables."
     },
     {
       "sha": "f88c27c25046c97f3e4755e10461fe4322e1deab",
@@ -54168,7 +54218,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 8 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles."
     },
     {
       "sha": "98773a2949a86c8a2f83176e6338226b4081d0b1",
@@ -54737,7 +54788,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 7 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables."
     },
     {
       "sha": "3c78cfc91820467bd255562968df44d63553b51c",
@@ -54774,7 +54826,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 6 changed paths. Check the affected map groups and roof art/palettes against the regular and overcast endpoint tables."
     },
     {
       "sha": "a54b7a73f73178874e260857e60b3cc0b52fb53c",
@@ -55214,7 +55267,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 19 changed paths. Identify permanent coastal sand terrain separately from transient tracks left by the player."
     },
     {
       "sha": "16704c8b32df01c7d9712d2f187bde0678b557fb",
@@ -55403,7 +55457,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 7 changed paths. Trace changed tile and palette resources to the specific current map and verify interactions or animations in the displayed tiles."
     },
     {
       "sha": "326dfb0654d03fbfbe1c6d1b30b51d3e2415b192",
@@ -55593,7 +55648,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 7 changed paths. Trace the forest palette change through later replacements and compare the surviving forest palettes and terrain."
     },
     {
       "sha": "9df8776ca948d0a700f20b6987ef3177e2a06320",
@@ -55863,10 +55919,14 @@
           "maps/FuchsiaCity.ablk"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": []
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "Changes terrain around Dratini in Fuchsia City.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/915f3fb6d8545caffe9f473572137303844381e2",
+        "The patch changes FuchsiaCity.ablk and three Kanto tileset resources. The generated city image and collision grid matched for all four clocks. Sprite palette behavior is covered by its own changes."
+      ],
+      "review_method": "diff-hunks"
     },
     {
       "sha": "bd927ec3e1d93c7920bc7a29eaf72e1aaa7a0df5",
@@ -60444,7 +60504,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 113 changed paths. Check macro and map-script hunks for any change to persistent object flags, callbacks or warp destinations."
     },
     {
       "sha": "f94606e48ddfa408e396d17098b03ff272fdecac",
@@ -60698,7 +60759,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 18 changed paths. Inspect palette, weather and map transition code under a scripted map change, including cooldown behavior."
     },
     {
       "sha": "24cdf5fdf3202fb60120307c99ae622fbab30498",
@@ -61098,7 +61160,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 4 changed paths. Compare the modified facing in data/sprites/facings.asm with the two actual rendered Snowtop sprite tiles."
     },
     {
       "sha": "f22d31a52cbbf1387d27ba63f5bf2fa959955d37",
@@ -62515,7 +62578,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 4 changed paths. Inspect palette, weather and map transition code under a scripted map change, including cooldown behavior."
     },
     {
       "sha": "c56337dafbef18e071a71636d327d9e06274b85d",
@@ -62569,7 +62633,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 5 changed paths. Check terrain collision and foreground coverage with an NPC standing or walking behind the affected terrain."
     },
     {
       "sha": "2165aad84539479dae51108567609ce77829c1a6",
@@ -64175,7 +64240,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 5 changed paths. Compare the lit window colors in the night render with the source map palette and unchanged daylight appearance."
     },
     {
       "sha": "10780a66808b9c99aa445d97f68c8f671af90aa9",
@@ -65016,7 +65082,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 6 changed paths. Check terrain collision and foreground coverage with an NPC standing or walking behind the affected terrain."
     },
     {
       "sha": "4c92ad192fa11733d7fa955d906945392ac2edbd",
@@ -67729,7 +67796,8 @@
       "status": "pending",
       "disposition": null,
       "reason": "",
-      "evidence": []
+      "evidence": [],
+      "triage_note": "Batch screen of 125 changed paths. Check all pinned consumers of block zero against the separate engine change and the border block on each map."
     },
     {
       "sha": "06e43dc3f38866bb681468249273a2f2812a12b4",

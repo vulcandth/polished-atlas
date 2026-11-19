@@ -75,12 +75,13 @@ def validate_bundle(root: Path, channel: str, *, require_clean: bool = True) -> 
                 path = root / "maps/common/animated" / f"{label}.animation.json"
             if not path.is_file():
                 raise ValueError(f"Missing {slug} render for {label}")
+            render_directory = path.parent
             animation = json.loads(path.read_text(encoding="utf-8"))
             if animation["frameWidth"] != width * 32 or animation["frameHeight"] != height * 32:
                 raise ValueError(f"Map render dimensions do not match metadata: {path}")
             for origin, variant in palette_maps.get(label, {}).get("entrance_variants", {}).items():
                 asset_label = variant["asset_label"]
-                path = (root / "maps" / slug / "animated" / f"{asset_label}.animation.json").resolve()
+                path = (render_directory / f"{asset_label}.animation.json").resolve()
                 if root not in path.parents or not path.is_file():
                     raise ValueError(f"Missing {slug} entrance variant for {label} from {origin}")
                 animation = json.loads(path.read_text(encoding="utf-8"))

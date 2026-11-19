@@ -15,15 +15,21 @@ There are 1,057 commits and 3,520 changed endpoint paths in the current range.
 ## Current audit status
 
 All 1,057 commits from v3.2.2 through `f8e67fbd` have had a relevance
-screen. The ledger resolves 974. Of the 83 still open, 74 have leads
+screen. The ledger resolves 979. Of the 78 still open, 69 have leads
 from the scan and 9 have confirmed follow-up work. Auditing the remaining
 diffs and validating the affected Atlas features are part of implementation.
 The list of known features below is preliminary.
 
-The latest batch closed 18 commits. Of the 548 total commits classified
+The last two batches closed 23 commits. Of the 552 total commits classified
 as having no Atlas impact, 364 were skipped after examining their subject,
 changed paths and consumers. The changelog adds only the v3.2.3 battle
 crash fix. Use the commit diffs to find unreleased master changes.
+
+Four movement-engine refactors shared ROM routines or reordered internal step
+IDs. The Atlas reads the same named movement commands before and after those
+changes. Azalea Gym's new half steps still have separate open records. For the
+environment-ID reorder, all 612 exported map categories and all 224 palette-slot
+indices across the seven environments matched the pinned source.
 
 - The Dojo uses the map-entry script to assign each rematch trainer’s position,
   facing, palette and graphic. All seven weekdays and four time slots were

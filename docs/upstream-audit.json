@@ -43199,11 +43199,15 @@
           "engine/overworld/movement.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 2 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted."
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "The ROM packs a movement parameter alongside the handler address. Atlas reads the movement macros by name.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/5e1a04dba3167cf5fa62223f313adebbb098337a",
+        "Checked both 104-entry dispatch tables, InitStep direction masking and GetStepVector speed masking. The map scripts, movement command declarations and source sprite tables have no delta."
+      ],
+      "triage_note": "Batch screen of 2 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "425539cfcccd4d0bc3f0dab3407620bb402d319a",
@@ -43221,11 +43225,15 @@
           "ram/hram.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 2 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted."
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Shared movement handlers apply the sliding, facing and visibility flags in the ROM.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/425539cfcccd4d0bc3f0dab3407620bb402d319a",
+        "Checked both 104-entry dispatch tables, including opcodes $38–$3d setting or clearing the same three flag bits. The HRAM change is a comment. Atlas reads the unchanged source macros."
+      ],
+      "triage_note": "Batch screen of 2 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "63f1187495d80fe490aaed59e520be722ba1ffaf",
@@ -43568,11 +43576,15 @@
           "engine/overworld/movement.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 1 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted."
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "Shares the ROM routines that set movement duration, action and step type.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/3e0ce1b40940000d3cabd29844ea8d424cdf5152",
+        "Read the complete movement.asm patch, including the side-effect guard for walk/run versus turn/slide. No map command, movement declaration, graphic or idle behavior table changes."
+      ],
+      "triage_note": "Batch screen of 1 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "34964da25711259567de4af168f7287e9a1f3440",
@@ -43645,11 +43657,15 @@
           "engine/overworld/movement.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batch screen of 3 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted."
+      "status": "resolved",
+      "disposition": "no-atlas-impact",
+      "reason": "A common routine picks the NPC or player step type for walking, jumping, stairs and half steps.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/792f2ce9163fae3e0f45d1b94a52bed67232edf7",
+        "Checked the reordered internal STEP_TYPE_NPC_WALK slot against the reordered StepFunction_NPCWalk handler and the four assertions pairing player/NPC step types. Atlas has no consumer of these numeric dispatch IDs. Half-step behavior itself has separate audit records."
+      ],
+      "triage_note": "Batch screen of 3 changed paths. Compare changed movement constants, duration or dispatch logic with the atlas idle movement model and determine which behavior is exclusively scripted.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "c6170dddeda2c1d141b1dc584ba8a2c1c5d87db0",
@@ -58884,11 +58900,15 @@
           "home/map.asm"
         ]
       ],
-      "status": "pending",
-      "disposition": null,
-      "reason": "",
-      "evidence": [],
-      "triage_note": "Batched changed-line scan (follow-up leads only): weather in engine/events/overcast.asm."
+      "status": "resolved",
+      "disposition": "already-supported",
+      "reason": "The source reorders the environment IDs and palette pointers. Atlas keys palettes and map categories by the symbolic environment.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/03ce0d5d91e674434cfb03fbcb3a2de436157050",
+        "Matched all seven environment palette tables for four clock periods (224 palette-slot indices) to the ROM source and verified the exported category for all 612 maps. The roof check still includes TOWN, ROUTE and ISOLATED. Reviewed remaining changes to battle, weather, warp backup, travel and phone comparisons."
+      ],
+      "triage_note": "Batched changed-line scan (follow-up leads only): weather in engine/events/overcast.asm.",
+      "review_method": "diff-hunks"
     },
     {
       "sha": "cecd9c48252d77b609a4c85ed1f65d326b074093",

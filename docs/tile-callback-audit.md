@@ -11,7 +11,7 @@ Olivine City tests `EVENT_JASMINE_RETURNED_TO_GYM`, then tests the game clock fo
 | No | 98, 99 | 98, 99 | 98, 99 | 98, 99 |
 | Yes | 98, 99 | 98, 99 | 98, 99 | 9A, 9B |
 
-Values are hexadecimal block IDs. The renderer passed all eight combinations. The published dev snapshot starts with the event clear, so selecting Night alone leaves the lighthouse dark. All four window block IDs use the same four collision values. [Renderer regression test](../scripts/tests/test_map_palette.py) · [Game initial events](https://github.com/Rangi42/polishedcrystal/blob/56a2e52966d988e43fc6bddc802a246dc5038663/data/events/initialize_events.asm)
+Values are hexadecimal block IDs. The renderer passed all eight combinations. The audited snapshot started with the event clear. [The subsequent game-source update](https://github.com/Rangi42/polishedcrystal/commit/06f86bffae6c2b42dee4101b7be2d4ac87727b9c) sets the event on dev, so the windows now light up at Night. All four window block IDs use the same four collision values. [Renderer regression test](../scripts/tests/test_map_palette.py) · [Game initial events](https://github.com/Rangi42/polishedcrystal/blob/56a2e52966d988e43fc6bddc802a246dc5038663/data/events/initialize_events.asm)
 
 ## Minimum implementation
 

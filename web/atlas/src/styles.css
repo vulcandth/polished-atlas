@@ -133,7 +133,8 @@ main {
   height: 16px;
 }
 
-.actions button {
+.actions button,
+.overworld-return {
   padding: 0.35rem 0.75rem;
   font-size: 0.875rem;
   border-radius: 6px;
@@ -261,4 +262,10 @@ main {
     justify-content: flex-end;
     width: 100%;
   }
+}
+
+.pa-item-tooltip-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.85;
 }

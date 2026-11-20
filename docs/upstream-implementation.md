@@ -9,7 +9,7 @@ changes, not an automatically moving master reference.
 
 ## November 19 development update
 
-Dev pins polishedcrystal `56a2e52966d988e43fc6bddc802a246dc5038663`. The audit ledger covers 1,065 commits and 3,520 changed endpoint paths since v3.2.2. Each commit has a recorded relevance decision. Visual checks sample particular scenes and conditions, so the audit is **not all-inclusive**.
+Dev pins polishedcrystal `06f86bffae6c2b42dee4101b7be2d4ac87727b9c`. The audit ledger covers 1,066 commits and 3,520 changed endpoint paths since v3.2.2. Each commit has a recorded relevance decision. Visual checks sample particular scenes and conditions, so the audit is **not all-inclusive**.
 
 All 28 upstream `fake_connection` declarations position maps within their groups. The declaring map draws above its target where they overlap, including Cherrygrove City above its train track. Violet City and the Ruins of Alph no longer overlap. A block is 32 pixels and a half-block is 16 pixels. Real connections and their split destinations also contribute to placement. Warp events govern travel. Upstream `; no-stitch` annotations keep National Park and Viridian Forest accessible through their gates. Cinnabar Lab uses seven `; stitch-set` flags and one `; stitch-clear` flag to select its default cast.
 

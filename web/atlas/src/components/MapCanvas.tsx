@@ -1794,6 +1794,7 @@ export default function MapCanvas({
   const warpMetadataRef = useRef<WarpMetadata | null>(null);
   const overlayRef = useRef<Container | null>(null);
   const overlayStateRef = useRef<OverlayState | null>(null);
+  const [interiorOpen, setInteriorOpen] = useState(false);
   const overlayTokenRef = useRef(0);
   const weatherTickerRef = useRef<((delta: number) => void) | null>(null);
   const [showWarps, setShowWarps] = useState(true);
@@ -1833,23 +1834,58 @@ export default function MapCanvas({
     };
   }, []);
 
-  const showTooltip = (html: string, clientX: number, clientY: number, pinned = false) => {
+  const hideTooltip = useCallback((force = false) => {
     const el = tooltipRef.current;
-    if (!el) return;
-    el.innerHTML = html;
-    el.style.display = "block";
-    el.style.left = `${Math.max(8, clientX + 12)}px`;
-    el.style.top = `${Math.max(8, clientY + 12)}px`;
-    tooltipPinnedRef.current = Boolean(pinned);
-  };
-
-  const hideTooltip = (force = false) => {
-    const el = tooltipRef.current;
-    if (!el) return;
-    if (tooltipPinnedRef.current && !force) return;
+    if (!el || (tooltipPinnedRef.current && !force)) return;
     el.style.display = "none";
     tooltipPinnedRef.current = false;
-  };
+  }, []);
+
+  const bindPickupTooltip = useCallback((sprite: Sprite, entry: ObjectEventEntry) => {
+    const command = entry.script?.command;
+    const pickup = command
+      ? ["PLAYEREVENT_ITEMBALL", "PLAYEREVENT_KEYITEMBALL", "PLAYEREVENT_TMHMBALL"].includes(command)
+      : ["itemball_event", "keyitemball_event", "tmhmball_event"].includes(entry.macro ?? "");
+    if (!pickup) return;
+
+    const label = String(entry.extra?.item || entry.script?.argument || "Item");
+    const show = (event: FederatedPointerEvent, pinned: boolean) => {
+      const el = tooltipRef.current;
+      if (!el) return;
+      const title = document.createElement("strong");
+      title.textContent = label;
+      el.replaceChildren(title);
+      if (pinned) {
+        const hint = document.createElement("div");
+        hint.className = "pa-item-tooltip-hint";
+        hint.textContent = "Tap again to close";
+        el.appendChild(hint);
+      }
+      el.style.display = "block";
+      el.style.left = `${Math.max(8, event.clientX + 12)}px`;
+      el.style.top = `${Math.max(8, event.clientY + 12)}px`;
+      tooltipPinnedRef.current = pinned;
+    };
+
+    sprite.eventMode = "static";
+    sprite.cursor = editing ? "not-allowed" : "pointer";
+    sprite.on("pointerover", (event) => {
+      if (!editing) show(event, false);
+    });
+    sprite.on("pointermove", (event) => {
+      const el = tooltipRef.current;
+      if (el && !editing) {
+        el.style.left = `${Math.max(8, event.clientX + 12)}px`;
+        el.style.top = `${Math.max(8, event.clientY + 12)}px`;
+      }
+    });
+    sprite.on("pointerout", () => hideTooltip());
+    sprite.on("pointertap", (event) => {
+      event.stopPropagation();
+      if (tooltipPinnedRef.current) hideTooltip(true);
+      else show(event, true);
+    });
+  }, [editing, hideTooltip]);
 
   // Performance toggles
   const initialPerf = readPerfSettings();
@@ -1962,7 +1998,7 @@ export default function MapCanvas({
     if (overlay?.objectContainer) overlay.objectContainer.visible = showNpcs;
     if (!showNpcs) hideTooltip(true);
     maybeRender();
-  }, [showNpcs, maybeRender]);
+  }, [showNpcs, maybeRender, hideTooltip]);
 
   // Keep ticker mode in sync with performance toggles; render once when switching to static
   useEffect(() => {
@@ -2416,6 +2452,8 @@ export default function MapCanvas({
   disposeAnimationResource(state.resource, { unload: true });
     overlay.visible = false;
     overlayStateRef.current = null;
+    setInteriorOpen(false);
+    hideTooltip(true);
     setZoomPercent(Math.round(scaleRef.current * 100));
     const world = worldRef.current;
     if (world) {
@@ -2423,7 +2461,12 @@ export default function MapCanvas({
     }
     // Reflect visibility change immediately in static mode
     maybeRender();
-  }, [positionOverlayContents, maybeRender]);
+  }, [positionOverlayContents, maybeRender, hideTooltip]);
+
+  const returnToOverworld = useCallback(() => {
+    backlinkRef.current = null;
+    closeOverlay();
+  }, [closeOverlay]);
 
   useEffect(() => {
     return () => {
@@ -2860,8 +2903,8 @@ export default function MapCanvas({
     let container = state.objectContainer;
     if (!container) {
       container = new Container();
-      container.eventMode = "none";
-      container.interactiveChildren = false;
+      container.eventMode = "static";
+      container.interactiveChildren = true;
       container.zIndex = 5;
       sprite.addChild(container);
       state.objectContainer = container;
@@ -2953,54 +2996,7 @@ export default function MapCanvas({
       spriteInstance.y = baseY + offsetY;
       spriteInstance.scale.set(pixelScale);
       container.addChild(spriteInstance);
-      // If this object is an item/key/TM/HM ball, enable pointer interactions and show tooltip
-      try {
-        const macro = objectEntry.macro ?? "";
-        const isBall =
-          macro === "itemball_event" || macro === "keyitemball_event" || macro === "tmhmball_event";
-        if (isBall) {
-          spriteInstance.eventMode = "static";
-          spriteInstance.cursor = editing ? "not-allowed" : "pointer";
-          const label =
-            (objectEntry.extra && (objectEntry.extra["item"] as string)) ||
-            objectEntry.script?.argument ||
-            "Item";
-          spriteInstance.on("pointerover", (ev: FederatedPointerEvent) => {
-            if (editing) return;
-            const x = (ev as any).clientX ?? window.innerWidth / 2;
-            const y = (ev as any).clientY ?? window.innerHeight / 2;
-            showTooltip(`<strong>${String(label)}</strong>`, x, y, false);
-          });
-          spriteInstance.on("pointermove", (ev: FederatedPointerEvent) => {
-            if (editing) return;
-            const x = (ev as any).clientX;
-            const y = (ev as any).clientY;
-            if (typeof x !== "number" || typeof y !== "number") return;
-            showTooltip(`<strong>${String(label)}</strong>`, x, y, tooltipPinnedRef.current);
-          });
-          spriteInstance.on("pointerout", () => {
-            hideTooltip();
-          });
-          spriteInstance.on("pointertap", (ev: FederatedPointerEvent) => {
-            ev.stopPropagation();
-            const x = (ev as any).clientX ?? window.innerWidth / 2;
-            const y = (ev as any).clientY ?? window.innerHeight / 2;
-            // Toggle pinned state
-            if (tooltipPinnedRef.current) {
-              hideTooltip(true);
-            } else {
-              showTooltip(
-                `<strong>${String(label)}</strong><div style="margin-top:6px;font-size:12px;opacity:0.85;">Tap again to close</div>`,
-                x,
-                y,
-                true,
-              );
-            }
-          });
-        }
-      } catch {
-        /* ignore tooltip wiring failures */
-      }
+      bindPickupTooltip(spriteInstance, objectEntry);
       const movementSummary = disableObjectAnimations
         ? null
         : computeMovementSummaryForObject(objectEntry, state.collisionHelper);
@@ -3078,7 +3074,7 @@ export default function MapCanvas({
     getMapMetadata,
     computeMapWeather,
     maybeRender,
-    editing,
+    bindPickupTooltip,
     disableObjectAnimations,
   ]);
 
@@ -3161,10 +3157,6 @@ export default function MapCanvas({
         }
         const background = new Graphics();
         background.eventMode = "static";
-        background.cursor = "pointer";
-        background.on("pointertap", () => {
-          closeOverlay();
-        });
 
         const sprite = new AnimatedSprite(resource.textures);
         sprite.loop = true;
@@ -3301,11 +3293,12 @@ export default function MapCanvas({
             if (typeof event.preventDefault === "function") {
               event.preventDefault();
             }
-            closeOverlay();
+            returnToOverworld();
           }
         };
 
         overlay.visible = true;
+        setInteriorOpen(true);
         overlayStateRef.current = {
           weather: configureMapWeather(sprite, mapLabel, baseWidth, baseHeight),
           mapLabel,
@@ -3365,6 +3358,7 @@ export default function MapCanvas({
     },
     [
       closeOverlay,
+      returnToOverworld,
       computeCellSize,
       getMapMetadata,
       getCollisionMetadata,
@@ -3849,55 +3843,7 @@ export default function MapCanvas({
         sprite.y = baseY + offsetY;
         sprite.scale.set(pixelScale);
         container.addChild(sprite);
-        // If this object is an item/key/TM/HM ball, enable pointer interactions and show tooltip
-        try {
-          const macro = objectEntry.macro ?? "";
-          const isBall =
-            macro === "itemball_event" ||
-            macro === "keyitemball_event" ||
-            macro === "tmhmball_event";
-          if (isBall) {
-            sprite.eventMode = "static";
-            sprite.cursor = editing ? "not-allowed" : "pointer";
-            const label =
-              (objectEntry.extra && (objectEntry.extra["item"] as string)) ||
-              objectEntry.script?.argument ||
-              "Item";
-            sprite.on("pointerover", (ev: FederatedPointerEvent) => {
-              if (editing) return;
-              const x = (ev as any).clientX ?? window.innerWidth / 2;
-              const y = (ev as any).clientY ?? window.innerHeight / 2;
-              showTooltip(`<strong>${String(label)}</strong>`, x, y, false);
-            });
-            sprite.on("pointermove", (ev: FederatedPointerEvent) => {
-              if (editing) return;
-              const x = (ev as any).clientX;
-              const y = (ev as any).clientY;
-              if (typeof x !== "number" || typeof y !== "number") return;
-              showTooltip(`<strong>${String(label)}</strong>`, x, y, tooltipPinnedRef.current);
-            });
-            sprite.on("pointerout", () => {
-              hideTooltip();
-            });
-            sprite.on("pointertap", (ev: FederatedPointerEvent) => {
-              ev.stopPropagation();
-              const x = (ev as any).clientX ?? window.innerWidth / 2;
-              const y = (ev as any).clientY ?? window.innerHeight / 2;
-              if (tooltipPinnedRef.current) {
-                hideTooltip(true);
-              } else {
-                showTooltip(
-                  `<strong>${String(label)}</strong><div style="margin-top:6px;font-size:12px;opacity:0.85;">Tap again to close</div>`,
-                  x,
-                  y,
-                  true,
-                );
-              }
-            });
-          }
-        } catch {
-          /* ignore tooltip wiring failures */
-        }
+        bindPickupTooltip(sprite, objectEntry);
         const movementSummary = disableObjectAnimations
           ? null
           : computeMovementSummaryForObject(objectEntry, entry.collisionHelper);
@@ -3975,7 +3921,7 @@ export default function MapCanvas({
     getMapMetadata,
     computeMapWeather,
     maybeRender,
-    editing,
+    bindPickupTooltip,
     disableObjectAnimations,
   ]);
 
@@ -5492,6 +5438,11 @@ export default function MapCanvas({
           zIndex: 1000,
         }}
       >
+        {interiorOpen && (
+          <button type="button" className="overworld-return" onClick={returnToOverworld}>
+            Back to overworld
+          </button>
+        )}
         <label className="view-control">
           Zoom
           <input type="number" min={MIN_SCALE * 100} max={MAX_SCALE * 100}

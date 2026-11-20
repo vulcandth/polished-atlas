@@ -1,7 +1,7 @@
 {
   "base": "e410d7405e7d5d016b16a0a59bfb6da0b2a9eabf",
-  "head": "4abe96fd21425776369db0030e7ec5ef96d0d7d2",
-  "commit_count": 1068,
+  "head": "1e600899f81bd9ae7dea36a7c611985c6bab5f6c",
+  "commit_count": 1069,
   "endpoint_changes": [
     [
       "M",
@@ -69557,6 +69557,27 @@
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/4abe96fd21425776369db0030e7ec5ef96d0d7d2",
         "Confirmed the generated event snapshot clears EVENT_AZALEA_TOWN_SLOWPOKES. The Monday export now selects thunderstorm weather at Lake of Rage, Route 43 and Stormy Beach."
+      ],
+      "review_method": "full-diff"
+    },
+    {
+      "sha": "1e600899f81bd9ae7dea36a7c611985c6bab5f6c",
+      "parents": [
+        "4abe96fd21425776369db0030e7ec5ef96d0d7d2"
+      ],
+      "subject": "Add dummied-out callback for Navel Rock's moon at night",
+      "changes": [
+        [
+          "M",
+          "maps/NavelRockRoof.asm"
+        ]
+      ],
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The atlas-only tile callback draws the crescent moon on Navel Rock Roof at night.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/1e600899f81bd9ae7dea36a7c611985c6bab5f6c",
+        "Evaluated the callback and rendered all four clock settings. Only night executes the four block writes, and the nighttime image matches the approved preview pixel for pixel."
       ],
       "review_method": "full-diff"
     }

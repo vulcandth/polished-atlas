@@ -173,8 +173,13 @@ def evaluate_tile_callback(script: Path, events: set[str], *, scene_id: int = 0,
             checked = m[1] in flags
         elif line == 'checkscene':
             checked = bool(scene_id)
-        elif m := re.fullmatch(r'checktime\s+1\s*<<\s*(MORN|DAY|NITE|EVE)', line):
-            checked = TIME_NAMES[clock_time] == m[1].lower()
+        elif line.startswith('checktime '):
+            # Script_checktime ANDs the operand mask with the current clock bit.
+            term = r'1\s*<<\s*(?:MORN|DAY|NITE|EVE)'
+            operands = [part.strip() for part in line.split(None, 1)[1].split('|')]
+            if not all(re.fullmatch(rf'(?:{term}|\(\s*{term}\s*\))', part) for part in operands):
+                break
+            checked = TIME_NAMES[clock_time].upper() in re.findall(r'MORN|DAY|NITE|EVE', line)
         elif line == 'special CheckIfTrendyPhraseIsLucky':
             checked = 'EVENT_LUCKY_ISLAND_CIVILIANS' not in events
         elif m := re.fullmatch(r'(setevent|clearevent)\s+(EVENT_\w+)', line):

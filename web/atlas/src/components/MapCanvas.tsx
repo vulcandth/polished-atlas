@@ -444,6 +444,7 @@ type OverlayState = {
   weather?: WeatherSystem | null;
   mapLabel: string;
   entranceMap?: string | null;
+  flash: boolean;
   sprite: AnimatedSprite;
   resource: MapAnimationResource;
   background: Graphics;
@@ -1475,6 +1476,7 @@ function spatialPaletteRefresher(
   glow: ObjectMetadata["glow"],
   collision: CollisionHelper | null,
   entranceMap?: string | null,
+  flash = false,
 ): ObjectMarkerEntry["refreshPalette"] {
   const context = cache.getPaletteContext();
   const pair = context.dualPalettes;
@@ -1484,9 +1486,10 @@ function spatialPaletteRefresher(
   if (!hasSwaps && !(glow && collision)) {
     return undefined;
   }
-  const select = hasSwaps && metadata ? createSpatialPaletteSelector(metadata, label, time, entranceMap) : null;
+  const select = hasSwaps && metadata ? createSpatialPaletteSelector(metadata, label, time, entranceMap, flash) : null;
   const transition = glow ? createGlowTransition(glow, cache.glowFadeClock) : null;
-  let colors = resolveEntranceVariant(metadata, label, entranceMap)?.palettes[time]
+  let colors = (flash ? metadata?.maps[label]?.flash?.palettes[time] : undefined)
+    ?? resolveEntranceVariant(metadata, label, entranceMap)?.palettes[time]
     ?? metadata?.maps[label]?.palettes[time] ?? null;
   let previousGlow = "";
   return (marker, dx, dy, collisionDx, collisionDy) => {
@@ -1794,7 +1797,8 @@ export default function MapCanvas({
   const warpMetadataRef = useRef<WarpMetadata | null>(null);
   const overlayRef = useRef<Container | null>(null);
   const overlayStateRef = useRef<OverlayState | null>(null);
-  const [interiorOpen, setInteriorOpen] = useState(false);
+  const [interior, setInterior] = useState<{ mapLabel: string; flash: boolean } | null>(null);
+  const [changingFlash, setChangingFlash] = useState(false);
   const overlayTokenRef = useRef(0);
   const weatherTickerRef = useRef<((delta: number) => void) | null>(null);
   const [showWarps, setShowWarps] = useState(true);
@@ -2392,7 +2396,7 @@ export default function MapCanvas({
     maybeRender();
   }, [maybeRender]);
 
-  const closeOverlay = useCallback((): void => {
+  const closeOverlay = useCallback((keepBacklink = false): void => {
     overlayTokenRef.current += 1;
     const overlay = overlayRef.current;
     const state = overlayStateRef.current;
@@ -2403,7 +2407,7 @@ export default function MapCanvas({
     state.weather?.destroy();
     state.weather = null;
     const backlink = backlinkRef.current;
-    if (backlink && backlink.applicableTo === state.mapLabel) {
+    if (!keepBacklink && backlink && backlink.applicableTo === state.mapLabel) {
       backlinkRef.current = backlink.previous ?? null;
     }
     if (typeof window !== "undefined" && state.keyHandler) {
@@ -2452,7 +2456,7 @@ export default function MapCanvas({
   disposeAnimationResource(state.resource, { unload: true });
     overlay.visible = false;
     overlayStateRef.current = null;
-    setInteriorOpen(false);
+    setInterior(null);
     hideTooltip(true);
     setZoomPercent(Math.round(scaleRef.current * 100));
     const world = worldRef.current;
@@ -2821,9 +2825,10 @@ export default function MapCanvas({
       return;
     }
 
+    const lit = state.flash ? bgPalettes?.maps[state.mapLabel]?.flash : undefined;
     // Provide BG palettes for this overlay map to the cache (if available)
     try {
-      const bg = resolveEntranceVariant(bgPalettes, state.mapLabel, state.entranceMap)?.palettes[timeOfDay]
+      const bg = lit?.palettes[timeOfDay] ?? resolveEntranceVariant(bgPalettes, state.mapLabel, state.entranceMap)?.palettes[timeOfDay]
         ?? bgPalettes?.maps?.[state.mapLabel]?.palettes?.[timeOfDay] ?? null;
       cache.setBgPalettes(bg ?? null);
     } catch {
@@ -2850,8 +2855,8 @@ export default function MapCanvas({
       cache.setPaletteContext({
         indoor: isIndoor,
         overcast: paletteMap?.overcast ?? (isOvercast && isOverworld),
-        darkness: paletteMap?.darkness ?? isDarkness,
-        paletteTime: paletteMap?.palette_times?.[timeOfDay],
+        darkness: !lit && (paletteMap?.darkness ?? isDarkness),
+        paletteTime: lit?.palette_times[timeOfDay] ?? paletteMap?.palette_times?.[timeOfDay],
         dualPalettes: metadata.dualPalettes?.[mapData.mapConstant ?? ""],
       });
     } catch {
@@ -3017,7 +3022,7 @@ export default function MapCanvas({
       const stepCount = animator?.kind === "path" ? animator.stepCount : null;
       state.objectMarkers.push({
         ...markerOcclusion(state.resource, spriteInstance, state.collisionHelper, objectEntry, warpMetadataRef.current?.collisionConstants),
-        refreshPalette: spatialPaletteRefresher(cache, bgPalettes, state.mapLabel, timeOfDay, spriteKey, spriteDef, paletteName, facingKey, metadata.glow, state.collisionHelper, state.entranceMap),
+        refreshPalette: spatialPaletteRefresher(cache, bgPalettes, state.mapLabel, timeOfDay, spriteKey, spriteDef, paletteName, facingKey, metadata.glow, state.collisionHelper, state.entranceMap, state.flash),
         object: objectEntry,
         sprite: spriteInstance,
         movementSummary,
@@ -3086,6 +3091,7 @@ export default function MapCanvas({
         yCells?: number | null;
       },
       originMap?: string | null,
+      requestedFlash?: boolean,
     ): Promise<void> => {
       if (!resolveAssetHref) {
         return;
@@ -3100,7 +3106,11 @@ export default function MapCanvas({
       const entranceMap = variant || mapLabel === "HiddenTreeGrotto" || mapLabel === "HiddenCaveGrotto"
         ? originMap : undefined;
       const existing = overlayStateRef.current;
-      if (existing && existing.mapLabel === mapLabel && existing.entranceMap === entranceMap) {
+      const paletteMap = bgPalettes?.maps[mapLabel];
+      const outdoors = paletteMap?.map_type === "ROUTE" || paletteMap?.map_type === "TOWN";
+      const flash = !outdoors && (requestedFlash ?? existing?.flash ?? false);
+      const sameMap = existing?.mapLabel === mapLabel && existing.entranceMap === entranceMap;
+      if (sameMap && existing.flash === flash) {
         overlay.visible = true;
         const world = worldRef.current;
         if (world) world.visible = false;
@@ -3138,7 +3148,8 @@ export default function MapCanvas({
         positionOverlayContents();
         return;
       }
-      const assetUrl = resolveAssetHref(variant?.asset_label ?? mapLabel);
+      const lit = flash ? paletteMap?.flash : undefined;
+      const assetUrl = resolveAssetHref(lit?.asset_label ?? variant?.asset_label ?? mapLabel);
       if (!assetUrl) {
         return;
       }
@@ -3150,7 +3161,8 @@ export default function MapCanvas({
           disposeAnimationResource(resource, { unload: true });
           return;
         }
-        closeOverlay();
+        const view = sameMap ? { x: existing.sprite.x, y: existing.sprite.y, scale: existing.scale } : null;
+        closeOverlay(sameMap);
         if (!overlayRef.current) {
           disposeAnimationResource(resource, { unload: true });
           return;
@@ -3298,11 +3310,13 @@ export default function MapCanvas({
         };
 
         overlay.visible = true;
-        setInteriorOpen(true);
+        setInterior({ mapLabel, flash });
+        if (view) sprite.position.set(view.x, view.y);
         overlayStateRef.current = {
           weather: configureMapWeather(sprite, mapLabel, baseWidth, baseHeight),
           mapLabel,
           entranceMap,
+          flash,
           sprite,
           resource,
           background,
@@ -3318,11 +3332,11 @@ export default function MapCanvas({
           objectContainer,
           objectMarkers: [],
           collisionHelper,
-          scale: Number.NaN,
+          scale: view?.scale ?? Number.NaN,
           fitScale: 1,
           minScale: MIN_SCALE,
           maxScale: MAX_SCALE,
-          positioned: false,
+          positioned: Boolean(view),
         };
         const elapsed = Math.max(0, app.ticker.lastTime - syncStartRef.current);
         const initialFrame = frameIndexForTime(
@@ -3371,6 +3385,21 @@ export default function MapCanvas({
       maybeRender,
     ],
   );
+
+  const toggleFlash = async () => {
+    const state = overlayStateRef.current;
+    if (!state || changingFlash) return;
+    const highlight = state.highlight && {
+      xCells: state.highlight.x / state.cellSize,
+      yCells: state.highlight.y / state.cellSize,
+    };
+    setChangingFlash(true);
+    try {
+      await openOverlay(state.mapLabel, highlight, state.entranceMap, !state.flash);
+    } finally {
+      setChangingFlash(false);
+    }
+  };
 
   const handleWarpMarkerTap = useCallback(
     (entry: SyncedAnimation, warp: MapWarp): void => {
@@ -5438,7 +5467,13 @@ export default function MapCanvas({
           zIndex: 1000,
         }}
       >
-        {interiorOpen && (
+        {interior && bgPalettes?.maps[interior.mapLabel]?.flash && (
+          <button type="button" className="overworld-return" aria-pressed={interior.flash}
+            disabled={changingFlash} onClick={toggleFlash}>
+            {interior.flash ? "Turn Flash off" : "Use Flash"}
+          </button>
+        )}
+        {interior && (
           <button type="button" className="overworld-return" onClick={returnToOverworld}>
             Back to overworld
           </button>

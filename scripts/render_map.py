@@ -13,7 +13,7 @@ import math
 import os
 import re
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import cached_property
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
@@ -377,6 +377,7 @@ class RendererData:
     tileset_label: str
     map_label: str
     palette_swaps: Tuple[palette_swaps.ResolvedSwap, ...] = ()
+    map_info: Optional[MapInfo] = None
 
 
 @dataclass
@@ -397,6 +398,9 @@ class MapInfo:
     palette_flags: Set[str]
     region: Optional[int]
     stitch: Optional[bool] = None
+
+    def with_flash(self) -> MapInfo:
+        return replace(self, palette_flags=self.palette_flags - {"IN_DARKNESS"})
 
     @property
     def in_world_stitch(self) -> bool:
@@ -2023,7 +2027,7 @@ def _write_modern_animation(polished_path, renderer, png_module, repo_index, tim
     from tile_animation_export import context_for_map, write_animation
     if events is None:
         events = repo_index.initial_event_flags
-    context = context_for_map(repo_index.map_info(renderer.map_label), time_of_day, events)
+    context = context_for_map(renderer.map_info or repo_index.map_info(renderer.map_label), time_of_day, events)
     return write_animation(polished_path, renderer, png_module, metadata_path, context)
 
 
@@ -2385,8 +2389,11 @@ def _build_renderer(
     time_of_day: int = 1,
     events: Optional[Set[str]] = None,
     entrance_map: Optional[str] = None,
+    flash: bool = False,
 ) -> RendererData:
     map_info = repo_index.map_info(map_label)
+    if flash:
+        map_info = map_info.with_flash()
     clock_time = time_of_day
     time_of_day = palette_time(map_info.palette_flags, time_of_day)
     tileset_resources = repo_index.tileset_resources(map_info.tileset)
@@ -2438,6 +2445,7 @@ def _build_renderer(
         tileset_key=map_info.tileset,
         tileset_label=tileset_label,
         map_label=map_info.label,
+        map_info=map_info,
         palette_swaps=repo_index.palette_swaps.resolve(map_info.label, time_of_day, overcast_index is not None),
     )
 

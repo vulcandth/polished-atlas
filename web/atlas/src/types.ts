@@ -472,6 +472,11 @@ export interface BgPalettesMapEntry {
   overcast?: boolean;
   palette_times?: Record<string, string>; // clock time -> effective map palette time
   darkness?: boolean;
+  flash?: {
+    asset_label: string;
+    palettes: Record<string, RgbTuple[][]>;
+    palette_times: Record<string, string>;
+  };
   entrance_variants?: Record<string, {
     asset_label: string;
     palettes: Record<string, RgbTuple[][]>;

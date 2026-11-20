@@ -194,6 +194,14 @@ def build_payload(opts: Options) -> Dict[str, object]:
             "palette_swaps": repo.palette_swaps.metadata(label),
             "overcast": repo.get_overcast_index(info, weekday=opts.weekday, events=initial_flags) is not None,
         }
+        if "IN_DARKNESS" in info.palette_flags:
+            lit = info.with_flash()
+            maps_payload[label]["flash"] = {
+                "asset_label": f"{label}--Flash",
+                "palettes": compute_map_palettes(repo, lit, weekday=opts.weekday, events=initial_flags),
+                "palette_times": {name: TIME_OF_DAY_SLOTS[palette_time(lit.palette_flags, i)]
+                                  for i, name in enumerate(TIME_OF_DAY_SLOTS)},
+            }
         origins = repo.entrance_assets(info)
         if origins:
             maps_payload[label]["entrance_variants"] = {

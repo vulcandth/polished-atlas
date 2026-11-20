@@ -57,6 +57,25 @@ class MapPaletteTests(unittest.TestCase):
                 self.assertEqual(tuple(palette_time(flags, i) for i in range(4)), expected)
                 self.assertEqual(tuple(context_for_map(info, i, set()).time for i in range(4)), expected)
 
+    def test_flash_uses_each_dark_maps_normal_lighting(self):
+        maps = build_payload(Options(self.root, Path("unused.json"), 1))["maps"]
+        png = atlas_common.png_module(self.root)
+        events = self.repo.initial_event_flags
+        for label, info in self.repo.maps.items():
+            self.assertEqual("flash" in maps[label], "IN_DARKNESS" in info.palette_flags, label)
+            if "flash" not in maps[label]:
+                continue
+            for clock, slug in enumerate(TIME_NAMES):
+                with self.subTest(map=label, time=slug):
+                    lit = _build_renderer(png, self.root, self.repo, label, weekday=1,
+                                          time_of_day=clock, events=events, flash=True)
+                    expected = palette_time(info.palette_flags - {"IN_DARKNESS"}, clock)
+                    self.assertEqual(maps[label]["flash"]["palette_times"][slug], TIME_NAMES[expected])
+                    self.assertEqual(lit.attributes.colors[:7], maps[label]["flash"]["palettes"][slug][:7])
+                    self.assertNotEqual(lit.attributes.colors[:7], maps[label]["palettes"][slug][:7])
+                    self.assertFalse(context_for_map(lit.map_info, clock, events).darkness)
+                    self.assertIn("IN_DARKNESS", info.palette_flags)
+
     def test_terrain_and_npc_background_metadata_agree_at_all_times(self):
         payload = build_payload(Options(self.root, Path("unused.json"), 1))
         png = atlas_common.png_module(self.root)
@@ -229,7 +248,7 @@ class MapPaletteTests(unittest.TestCase):
                 r = _build_renderer(atlas_common.png_module(self.root), self.root, self.repo, "OlivineCity",
                                     weekday=1, time_of_day=time, events=events)
                 offset = 7 * r.width + 16
-                expected = [0x9a, 0x9b] if time == 2 and returned else [0x98, 0x99]
+                expected = [0x9a, 0x9b] if time in (2, 3) and returned else [0x98, 0x99]
                 with self.subTest(time=time, returned=returned):
                     self.assertEqual(r.block_indices[offset:offset + 2], expected)
 

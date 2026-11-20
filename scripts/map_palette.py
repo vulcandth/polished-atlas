@@ -1,7 +1,7 @@
 """Map palette time, matching ReplaceTimeOfDayPals/GetTimePalette.
 
 This selects colors only; schedules and object visibility use the actual clock.
-Dark maps are shown before Flash, as with the renderer's darkness palettes.
+Flash removes IN_DARKNESS before applying the map's normal brightness policy.
 """
 from collections.abc import Collection
 

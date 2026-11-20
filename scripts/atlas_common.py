@@ -181,7 +181,10 @@ def time_invariant_maps(repo_index: render_map.RepositoryIndex) -> Set[str]:
         return set(cached)
     invariant_labels: Set[str] = set()
     for map_info in repo_index.maps.values():
-        if _is_time_invariant_map(repo_index, map_info, events=event_flags):
+        variants = [map_info]
+        if "IN_DARKNESS" in map_info.palette_flags:
+            variants.append(map_info.with_flash())
+        if all(_is_time_invariant_map(repo_index, info, events=event_flags) for info in variants):
             invariant_labels.add(map_info.label)
     _time_invariant_cache[cache_key] = set(invariant_labels)
     return set(invariant_labels)

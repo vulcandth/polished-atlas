@@ -134,6 +134,7 @@ def _render_variant(
     weekday: int,
     entrance_map: Optional[str] = None,
     asset_label: Optional[str] = None,
+    flash: bool = False,
 ) -> Tuple[str, Path]:
     # Keep the heavy work in a helper so the thread pool stays focused on rendering.
     events = repo_index.initial_event_flags
@@ -146,6 +147,7 @@ def _render_variant(
         time_of_day=time_of_day,
         events=events,
         entrance_map=entrance_map,
+        flash=flash,
     )
     asset_label = asset_label or map_label
     if format_choice == "gif":
@@ -187,6 +189,10 @@ def _render_single(
 ) -> Tuple[str, Path]:
     result = _render_variant(png_module, polished_path, repo_index, map_label,
                              output_dir, format_choice, time_of_day, weekday)
+    if "IN_DARKNESS" in repo_index.map_info(map_label).palette_flags:
+        _render_variant(png_module, polished_path, repo_index, map_label,
+                        output_dir, format_choice, time_of_day, weekday,
+                        asset_label=f"{map_label}--Flash", flash=True)
     rendered = set()
     for origin, asset_label in repo_index.entrance_assets(repo_index.map_info(map_label)).items():
         if asset_label in rendered:

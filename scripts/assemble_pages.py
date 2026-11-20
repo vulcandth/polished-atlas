@@ -79,17 +79,21 @@ def validate_bundle(root: Path, channel: str, *, require_clean: bool = True) -> 
             animation = json.loads(path.read_text(encoding="utf-8"))
             if animation["frameWidth"] != width * 32 or animation["frameHeight"] != height * 32:
                 raise ValueError(f"Map render dimensions do not match metadata: {path}")
-            for origin, variant in palette_maps.get(label, {}).get("entrance_variants", {}).items():
+            palettes = palette_maps.get(label, {})
+            variants = dict(palettes.get("entrance_variants", {}))
+            if palettes.get("flash"):
+                variants["Flash"] = palettes["flash"]
+            for origin, variant in variants.items():
                 asset_label = variant["asset_label"]
                 path = (render_directory / f"{asset_label}.animation.json").resolve()
                 if root not in path.parents or not path.is_file():
-                    raise ValueError(f"Missing {slug} entrance variant for {label} from {origin}")
+                    raise ValueError(f"Missing {slug} variant for {label} ({origin})")
                 animation = json.loads(path.read_text(encoding="utf-8"))
                 if animation["frameWidth"] != width * 32 or animation["frameHeight"] != height * 32:
-                    raise ValueError(f"Entrance render dimensions do not match metadata: {path}")
+                    raise ValueError(f"Variant render dimensions do not match metadata: {path}")
                 rows = variant.get("palettes", {}).get(slug, [])
                 if len(rows) != 8 or any(len(row) != 4 for row in rows):
-                    raise ValueError(f"Missing {slug} entrance palettes for {label} from {origin}")
+                    raise ValueError(f"Missing {slug} variant palettes for {label} ({origin})")
     return info
 
 

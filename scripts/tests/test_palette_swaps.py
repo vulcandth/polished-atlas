@@ -83,7 +83,7 @@ class PaletteSwapTests(unittest.TestCase):
             if required_root:
                 self.fail(f"Required upstream corpus does not exist: {root}")
             self.skipTest("Pinned upstream corpus is not checked out at the optional local test path")
-        expected = os.environ.get("ATLAS_UPSTREAM_COMMIT", "06f86bffae6c2b42dee4101b7be2d4ac87727b9c")
+        expected = os.environ.get("ATLAS_UPSTREAM_COMMIT", "4abe96fd21425776369db0030e7ec5ef96d0d7d2")
         actual = subprocess.check_output([os.environ.get("GIT_BIN", "git"), "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
         self.assertEqual(actual, expected, "Corpus must be the exact pinned upstream revision")
         from render_map import _load_palette

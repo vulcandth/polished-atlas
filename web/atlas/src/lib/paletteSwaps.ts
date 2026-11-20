@@ -17,13 +17,15 @@ export function resolveSpatialBgPalettes(
   x: number,
   y: number,
   entranceMap?: string | null,
+  flash = false,
 ): RgbTuple[][] | null {
   const map = metadata?.maps[label];
   if (!map) return null;
-  const base = resolveEntranceVariant(metadata, label, entranceMap)?.palettes[time] ?? map?.palettes[time];
+  const lit = flash ? map.flash : undefined;
+  const base = lit?.palettes[time] ?? resolveEntranceVariant(metadata, label, entranceMap)?.palettes[time] ?? map.palettes[time];
   if (!base) return null;
   const result = base.slice();
-  const paletteTime = map.palette_times?.[time] ?? time;
+  const paletteTime = lit?.palette_times[time] ?? map.palette_times?.[time] ?? time;
   const index = (TIME_INDEX[paletteTime] ?? 1) + (map.overcast ? 4 : 0);
   for (const swap of map.palette_swaps ?? []) {
     const inside = x >= swap.min_x && x < swap.max_x && y >= swap.min_y && y < swap.max_y;
@@ -44,10 +46,11 @@ export function createSpatialPaletteSelector(
   label: string,
   time: string,
   entranceMap?: string | null,
+  flash = false,
 ): (x: number, y: number) => RgbTuple[][] | undefined {
   let previous: string | undefined;
   return (x, y) => {
-    const colors = resolveSpatialBgPalettes(metadata, label, time, x, y, entranceMap);
+    const colors = resolveSpatialBgPalettes(metadata, label, time, x, y, entranceMap, flash);
     if (!colors) return undefined;
     const signature = JSON.stringify(colors);
     if (signature === previous) return undefined;

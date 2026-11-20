@@ -58,7 +58,7 @@ class MapPaletteTests(unittest.TestCase):
                 self.assertEqual(tuple(context_for_map(info, i, set()).time for i in range(4)), expected)
 
     def test_terrain_and_npc_background_metadata_agree_at_all_times(self):
-        payload = build_payload(Options(self.root, Path("unused.json"), 1, None))
+        payload = build_payload(Options(self.root, Path("unused.json"), 1))
         png = atlas_common.png_module(self.root)
         # Forced night, forced day, darkness outside the old name heuristic,
         # outdoor roofs and spatial swaps are all distinct selection paths.
@@ -325,7 +325,7 @@ class MapPaletteTests(unittest.TestCase):
             "YELLOW_FOREST": ((31,31,10), (15,16,9)),
         }
         png = atlas_common.png_module(self.root)
-        payload = build_payload(Options(self.root, Path("unused.json"), 1, None))
+        payload = build_payload(Options(self.root, Path("unused.json"), 1))
         variant_maps = {label for label, entry in payload["maps"].items() if entry.get("entrance_variants")}
         self.assertEqual(variant_maps, {"HiddenTreeGrotto", "HiddenCaveGrotto", "PokeCenter2F"})
         for label in ("HiddenTreeGrotto", "HiddenCaveGrotto"):

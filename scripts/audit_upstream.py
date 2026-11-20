@@ -13,7 +13,7 @@ from pathlib import Path
 import subprocess
 
 BASE = "e410d7405e7d5d016b16a0a59bfb6da0b2a9eabf"
-HEAD = "6eb9a7c2e8b6776195550b53d0420067d99580b0"
+HEAD = "c99ae06bb9250bceff01a55204a6afa9a4ba9c7a"
 
 
 def git(repo: Path, *args: str) -> str:

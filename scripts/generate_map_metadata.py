@@ -20,7 +20,6 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 import render_map
 
 import atlas_common
-from event_state import effective_flags
 
 from generate_map_connections import AttributesParser
 
@@ -303,7 +302,7 @@ def build_metadata(
     weekday: int = 1,
 ) -> Tuple[Dict[str, dict], Dict[str, str], Dict[str, object]]:
     repo_index = atlas_common.repository(polished_path)
-    events = effective_flags(repo_index.initial_event_flags)
+    events = repo_index.initial_event_flags
     attributes_source = attributes_path or polished_path / "data/maps/attributes.asm"
     parser = AttributesParser(attributes_source)
     attribute_graph = parser.parse()

@@ -1,7 +1,7 @@
 {
   "base": "e410d7405e7d5d016b16a0a59bfb6da0b2a9eabf",
-  "head": "6eb9a7c2e8b6776195550b53d0420067d99580b0",
-  "commit_count": 1062,
+  "head": "c99ae06bb9250bceff01a55204a6afa9a4ba9c7a",
+  "commit_count": 1064,
   "endpoint_changes": [
     [
       "M",
@@ -69431,6 +69431,48 @@
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/6eb9a7c2e8b6776195550b53d0420067d99580b0",
         "Verified coordinates and draw order for all 27 authored seams. The mainland contains 108 maps. The six detached groups have no cross-group rectangle overlaps. The only shared interior across groups is SafariZoneFuchsiaGate."
+      ],
+      "review_method": "full-diff"
+    },
+    {
+      "sha": "af9be08763338948a012cbed535b10a10b6c78e0",
+      "parents": [
+        "6eb9a7c2e8b6776195550b53d0420067d99580b0"
+      ],
+      "subject": "Exclude National Park and Viridian Forest (`ROUTE`s) from Polished Atlas map stitch",
+      "changes": [
+        [
+          "M",
+          "data/maps/maps.asm"
+        ]
+      ],
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "The two ROUTE declarations now exclude National Park and Viridian Forest from the overworld stitch.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/af9be08763338948a012cbed535b10a10b6c78e0",
+        "Both newly annotated labels match the retired Atlas exclusion list. The map and warp generators honor the source declaration."
+      ],
+      "review_method": "full-diff"
+    },
+    {
+      "sha": "c99ae06bb9250bceff01a55204a6afa9a4ba9c7a",
+      "parents": [
+        "af9be08763338948a012cbed535b10a10b6c78e0"
+      ],
+      "subject": "Add `stitch-set` and `stitch-clear` comments for Polished Atlas `object_event` rendering",
+      "changes": [
+        [
+          "M",
+          "constants/event_flags.asm"
+        ]
+      ],
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "Event flag comments now determine the default Cinnabar Lab cast.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/c99ae06bb9250bceff01a55204a6afa9a4ba9c7a",
+        "Parsed all annotated event constants and compared them with the retired Atlas event file. All seven set flags and the one cleared flag match."
       ],
       "review_method": "full-diff"
     }

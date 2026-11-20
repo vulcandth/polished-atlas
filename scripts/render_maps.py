@@ -136,7 +136,7 @@ def _render_variant(
     asset_label: Optional[str] = None,
 ) -> Tuple[str, Path]:
     # Keep the heavy work in a helper so the thread pool stays focused on rendering.
-    events = atlas_common.effective_flags(repo_index.initial_event_flags)
+    events = repo_index.initial_event_flags
     renderer = render_map._build_renderer(
         png_module,
         polished_path,

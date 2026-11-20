@@ -36,7 +36,6 @@ class Options:
     polishedcrystal: Path
     output: Path
     weekday: int
-    event_overrides: Optional[Path]
 
 
 def parse_args() -> Options:
@@ -59,18 +58,11 @@ def parse_args() -> Options:
         default=1,
         help="Weekday index (0=Sunday..6=Saturday) used for overcast/special palettes.",
     )
-    parser.add_argument(
-        "--event-overrides",
-        type=Path,
-        default=None,
-        help="Optional path to a JSON file with event flag overrides: {\"set\": [...], \"clear\": [...]}",
-    )
     ns = parser.parse_args()
     return Options(
         polishedcrystal=ns.polishedcrystal.resolve(),
         output=ns.output.resolve(),
         weekday=max(0, min(6, int(ns.weekday) if isinstance(ns.weekday, int) else 1)),
-        event_overrides=ns.event_overrides.resolve() if ns.event_overrides else None,
     )
 
 
@@ -180,11 +172,6 @@ def compute_map_palettes(
     return result
 
 
-def parse_event_overrides(path: Optional[Path]) -> Tuple[set[str], set[str]]:
-    from event_state import parse_overrides
-    return parse_overrides(path)
-
-
 def build_payload(opts: Options) -> Dict[str, object]:
     polished_root = opts.polishedcrystal
     if not polished_root.exists():
@@ -192,14 +179,7 @@ def build_payload(opts: Options) -> Dict[str, object]:
 
     repo = atlas_common.repository(polished_root)
 
-    # Initial event flags plus optional overrides, mirroring generate_object_metadata
     initial_flags = repo.initial_event_flags
-    override_set, override_clear = parse_event_overrides(opts.event_overrides)
-    if override_clear:
-        initial_flags.difference_update(override_clear)
-    if override_set:
-        initial_flags.update(override_set)
-
     maps_payload: Dict[str, object] = {}
     for label, info in sorted(repo.maps.items()):
         palettes_by_time = compute_map_palettes(repo, info, weekday=opts.weekday, events=initial_flags)

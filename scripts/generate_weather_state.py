@@ -15,7 +15,6 @@ from typing import Dict, Set
 import atlas_common
 import render_map
 from fixed_weather import fixed_weather
-from event_state import effective_flags
 
 
 def _determine_weather_for_map(
@@ -42,7 +41,6 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--polishedcrystal", type=Path, default=atlas_common.DEFAULT_POLISHED_PATH)
     p.add_argument("--weekday", type=render_map.parse_weekday, default=1)
     p.add_argument("--time-of-day", dest="time_of_day", type=render_map.parse_time_of_day, default=1)
-    p.add_argument("--event-overrides", type=Path, default=None, help="Optional JSON with {set, clear} event flags.")
     p.add_argument("--output", type=Path, default=atlas_common.DEFAULT_MAPS_DIR / "weather_state.json")
     return p.parse_args()
 
@@ -52,7 +50,7 @@ def main() -> None:
     polished_root = args.polishedcrystal.resolve()
     repo = atlas_common.repository(polished_root)
 
-    events = effective_flags(repo.initial_event_flags, args.event_overrides)
+    events = repo.initial_event_flags
 
     maps: Dict[str, Dict[str, object]] = {}
     for info in repo.maps.values():

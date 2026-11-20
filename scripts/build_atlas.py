@@ -115,9 +115,7 @@ def main() -> None:
     reset_generated(generated)
     maps = generated / "maps"
     scripts = ROOT / "scripts"
-    overrides = scripts / "event_overrides.json"
-    env = dict(os.environ, ATLAS_MAPS_DIR=str(maps), POLISHED_DIR=str(upstream),
-               ATLAS_EVENT_OVERRIDES=str(overrides))
+    env = dict(os.environ, ATLAS_MAPS_DIR=str(maps), POLISHED_DIR=str(upstream))
 
     def generate(script: str, *options: str | Path) -> None:
         run(sys.executable, scripts / script, "--polishedcrystal", upstream, *options, env=env)
@@ -131,25 +129,24 @@ def main() -> None:
         generate("render_maps.py", *options)
         generate("generate_map_neighborhoods.py", "--time-of-day", slug,
                  "--attributes", upstream / "data/maps/attributes.asm",
-                 "--overlay-rules", scripts / "overlay_rules.json",
-                 "--overworld-exclude-file", scripts / "overworld_exclude.json")
-    generate("generate_warp_metadata.py", "--weekday", str(weekday),
-             "--overworld-exclude-file", scripts / "overworld_exclude.json")
+                 "--overlay-rules", scripts / "overlay_rules.json")
+    generate("generate_warp_metadata.py", "--weekday", str(weekday))
     from stitch_report import stitch_report
     manifest = json.loads((maps / slugs[0] / "animated/map_neighborhoods.json").read_text(encoding="utf-8"))
     warp_maps = json.loads((maps / "warp_metadata.json").read_text(encoding="utf-8"))["maps"]
     report = stitch_report(manifest, warp_maps)
     (maps / "stitch_report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    generate("generate_object_metadata.py", "--weekday", str(weekday), "--event-overrides", overrides)
+    generate("generate_object_metadata.py", "--weekday", str(weekday))
     generate("generate_weather_metadata.py")
-    generate("generate_weather_state.py", "--weekday", str(weekday), "--time-of-day", slugs[0],
-             "--event-overrides", overrides)
-    generate("generate_bg_palette_metadata.py", "--weekday", str(weekday), "--event-overrides", overrides)
+    generate("generate_weather_state.py", "--weekday", str(weekday), "--time-of-day", slugs[0])
+    generate("generate_bg_palette_metadata.py", "--weekday", str(weekday))
     atlas_sha = git(ROOT, "rev-parse", "HEAD")
     dirty = bool(git(ROOT, "status", "--porcelain"))
+    from event_state import stitch_event_flags
+    enabled, cleared = stitch_event_flags(upstream)
     info = dict(channel=source["channel"], atlas_commit=atlas_sha, atlas_dirty=dirty,
                 upstream=source, settings=dict(weekday=weekday, times=slugs,
-                event_overrides=json.loads(overrides.read_text(encoding="utf-8"))),
+                stitch_events={"set": sorted(enabled), "clear": sorted(cleared)}),
                 public_base=env.get("VITE_PUBLIC_BASE", "/"),
                 built_at=datetime.now(timezone.utc).isoformat())
     settings_hash = hashlib.sha256(json.dumps(info["settings"], sort_keys=True).encode()).hexdigest()[:12]

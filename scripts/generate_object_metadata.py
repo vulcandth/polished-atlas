@@ -22,7 +22,7 @@ from typing import Dict, Iterable, Iterator, List, Optional, Sequence, Set, Tupl
 import render_map
 
 import atlas_common
-from event_state import evaluate_tile_callback
+from event_state import evaluate_tile_callback, initial_flags, stitch_event_flags
 from object_glow import load_object_glow
 from object_schedule import scheduled_objects
 
@@ -433,12 +433,6 @@ def parse_args() -> argparse.Namespace:
         default=atlas_common.DEFAULT_MAPS_DIR / "object_metadata.json",
         help="Destination for the generated metadata payload.",
     )
-    parser.add_argument(
-        "--event-overrides",
-        type=Path,
-        default=None,
-        help="Optional path to a JSON file with event flag overrides: {\"set\": [...], \"clear\": [...]}.",
-    )
     return parser.parse_args()
 
 
@@ -689,13 +683,7 @@ def parse_darkness_palettes(root: Path, names: Sequence[str]) -> Dict[str, List[
 
 
 def parse_initial_event_flags(root: Path) -> Set[str]:
-    from event_state import initial_flags
     return initial_flags(root)
-
-
-def parse_event_overrides(path: Optional[Path]) -> Tuple[Set[str], Set[str]]:
-    from event_state import parse_overrides
-    return parse_overrides(path)
 
 
 def _read_species_sequence(path: Path, expected_count: int) -> List[Optional[str]]:
@@ -1670,8 +1658,6 @@ def parse_map_objects(
     initial_event_flags: Set[str],
     *,
     weekday: int = 1,
-    cleared_event_flags: Optional[Set[str]] = None,
-    set_event_flags: Optional[Set[str]] = None,
 ) -> List[MapObjectData]:
     repo_index = atlas_common.repository(root)
     block_pixel_size = atlas_common.block_pixel_size()
@@ -1693,7 +1679,7 @@ def parse_map_objects(
             seen.add(sprite)
             sprite = initial_sprites[sprite]
         initial_sprites[slot] = sprite
-    cleared = cleared_event_flags or set()
+    enabled, cleared = stitch_event_flags(root)
     for script_path in sorted((root / "maps").rglob("*.asm")):
         label = script_path.stem
         map_info = repo_index.maps.get(label)
@@ -1720,7 +1706,7 @@ def parse_map_objects(
             hidden = ("EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1" if weekday in (0, 6)
                       else "EVENT_TEMPORARY_UNTIL_MAP_RELOAD_2")
             map_flags = map_flags | {hidden}
-        map_flags = (map_flags - cleared) | (set_event_flags or set())
+        map_flags = (map_flags - cleared) | enabled
         for raw_line in source.splitlines():
             code, *_ = raw_line.split(";", 1)
             line = code.strip()
@@ -1785,7 +1771,7 @@ def parse_map_objects(
             objects=map_objects,
             grotto_encounters=encounters.get(label, {}),
             objects_by_time=scheduled_objects(source, map_objects, constants, map_flags, weekday,
-                                              TIME_OF_DAY_SLUGS, set_event_flags or set(), cleared),
+                                              TIME_OF_DAY_SLUGS, enabled, cleared),
         )
         map_results.append(data)
     return map_results
@@ -2040,23 +2026,14 @@ def main() -> None:
     movements = parse_movement_table(polished_root, constants)
     facings = parse_facings(polished_root, constants)
     block_pixel_size = atlas_common.block_pixel_size()
-    # Load initial event flags and apply optional overrides.
-    initial_event_flags = parse_initial_event_flags(polished_root)
-    override_set, override_clear = parse_event_overrides(args.event_overrides)
-    if override_clear:
-        initial_event_flags.difference_update(override_clear)
-    if override_set:
-        initial_event_flags.update(override_set)
     map_objects = parse_map_objects(
         polished_root,
         constants,
         sprite_lookup,
         movements,
         palette_names,
-        initial_event_flags,
+        parse_initial_event_flags(polished_root),
         weekday=args.weekday,
-        cleared_event_flags=override_clear,
-        set_event_flags=override_set,
     )
     pokemon_icons = gather_pokemon_icon_metadata(polished_root, constants)
     payload = build_payload(

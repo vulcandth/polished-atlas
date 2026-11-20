@@ -1,14 +1,28 @@
 """One event snapshot for terrain, animation, objects, palettes and weather."""
 from __future__ import annotations
 
-import json
-import os
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 import re
-from typing import Iterable
 from map_palette import TIME_NAMES
+
+
+def stitch_event_flags(root: Path) -> tuple[set[str], set[str]]:
+    """Read Atlas object visibility directives attached to upstream event constants."""
+    enabled: set[str] = set()
+    disabled: set[str] = set()
+    path = root / 'constants/event_flags.asm'
+    for line in path.read_text(encoding='utf-8').splitlines():
+        code, _, comment = line.partition(';')
+        marker = comment.strip()
+        if marker in {'stitch-set', 'stitch-clear'} and (flag := re.fullmatch(r'\s*const\s+(EVENT_\w+)\s*', code)):
+            target = enabled if marker == 'stitch-set' else disabled
+            target.add(flag[1])
+    conflicts = enabled & disabled
+    if conflicts:
+        raise ValueError(f'Conflicting stitch directives in {path}: {sorted(conflicts)}')
+    return enabled, disabled
 
 
 def initial_flags(root: Path) -> set[str]:
@@ -29,7 +43,7 @@ def initial_flags(root: Path) -> set[str]:
                     raise ValueError(f'Invalid initial event flag: {token}')
                 flags.add(token)
     # Both approaches to the switch room run this reset before the room loads.
-    # Apply it to the starting snapshot so explicit set/clear overrides still win.
+    # Apply it before the source's stitch directives.
     approach = root / 'maps/GoldenrodUnderground.asm'
     if approach.is_file():
         source = approach.read_text(encoding='utf-8')
@@ -46,37 +60,8 @@ def initial_flags(root: Path) -> set[str]:
     island = root / 'maps/LuckyIsland.asm'
     if island.is_file() and 'special CheckIfTrendyPhraseIsLucky' in island.read_text(encoding='utf-8'):
         flags.add('EVENT_LUCKY_ISLAND_CIVILIANS')
-    return flags
-
-
-def parse_overrides(path: Path | None = None) -> tuple[set[str], set[str]]:
-    """Explicit path takes priority over the build's inherited snapshot settings."""
-    if path is None:
-        configured = os.environ.get('ATLAS_EVENT_OVERRIDES')
-        path = Path(configured) if configured else None
-    if path is None:
-        return set(), set()
-    payload = json.loads(path.read_text(encoding='utf-8'))
-    if isinstance(payload, list):
-        payload = {'set': payload}
-    if not isinstance(payload, dict) or set(payload) - {'set', 'clear'}:
-        raise ValueError(f'Invalid event override object: {path}')
-    result = []
-    for key in ('set', 'clear'):
-        values = payload.get(key, [])
-        if not isinstance(values, list) or any(
-            not isinstance(v, str) or not re.fullmatch(r'(EVENT|ENGINE)_\w+', v) for v in values
-        ):
-            raise ValueError(f'Invalid {key} event flags: {path}')
-        result.append(set(values))
-    if result[0] & result[1]:
-        raise ValueError(f'Event flags both set and cleared: {path}')
-    return result[0], result[1]
-
-
-def effective_flags(initial: Iterable[str], path: Path | None = None) -> set[str]:
-    enabled, disabled = parse_overrides(path)
-    return (set(initial) - disabled) | enabled
+    enabled, disabled = stitch_event_flags(root)
+    return (flags - disabled) | enabled
 
 
 def _bridge_routines(lines: list[str], map_label: str) -> dict[str, list[str]]:

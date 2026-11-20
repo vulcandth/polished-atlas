@@ -1775,7 +1775,7 @@ def main() -> None:
     movements = parse_movement_table(polished_root, constants)
     facings = parse_facings(polished_root, constants)
     block_pixel_size = atlas_common.block_pixel_size()
-    initial_event_flags = atlas_common.effective_flags(parse_initial_event_flags(polished_root))
+    initial_event_flags = parse_initial_event_flags(polished_root)
     map_objects = parse_map_objects(
         polished_root,
         constants,

@@ -72,7 +72,7 @@ map_attributes Room, ROOM, $1, 0
             if required:
                 self.fail(f"Required upstream corpus does not exist: {root}")
             self.skipTest("Optional upstream corpus is not checked out")
-        expected = os.environ.get("ATLAS_UPSTREAM_COMMIT", "6eb9a7c2e8b6776195550b53d0420067d99580b0")
+        expected = os.environ.get("ATLAS_UPSTREAM_COMMIT", "c99ae06bb9250bceff01a55204a6afa9a4ba9c7a")
         actual = subprocess.check_output([os.environ.get("GIT_BIN", "git"), "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
         self.assertEqual(actual, expected)
         path = root / "data/maps/attributes.asm"
@@ -149,7 +149,14 @@ map_attributes Room, ROOM, $1, 0
         self.assertEqual(repo.maps["LavRadioTower3F"].constant, "LAV_RADIO_TOWER_3F")
         self.assertEqual(repo.maps["LavRadioTower4F"].constant, "LAV_RADIO_TOWER_4F")
         from generate_warp_metadata import build_metadata
-        maps, _, _ = build_metadata(root, None, set())
+        maps, _, _ = build_metadata(root, None)
+        for label in ("NationalPark", "ViridianForest"):
+            self.assertIs(repo.maps[label].stitch, False)
+            self.assertFalse(maps[label]["is_overworld"])
+            gates = [warp["target"] for name, entry in maps.items() if "Gate" in name
+                     for warp in entry["warps"] if warp["target"]["map_label"] == label]
+            self.assertTrue(gates, label)
+            self.assertTrue(all(not target["is_overworld"] for target in gates), label)
         unresolved = [(label, warp["index"], warp["target"]["map_constant"])
                       for label, entry in maps.items() for warp in entry["warps"]
                       if warp["target"]["map_label"] is None]

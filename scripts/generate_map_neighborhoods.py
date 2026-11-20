@@ -139,24 +139,6 @@ def parse_args() -> argparse.Namespace:
             "Optional JSON file describing map overlay preferences (above/below constraints) to control per-map z order."
         ),
     )
-    parser.add_argument(
-        "--overworld-exclude",
-        action="append",
-        default=[],
-        help=(
-            "Map label to treat as indoor (exclude from overworld/neighborhoods). "
-            "May be specified multiple times."
-        ),
-    )
-    parser.add_argument(
-        "--overworld-exclude-file",
-        type=Path,
-        default=None,
-        help=(
-            "Optional JSON or text file listing map labels to exclude from the overworld. "
-            "JSON may be an array of strings or an object with 'exclude_labels'/'labels'."
-        ),
-    )
     return parser.parse_args()
 
 
@@ -396,47 +378,6 @@ def _build_manifest(
         handle.write("\n")
 
 
-def _load_excluded_labels(config_path: Optional[Path], extras: Sequence[str]) -> Set[str]:
-    """Load a set of labels to exclude from overworld processing.
-
-    Supports:
-    - JSON array of strings
-    - JSON object with key 'exclude_labels' or 'labels'
-    - Plain text file with one label per line (comments with '#')
-    """
-    labels: Set[str] = set(l for l in (extras or []) if isinstance(l, str) and l.strip())
-    if config_path is None:
-        return labels
-    path = config_path.resolve()
-    if not path.exists():
-        return labels
-    text = path.read_text(encoding="utf-8")
-    data: Optional[object] = None
-    try:
-        data = json.loads(text)
-    except Exception:
-        data = None
-    if isinstance(data, list):
-        for item in data:
-            if isinstance(item, str) and item.strip():
-                labels.add(item.strip())
-        return labels
-    if isinstance(data, dict):
-        for key in ("exclude_labels", "labels"):
-            raw = data.get(key)
-            if isinstance(raw, list):
-                for item in raw:
-                    if isinstance(item, str) and item.strip():
-                        labels.add(item.strip())
-        return labels
-    # Fallback: treat as newline-delimited text
-    for raw_line in text.splitlines():
-        line = raw_line.split("#", 1)[0].strip()
-        if line:
-            labels.add(line)
-    return labels
-
-
 def _load_overlay_rules(config_path: Optional[Path]) -> List[Tuple[str, str]]:
     """Load overlay constraints from a JSON file.
 
@@ -541,14 +482,8 @@ def main() -> None:
     _augment_with_repo(raw_graph, repo_index)
     raw_graph, border_proxies = _layout_graph(raw_graph, polished_path)
 
-    # Try default exclusion file alongside this script when not explicitly provided.
-    default_exclude_path = (Path(__file__).parent / "overworld_exclude.json").resolve()
-    exclude_source = args.overworld_exclude_file or (default_exclude_path if default_exclude_path.exists() else None)
-    excluded_labels: Set[str] = _load_excluded_labels(exclude_source, args.overworld_exclude)
     included_labels = {label for label, info in repo_index.maps.items() if info.stitch is True}
-    excluded_labels.update(label for label, info in repo_index.maps.items() if info.stitch is False)
-    excluded_labels.difference_update(included_labels)
-    raw_graph = {key: node for key, node in raw_graph.items() if key not in excluded_labels}
+    raw_graph = {key: node for key, node in raw_graph.items() if repo_index.maps[key].stitch is not False}
     adjacency = _build_adjacency(raw_graph)
     global_seen: Set[str] = set()
     components: List[Set[str]] = []
@@ -635,7 +570,7 @@ def main() -> None:
             region.offset_blocks = (0.0, auto_cursor)
             auto_cursor += region.bounds_blocks[1] + margin
     expected = {label for label, entry in raw_graph.items()
-                if (entry.map_type in target_types or label in included_labels) and label not in excluded_labels}
+                if (entry.map_type in target_types or label in included_labels)}
     placed = {label for neighborhood in neighborhoods for label in neighborhood.map_labels}
     if expected - placed:
         raise ValueError(f"Outdoor maps missing from atlas: {sorted(expected - placed)}")

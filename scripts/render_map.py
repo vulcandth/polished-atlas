@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 from map_palette import palette_time
-from event_state import evaluate_tile_callback, initial_flags, effective_flags
+from event_state import evaluate_tile_callback, initial_flags
 from fixed_weather import fixed_weather
 import palette_swaps
 
@@ -1012,7 +1012,7 @@ class RepositoryIndex:
     ) -> Optional[int]:
         events_set: Set[str]
         if events is None:
-            events_set = effective_flags(self._initial_event_flags)
+            events_set = self._initial_event_flags
         else:
             events_set = set(events)
         day = (self._default_weekday if weekday is None else weekday) % 7
@@ -2022,7 +2022,7 @@ def _load_tileset_animations(
 def _write_modern_animation(polished_path, renderer, png_module, repo_index, time_of_day, events, metadata_path):
     from tile_animation_export import context_for_map, write_animation
     if events is None:
-        events = effective_flags(repo_index.initial_event_flags)
+        events = repo_index.initial_event_flags
     context = context_for_map(repo_index.map_info(renderer.map_label), time_of_day, events)
     return write_animation(polished_path, renderer, png_module, metadata_path, context)
 
@@ -2392,7 +2392,7 @@ def _build_renderer(
     tileset_resources = repo_index.tileset_resources(map_info.tileset)
     overcast_index = repo_index.get_overcast_index(map_info, weekday=weekday, events=events)
     if events is None:
-        events = effective_flags(repo_index.initial_event_flags)
+        events = repo_index.initial_event_flags
     block_indices = repo_index.map_blocks(map_info, events, weekday=weekday, entrance_map=entrance_map,
                                          clock_time=clock_time)
     allows_roof_palette = map_info.map_type in {"TOWN", "ROUTE", "ISOLATED"}
@@ -2586,7 +2586,7 @@ def main() -> None:
     map_label = args.map
     weekday = args.weekday
     time_of_day = args.time_of_day
-    events: Set[str] = effective_flags(repo_index.initial_event_flags)
+    events: Set[str] = repo_index.initial_event_flags
     if args.event_overrides:
         for flag_name, state in args.event_overrides:
             if state:

@@ -19,7 +19,7 @@ from typing import Dict, Iterable, Optional, Set, Tuple
 
 import render_map
 from map_palette import palette_time
-from event_state import effective_flags, has_clock_tile_callback
+from event_state import has_clock_tile_callback
 
 
 def scoped_map_lines(lines: Iterable[str]) -> Iterable[str]:
@@ -174,7 +174,7 @@ def _is_time_invariant_map(
 def time_invariant_maps(repo_index: render_map.RepositoryIndex) -> Set[str]:
     """Return the set of maps whose rendering is unaffected by time-of-day or weekday."""
     root = Path(repo_index.root).resolve()
-    event_flags = effective_flags(repo_index.initial_event_flags)
+    event_flags = repo_index.initial_event_flags
     cache_key = (root, frozenset(event_flags))
     cached = _time_invariant_cache.get(cache_key)
     if cached is not None:

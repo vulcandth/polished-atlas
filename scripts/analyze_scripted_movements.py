@@ -37,7 +37,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import atlas_common
-from event_state import initial_flags
+from event_state import initial_flags, stitch_event_flags
 from fixed_weather import fixed_weather
 from generate_object_metadata import MACRO_EXPANSIONS, gather_constants, split_arguments
 from object_schedule import ObjectSchedule, caught_beasts, eusine_masks, eusine_state
@@ -962,8 +962,7 @@ def analyze_scripts(
     warp_label_by_norm: Dict[str, str] = { _norm_label_key(lbl): lbl for lbl in warp_maps.keys() }
     has_initial_flags = (polished_path / "data/events/initialize_events.asm").is_file()
     initial_events = initial_flags(polished_path) if has_initial_flags else set()
-    forced_set: set[str] = set()
-    forced_clear: set[str] = set()
+    forced_set, forced_clear = stitch_event_flags(polished_path) if has_initial_flags else (set(), set())
 
     def override(enabled: Iterable[str], disabled: Iterable[str]) -> None:
         forced_set.update(enabled)

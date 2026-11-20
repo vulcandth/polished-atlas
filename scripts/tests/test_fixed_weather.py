@@ -1,5 +1,4 @@
 import base64
-import json
 import os
 from pathlib import Path
 import sys
@@ -9,10 +8,10 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import atlas_common
-from event_state import effective_flags, initial_flags, parse_overrides
+from event_state import initial_flags, stitch_event_flags
 from fixed_weather import Weather, fixed_weather
 from generate_bg_palette_metadata import build_payload as bg_payload, Options
-from generate_object_metadata import parse_initial_event_flags, parse_event_overrides
+from generate_object_metadata import parse_initial_event_flags
 from generate_weather_metadata import build_payload as weather_assets
 from generate_weather_state import _determine_weather_for_map
 from generate_warp_metadata import build_metadata, _load_tileset_collision_table
@@ -53,21 +52,24 @@ class FixedWeatherTests(unittest.TestCase):
         for name in ('CHERRYGROVE_BAY', 'ECRUTEAK_CITY', 'ROUTE_10_SOUTH'):
             self.assertEqual(fixed_weather(name, 1, set()), Weather())
 
-    def test_override_validation_and_shared_precedence(self):
+    def test_stitch_directives_apply_to_the_initial_event_table(self):
         with tempfile.TemporaryDirectory() as temp:
-            p = Path(temp) / 'events.json'
-            p.write_text(json.dumps({'set': ['ENGINE_JUDGE_MACHINE'], 'clear': ['EVENT_TEST']}))
-            with patch.dict(os.environ, ATLAS_EVENT_OVERRIDES=str(p)):
-                self.assertEqual(effective_flags({'EVENT_TEST', 'EVENT_KEPT'}), {'ENGINE_JUDGE_MACHINE', 'EVENT_KEPT'})
-                self.assertEqual(parse_event_overrides(None), parse_overrides(p))
-                other = Path(temp) / 'other.json'
-                other.write_text('[]')
-                self.assertEqual(effective_flags({'EVENT_TEST'}, other), {'EVENT_TEST'})
-            for payload in ({'set': 'EVENT_BAD'}, {'clear': [1]}, {'set': ['BAD']},
-                            {'set': ['EVENT_X'], 'clear': ['EVENT_X']}, {'typo': []}):
-                p.write_text(json.dumps(payload))
-                with self.assertRaises(ValueError): parse_overrides(p)
-            with self.assertRaises(FileNotFoundError): parse_overrides(Path(temp) / 'missing.json')
+            root = Path(temp)
+            constants = root / 'constants/event_flags.asm'
+            constants.parent.mkdir()
+            initial = root / 'data/events/initialize_events.asm'
+            initial.parent.mkdir(parents=True)
+            initial.write_text("InitialEvents:\n dw EVENT_REMOVE, EVENT_KEEP, -1\n"
+                               "InitialEngineFlags:\n dw ENGINE_JUDGE_MACHINE, -1\n")
+            constants.write_text(" const EVENT_KEEP ; discussion of stitch-clear\n")
+            self.assertEqual(stitch_event_flags(root), (set(), set()))
+            constants.write_text(constants.read_text() + " const EVENT_ADD ; stitch-set\n"
+                                 " const EVENT_REMOVE ; stitch-clear\n; const EVENT_IGNORED ; stitch-set\n")
+            self.assertEqual(stitch_event_flags(root), ({'EVENT_ADD'}, {'EVENT_REMOVE'}))
+            self.assertEqual(initial_flags(root), {'EVENT_KEEP', 'EVENT_ADD', 'ENGINE_JUDGE_MACHINE'})
+            constants.write_text(constants.read_text() + " const EVENT_ADD ; stitch-clear\n")
+            with self.assertRaisesRegex(ValueError, 'EVENT_ADD'):
+                stitch_event_flags(root)
 
 
 class WeatherCorpusTests(unittest.TestCase):
@@ -100,19 +102,17 @@ class WeatherCorpusTests(unittest.TestCase):
                     self.assertEqual(states[0]['overcast_index'], self.repo.get_overcast_index(info, weekday=day, events=events))
                     self.assertEqual(states[0]['weather'] in ('rain', 'thunderstorm'), states[0]['overcast_index'] is not None)
 
-    def test_overrides_affect_terrain_and_npc_colors_together(self):
-        with tempfile.TemporaryDirectory() as temp:
-            path = Path(temp) / 'events.json'
-            path.write_text(json.dumps({'clear': ['EVENT_AZALEA_TOWN_SLOWPOKES', 'EVENT_ROUTE_10_ZAPDOS']}))
-            with patch.dict(os.environ, ATLAS_EVENT_OVERRIDES=str(path)):
-                payload = bg_payload(Options(self.root, Path(temp) / 'unused.json', 1, None))
-                png = atlas_common.png_module(self.root)
-                for label in ('Route9', 'Route10North', 'StormyBeach'):
-                    self.assertTrue(payload['maps'][label]['overcast'])
-                    for t, slug in enumerate(('morn', 'day', 'nite', 'eve')):
-                        renderer = _build_renderer(png, self.root, self.repo, label, weekday=1, time_of_day=t,
-                                                   events=effective_flags(self.repo.initial_event_flags))
-                        self.assertEqual(renderer.attributes.colors[:7], payload['maps'][label]['palettes'][slug][:7])
+    def test_event_state_affects_terrain_and_npc_colors_together(self):
+        flags = self.repo.initial_event_flags - {'EVENT_AZALEA_TOWN_SLOWPOKES', 'EVENT_ROUTE_10_ZAPDOS'}
+        with patch.object(self.repo, '_initial_event_flags', flags):
+            payload = bg_payload(Options(self.root, Path('unused.json'), 1))
+            png = atlas_common.png_module(self.root)
+            for label in ('Route9', 'Route10North', 'StormyBeach'):
+                self.assertTrue(payload['maps'][label]['overcast'])
+                for t, slug in enumerate(('morn', 'day', 'nite', 'eve')):
+                    renderer = _build_renderer(png, self.root, self.repo, label, weekday=1, time_of_day=t,
+                                               events=self.repo.initial_event_flags)
+                    self.assertEqual(renderer.attributes.colors[:7], payload['maps'][label]['palettes'][slug][:7])
 
     def test_wet_and_dry_terrain_and_collision_use_the_same_blocks(self):
         variants = {
@@ -121,28 +121,25 @@ class WeatherCorpusTests(unittest.TestCase):
             'LakeOfRage': (1, 'LakeOfRageFlooded'),
             'Route43': (1, 'Route43Raining'),
         }
-        with tempfile.TemporaryDirectory() as temp:
-            override = Path(temp) / 'events.json'
-            override.write_text(json.dumps({'clear': sorted(self.repo.initial_event_flags)}))
-            with patch.dict(os.environ, ATLAS_EVENT_OVERRIDES=str(override)):
-                for day in (0, 1):
-                    maps, _, aux = build_metadata(self.root, None, set(), weekday=day)
-                    for label, (wet_day, wet_asset) in variants.items():
-                        with self.subTest(label=label, weekday=day):
-                            source = wet_asset if day == wet_day else label
-                            blocks = (self.root / 'maps' / f'{source}.ablk').read_bytes()
-                            info = self.repo.maps[label]
-                            terrain = _build_renderer(atlas_common.png_module(self.root), self.root,
-                                                      self.repo, label, weekday=day, time_of_day=1,
-                                                      events=set())
-                            self.assertEqual(bytes(terrain.block_indices), blocks)
-                            table = _load_tileset_collision_table(
-                                self.root, self.repo.tileset_resources(info.tileset).collision_path,
-                                aux['collision_constants'])
-                            expected = bytes(
-                                table[blocks[(y // 2) * info.width + x // 2]][(y % 2) * 2 + x % 2]
-                                for y in range(info.height * 2) for x in range(info.width * 2))
-                            self.assertEqual(base64.b64decode(maps[label]['collision']['cells']), expected)
+        with patch.object(self.repo, '_initial_event_flags', set()):
+            for day in (0, 1):
+                maps, _, aux = build_metadata(self.root, None, weekday=day)
+                for label, (wet_day, wet_asset) in variants.items():
+                    with self.subTest(label=label, weekday=day):
+                        source = wet_asset if day == wet_day else label
+                        blocks = (self.root / 'maps' / f'{source}.ablk').read_bytes()
+                        info = self.repo.maps[label]
+                        terrain = _build_renderer(atlas_common.png_module(self.root), self.root,
+                                                  self.repo, label, weekday=day, time_of_day=1,
+                                                  events=set())
+                        self.assertEqual(bytes(terrain.block_indices), blocks)
+                        table = _load_tileset_collision_table(
+                            self.root, self.repo.tileset_resources(info.tileset).collision_path,
+                            aux['collision_constants'])
+                        expected = bytes(
+                            table[blocks[(y // 2) * info.width + x // 2]][(y % 2) * 2 + x % 2]
+                            for y in range(info.height * 2) for x in range(info.width * 2))
+                        self.assertEqual(base64.b64decode(maps[label]['collision']['cells']), expected)
 
     def test_weather_tiles_and_palettes_are_valid_source_data(self):
         payload = weather_assets(self.root)

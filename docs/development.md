@@ -12,11 +12,11 @@ installed npm dependencies. `--output .build/my-bundle` selects a separate bundl
 directory. `TIME_OF_DAY_SET` can limit local iteration; publication requires all
 four palettes. Build outputs never reuse tracked or previously generated metadata.
 
-The default event and engine flags are combined with `scripts/event_overrides.json`
-for terrain, animation, objects, palettes and weather. Standalone generators can
-inherit the same file through `ATLAS_EVENT_OVERRIDES`; an explicit metadata
-`--event-overrides` path takes precedence. Invalid or contradictory overrides fail
-instead of silently generating inconsistent layers.
+The game source controls overworld placement through `; no-stitch` and
+`; yes-stitch` on map declarations in `data/maps/maps.asm`. For the atlas event
+snapshot, `; stitch-set` and `; stitch-clear` on constants in
+`constants/event_flags.asm` take precedence over the initial event tables.
+Object visibility also honors these flags after map-entry callbacks.
 
 The default weekday is Monday. Dev uses scripted/scheduled weather only, including
 the global Slowpoke story gate, Zapdos/Team Rocket conditions, weekly rain/thunder,

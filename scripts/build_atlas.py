@@ -128,8 +128,7 @@ def main() -> None:
             options.extend(["--workers", env["ATLAS_WORKERS"]])
         generate("render_maps.py", *options)
         generate("generate_map_neighborhoods.py", "--time-of-day", slug,
-                 "--attributes", upstream / "data/maps/attributes.asm",
-                 "--overlay-rules", scripts / "overlay_rules.json")
+                 "--attributes", upstream / "data/maps/attributes.asm")
     generate("generate_warp_metadata.py", "--weekday", str(weekday))
     from stitch_report import stitch_report
     manifest = json.loads((maps / slugs[0] / "animated/map_neighborhoods.json").read_text(encoding="utf-8"))

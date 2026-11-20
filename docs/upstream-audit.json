@@ -1,7 +1,7 @@
 {
   "base": "e410d7405e7d5d016b16a0a59bfb6da0b2a9eabf",
-  "head": "c99ae06bb9250bceff01a55204a6afa9a4ba9c7a",
-  "commit_count": 1064,
+  "head": "56a2e52966d988e43fc6bddc802a246dc5038663",
+  "commit_count": 1065,
   "endpoint_changes": [
     [
       "M",
@@ -69473,6 +69473,27 @@
       "evidence": [
         "https://github.com/Rangi42/polishedcrystal/commit/c99ae06bb9250bceff01a55204a6afa9a4ba9c7a",
         "Parsed all annotated event constants and compared them with the retired Atlas event file. All seven set flags and the one cleared flag match."
+      ],
+      "review_method": "full-diff"
+    },
+    {
+      "sha": "56a2e52966d988e43fc6bddc802a246dc5038663",
+      "parents": [
+        "c99ae06bb9250bceff01a55204a6afa9a4ba9c7a"
+      ],
+      "subject": "Add `fake_connection` from `CherrygroveCity` to `CherrygroveTrainTrack` since they overlap",
+      "changes": [
+        [
+          "M",
+          "data/maps/attributes.asm"
+        ]
+      ],
+      "status": "resolved",
+      "disposition": "adaptation",
+      "reason": "The new Cherrygrove connection defines the drawing order of the city and the train track directly in the game source.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/56a2e52966d988e43fc6bddc802a246dc5038663",
+        "Verified the city draws above the track in their four-block-wide overlap. The east boundary of Ruins of Alph Outside meets the west boundary of Violet City. Neither former Atlas overlay rule is needed."
       ],
       "review_method": "full-diff"
     }

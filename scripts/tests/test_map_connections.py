@@ -8,7 +8,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from generate_map_connections import AttributesParser, MapAttributes, MapConnection, _augment_with_repo, _layout_graph, _collect_reachable, _project_neighbour
-from generate_map_neighborhoods import _build_adjacency, _component_members, _build_layout, _select_root, TARGET_TYPES
+from generate_map_neighborhoods import _build_adjacency, _component_members, _build_layout, _compute_map_z_indices, _select_root, TARGET_TYPES
 import atlas_common
 
 
@@ -72,7 +72,7 @@ map_attributes Room, ROOM, $1, 0
             if required:
                 self.fail(f"Required upstream corpus does not exist: {root}")
             self.skipTest("Optional upstream corpus is not checked out")
-        expected = os.environ.get("ATLAS_UPSTREAM_COMMIT", "c99ae06bb9250bceff01a55204a6afa9a4ba9c7a")
+        expected = os.environ.get("ATLAS_UPSTREAM_COMMIT", "56a2e52966d988e43fc6bddc802a246dc5038663")
         actual = subprocess.check_output([os.environ.get("GIT_BIN", "git"), "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
         self.assertEqual(actual, expected)
         path = root / "data/maps/attributes.asm"
@@ -103,7 +103,7 @@ map_attributes Room, ROOM, $1, 0
         self.assertIn("OlivineCity", connected)
         layout_graph, proxies = _layout_graph(graph, root)
         fake_edges = [(label, c) for label, node in graph.items() for c in node.connections if c.declared_fake]
-        self.assertEqual(len(fake_edges), 27)
+        self.assertEqual(len(fake_edges), 28)
         self.assertEqual(proxies, {'Route14LuckyIslandDual', 'OlivineCityRoute35CoastDual'})
         self.assertIn('CherrygroveTrainTrack', layout_graph)
         route13 = [c for c in layout_graph['Route13'].connections if c.direction == 'south']
@@ -139,7 +139,12 @@ map_attributes Room, ROOM, $1, 0
                 bay, track, cherry = [placements[k] for k in ('CherrygroveBay', 'CherrygroveTrainTrack', 'CherrygroveCity')]
                 self.assertEqual((track.x, track.y), (bay.x + bay.width, bay.y))
                 self.assertEqual((cherry.x, cherry.y), (track.x, bay.y + 15))
+                self.assertTrue(any(c.declared_fake and c.label == track.label
+                                    for c in graph[cherry.label].connections))
+                z = _compute_map_z_indices(list(placements), [(source, c.label) for source, c in fake_edges])
+                self.assertGreater(z[cherry.label], z[track.label])
                 ruins, route = placements['RuinsOfAlphOutside'], placements['Route36']
+                self.assertEqual(ruins.x + ruins.width, placements['VioletCity'].x)
                 self.assertEqual((ruins.x, ruins.y), (route.x + 9, route.y + route.height - 1))
                 reverse, = [c for c in layout_graph['Route36'].connections if c.label == ruins.label]
                 self.assertTrue(reverse.layout_only)

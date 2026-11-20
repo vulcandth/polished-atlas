@@ -1,7 +1,0 @@
-{
-  "version": 1,
-  "overlays": [
-    { "above": "RuinsOfAlphOutside", "below": "VioletCity" },
-    { "above": "CherrygroveCity", "below": "CherrygroveTrainTrack" }
-  ]
-}

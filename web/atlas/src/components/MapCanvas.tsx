@@ -162,7 +162,7 @@ function weatherActors(markers: ObjectMarkerEntry[], metadata: ObjectMetadata | 
   const actors: WeatherActor[] = [];
   for (const marker of markers) {
     const sprite = marker.sprite;
-    if (!sprite.visible || !sprite.renderable) continue;
+    if (!sprite.worldVisible || !sprite.renderable) continue;
     const facing = metadata?.facings[marker.currentFrameKey ?? ""];
     const tiles = [];
     if (facing?.tiles.length) {
@@ -1798,6 +1798,8 @@ export default function MapCanvas({
   const weatherTickerRef = useRef<((delta: number) => void) | null>(null);
   const [showWarps, setShowWarps] = useState(true);
   const showWarpsRef = useRef(true);
+  const [showNpcs, setShowNpcs] = useState(true);
+  const showNpcsRef = useRef(true);
   const [zoomPercent, setZoomPercent] = useState(100);
   const [zoomDraft, setZoomDraft] = useState<string | null>(null);
   const manualZoomRef = useRef<((scale: number) => void) | null>(null);
@@ -1950,6 +1952,17 @@ export default function MapCanvas({
     }
     maybeRender();
   }, [showWarps, maybeRender]);
+
+  useEffect(() => {
+    showNpcsRef.current = showNpcs;
+    for (const entry of animationsRef.current) {
+      if (entry.objectContainer) entry.objectContainer.visible = showNpcs;
+    }
+    const overlay = overlayStateRef.current;
+    if (overlay?.objectContainer) overlay.objectContainer.visible = showNpcs;
+    if (!showNpcs) hideTooltip(true);
+    maybeRender();
+  }, [showNpcs, maybeRender]);
 
   // Keep ticker mode in sync with performance toggles; render once when switching to static
   useEffect(() => {
@@ -2853,6 +2866,7 @@ export default function MapCanvas({
       sprite.addChild(container);
       state.objectContainer = container;
     }
+    container.visible = showNpcsRef.current;
     // Stable sorting retains source object order within each priority group.
     container.sortableChildren = true;
 
@@ -3169,6 +3183,7 @@ export default function MapCanvas({
 
         const objectContainer = new Container();
         // Make container interactive so children can receive pointer events
+        objectContainer.visible = showNpcsRef.current;
         objectContainer.eventMode = "static";
         objectContainer.interactiveChildren = true;
         objectContainer.zIndex = 5;
@@ -3704,6 +3719,7 @@ export default function MapCanvas({
         entry.sprite.addChild(container);
         entry.objectContainer = container;
       }
+      container.visible = showNpcsRef.current;
       container.sortableChildren = true;
       const removedChildren = container.removeChildren();
       for (const child of removedChildren) {
@@ -5494,6 +5510,10 @@ export default function MapCanvas({
         <label className="view-control">
           <input type="checkbox" checked={showWarps} onChange={(e) => setShowWarps(e.target.checked)} />
           Warps
+        </label>
+        <label className="view-control">
+          <input type="checkbox" checked={showNpcs} onChange={(e) => setShowNpcs(e.target.checked)} />
+          NPCs
         </label>
         {/* Weather toggle (auto per-map) */}
         <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>

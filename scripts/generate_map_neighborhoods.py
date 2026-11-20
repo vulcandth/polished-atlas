@@ -131,14 +131,6 @@ def parse_args() -> argparse.Namespace:
         default=AUTO_MARGIN_BLOCKS,
         help="Blocks of vertical spacing inserted between auto-positioned neighborhoods.",
     )
-    parser.add_argument(
-        "--overlay-rules",
-        type=Path,
-        default=None,
-        help=(
-            "Optional JSON file describing map overlay preferences (above/below constraints) to control per-map z order."
-        ),
-    )
     return parser.parse_args()
 
 
@@ -378,42 +370,6 @@ def _build_manifest(
         handle.write("\n")
 
 
-def _load_overlay_rules(config_path: Optional[Path]) -> List[Tuple[str, str]]:
-    """Load overlay constraints from a JSON file.
-
-    The expected JSON structure is:
-    {
-      "version": 1,
-      "overlays": [ {"above": "MapA", "below": "MapB"}, ... ]
-    }
-
-    Each entry indicates that MapA should be drawn on top of MapB when they overlap.
-    """
-    if config_path is None:
-        # Try default alongside this script
-        default_path = (Path(__file__).parent / "overlay_rules.json").resolve()
-        if not default_path.exists():
-            return []
-        config_path = default_path
-    if not config_path.exists():
-        return []
-    try:
-        payload = json.loads(config_path.read_text(encoding="utf-8"))
-    except Exception:
-        return []
-    raw = payload.get("overlays")
-    results: List[Tuple[str, str]] = []
-    if isinstance(raw, list):
-        for entry in raw:
-            if not isinstance(entry, dict):
-                continue
-            above = entry.get("above")
-            below = entry.get("below")
-            if isinstance(above, str) and isinstance(below, str) and above and below:
-                results.append((above, below))
-    return results
-
-
 def _compute_map_z_indices(labels: Sequence[str], constraints: List[Tuple[str, str]]) -> Dict[str, int]:
     """Compute a deterministic per-map z_index from pairwise overlay constraints.
 
@@ -496,9 +452,8 @@ def main() -> None:
         global_seen.update(members)
 
     existing_by_fingerprint, existing_by_id, auto_z_start = _load_existing_layout([template])
-    overlay_constraints = _load_overlay_rules(args.overlay_rules)
-    overlay_constraints.extend((entry.label, conn.label) for entry in raw_graph.values()
-                               for conn in entry.connections if conn.declared_fake)
+    overlay_constraints = [(entry.label, conn.label) for entry in raw_graph.values()
+                           for conn in entry.connections if conn.declared_fake]
     auto_z = auto_z_start
     neighborhoods: List[NeighborhoodRecord] = []
     encountered_fingerprints: Set[str] = set()

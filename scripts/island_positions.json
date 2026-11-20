@@ -1,0 +1,11 @@
+{
+  "neighborhoods": [
+    { "id": "FarawayIslandNorth", "offset_blocks": [4, 184], "z_offset": 1 },
+    { "id": "NavelRockOutside", "offset_blocks": [257, 189], "z_offset": 1 },
+    { "id": "RuggedRoadNorth", "offset_blocks": [89, 18], "z_offset": -1 },
+    { "id": "SafariZoneEast", "offset_blocks": [385, 187], "z_offset": 1 },
+    { "id": "ShamoutiIsland", "offset_blocks": [200, 175], "z_offset": 1 },
+    { "id": "SinjohRuins", "offset_blocks": [228, 7], "z_offset": 1 },
+    { "id": "ValenciaIsland", "offset_blocks": [277, 188], "z_offset": 1 }
+  ]
+}

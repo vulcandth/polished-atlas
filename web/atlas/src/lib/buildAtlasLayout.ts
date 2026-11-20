@@ -169,7 +169,7 @@ function projectNeighbour(
   targetHeight: number,
   connection: ConnectionDTO,
 ): { xBlocks: number; yBlocks: number } {
-  const offset = Math.trunc(connection.offset);
+  const offset = connection.offset;
   const direction = connection.direction as ConnectionDirection;
   switch (direction) {
     case "north":
@@ -184,12 +184,12 @@ function projectNeighbour(
       };
     case "west":
       return {
-        xBlocks: sourcePlacement.xBlocks - targetWidth,
+        xBlocks: sourcePlacement.xBlocks - targetWidth + (connection.overlap_blocks ?? 0),
         yBlocks: sourcePlacement.yBlocks + offset,
       };
     case "east":
       return {
-        xBlocks: sourcePlacement.xBlocks + sourcePlacement.widthBlocks,
+        xBlocks: sourcePlacement.xBlocks + sourcePlacement.widthBlocks - (connection.overlap_blocks ?? 0),
         yBlocks: sourcePlacement.yBlocks + offset,
       };
     default:
@@ -215,18 +215,8 @@ function resolveAssetHref(asset: string, baseHref?: string): string {
   try {
     const base = new URL(baseHref);
     const normalizedBase = base.href.endsWith("/") ? base.href : `${base.href}/`;
-    const timeSpecificMatch = /^maps\/([^/]+)\/animated\//.exec(trimmed);
-    if (timeSpecificMatch) {
-      const slug = timeSpecificMatch[1];
-      const prefixLength = timeSpecificMatch[0].length;
-      if (normalizedBase.includes(`/maps/${slug}/animated/`)) {
-        const relativePath = trimmed.slice(prefixLength);
-        return withVersion(new URL(relativePath, normalizedBase).toString());
-      }
-      if (typeof window !== "undefined" && window.location?.origin) {
-        return withVersion(new URL(trimmed, window.location.origin).toString());
-      }
-      return withVersion(trimmed);
+    if (/^maps\/[^/]+\/animated\//.test(trimmed) && /\/maps\/[^/]+\/animated\/$/.test(base.pathname)) {
+      return withVersion(new URL(`../../../${trimmed}`, normalizedBase).toString());
     }
     return withVersion(new URL(trimmed, normalizedBase).toString());
   } catch {

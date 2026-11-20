@@ -11,6 +11,13 @@ function edge(label: string, direction: string, offset: number): ConnectionDTO {
 }
 
 describe("connection layout coverage", () => {
+  it("resolves a time-invariant map under the current atlas channel", () => {
+    const den = { ...map("Den", 20, 18), asset: "maps/common/animated/Den.animation.json" };
+    const layout = buildAtlasLayout({ root: "Den", map_count: 1, maps: { Den: den } }, {
+      assetBaseUrl: "https://example.org/polished-atlas/dev/maps/day/animated/",
+    });
+    expect(new URL(layout.placements[0].asset).pathname).toBe("/polished-atlas/dev/maps/common/animated/Den.animation.json");
+  });
   it("places both dual destinations and the route beyond them", () => {
     const graph: ConnectionGraphDTO = { root: "Route13", map_count: 4, maps: {
       Route13: map("Route13", 35, 10, [

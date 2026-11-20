@@ -27,7 +27,8 @@ async function readRequestBody(req: import("node:http").IncomingMessage): Promis
 }
 
 function atlasDevToolsPlugin(repoRoot: string): Plugin {
-  const manifestPath = path.resolve(repoRoot, "maps/day/animated/map_neighborhoods.json");
+  const generated = path.resolve(repoRoot, ".build/generated/dev/maps");
+  const positions = path.resolve(repoRoot, "scripts/island_positions.json");
   return {
     name: "atlas-dev-tools",
     apply: "serve",
@@ -56,66 +57,45 @@ function atlasDevToolsPlugin(repoRoot: string): Plugin {
             throw new Error("Invalid payload: neighborhoods array missing");
           }
 
-          const sourceRaw = await fs.readFile(manifestPath, "utf8");
-          type NeighborhoodRecord = {
-            id?: unknown;
-            offset_blocks?: unknown;
-            z_offset?: unknown;
-            [key: string]: unknown;
-          };
-
-          const manifest = JSON.parse(sourceRaw) as {
-            generated_at?: string;
-            neighborhoods?: NeighborhoodRecord[];
-          };
-          if (!manifest.neighborhoods || !Array.isArray(manifest.neighborhoods)) {
-            throw new Error("Manifest missing neighborhoods array");
+          const clocks = await fs.readdir(generated);
+          const manifests = await Promise.all(clocks.filter((clock) => ["day", "eve", "morn", "nite"].includes(clock))
+            .map(async (clock) => {
+              const file = path.join(generated, clock, "animated/map_neighborhoods.json");
+              const data = JSON.parse(await fs.readFile(file, "utf8")) as {
+                neighborhoods: { id: string; map_labels: string[]; offset_blocks: number[]; z_offset: number }[];
+              };
+              return { file, data };
+            }));
+          const day = manifests.find(({ file }) => file === path.join(generated, "day/animated/map_neighborhoods.json"));
+          if (!day) throw new Error("Generate the dev atlas before editing island positions.");
+          const detached = day.data.neighborhoods.filter((n) => !n.map_labels.includes("NewBarkTown"));
+          const updates = new Map(payload.neighborhoods.map((entry) => [entry.id, entry]));
+          if (updates.size !== detached.length || detached.some((n) => !updates.has(n.id))) {
+            throw new Error("Detached groups have changed. Reload the atlas.");
           }
-
-          const updates = new Map(payload.neighborhoods.map((entry) => [entry.id, entry] as const));
-
-          let updatedCount = 0;
-          for (const neighborhood of manifest.neighborhoods) {
-            const id = typeof neighborhood.id === "string" ? neighborhood.id : undefined;
-            if (!id) {
-              continue;
+          const neighborhoods = detached.map(({ id }) => {
+            const update = updates.get(id)!;
+            const xy = update.offset_blocks;
+            if (!Array.isArray(xy) || xy.length !== 2 || !xy.every(Number.isFinite)
+                || typeof update.z_offset !== "number" || !Number.isFinite(update.z_offset)) {
+              throw new Error("Each island requires finite coordinates and draw order.");
             }
-            const update = updates.get(id);
-            if (!update) {
-              continue;
-            }
-            if (Array.isArray(update.offset_blocks) && update.offset_blocks.length === 2) {
-              const nextOffsets: [number, number] = [
-                snapToHalf(update.offset_blocks[0]),
-                snapToHalf(update.offset_blocks[1]),
-              ];
-              neighborhood.offset_blocks = nextOffsets;
-            } else if (update.offset_blocks === null) {
-              neighborhood.offset_blocks = null;
-            }
-            if (typeof update.z_offset === "number") {
-              neighborhood.z_offset = Number.isFinite(update.z_offset)
-                ? Math.trunc(update.z_offset)
-                : 0;
-            } else if (update.z_offset === null) {
-              neighborhood.z_offset = null;
-            }
-            updatedCount += 1;
+            return { id, offset_blocks: xy.map(snapToHalf), z_offset: Math.trunc(update.z_offset) };
+          }).sort((a, b) => a.id.localeCompare(b.id));
+          const byId = new Map(neighborhoods.map((n) => [n.id, n]));
+          // The canonical file is also read by every clean build. A concurrent
+          // reader should see either the old positions or the complete new set.
+          const temporary = positions + "." + crypto.randomUUID() + ".tmp";
+          await fs.writeFile(temporary, JSON.stringify({ neighborhoods }, null, 2) + "\n");
+          await fs.rename(temporary, positions);
+          for (const { file, data } of manifests) {
+            for (const group of data.neighborhoods) Object.assign(group, byId.get(group.id));
+            const temp = file + "." + crypto.randomUUID() + ".tmp";
+            await fs.writeFile(temp, JSON.stringify(data, null, 2) + "\n");
+            await fs.rename(temp, file);
           }
-
-          manifest.generated_at = new Date().toISOString();
-
-          await fs.writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
-
-          res.statusCode = 200;
           res.setHeader("Content-Type", "application/json");
-          res.end(
-            JSON.stringify({
-              ok: true,
-              updated: updatedCount,
-              generated_at: manifest.generated_at,
-            }),
-          );
+          res.end(JSON.stringify({ ok: true, updated: neighborhoods.length }));
         } catch (error) {
           const message = error instanceof Error ? error.message : "Unknown error";
           res.statusCode = 400;
@@ -156,7 +136,7 @@ export default defineConfig({
     },
   },
   define: {
-    __REPO_ROOT__: JSON.stringify(repoRoot),
+    __REPO_ROOT__: JSON.stringify(path.resolve(repoRoot, ".build/generated/dev")),
     __PUBLIC_BASE__: JSON.stringify(publicBase),
   },
   server: {

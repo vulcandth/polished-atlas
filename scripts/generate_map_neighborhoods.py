@@ -51,7 +51,7 @@ class NeighborhoodRecord:
     primary_type: Optional[str]
     types_present: List[str]
     fingerprint: str
-    bounds_blocks: Tuple[int, int]
+    bounds_blocks: Tuple[float, float]
     offset_blocks: Tuple[float, float]
     z_offset: int
     map_count: int
@@ -116,7 +116,7 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=None,
         help=(
-            "Optional manifest to seed layout offsets and z ordering (defaults to the day manifest when available)."
+            "Canvas positions for disconnected groups (defaults to scripts/island_positions.json)."
         ),
     )
     parser.add_argument(
@@ -233,7 +233,7 @@ def _ensure_dimension(value: Optional[int], label: str, kind: str) -> int:
     return int(value)
 
 
-def _build_layout(component: Dict[str, MapAttributes], root: str) -> Tuple[Dict[str, Placement], Tuple[int, int]]:
+def _build_layout(component: Dict[str, MapAttributes], root: str) -> Tuple[Dict[str, Placement], Tuple[float, float]]:
     root_data = component[root]
     root_width = _ensure_dimension(root_data.width, root, "width")
     root_height = _ensure_dimension(root_data.height, root, "height")
@@ -326,11 +326,9 @@ def _load_existing_layout(manifest_paths: Iterable[Path]) -> Tuple[Dict[str, Lay
                     parsed_z = None
             if parsed_z is not None:
                 max_z = parsed_z if max_z is None else max(max_z, parsed_z)
-            if not fingerprint:
-                continue
             spec = LayoutSpec(offset=parsed_offset, z_offset=parsed_z)
             fingerprint_key = str(fingerprint)
-            if fingerprint_key not in by_fingerprint:
+            if fingerprint and fingerprint_key not in by_fingerprint:
                 by_fingerprint[fingerprint_key] = spec
             if isinstance(identifier, str) and identifier and identifier not in by_id:
                 by_id[identifier] = spec
@@ -508,9 +506,8 @@ def _compute_map_z_indices(labels: Sequence[str], constraints: List[Tuple[str, s
                 while insert_at < len(queue) and queue[insert_at] < nbr:
                     insert_at += 1
                 queue.insert(insert_at, nbr)
-    # Append any remaining nodes (cycles or disconnected), in alpha order but preserving any existing order first
-    remaining = sorted([n for n in present if n not in order])
-    order.extend(remaining)
+    if len(order) != len(present):
+        raise ValueError(f"Conflicting draw order for maps: {sorted(present - set(order))}")
     return {label: idx for idx, label in enumerate(order)}
 
 
@@ -524,17 +521,7 @@ def main() -> None:
     asset_prefix = _normalise_asset_prefix(args.asset_prefix or f"maps/{time_slug}/animated")
     common_asset_prefix = _normalise_asset_prefix(args.common_asset_prefix or "maps/common/animated")
     manifest_path = (args.manifest or (output_dir / MANIFEST_FILENAME)).resolve()
-    layout_sources: List[Path] = [manifest_path]
-    if args.layout_template:
-        template_path = args.layout_template.resolve()
-        if template_path != manifest_path:
-            layout_sources.append(template_path)
-    elif time_slug != "day":
-        day_manifest = (atlas_common.maps_output_dir("day") / MANIFEST_FILENAME).resolve()
-        if day_manifest != manifest_path:
-            layout_sources.append(day_manifest)
-    # Deduplicate while preserving order to avoid reading the same manifest twice.
-    deduped_layout_sources = list(dict.fromkeys(layout_sources))
+    template = args.layout_template or Path(__file__).with_name("island_positions.json")
     target_types: List[str] = [t.upper() for t in args.types]
 
     if not attributes_path.exists():
@@ -554,6 +541,14 @@ def main() -> None:
     _augment_with_repo(raw_graph, repo_index)
     raw_graph, border_proxies = _layout_graph(raw_graph, polished_path)
 
+    # Try default exclusion file alongside this script when not explicitly provided.
+    default_exclude_path = (Path(__file__).parent / "overworld_exclude.json").resolve()
+    exclude_source = args.overworld_exclude_file or (default_exclude_path if default_exclude_path.exists() else None)
+    excluded_labels: Set[str] = _load_excluded_labels(exclude_source, args.overworld_exclude)
+    included_labels = {label for label, info in repo_index.maps.items() if info.stitch is True}
+    excluded_labels.update(label for label, info in repo_index.maps.items() if info.stitch is False)
+    excluded_labels.difference_update(included_labels)
+    raw_graph = {key: node for key, node in raw_graph.items() if key not in excluded_labels}
     adjacency = _build_adjacency(raw_graph)
     global_seen: Set[str] = set()
     components: List[Set[str]] = []
@@ -565,33 +560,22 @@ def main() -> None:
         components.append(members)
         global_seen.update(members)
 
-    existing_by_fingerprint, existing_by_id, auto_z_start = _load_existing_layout(deduped_layout_sources)
-    # Try default exclusion file alongside this script when not explicitly provided.
-    default_exclude_path = (Path(__file__).parent / "overworld_exclude.json").resolve()
-    exclude_source = args.overworld_exclude_file or (default_exclude_path if default_exclude_path.exists() else None)
-    excluded_labels: Set[str] = _load_excluded_labels(exclude_source, args.overworld_exclude)
+    existing_by_fingerprint, existing_by_id, auto_z_start = _load_existing_layout([template])
     overlay_constraints = _load_overlay_rules(args.overlay_rules)
-    auto_cursor: float = 0.0
+    overlay_constraints.extend((entry.label, conn.label) for entry in raw_graph.values()
+                               for conn in entry.connections if conn.declared_fake)
     auto_z = auto_z_start
     neighborhoods: List[NeighborhoodRecord] = []
     encountered_fingerprints: Set[str] = set()
 
     for members in sorted((sorted(component) for component in components), key=lambda labels: labels[0]):
-        # Drop excluded labels from consideration when determining if a component is overworld
-        allowed_members = [label for label in members if label not in excluded_labels]
-        if not allowed_members:
+        if not included_labels.intersection(members) and not _component_has_target(members, raw_graph, target_types):
             continue
-        if not _component_has_target(allowed_members, raw_graph, target_types):
-            continue
-        root_label = _select_root(allowed_members, raw_graph, target_types)
-        reachable = _collect_reachable(raw_graph, root_label)
-        # Filter out excluded labels from the reachable subgraph
-        filtered = {k: v for k, v in reachable.items() if k not in excluded_labels}
-        missing = sorted(set(allowed_members) - set(filtered))
+        root_label = _select_root(members, raw_graph, target_types)
+        filtered = _collect_reachable(raw_graph, root_label)
+        missing = sorted(set(members) - set(filtered))
         if missing:
             raise ValueError(f"Unreachable maps in neighborhood {root_label}: {missing}")
-        if not filtered:
-            continue
         filename = _connection_filename(root_label)
         output_path = output_dir / filename
         # Compute per-map z order from overlay constraints (after filtering exclusions)
@@ -617,11 +601,12 @@ def main() -> None:
         if layout_hint is None:
             layout_hint = existing_by_id.get(root_label)
         offset = layout_hint.offset if layout_hint and layout_hint.offset is not None else None
-        if offset is None:
-            offset = (0.0, auto_cursor)
-            auto_cursor += float(bounds[1]) + max(float(args.margin_blocks), 0.0)
+        if "NewBarkTown" in filtered:
+            offset = (0.0, 0.0)
         z_offset = layout_hint.z_offset if layout_hint and layout_hint.z_offset is not None else None
-        if z_offset is None:
+        if "NewBarkTown" in filtered:
+            z_offset = 0
+        elif z_offset is None:
             z_offset = auto_z
             auto_z += 1
         neighborhoods.append(
@@ -642,8 +627,15 @@ def main() -> None:
 
     if not neighborhoods:
         raise ValueError("No neighborhoods generated; refusing to write an empty atlas manifest")
+    margin = max(0, args.margin_blocks)
+    auto_cursor = max((n.offset_blocks[1] + n.bounds_blocks[1]
+                       for n in neighborhoods if n.offset_blocks is not None), default=0) + margin
+    for region in neighborhoods:
+        if region.offset_blocks is None:
+            region.offset_blocks = (0.0, auto_cursor)
+            auto_cursor += region.bounds_blocks[1] + margin
     expected = {label for label, entry in raw_graph.items()
-                if entry.map_type in target_types and label not in excluded_labels}
+                if (entry.map_type in target_types or label in included_labels) and label not in excluded_labels}
     placed = {label for neighborhood in neighborhoods for label in neighborhood.map_labels}
     if expected - placed:
         raise ValueError(f"Outdoor maps missing from atlas: {sorted(expected - placed)}")

@@ -39,7 +39,7 @@ function normalizeBlocks(value: number): number {
   if (!Number.isFinite(value)) {
     return 0;
   }
-  return Math.max(0, Math.trunc(value));
+  return Math.max(0, value);
 }
 
 function parseOffsetBlocks(raw: NeighborhoodManifestEntry["offset_blocks"]): OffsetTuple | null {

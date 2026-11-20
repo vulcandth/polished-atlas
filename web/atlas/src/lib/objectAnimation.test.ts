@@ -18,8 +18,9 @@ describe("stationary object animations", () => {
     expect(resolveFacingConstant(metadata.maps.Map.objects[0], metadata)).toBe(expected);
   });
 
-  it("selects Rattata's source poses at 16-VBlank boundaries", () => {
-    const animation = getStaticObjectAnimation("SPRITEMOVEDATA_RATTATA_BACK")!;
+  it.each(["SPRITEMOVEDATA_RATTATA_BACK", "SPRITEMOVEDATA_POKEMON"])(
+    "selects the source poses for %s at 16-VBlank boundaries", (movement) => {
+    const animation = getStaticObjectAnimation(movement)!;
     const clock = makeTrackClock([0, 1], [1, 1], animation.frameDurationMs);
     const vblankMs = 1000 * 70224 / 4194304;
     expect(getMovementModel("SPRITEMOVEDATA_RATTATA_BACK").category).toBe("object");

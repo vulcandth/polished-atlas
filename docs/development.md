@@ -44,7 +44,18 @@ Individual generators retain their `--help` interfaces. `POLISHED_DIR` and
 `ATLAS_MAPS_DIR` set their default source/output roots. Standalone scripts still
 default to `external/polishedcrystal` and `maps`. The normal production pipeline
 sets isolated roots automatically. For frontend development with `npm run dev`,
-generate standalone assets into `maps`, or use `npm run preview` after a full build.
+run `python scripts/build_atlas.py --assets-only` first. Vite reads the generated dev
+maps. In the day view, **Place islands** moves whole detached groups. Saving updates
+`scripts/island_positions.json` for future builds and the generated clock manifests
+for the current preview.
+
+The [dev stitch report](https://vulcandth.github.io/polished-atlas/dev/maps/stitch_report.json)
+lists all detached groups and cross-group gatehouses for review after each upstream update.
+
+To publish dev independently, dispatch `publish.yml` on `dev` with the
+`stable_run_id` of the successful main publication that produced the live stable build.
+The workflow checks the retained stable bundle against the live build information,
+builds dev, and deploys both directories in a single Pages artifact.
 
 ## Verification
 

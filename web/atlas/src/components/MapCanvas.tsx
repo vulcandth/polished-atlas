@@ -1796,6 +1796,11 @@ export default function MapCanvas({
   const overlayStateRef = useRef<OverlayState | null>(null);
   const overlayTokenRef = useRef(0);
   const weatherTickerRef = useRef<((delta: number) => void) | null>(null);
+  const [showWarps, setShowWarps] = useState(true);
+  const showWarpsRef = useRef(true);
+  const [zoomPercent, setZoomPercent] = useState(100);
+  const [zoomDraft, setZoomDraft] = useState<string | null>(null);
+  const manualZoomRef = useRef<((scale: number) => void) | null>(null);
   const warpsLayerRef = useRef<Container | null>(null);
   const highlightTimersRef = useRef<Map<string, number>>(new Map());
   const backlinkRef = useRef<WarpBacklink | null>(null);
@@ -1934,6 +1939,17 @@ export default function MapCanvas({
       }
     }
   }, [disableMapAnimations, disableObjectAnimations]);
+
+  useEffect(() => {
+    showWarpsRef.current = showWarps;
+    if (warpsLayerRef.current) warpsLayerRef.current.visible = showWarps;
+    const overlay = overlayStateRef.current;
+    if (overlay) {
+      for (const marker of overlay.markers) marker.graphic.visible = showWarps;
+      if (overlay.highlight) overlay.highlight.visible = showWarps;
+    }
+    maybeRender();
+  }, [showWarps, maybeRender]);
 
   // Keep ticker mode in sync with performance toggles; render once when switching to static
   useEffect(() => {
@@ -2282,8 +2298,8 @@ export default function MapCanvas({
     const fitHeightScale = availableHeight / (baseHeight + 2 * state.connectionPadding);
     const rawFitScale = Math.min(fitWidthScale, fitHeightScale, MAX_SCALE);
     const fitScale = Math.max(MIN_SCALE, rawFitScale);
-    const minScale = Math.min(fitScale, Math.max(MIN_SCALE, fitScale * 0.5));
-    const maxScale = Math.min(MAX_SCALE, Math.max(fitScale * 2, minScale * 2));
+    const minScale = MIN_SCALE;
+    const maxScale = MAX_SCALE;
 
     state.fitScale = fitScale;
     state.minScale = minScale;
@@ -2299,6 +2315,7 @@ export default function MapCanvas({
     }
 
     sprite.scale.set(scale);
+    setZoomPercent(Math.round(scale * 100));
 
     const scaledWidth = baseWidth * scale;
     const scaledHeight = baseHeight * scale;
@@ -2386,6 +2403,7 @@ export default function MapCanvas({
   disposeAnimationResource(state.resource, { unload: true });
     overlay.visible = false;
     overlayStateRef.current = null;
+    setZoomPercent(Math.round(scaleRef.current * 100));
     const world = worldRef.current;
     if (world) {
       world.visible = true;
@@ -2977,7 +2995,7 @@ export default function MapCanvas({
         : createMovementAnimator(movementSummary, objectEntry, frameSet, state.collisionHelper);
       if (
         !disableObjectAnimations &&
-        !animator &&
+        (!animator || animator.kind === "idle") &&
         isPokemonIconSprite(spriteKey) &&
         iconFrameDurationMs
       ) {
@@ -3103,6 +3121,7 @@ export default function MapCanvas({
           g.zIndex = 4;
           existing.sprite.addChild(g);
           existing.sprite.sortChildren();
+          g.visible = showWarpsRef.current;
           existing.highlight = g;
         }
         rendererOn(app, "resize", positionOverlayContents);
@@ -3187,6 +3206,7 @@ export default function MapCanvas({
               radius,
             );
             graphic.endFill();
+            graphic.visible = showWarpsRef.current;
             graphic.alpha = baseAlpha;
             graphic.x = xCells * cellSize;
             graphic.y = yCells * cellSize;
@@ -3237,6 +3257,7 @@ export default function MapCanvas({
           highlightGraphic.endFill();
           highlightGraphic.x = highlight.xCells * cellSize;
           highlightGraphic.y = highlight.yCells * cellSize;
+          highlightGraphic.visible = showWarpsRef.current;
           highlightGraphic.eventMode = "none";
           highlightGraphic.interactive = false;
           highlightGraphic.cursor = "auto";
@@ -3869,7 +3890,7 @@ export default function MapCanvas({
           : createMovementAnimator(movementSummary, objectEntry, frameSet, entry.collisionHelper);
         if (
           !disableObjectAnimations &&
-          !animator &&
+          (!animator || animator.kind === "idle") &&
           isPokemonIconSprite(spriteKey) &&
           iconFrameDurationMs
         ) {
@@ -3985,6 +4006,7 @@ export default function MapCanvas({
     const scale = clampScale(isFiniteNumber(stored.scale) ? stored.scale : 1);
     world.scale.set(scale);
     scaleRef.current = scale;
+    setZoomPercent(Math.round(scale * 100));
     const normalizedX = clampUnit(stored.center?.x, 0.5);
     const normalizedY = clampUnit(stored.center?.y, 0.5);
     const centerX = bounds.width > 0 ? normalizedX * bounds.width : 0;
@@ -4051,6 +4073,7 @@ export default function MapCanvas({
       overlayRef.current = overlay;
       // Add a dedicated warps overlay layer above all map sprites
       const warpsLayer = new Container();
+      warpsLayer.visible = showWarpsRef.current;
       warpsLayer.sortableChildren = true;
       warpsLayer.eventMode = "static";
       warpsLayer.interactiveChildren = true;
@@ -4246,6 +4269,7 @@ export default function MapCanvas({
       }
       // Recreate the global warps layer after clearing the world so future markers have a visible parent
       const warpsLayer = new Container();
+      warpsLayer.visible = showWarpsRef.current;
       warpsLayer.sortableChildren = true;
       warpsLayer.eventMode = "static";
       warpsLayer.interactiveChildren = true;
@@ -4281,14 +4305,14 @@ export default function MapCanvas({
       const { width: viewWidth, height: viewHeight } = getEffectiveViewSize(app);
       const width = bounds.width || viewWidth || 1;
       const height = bounds.height || viewHeight || 1;
-      const candidate = Math.min(viewWidth / width, viewHeight / height) || 1;
-      const clamped = clampScale(candidate * 0.95);
+      const home = atlas.placements.find((placement) => placement.label === "NewBarkTown");
+      const clamped = home ? 1 : clampScale(Math.min(viewWidth / width, viewHeight / height) * 0.95);
+      const centerX = home ? home.x + home.widthPx / 2 : width / 2;
+      const centerY = home ? home.y + home.heightPx / 2 : height / 2;
       scaleRef.current = clamped;
       world.scale.set(clamped);
-      const scaledWidth = width * clamped;
-      const scaledHeight = height * clamped;
-      world.x = (viewWidth - scaledWidth) / 2;
-      world.y = (viewHeight - scaledHeight) / 2;
+      setZoomPercent(Math.round(clamped * 100));
+      world.position.set(viewWidth / 2 - centerX * clamped, viewHeight / 2 - centerY * clamped);
       clampWorldToBounds();
       persistViewState();
       // Render once in static mode after resetting
@@ -4795,7 +4819,7 @@ export default function MapCanvas({
           /* ignore */
         }
       }
-      if (!editingEnabled || !entry.neighborhoodId) {
+      if (!editingEnabled || !entry.neighborhoodId || !(entry.neighborhoodId in baseOffsetsRef.current)) {
         sprite.eventMode = "static";
         // Default to auto cursor on maps when not actively draggable
         sprite.cursor = "auto";
@@ -4946,6 +4970,7 @@ export default function MapCanvas({
 
       world.scale.set(clamped);
       scaleRef.current = clamped;
+      setZoomPercent(Math.round(clamped * 100));
 
       world.x = localX - worldX * clamped;
       world.y = localY - worldY * clamped;
@@ -4988,6 +5013,7 @@ export default function MapCanvas({
 
       overlaySprite.scale.set(clamped);
       state.scale = clamped;
+      setZoomPercent(Math.round(clamped * 100));
 
       overlaySprite.x = focusLocalX - spriteLocalX * clamped;
       overlaySprite.y = focusLocalY - spriteLocalY * clamped;
@@ -5022,6 +5048,11 @@ export default function MapCanvas({
 
       state.positioned = true;
       maybeRender();
+    };
+
+    manualZoomRef.current = (scale) => {
+      if (overlayStateRef.current) applyOverlayScale(scale);
+      else applyScale(scale);
     };
 
     const clampOverlayPosition = (): void => {
@@ -5249,6 +5280,7 @@ export default function MapCanvas({
     rendererOn(app, "resize", handleRendererResize);
 
     return () => {
+      manualZoomRef.current = null;
       canvas.removeEventListener("pointerdown", handlePointerDown);
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerup", handlePointerUp);
@@ -5309,6 +5341,7 @@ export default function MapCanvas({
         const cy = viewH / 2;
         world.scale.set(next);
         scaleRef.current = next;
+        setZoomPercent(Math.round(next * 100));
         world.x = world.x + (1 - k) * (cx - world.x);
         world.y = world.y + (1 - k) * (cy - world.y);
         clampWorldToBounds();
@@ -5443,6 +5476,25 @@ export default function MapCanvas({
           zIndex: 1000,
         }}
       >
+        <label className="view-control">
+          Zoom
+          <input type="number" min={MIN_SCALE * 100} max={MAX_SCALE * 100}
+            value={zoomDraft ?? zoomPercent}
+            onChange={(event) => setZoomDraft(event.target.value)}
+            onBlur={(event) => {
+              const value = event.currentTarget.valueAsNumber;
+              if (Number.isFinite(value)) manualZoomRef.current?.(value / 100);
+              setZoomDraft(null);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") event.currentTarget.blur();
+            }}
+          />%
+        </label>
+        <label className="view-control">
+          <input type="checkbox" checked={showWarps} onChange={(e) => setShowWarps(e.target.checked)} />
+          Warps
+        </label>
         {/* Weather toggle (auto per-map) */}
         <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
           <input

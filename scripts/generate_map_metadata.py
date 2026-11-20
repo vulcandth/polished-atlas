@@ -339,7 +339,7 @@ def build_metadata(
             height_blocks = info.height
         elif attr is not None:
             map_constant = attr.constant
-        is_overworld = map_type in TARGET_OVERWORLD_TYPES if map_type else False
+        is_overworld = bool(info and info.in_world_stitch)
         warp_entries: List[dict] = []
         for warp in warps:
             target_constant = warp.target_constant
@@ -361,7 +361,7 @@ def build_metadata(
                         "map_label": target_label,
                         "warp_index": warp.target_warp_index,
                         "map_type": target_info.map_type if target_info else None,
-                        "is_overworld": (target_info.map_type in TARGET_OVERWORLD_TYPES) if target_info else False,
+                        "is_overworld": bool(target_info and target_info.in_world_stitch),
                         "x_cells": destination_warp.x_cell if destination_warp else None,
                         "y_cells": destination_warp.y_cell if destination_warp else None,
                     },

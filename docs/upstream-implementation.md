@@ -7,12 +7,19 @@ dev branch at `/polished-atlas/dev/`. Both retain the existing atlas features.
 Publish both together manually. Future upstream updates require reviewed SHA
 changes, not an automatically moving master reference.
 
-The dev target is `f8e67fbd53ad7a99870d8ab87fd73612e6c6a679`, verified against
-upstream master on November 19, 2026. The first audit pass targeted `704ea9db1`.
-The baseline is `e410d7405e7d5d016b16a0a59bfb6da0b2a9eabf` (v3.2.2).
-There are 1,057 commits and 3,520 changed endpoint paths in the current range.
+## November 19 development update
 
-## Current audit status
+Dev pins polishedcrystal `36b2fc1522791105145ce35939090384bec4aaa7`. The audit ledger covers 1,061 commits and 3,520 changed endpoint paths since v3.2.2. Each commit has a recorded relevance decision. Visual checks sample particular scenes and conditions, so the audit is **not all-inclusive**.
+
+All 26 upstream `fake_connection` declarations position maps within their groups. The declaring map draws above its target where they overlap. A block is 32 pixels and a half-block is 16 pixels. Real connections and their split destinations also contribute to placement. Warp events govern travel. National Park and Viridian Forest keep their interior presentation.
+
+The 104-map mainland is fixed. Seven detached groups have canvas positions in `scripts/island_positions.json`: Faraway Island (3 maps), Navel Rock (2), Rugged Road and Snowtop Mountain (4), Safari Zone (4), Shamouti Island (6), Sinjoh Ruins (1), and Valencia Island (2). Faraway sits southwest and Sinjoh sits north of Dragon’s Den.
+
+Each build writes `maps/stitch_report.json` with every detached group's members, direct cross-group warps, and interiors with exits into different groups. Two gatehouses merit review at this revision: Route 39–Rugged Road South and Fuchsia City–Safari Zone Hub. Travel by script, ferry, or a chain of rooms requires separate review.
+
+Bellchime Trail's west declaration puts Ecruteak Shrine 8.5 blocks south of the trail. This differs from the reference positioning of the Barrier Station roof. Atlas uses the declaration as written pending upstream review.
+
+## Previous audit through f8e67fbd
 
 All 1,057 commits from v3.2.2 through `f8e67fbd` have had a relevance
 screen and a recorded disposition. The implementation audit resolves all

@@ -360,6 +360,8 @@ def build_metadata(
     parser = AttributesParser(attributes_source)
     attribute_graph = parser.parse()
     map_info = repo_index.maps
+    excluded_overworld = {label for label in excluded_overworld
+                          if label not in map_info or map_info[label].stitch is not True}
     constant_to_label = {info.constant: label for label, info in map_info.items()}
     map_scripts_dir = polished_path / "maps"
     script_warps: Dict[str, List[WarpEvent]] = {}
@@ -388,7 +390,7 @@ def build_metadata(
             height_blocks = info.height
         elif attr is not None:
             map_constant = attr.constant
-        is_overworld = (map_type in TARGET_OVERWORLD_TYPES) if map_type else False
+        is_overworld = bool(info and info.in_world_stitch)
         if label in excluded_overworld:
             is_overworld = False
         warp_entries: List[dict] = []
@@ -413,7 +415,7 @@ def build_metadata(
                         "warp_index": warp.target_warp_index,
                         "map_type": target_info.map_type if target_info else None,
                         "is_overworld": (
-                            (target_info.map_type in TARGET_OVERWORLD_TYPES) if target_info else False
+                            bool(target_info and target_info.in_world_stitch)
                         )
                         and (target_label not in excluded_overworld if target_label else False),
                         "x_cells": destination_warp.x_cell if destination_warp else None,

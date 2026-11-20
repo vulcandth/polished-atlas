@@ -35,10 +35,11 @@ class MapConnection:
     direction: str
     label: str
     constant: str
-    offset: int
+    offset: float
     layout_only: bool = False
     split_range: Optional[Tuple[Optional[int], Optional[int]]] = None
-    overlap_blocks: int = 0
+    overlap_blocks: float = 0
+    declared_fake: bool = False
 
 
 @dataclass
@@ -59,23 +60,23 @@ class MapAttributes:
 @dataclass
 class Placement:
     label: str
-    x: int
-    y: int
+    x: float
+    y: float
     width: int
     height: int
 
 
-def _project_neighbour(source: Placement, width: int, height: int, connection: MapConnection) -> Tuple[int, int]:
-    offset = int(connection.offset)
+def _project_neighbour(source: Placement, width: int, height: int, connection: MapConnection) -> Tuple[float, float]:
+    offset = connection.offset
     direction = connection.direction.lower()
     if direction == "north":
         return source.x + offset, source.y - height + connection.overlap_blocks
     if direction == "south":
         return source.x + offset, source.y + source.height - connection.overlap_blocks
     if direction == "west":
-        return source.x - width, source.y + offset
+        return source.x - width + connection.overlap_blocks, source.y + offset
     if direction == "east":
-        return source.x + source.width, source.y + offset
+        return source.x + source.width - connection.overlap_blocks, source.y + offset
     raise ValueError(f"Unsupported connection direction '{connection.direction}'")
 
 
@@ -118,6 +119,17 @@ class AttributesParser:
                 continue
             if line.startswith("map_attributes "):
                 raise ValueError(f"Unable to parse map attributes: {line}")
+            if line.startswith("fake_connection "):
+                parts = [arg.strip() for arg in line[len("fake_connection "):].split(",")]
+                if (current is None or len(parts) not in (4, 5)
+                        or parts[0] not in {"north", "south", "east", "west"}
+                        or any(not re.fullmatch(r"[-+]?\d+(?:\.5)?", value) for value in parts[3:])):
+                    raise ValueError(f"Invalid fake connection: {line}")
+                direction, label, constant, offset = parts[:4]
+                distance = float(parts[4]) if len(parts) == 5 else 0
+                current.connections.append(MapConnection(direction, label, constant, float(offset),
+                    layout_only=True, overlap_blocks=-distance, declared_fake=True))
+                continue
             if line.startswith("connection "):
                 conn_match = _CONNECTION_RE.fullmatch(line)
                 if not conn_match or current is None:
@@ -151,8 +163,13 @@ class AttributesParser:
         # Modern upstream derives the flags from each connection macro instead
         # of repeating a fourth argument on map_attributes.
         for data in maps.values():
+            for connection in data.connections:
+                if connection.declared_fake and (
+                    connection.label not in maps or maps[connection.label].constant != connection.constant
+                ):
+                    raise ValueError(f"Unknown fake connection destination from {data.label}: {connection}")
             if not data.connection_flags:
-                data.connection_flags = [connection.direction.upper() for connection in data.connections] or ["0"]
+                data.connection_flags = [connection.direction.upper() for connection in data.connections if not connection.layout_only] or ["0"]
         return maps
 
     def _iter_lines(self) -> Iterable[str]:
@@ -229,7 +246,7 @@ def _layout_graph(graph: Dict[str, MapAttributes], root: Path) -> Tuple[Dict[str
             dimension = source.width if direction in {"north", "south"} else source.height
             if dimension is None or not 0 < split < dimension * 2:
                 raise ValueError(f"Dual split outside source edge: {line}")
-            original = [c for c in source.connections if c.direction == direction]
+            original = [c for c in source.connections if c.direction == direction and not c.layout_only]
             if len(original) != 1:
                 raise ValueError(f"Dual connection requires one border connection: {key}")
             branches = []
@@ -245,7 +262,7 @@ def _layout_graph(graph: Dict[str, MapAttributes], root: Path) -> Tuple[Dict[str
             raise ValueError("Unterminated dual connection continuation")
 
     # A replaced border strip with no remaining incoming edge is only a visual
-    # proxy. CherrygroveTrainTrackDual is retained because a real branch uses it.
+    # proxy. The Cherrygrove train track is retained because a real branch uses it.
     incoming = {c.label for data in result.values() for c in data.connections}
     proxies = replaced - incoming
     for label in proxies:
@@ -256,7 +273,9 @@ def _layout_graph(graph: Dict[str, MapAttributes], root: Path) -> Tuple[Dict[str
     opposite = {"north": "south", "south": "north", "west": "east", "east": "west"}
     for source in list(result.values()):
         for connection in list(source.connections):
-            if connection.layout_only or connection.label not in result:
+            if connection.layout_only and not connection.declared_fake:
+                continue
+            if connection.label not in result:
                 continue
             target = result[connection.label]
             if not any(c.label == source.label for c in target.connections):

@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Build one self-contained atlas from a verified upstream commit.
 
-Generated files never come from the tracked maps directory. Only its curated
-neighborhood layout is used as an explicit template.
+Generated files use the pinned source and the canvas positions of disconnected regions.
 """
 from __future__ import annotations
 
@@ -130,16 +129,17 @@ def main() -> None:
         if os.environ.get("ATLAS_WORKERS"):
             options.extend(["--workers", env["ATLAS_WORKERS"]])
         generate("render_maps.py", *options)
-        template = ROOT / "maps" / slug / "animated/map_neighborhoods.json"
-        if not template.is_file():
-            template = ROOT / "maps/day/animated/map_neighborhoods.json"
         generate("generate_map_neighborhoods.py", "--time-of-day", slug,
                  "--attributes", upstream / "data/maps/attributes.asm",
-                 "--layout-template", template,
                  "--overlay-rules", scripts / "overlay_rules.json",
                  "--overworld-exclude-file", scripts / "overworld_exclude.json")
     generate("generate_warp_metadata.py", "--weekday", str(weekday),
              "--overworld-exclude-file", scripts / "overworld_exclude.json")
+    from stitch_report import stitch_report
+    manifest = json.loads((maps / slugs[0] / "animated/map_neighborhoods.json").read_text(encoding="utf-8"))
+    warp_maps = json.loads((maps / "warp_metadata.json").read_text(encoding="utf-8"))["maps"]
+    report = stitch_report(manifest, warp_maps)
+    (maps / "stitch_report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     generate("generate_object_metadata.py", "--weekday", str(weekday), "--event-overrides", overrides)
     generate("generate_weather_metadata.py")
     generate("generate_weather_state.py", "--weekday", str(weekday), "--time-of-day", slugs[0],

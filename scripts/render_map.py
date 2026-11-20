@@ -176,6 +176,7 @@ class _MapHeader:
     location: str
     default_constant: Optional[str]
     palette_flags: Set[str]
+    stitch: Optional[bool] = None
 
 
 
@@ -395,6 +396,11 @@ class MapInfo:
     location_index: Optional[int]
     palette_flags: Set[str]
     region: Optional[int]
+    stitch: Optional[bool] = None
+
+    @property
+    def in_world_stitch(self) -> bool:
+        return self.stitch if self.stitch is not None else self.map_type in {"TOWN", "ROUTE", "ISOLATED"}
 
 
 @dataclass
@@ -575,7 +581,9 @@ class RepositoryIndex:
             palette_flags: Set[str] = set()
             if len(parts) > 7:
                 palette_flags = {flag.strip() for flag in parts[7].split("|") if flag.strip()}
+            marker = raw_line.partition(";")[2].strip()
             mapping[label] = _MapHeader(
+                stitch={"yes-stitch": True, "no-stitch": False}.get(marker),
                 tileset=tileset,
                 map_type=map_type,
                 location=location,
@@ -1339,6 +1347,7 @@ class RepositoryIndex:
                 location_index=location_index,
                 palette_flags=set(header.palette_flags),
                 region=region,
+                stitch=header.stitch,
             )
         return maps
 

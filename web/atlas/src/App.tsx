@@ -214,7 +214,10 @@ export default function App() {
   } = useObjectMetadata();
   const isLoading = loading || warpLoading || objectLoading || bgLoading;
   const neighborhoods: NeighborhoodSummary[] = useMemo(
-    () => layout?.metadata?.neighborhoods ?? [],
+    () => {
+      const mainland = layout?.placements.find((map) => map.label === "NewBarkTown")?.metadata?.neighborhoodId;
+      return (layout?.metadata?.neighborhoods ?? []).filter((group) => group.id !== mainland);
+    },
     [layout],
   );
   const assetResolver = useMemo(() => {
@@ -436,7 +439,7 @@ export default function App() {
     }
     const normalizedOffsets: Record<string, OffsetTuple> = {};
     const normalizedZ: Record<string, number> = {};
-    const payload = layout.metadata.neighborhoods.map((summary) => {
+    const payload = neighborhoods.map((summary) => {
       const baseOffset = baseOffsetsRef.current[summary.id] ?? [0, 0];
       const overrideOffset = offsetOverrides[summary.id] ?? baseOffset;
       const snapped: OffsetTuple = [snapToHalf(overrideOffset[0]), snapToHalf(overrideOffset[1])];
@@ -467,7 +470,7 @@ export default function App() {
     baseZRef.current = { ...normalizedZ };
     setOffsetOverrides(cloneOffsetMap(normalizedOffsets));
     setZOverrides({ ...normalizedZ });
-  }, [layout, offsetOverrides, zOverrides]);
+  }, [layout, neighborhoods, offsetOverrides, zOverrides]);
 
   const canEdit =
     import.meta.env.DEV &&
@@ -606,22 +609,7 @@ export default function App() {
     timeSelectTitle = "Select atlas time of day.";
   }
 
-  const timeLabel = useMemo(() => {
-    const option = TIME_OF_DAY_OPTIONS.find((item) => item.value === timeOfDay);
-    return option?.label ?? "Day";
-  }, [timeOfDay]);
-
-  const neighborhoodCount = layout?.metadata?.neighborhoods?.length ?? 0;
   const mapCount = layout?.placements.length ?? 0;
-  const subtitleParts: string[] = [];
-  subtitleParts.push(`Time: ${timeLabel}`);
-  if (neighborhoodCount > 0) {
-    subtitleParts.push(`${neighborhoodCount} neighborhood${neighborhoodCount === 1 ? "" : "s"}`);
-  }
-  if (mapCount > 0) {
-    subtitleParts.push(`${mapCount} map${mapCount === 1 ? "" : "s"}`);
-  }
-  const subtitle = subtitleParts.length > 0 ? subtitleParts.join(" • ") : "Loading atlas…";
 
   // Performance toggles (lifted to header)
   const initialPerf = readPerfSettings();
@@ -640,7 +628,7 @@ export default function App() {
       <header className="app-header">
         <div className="brand">
           <h1>Polished Atlas</h1>
-          <span className="subtitle">{subtitle}</span>
+          {mapCount > 0 && <span className="subtitle">{mapCount} maps</span>}
           <a className="version" href={UPSTREAM_COMMIT_URL} target="_blank" rel="noreferrer">
             {ATLAS_CHANNEL === "dev" ? "Development" : "Stable"} · polishedcrystal {POLISHED_VERSION}
           </a>
@@ -669,18 +657,18 @@ export default function App() {
             <label>
               <input
                 type="checkbox"
-                checked={disableMapAnimations}
-                onChange={(e) => setDisableMapAnimations(e.target.checked)}
+                checked={!disableMapAnimations}
+                onChange={(e) => setDisableMapAnimations(!e.target.checked)}
               />
-              <span>Disable map animations</span>
+              <span>Map animations</span>
             </label>
             <label>
               <input
                 type="checkbox"
-                checked={disableObjectAnimations}
-                onChange={(e) => setDisableObjectAnimations(e.target.checked)}
+                checked={!disableObjectAnimations}
+                onChange={(e) => setDisableObjectAnimations(!e.target.checked)}
               />
-              <span>Disable NPC animations</span>
+              <span>NPC animations</span>
             </label>
           </div>
           <button type="button" onClick={handleReloadClick} disabled={isLoading}>
@@ -692,7 +680,7 @@ export default function App() {
               onClick={handleToggleEditing}
               disabled={isLoading || saveStatus === "saving"}
             >
-              {!editing ? "Edit Layout" : saveStatus === "saving" ? "Saving…" : "Finish Editing"}
+              {!editing ? "Place islands" : saveStatus === "saving" ? "Saving…" : "Finish Editing"}
             </button>
           )}
         </div>
@@ -700,7 +688,7 @@ export default function App() {
       {editing && canEdit && (
         <section className="dev-toolbar">
           <div className="dev-row">
-            <label htmlFor="neighborhood-select">Neighborhood</label>
+            <label htmlFor="neighborhood-select">Detached group</label>
             <select
               id="neighborhood-select"
               value={selectedNeighborhoodId ?? ""}

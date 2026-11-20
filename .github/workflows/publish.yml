@@ -1,53 +1,28 @@
-name: Publish both atlases
+name: Publish development atlas
 
 on:
   workflow_dispatch:
+    inputs:
+      stable_run_id:
+        description: Successful main publication containing the live channel-stable artifact
+        required: true
+        type: string
 
 permissions:
   contents: read
+  actions: read
 
-# Shared with rollback; serialize the entire publication.
 concurrency:
   group: github-pages-publication
   cancel-in-progress: false
 
 jobs:
-  resolve:
-    runs-on: ubuntu-latest
-    outputs:
-      stable: ${{ steps.refs.outputs.stable }}
-      dev: ${{ steps.refs.outputs.dev }}
-    steps:
-      - name: Require the main coordinator
-        run: test '${{ github.ref }}' = refs/heads/main
-      - uses: actions/checkout@v4
-      - name: Snapshot both branch heads
-        id: refs
-        run: |
-          refs=$(git ls-remote --heads origin refs/heads/main refs/heads/dev)
-          stable=$(echo "$refs" | awk '$2 == "refs/heads/main" {print $1}')
-          dev=$(echo "$refs" | awk '$2 == "refs/heads/dev" {print $1}')
-          test ${#stable} -eq 40
-          test ${#dev} -eq 40
-          echo "stable=$stable" >> "$GITHUB_OUTPUT"
-          echo "dev=$dev" >> "$GITHUB_OUTPUT"
   build:
-    needs: resolve
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - channel: stable
-            commit: ${{ needs.resolve.outputs.stable }}
-            suffix: ''
-          - channel: dev
-            commit: ${{ needs.resolve.outputs.dev }}
-            suffix: 'dev/'
     steps:
+      - name: Require dev branch
+        run: test "$GITHUB_REF" = refs/heads/dev
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -56,43 +31,52 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: web/atlas/package-lock.json
-      - name: Verify source channel
-        env:
-          EXPECTED_CHANNEL: ${{ matrix.channel }}
-        run: python -c 'import json, os; assert json.load(open("atlas-source.json"))["channel"] == os.environ["EXPECTED_CHANNEL"]'
+      - name: Verify dev source
+        run: python -c 'import json; assert json.load(open("atlas-source.json"))["channel"] == "dev"'
       - run: python -m unittest discover -s scripts/tests
       - run: npm ci && npm test && npm run lint && npx tsc --noEmit
         working-directory: web/atlas
       - name: Build pinned channel
         env:
           POLISHED_DIR: ${{ github.workspace }}/external/upstream
-          VITE_PUBLIC_BASE: /${{ github.event.repository.name }}/${{ matrix.suffix }}
+          VITE_PUBLIC_BASE: /${{ github.event.repository.name }}/dev/
         run: python scripts/build_atlas.py --skip-install
       - name: Require complete upstream audit
-        if: matrix.channel == 'dev'
         run: |
           git -C external/upstream fetch --unshallow origin
           head=$(python -c 'import json; print(json.load(open("atlas-source.json"))["commit"])')
           python scripts/audit_upstream.py --repo external/upstream --output docs/upstream-audit.json --head "$head" --check
       - uses: actions/upload-artifact@v4
         with:
-          name: channel-${{ matrix.channel }}
+          name: channel-dev
           path: web/atlas/dist
           if-no-files-found: error
   assemble:
-    needs: [resolve, build]
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.resolve.outputs.stable }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Verify stable artifact provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STABLE_RUN: ${{ inputs.stable_run_id }}
+        run: |
+          [[ "$STABLE_RUN" =~ ^[0-9]+$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$STABLE_RUN" > .build-stable-run.json
+          python -c 'import json; r=json.load(open(".build-stable-run.json")); assert (r["head_branch"], r["path"], r["conclusion"]) == ("main", ".github/workflows/publish.yml", "success")'
       - uses: actions/download-artifact@v4
         with:
           name: channel-stable
           path: .build/stable
+          run-id: ${{ inputs.stable_run_id }}
+          github-token: ${{ github.token }}
+      - name: Match retained stable bundle to the live deployment
+        run: |
+          curl --fail --retry 3 "https://${GITHUB_REPOSITORY_OWNER,,}.github.io/${GITHUB_REPOSITORY#*/}/build-info.json?run=$GITHUB_RUN_ID" -o .build/live-stable.json
+          cmp .build/live-stable.json .build/stable/build-info.json
       - uses: actions/download-artifact@v4
         with:
           name: channel-dev

@@ -3406,6 +3406,7 @@ export default function MapCanvas({
       if (editing) {
         return;
       }
+      hideTooltip(true);
       highlightWarpMarker(entry, warp.index);
       const target = warp.target;
       const targetLabel = resolveTargetLabel(target);
@@ -3440,6 +3441,7 @@ export default function MapCanvas({
       findWorldEntry,
       focusEntryOnWarp,
       getMapMetadata,
+      hideTooltip,
       highlightWarpMarker,
       openOverlay,
       resolveTargetLabel,
@@ -3452,6 +3454,7 @@ export default function MapCanvas({
       if (!state) {
         return;
       }
+      hideTooltip(true);
       const currentMapLabel = state.mapLabel;
       const target = warp.target;
       const targetLabel = resolveTargetLabel(target);
@@ -3569,6 +3572,7 @@ export default function MapCanvas({
       focusEntryOnWarp,
       getMapMetadata,
       getWarpMetadata,
+      hideTooltip,
       highlightWarpMarker,
       openOverlay,
       resolveTargetLabel,

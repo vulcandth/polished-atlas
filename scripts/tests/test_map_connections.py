@@ -72,7 +72,7 @@ map_attributes Room, ROOM, $1, 0
             if required:
                 self.fail(f"Required upstream corpus does not exist: {root}")
             self.skipTest("Optional upstream corpus is not checked out")
-        expected = os.environ.get("ATLAS_UPSTREAM_COMMIT", "36b2fc1522791105145ce35939090384bec4aaa7")
+        expected = os.environ.get("ATLAS_UPSTREAM_COMMIT", "6eb9a7c2e8b6776195550b53d0420067d99580b0")
         actual = subprocess.check_output([os.environ.get("GIT_BIN", "git"), "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
         self.assertEqual(actual, expected)
         path = root / "data/maps/attributes.asm"
@@ -103,7 +103,7 @@ map_attributes Room, ROOM, $1, 0
         self.assertIn("OlivineCity", connected)
         layout_graph, proxies = _layout_graph(graph, root)
         fake_edges = [(label, c) for label, node in graph.items() for c in node.connections if c.declared_fake]
-        self.assertEqual(len(fake_edges), 26)
+        self.assertEqual(len(fake_edges), 27)
         self.assertEqual(proxies, {'Route14LuckyIslandDual', 'OlivineCityRoute35CoastDual'})
         self.assertIn('CherrygroveTrainTrack', layout_graph)
         route13 = [c for c in layout_graph['Route13'].connections if c.direction == 'south']

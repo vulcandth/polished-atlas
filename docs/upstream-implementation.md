@@ -9,15 +9,15 @@ changes, not an automatically moving master reference.
 
 ## November 19 development update
 
-Dev pins polishedcrystal `36b2fc1522791105145ce35939090384bec4aaa7`. The audit ledger covers 1,061 commits and 3,520 changed endpoint paths since v3.2.2. Each commit has a recorded relevance decision. Visual checks sample particular scenes and conditions, so the audit is **not all-inclusive**.
+Dev pins polishedcrystal `6eb9a7c2e8b6776195550b53d0420067d99580b0`. The audit ledger covers 1,062 commits and 3,520 changed endpoint paths since v3.2.2. Each commit has a recorded relevance decision. Visual checks sample particular scenes and conditions, so the audit is **not all-inclusive**.
 
-All 26 upstream `fake_connection` declarations position maps within their groups. The declaring map draws above its target where they overlap. A block is 32 pixels and a half-block is 16 pixels. Real connections and their split destinations also contribute to placement. Warp events govern travel. National Park and Viridian Forest keep their interior presentation.
+All 27 upstream `fake_connection` declarations position maps within their groups. The declaring map draws above its target where they overlap. A block is 32 pixels and a half-block is 16 pixels. Real connections and their split destinations also contribute to placement. Warp events govern travel. National Park and Viridian Forest keep their interior presentation.
 
-The 104-map mainland is fixed. Seven detached groups have canvas positions in `scripts/island_positions.json`: Faraway Island (3 maps), Navel Rock (2), Rugged Road and Snowtop Mountain (4), Safari Zone (4), Shamouti Island (6), Sinjoh Ruins (1), and Valencia Island (2). Faraway sits southwest and Sinjoh sits north of Dragon’s Den.
+Rugged Road South now overlaps Route 39 by three blocks, joining the two Rugged Road maps and both Snowtop Mountain maps to the 108-map mainland. Ecruteak Shrine starts 8.5 blocks north of Bellchime Trail, with a three-block horizontal overlap at the Barrier Station. Safari Zone North sits seven blocks north of the hub, offset 2.5 blocks to the west.
 
-Each build writes `maps/stitch_report.json` with every detached group's members, direct cross-group warps, and interiors with exits into different groups. Two gatehouses merit review at this revision: Route 39–Rugged Road South and Fuchsia City–Safari Zone Hub. Travel by script, ferry, or a chain of rooms requires separate review.
+Six detached groups have canvas positions in `scripts/island_positions.json`: Faraway Island (3 maps), Navel Rock (2), Safari Zone (4), Shamouti Island (6), Sinjoh Ruins (1), and Valencia Island (2). Faraway sits southwest and Sinjoh sits north of Dragon’s Den.
 
-Bellchime Trail's west declaration puts Ecruteak Shrine 8.5 blocks south of the trail. This differs from the reference positioning of the Barrier Station roof. Atlas uses the declaration as written pending upstream review.
+Each build writes `maps/stitch_report.json` with every detached group's members, direct cross-group warps, and interiors with exits into different groups. The only gatehouse crossing groups at this revision connects Fuchsia City to Safari Zone Hub. Travel by script, ferry, or a chain of rooms requires separate review.
 
 ## Previous audit through f8e67fbd
 

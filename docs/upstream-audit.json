@@ -1,7 +1,7 @@
 {
   "base": "e410d7405e7d5d016b16a0a59bfb6da0b2a9eabf",
-  "head": "36b2fc1522791105145ce35939090384bec4aaa7",
-  "commit_count": 1061,
+  "head": "6eb9a7c2e8b6776195550b53d0420067d99580b0",
+  "commit_count": 1062,
   "endpoint_changes": [
     [
       "M",
@@ -69412,6 +69412,27 @@
         "Inspected the 19 changed tileset and map files. All seven changed map block files render at four clocks. Pallet, Cerulean, Fuchsia, Celadon and Route 5 emit foreground priority layers."
       ],
       "review_method": "binary-data-diff"
+    },
+    {
+      "sha": "6eb9a7c2e8b6776195550b53d0420067d99580b0",
+      "parents": [
+        "36b2fc1522791105145ce35939090384bec4aaa7"
+      ],
+      "subject": "Fix `fake_connection`s",
+      "changes": [
+        [
+          "M",
+          "data/maps/attributes.asm"
+        ]
+      ],
+      "status": "resolved",
+      "disposition": "regeneration",
+      "reason": "The new Route 39 seam joins Rugged Road to the mainland. The shrine offset and Safari Zone North direction correct their placement.",
+      "evidence": [
+        "https://github.com/Rangi42/polishedcrystal/commit/6eb9a7c2e8b6776195550b53d0420067d99580b0",
+        "Verified coordinates and draw order for all 27 authored seams. The mainland contains 108 maps. The six detached groups have no cross-group rectangle overlaps. The only shared interior across groups is SafariZoneFuchsiaGate."
+      ],
+      "review_method": "full-diff"
     }
   ]
 }
